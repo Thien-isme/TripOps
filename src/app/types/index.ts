@@ -63,12 +63,23 @@ export interface Location {
   checkInNote?: string;
 }
 
+export interface TourAlternativeMeal {
+  id: string;
+  restaurantName: string;
+  priceDifference: number; // e.g. +50000, +180000, -30000
+  description?: string;
+  address?: string;
+}
+
 export interface TourMeal {
+  id?: string;
   type: "breakfast" | "lunch" | "dinner";
   serviceId?: string;
   serviceName?: string;
   description?: string;
   pricePerPerson?: number;
+  allowCustomMealRequest?: boolean; // Cho phép khách tự đề xuất nhà hàng ngoài danh sách
+  alternativeMeals?: TourAlternativeMeal[]; // Danh sách nhà hàng đổi món/nâng cấp cho khách chọn
 }
 
 export interface TourAlternativeHotel {

@@ -466,12 +466,66 @@ export const mockTours: Tour[] = [
             serviceName: "Nhà hàng Hương Rừng Đà Lạt",
             description: "Đặc sản gà đồi, cơm lam, rau củ tươi organic Đà Lạt",
             pricePerPerson: 120000,
+            allowCustomMealRequest: true,
+            alternativeMeals: [
+              {
+                id: "alt-meal-1",
+                restaurantName: "Nhà hàng Trúc Lâm Viên",
+                priceDifference: 30000,
+                description: "Cơm niêu gia đình, cá kho tộ, canh atiso sườn non",
+              },
+              {
+                id: "alt-meal-2",
+                restaurantName: "Nhà hàng Leguda Buffet Rau Cáp Treo",
+                priceDifference: 40000,
+                description: "Buffet rau sạch không giới hạn đồi Robin view cáp treo",
+              },
+              {
+                id: "alt-meal-3",
+                restaurantName: "Nhà hàng Làng Nướng Đà Lạt",
+                priceDifference: 50000,
+                description: "Thịt rừng nướng ngói, rau rừng xào tỏi thơm lừng",
+              },
+              {
+                id: "alt-meal-4",
+                restaurantName: "Cơm lam Gà nướng Tam Nguyên",
+                priceDifference: -20000,
+                description: "Đặc sản dân dã gà đồi nướng than hoa, cơm lam ống tre",
+              },
+            ],
           },
           {
             type: "dinner",
             serviceName: "Nhà hàng Chợ Đêm & Phố Ẩm Thực Đà Lạt",
             description: "Ẩm thực đường phố: bánh tráng nướng, sữa đậu nành",
             pricePerPerson: 90000,
+            allowCustomMealRequest: true,
+            alternativeMeals: [
+              {
+                id: "alt-meal-5",
+                restaurantName: "Nhà hàng Lẩu Gà Lá É Tao Ngộ",
+                priceDifference: 40000,
+                description: "Đặc sản lẩu gà lá é trứ danh thơm cay ấm cúng giữa đêm sương",
+              },
+              {
+                id: "alt-meal-6",
+                restaurantName: "Nhà hàng Quán Nướng Chu",
+                priceDifference: 60000,
+                description: "Món nướng đá ngói, bò tơ nướng sa tế đậm đà nức tiếng",
+              },
+              {
+                id: "alt-meal-7",
+                restaurantName: "Nhà hàng Dalat Palace Ristorante",
+                priceDifference: 200000,
+                description: "Ẩm thực Fine Dining Âu - Á cao cấp sang trọng chuẩn 5 sao",
+              },
+              {
+                id: "alt-meal-8",
+                restaurantName: "Lẩu bò Ba Toa Quán Gỗ",
+                priceDifference: -15000,
+                description: "Lẩu bò đậm đà phong vị Đà Lạt truyền thống nổi tiếng",
+              },
+            ],
           },
         ],
         locations: [
