@@ -151,7 +151,9 @@ export interface BookingPassenger {
 export interface CustomLocationChange {
   dayId: string;
   dayNumber: number;
-  originalLocations: string[];
+  locationId?: string;
+  originalLocationName?: string;
+  originalLocations?: string[];
   requestedLocations: string;
   note?: string;
 }

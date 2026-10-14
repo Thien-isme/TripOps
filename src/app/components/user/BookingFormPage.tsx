@@ -920,7 +920,11 @@ export function BookingFormPage({
                               <p className="font-bold text-gray-900">
                                 Ngày {lc.dayNumber}: <span className="text-amber-800 font-bold">→ {lc.requestedLocations}</span>
                               </p>
-                              {lc.originalLocations && (
+                              {lc.originalLocationName ? (
+                                <p className="text-gray-400 line-through text-[11px]">
+                                  Gốc: {lc.originalLocationName}
+                                </p>
+                              ) : lc.originalLocations && (
                                 <p className="text-gray-400 line-through text-[11px]">
                                   Gốc: {lc.originalLocations.join(", ")}
                                 </p>
@@ -1044,7 +1048,15 @@ export function BookingFormPage({
                               <div className="space-y-2.5">
                                 {day.locations && day.locations.length > 0 ? (
                                   day.locations.map((loc, lIdx) => {
-                                    const isLocChanged = Boolean(dayLocChange);
+                                    const locChange = locationChanges?.find(
+                                      (lc) =>
+                                        (lc.dayId === day.id || lc.dayNumber === day.day) &&
+                                        (lc.locationId === loc.id ||
+                                          (lc.originalLocationName && lc.originalLocationName.toLowerCase() === loc.name.toLowerCase()) ||
+                                          (lc.originalLocations && lc.originalLocations.some((orig) => orig.toLowerCase() === loc.name.toLowerCase())))
+                                    );
+                                    const isLocChanged = Boolean(locChange);
+
                                     return (
                                       <div key={loc.id || lIdx} className="relative flex items-center gap-3">
                                         {/* Dot */}
@@ -1070,11 +1082,11 @@ export function BookingFormPage({
                                                 <>
                                                   <p className="text-xs text-gray-400 line-through">{loc.name}</p>
                                                   <p className="text-sm font-medium text-amber-800 mt-0.5">
-                                                    → {dayLocChange?.requestedLocations}
+                                                    → {locChange?.requestedLocations}
                                                   </p>
-                                                  {dayLocChange?.note && (
+                                                  {locChange?.note && (
                                                     <p className="text-xs text-amber-600 mt-0.5 italic">
-                                                      Ghi chú: {dayLocChange.note}
+                                                      Ghi chú: {locChange.note}
                                                     </p>
                                                   )}
                                                 </>

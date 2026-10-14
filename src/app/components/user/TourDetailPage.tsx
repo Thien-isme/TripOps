@@ -655,15 +655,17 @@ function CustomTab({
       const dayState = days[day.id];
       if (!dayState) return;
       const changedLocs = dayState.locations.filter((l) => l.changed && l.changeRequest.trim());
-      if (changedLocs.length > 0) {
+      changedLocs.forEach((changedLoc) => {
         locationChanges.push({
           dayId: day.id,
           dayNumber: day.day,
-          originalLocations: day.locations.map((loc) => loc.name),
-          requestedLocations: changedLocs.map((l) => l.changeRequest.trim()).join(", "),
-          note: `Khách yêu cầu thay đổi ${changedLocs.length} điểm tham quan trong ngày`,
+          locationId: changedLoc.locationId,
+          originalLocationName: changedLoc.locationName,
+          originalLocations: [changedLoc.locationName],
+          requestedLocations: changedLoc.changeRequest.trim(),
+          note: `Đổi "${changedLoc.locationName}" sang "${changedLoc.changeRequest.trim()}"`,
         });
-      }
+      });
     });
 
     onCustomChange?.({
@@ -1407,15 +1409,17 @@ function CustomTab({
               const dayState = days[day.id];
               if (!dayState) return;
               const changedLocs = dayState.locations.filter((l) => l.changed && l.changeRequest.trim());
-              if (changedLocs.length > 0) {
+              changedLocs.forEach((changedLoc) => {
                 locationChanges.push({
                   dayId: day.id,
                   dayNumber: day.day,
-                  originalLocations: day.locations.map((loc) => loc.name),
-                  requestedLocations: changedLocs.map((l) => l.changeRequest.trim()).join(", "),
-                  note: `Khách yêu cầu thay đổi ${changedLocs.length} điểm tham quan trong ngày`,
+                  locationId: changedLoc.locationId,
+                  originalLocationName: changedLoc.locationName,
+                  originalLocations: [changedLoc.locationName],
+                  requestedLocations: changedLoc.changeRequest.trim(),
+                  note: `Đổi "${changedLoc.locationName}" sang "${changedLoc.changeRequest.trim()}"`,
                 });
-              }
+              });
             });
 
             onBookCustom?.({

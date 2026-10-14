@@ -845,9 +845,11 @@ export const mockBookings: Booking[] = [
       {
         dayId: "day-1",
         dayNumber: 1,
+        locationId: "loc-1-3",
+        originalLocationName: "Chợ đêm Đà Lạt",
         originalLocations: ["Chợ đêm Đà Lạt"],
         requestedLocations: "Quảng trường Lâm Viên & Phố đi bộ Hòa Bình",
-        note: "Khách muốn đi dạo quảng trường và chụp ảnh nụ hoa Atiso",
+        note: "Khách muốn đi dạo quảng trường và chụp ảnh nụ hoa Atiso thay vì đi chợ đêm",
       },
     ],
     customMealChanges: [

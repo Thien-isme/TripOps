@@ -612,7 +612,15 @@ export function CompanyBookingDetailPage({
                           <div className="space-y-2.5">
                             {day.locations && day.locations.length > 0 ? (
                               day.locations.map((loc, lIdx) => {
-                                const isLocChanged = Boolean(dayLocChange);
+                                const locChange = booking.locationChanges?.find(
+                                  (lc) =>
+                                    (lc.dayId === day.id || lc.dayNumber === day.day) &&
+                                    (lc.locationId === loc.id ||
+                                      (lc.originalLocationName && lc.originalLocationName.toLowerCase() === loc.name.toLowerCase()) ||
+                                      (lc.originalLocations && lc.originalLocations.some((orig) => orig.toLowerCase() === loc.name.toLowerCase())))
+                                );
+                                const isLocChanged = Boolean(locChange);
+
                                 return (
                                   <div key={loc.id || lIdx} className="relative flex items-center gap-3">
                                     {/* Dot */}
@@ -638,11 +646,11 @@ export function CompanyBookingDetailPage({
                                             <>
                                               <p className="text-xs text-gray-400 line-through">{loc.name}</p>
                                               <p className="text-sm font-medium text-amber-800 mt-0.5">
-                                                → {dayLocChange?.requestedLocations}
+                                                → {locChange?.requestedLocations}
                                               </p>
-                                              {dayLocChange?.note && (
+                                              {locChange?.note && (
                                                 <p className="text-xs text-amber-700 italic mt-0.5">
-                                                  Ghi chú của khách: {dayLocChange.note}
+                                                  Ghi chú của khách: {locChange.note}
                                                 </p>
                                               )}
                                             </>
