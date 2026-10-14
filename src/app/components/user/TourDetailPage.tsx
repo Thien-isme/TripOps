@@ -160,19 +160,69 @@ function ProgramTab({ tour }: { tour: Tour }) {
                 </button>
 
                 {isOpen && (
-                  <div className="px-4 py-4 space-y-3">
-                    <p className="text-gray-700 leading-relaxed">{day.description}</p>
+                  <div className="px-4 py-4 space-y-3.5">
+                    <p className="text-gray-700 leading-relaxed text-sm">{day.description}</p>
                     {day.locations.length > 0 && (
                       <div className="space-y-1.5">
                         {day.locations.map((loc) => (
                           <div key={loc.id} className="flex items-center gap-2 text-sm text-gray-700">
                             <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                            <span className="font-medium">{loc.name}</span>
-                            {loc.address && (
-                              <span className="text-gray-400 text-xs">– {loc.address}</span>
-                            )}
+                            <span className="font-medium text-gray-900">{loc.name}</span>
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Chế độ ẩm thực & Bữa ăn (Chỗ ăn) trong ngày */}
+                    {day.meals && day.meals.length > 0 && (
+                      <div className="pt-3 border-t border-gray-100 space-y-2">
+                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                          <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                          Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                          {day.meals.map((meal, mIdx) => {
+                            const mealType = meal.type;
+                            const label = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                            const isBreakfast = mealType === "breakfast";
+                            const isLunch = mealType === "lunch";
+                            return (
+                              <div
+                                key={mIdx}
+                                className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
+                                  isBreakfast
+                                    ? "bg-amber-50/60 border-amber-200/80"
+                                    : isLunch
+                                    ? "bg-emerald-50/60 border-emerald-200/80"
+                                    : "bg-purple-50/60 border-purple-200/80"
+                                }`}
+                              >
+                                <div
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    isBreakfast
+                                      ? "bg-amber-100 text-amber-700"
+                                      : isLunch
+                                      ? "bg-emerald-100 text-emerald-700"
+                                      : "bg-purple-100 text-purple-700"
+                                  }`}
+                                >
+                                  {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-gray-900">{label}</p>
+                                  <p className="text-xs text-gray-800 font-semibold truncate">
+                                    {meal.serviceName || "Nhà hàng theo chương trình"}
+                                  </p>
+                                  {meal.description && (
+                                    <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">
+                                      {meal.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -315,7 +365,14 @@ const SYSTEM_HOTELS = [
   { name: "Khách sạn Golf 3 Đà Lạt", pricePerNight: 2000000, description: "Khách sạn ngay phố đi bộ, thuận tiện mua sắm và ẩm thực" },
 ];
 
-const SYSTEM_RESTAURANTS: Array<{ name: string; mealType: "lunch" | "dinner"; pricePerPerson: number; description: string }> = [
+const SYSTEM_RESTAURANTS: Array<{ name: string; mealType: "breakfast" | "lunch" | "dinner"; pricePerPerson: number; description: string }> = [
+  // Bữa sáng (Breakfast)
+  { name: "Buffet sáng tiêu chuẩn tại Khách sạn", mealType: "breakfast", pricePerPerson: 70000, description: "Buffet sáng phong phú nhiều món Á - Âu kèm trà, cà phê tại khách sạn" },
+  { name: "Bánh căn Lệ Đà Lạt", mealType: "breakfast", pricePerPerson: 50000, description: "Bánh căn giòn rụm xíu mại trứng cút, nước mắm hành mỡ cay nồng" },
+  { name: "Bánh mì xíu mại Hoàng Diệu", mealType: "breakfast", pricePerPerson: 45000, description: "Bánh mì giòn chấm chén xíu mại nóng hổi béo ngậy đặc sản Đà Lạt" },
+  { name: "Phở thố đá Chu Gia Đà Lạt", mealType: "breakfast", pricePerPerson: 85000, description: "Phở bò thố đá sôi sục giữ trọn hương vị tươi ngọt đậm đà" },
+  { name: "Bún bò Huế ấp Ánh Sáng", mealType: "breakfast", pricePerPerson: 65000, description: "Tô bún bò đậm đà thơm mùi sả ruốc hương vị cố đô giữa lòng phố núi" },
+
   // Bữa trưa (Lunch)
   { name: "Nhà hàng Hương Rừng Đà Lạt", mealType: "lunch", pricePerPerson: 120000, description: "Đặc sản gà đồi, cơm lam, rau củ tươi organic Đà Lạt" },
   { name: "Nhà hàng Trúc Lâm Viên", mealType: "lunch", pricePerPerson: 140000, description: "Cơm niêu gia đình, cá kho tộ, canh atiso sườn non" },
@@ -341,7 +398,7 @@ interface HotelChoice {
 }
 
 interface MealChoice {
-  mealType: "lunch" | "dinner";
+  mealType: "breakfast" | "lunch" | "dinner";
   mode: "system" | "custom";
   systemName?: string;
   systemPrice?: number;
@@ -446,9 +503,8 @@ function CustomTab({
           changeRequest: "",
         })),
         mealChoices: (day.meals ?? [])
-          .filter((m) => m.type !== "breakfast")
           .map((m) => ({
-            mealType: m.type as "lunch" | "dinner",
+            mealType: m.type as "breakfast" | "lunch" | "dinner",
             mode: "system" as const,
             systemName: m.serviceName ?? "",
             systemPrice: m.pricePerPerson ?? 0,
@@ -481,7 +537,7 @@ function CustomTab({
     }));
   };
 
-  const updateMealChoice = (dayId: string, mealType: "lunch" | "dinner", update: Partial<MealChoice>) => {
+  const updateMealChoice = (dayId: string, mealType: "breakfast" | "lunch" | "dinner", update: Partial<MealChoice>) => {
     setDays((prev) => ({
       ...prev,
       [dayId]: {
@@ -861,235 +917,6 @@ function CustomTab({
         })}
       </div>
 
-      {/* ===== MEAL SECTION (CHỖ ĂN / NHÀ HÀNG RIÊNG BIỆT TƯƠNG TỰ CHỖ Ở) ===== */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-          <Utensils className="w-4 h-4 text-emerald-600" />
-          Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
-        </h3>
-
-        <div className="space-y-2.5">
-          {tour.itinerary.flatMap((day) => {
-            const dayState = days[day.id];
-            const mealChoices = dayState?.mealChoices ?? [];
-            return (day.meals ?? [])
-              .filter((m) => m.type !== "breakfast")
-              .map((defaultMeal) => {
-                const mealType = defaultMeal.type as "lunch" | "dinner";
-                const mealChoice = mealChoices.find((mc) => mc.mealType === mealType);
-                const mealKey = `${day.id}-${mealType}`;
-                const isExpanded = expandedMeal === mealKey;
-                const mealLabel = mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
-                const isCustom = mealChoice?.mode === "custom" && Boolean(mealChoice.customName?.trim());
-                const isSystemChanged =
-                  mealChoice?.mode === "system" &&
-                  Boolean(mealChoice.systemName) &&
-                  Boolean(defaultMeal.serviceName) &&
-                  mealChoice.systemName !== defaultMeal.serviceName;
-
-                return (
-                  <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedMeal(isExpanded ? null : mealKey)}
-                      className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
-                        mealType === "lunch" ? "bg-emerald-50/60 hover:bg-emerald-100/50" : "bg-purple-50/60 hover:bg-purple-100/50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          mealType === "lunch" ? "bg-emerald-100 text-emerald-700" : "bg-purple-100 text-purple-700"
-                        }`}>
-                          <Utensils className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900">
-                            Ngày {day.day} · {mealLabel}:{" "}
-                            <span className="font-bold text-gray-900">
-                              {mealChoice?.mode === "custom"
-                                ? (mealChoice.customName || "Tự nhập (chưa điền)")
-                                : (mealChoice?.systemName || defaultMeal.serviceName || "Nhà hàng theo tour")}
-                            </span>
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Mặc định của tour: {defaultMeal.serviceName || "Nhà hàng địa phương"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {isCustom && (
-                          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium border border-amber-200">
-                            Tự nhập – chờ báo giá
-                          </span>
-                        )}
-                        {isSystemChanged && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium border border-emerald-200">
-                              Đã đổi nhà hàng
-                            </span>
-                            {mealChoice?.priceDifference !== undefined ? (
-                              mealChoice.priceDifference !== 0 && (
-                                <span className={`text-xs font-bold ${mealChoice.priceDifference > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                  {mealChoice.priceDifference > 0 ? "+" : ""}{formatVND(mealChoice.priceDifference)}
-                                </span>
-                              )
-                            ) : (
-                              mealChoice?.systemPrice !== undefined && defaultMeal.pricePerPerson !== undefined && (
-                                <span className={`text-xs font-bold ${
-                                  mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "text-amber-600" : "text-emerald-600"
-                                }`}>
-                                  {mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "+" : ""}
-                                  {formatVND(mealChoice.systemPrice - defaultMeal.pricePerPerson)}
-                                </span>
-                              )
-                            )}
-                          </div>
-                        )}
-                        {!isCustom && !isSystemChanged && (
-                          <span className="text-xs text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200">
-                            Theo tour (0đ)
-                          </span>
-                        )}
-                        {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                      </div>
-                    </button>
-
-                    {isExpanded && (
-                      <div className="p-4 space-y-3 bg-white border-t border-gray-100">
-                        {/* Mode tabs (hide custom request tab if disabled by company) */}
-                        {defaultMeal.allowCustomMealRequest !== false && (
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => updateMealChoice(day.id, mealType, { mode: "system" })}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                                mealChoice?.mode === "system"
-                                  ? "bg-emerald-600 text-white border-emerald-600"
-                                  : "bg-white text-gray-600 border-gray-200 hover:border-emerald-300"
-                              }`}
-                            >
-                              Chọn nhà hàng từ hệ thống
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => updateMealChoice(day.id, mealType, { mode: "custom" })}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                                mealChoice?.mode === "custom"
-                                  ? "bg-amber-500 text-white border-amber-500"
-                                  : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
-                              }`}
-                            >
-                              Tự nhập nhà hàng theo ý muốn
-                            </button>
-                          </div>
-                        )}
-
-                        {/* System restaurant list */}
-                        {mealChoice?.mode === "system" && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {(() => {
-                              const options: Array<{ name: string; description?: string; diff: number; pricePerPerson?: number }> = [];
-
-                              // 1. Mặc định theo tour (0đ)
-                              options.push({
-                                name: defaultMeal.serviceName || "Nhà hàng theo tour",
-                                description: defaultMeal.description || "Thực đơn tiêu chuẩn của chương trình",
-                                diff: 0,
-                                pricePerPerson: defaultMeal.pricePerPerson,
-                              });
-
-                              // 2. Nếu tour đã cấu hình danh sách alternativeMeals
-                              if (defaultMeal.alternativeMeals && defaultMeal.alternativeMeals.length > 0) {
-                                defaultMeal.alternativeMeals.forEach((alt) => {
-                                  options.push({
-                                    name: alt.restaurantName,
-                                    description: alt.description || alt.address || "",
-                                    diff: alt.priceDifference,
-                                    pricePerPerson: (defaultMeal.pricePerPerson || 0) + alt.priceDifference,
-                                  });
-                                });
-                              } else {
-                                // Fallback sang danh mục nhà hàng hệ thống
-                                SYSTEM_RESTAURANTS.filter((r) => r.mealType === mealType && r.name !== defaultMeal.serviceName).forEach((r) => {
-                                  const diff = r.pricePerPerson - (defaultMeal.pricePerPerson ?? 0);
-                                  options.push({
-                                    name: r.name,
-                                    description: r.description,
-                                    diff,
-                                    pricePerPerson: r.pricePerPerson,
-                                  });
-                                });
-                              }
-
-                              return options.map((opt) => {
-                                const isSel = (mealChoice?.systemName || defaultMeal.serviceName) === opt.name;
-                                return (
-                                  <button
-                                    type="button"
-                                    key={opt.name}
-                                    onClick={() => updateMealChoice(day.id, mealType, {
-                                      mode: "system",
-                                      systemName: opt.name,
-                                      systemPrice: opt.pricePerPerson,
-                                      priceDifference: opt.diff,
-                                    })}
-                                    className={`text-left p-3 rounded-xl border transition-all ${
-                                      isSel
-                                        ? "border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400"
-                                        : "border-gray-200 bg-white hover:border-emerald-200"
-                                    }`}
-                                  >
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div>
-                                        <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
-                                        {opt.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{opt.description}</p>}
-                                      </div>
-                                      <div className="text-right flex-shrink-0">
-                                        {opt.diff === 0 ? (
-                                          <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">Mặc định (0đ)</span>
-                                        ) : (
-                                          <div className="space-y-0.5">
-                                            <p className="text-[9px] text-gray-400 uppercase font-medium">Chênh lệch</p>
-                                            <span className={`text-xs font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                              {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}/người
-                                            </span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </button>
-                                );
-                              });
-                            })()}
-                          </div>
-                        )}
-
-                        {/* Custom restaurant form */}
-                        {mealChoice?.mode === "custom" && (
-                          <div className="space-y-2 bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs">
-                            <label className="font-semibold text-gray-800 block">Tên nhà hàng / quán ăn hoặc ghi chú khẩu vị:</label>
-                            <input
-                              type="text"
-                              value={mealChoice.customName ?? ""}
-                              onChange={(e) => updateMealChoice(day.id, mealType, { customName: e.target.value })}
-                              placeholder={`VD: Quán nướng ngói Đà Lạt, yêu cầu ăn chay, hoặc nhà hàng bạn muốn...`}
-                              className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-                            />
-                            <p className="text-xs text-amber-700 flex items-center gap-1 mt-1">
-                              <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                              Công ty du lịch sẽ liên hệ kiểm tra với nhà hàng và báo giá chốt cho bạn.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              });
-          })}
-        </div>
-      </div>
 
       {/* ===== ITINERARY TIMELINE (THÔNG TIN THAM QUAN CƠ BẢN CỦA TOUR) ===== */}
       <div className="space-y-3">
@@ -1106,7 +933,14 @@ function CustomTab({
         {tour.itinerary.map((day) => {
           const dayState = days[day.id];
           const locations = dayState?.locations ?? [];
-          const hasChanges = locations.some((l) => l.changed && l.changeRequest.trim());
+          const mealChoices = dayState?.mealChoices ?? [];
+          const hasLocationChanges = locations.some((l) => l.changed && l.changeRequest.trim());
+          const hasMealChanges = mealChoices.some(
+            (mc) =>
+              (mc.mode === "custom" && Boolean(mc.customName?.trim())) ||
+              (mc.mode === "system" && Boolean(mc.systemName) && mc.systemName !== day.meals?.find((m) => m.type === mc.mealType)?.serviceName)
+          );
+          const hasChanges = hasLocationChanges || hasMealChanges;
 
           return (
             <div key={day.id} className={`rounded-xl border overflow-hidden ${hasChanges ? "border-amber-300" : "border-gray-200"}`}>
@@ -1127,11 +961,18 @@ function CustomTab({
                     </p>
                   </div>
                 </div>
-                {hasChanges && (
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
-                    Có yêu cầu đổi điểm
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {hasLocationChanges && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
+                      Đổi điểm tham quan
+                    </span>
+                  )}
+                  {hasMealChanges && (
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium border border-emerald-300">
+                      Đổi bữa ăn
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Day description & Sightseeing locations */}
@@ -1209,6 +1050,245 @@ function CustomTab({
                     ))}
                   </div>
                 </div>
+
+                {/* Day Meals Section (Chế độ ẩm thực & Bữa ăn trong ngày) */}
+                {day.meals && day.meals.length > 0 && (
+                  <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                        <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                        Chế độ ẩm thực &amp; Bữa ăn Ngày {day.day}
+                      </span>
+                      <span className="text-[11px] text-gray-400">
+                        (Có thể đổi nhà hàng hoặc yêu cầu riêng)
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {day.meals.map((defaultMeal) => {
+                        const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
+                        const mealChoice = mealChoices.find((mc) => mc.mealType === mealType);
+                        const mealKey = `${day.id}-${mealType}`;
+                        const isExpanded = expandedMeal === mealKey;
+                        const mealLabel = mealType === "breakfast" ? "Bữa sáng" : mealType === "lunch" ? "Bữa trưa" : "Bữa tối";
+                        const isCustom = mealChoice?.mode === "custom" && Boolean(mealChoice.customName?.trim());
+                        const isSystemChanged =
+                          mealChoice?.mode === "system" &&
+                          Boolean(mealChoice.systemName) &&
+                          Boolean(defaultMeal.serviceName) &&
+                          mealChoice.systemName !== defaultMeal.serviceName;
+
+                        return (
+                          <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedMeal(isExpanded ? null : mealKey)}
+                              className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors text-left ${
+                                mealType === "breakfast"
+                                  ? "bg-amber-50/60 hover:bg-amber-100/50"
+                                  : mealType === "lunch"
+                                  ? "bg-emerald-50/60 hover:bg-emerald-100/50"
+                                  : "bg-purple-50/60 hover:bg-purple-100/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  mealType === "breakfast"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : mealType === "lunch"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-purple-100 text-purple-700"
+                                }`}>
+                                  {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-gray-900">
+                                    {mealLabel}:{" "}
+                                    <span className="font-bold text-gray-900">
+                                      {mealChoice?.mode === "custom"
+                                        ? (mealChoice.customName || "Tự nhập (chưa điền)")
+                                        : (mealChoice?.systemName || defaultMeal.serviceName || "Nhà hàng theo tour")}
+                                    </span>
+                                  </p>
+                                  <p className="text-[11px] text-gray-500">
+                                    Mặc định: {defaultMeal.serviceName || "Nhà hàng địa phương"}
+                                  </p>
+                                </div>
+                              </div>
+
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  {isCustom && (
+                                    <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium border border-amber-200">
+                                      Tự nhập – chờ báo giá
+                                    </span>
+                                  )}
+                                  {isSystemChanged && (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium border border-emerald-200">
+                                        Đã đổi
+                                      </span>
+                                      {mealChoice?.priceDifference !== undefined ? (
+                                        mealChoice.priceDifference !== 0 && (
+                                          <span className={`text-xs font-bold ${mealChoice.priceDifference > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                            {mealChoice.priceDifference > 0 ? "+" : ""}{formatVND(mealChoice.priceDifference)}
+                                          </span>
+                                        )
+                                      ) : (
+                                        mealChoice?.systemPrice !== undefined && defaultMeal.pricePerPerson !== undefined && (
+                                          <span className={`text-xs font-bold ${
+                                            mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "text-amber-600" : "text-emerald-600"
+                                          }`}>
+                                            {mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "+" : ""}
+                                            {formatVND(mealChoice.systemPrice - defaultMeal.pricePerPerson)}
+                                          </span>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
+                                  {!isCustom && !isSystemChanged && (
+                                    <span className="text-[10px] text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200">
+                                      Theo tour (0đ)
+                                    </span>
+                                  )}
+                                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-gray-400" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-400" />}
+                                </div>
+                              </button>
+
+                              {isExpanded && (
+                                <div className="p-3.5 space-y-3 bg-white border-t border-gray-100">
+                                  {/* Mode tabs */}
+                                  {defaultMeal.allowCustomMealRequest !== false && (
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => updateMealChoice(day.id, mealType, { mode: "system" })}
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                          mealChoice?.mode === "system"
+                                            ? "bg-emerald-600 text-white border-emerald-600"
+                                            : "bg-white text-gray-600 border-gray-200 hover:border-emerald-300"
+                                        }`}
+                                      >
+                                        Chọn nhà hàng từ hệ thống
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateMealChoice(day.id, mealType, { mode: "custom" })}
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                          mealChoice?.mode === "custom"
+                                            ? "bg-amber-500 text-white border-amber-500"
+                                            : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
+                                        }`}
+                                      >
+                                        Tự nhập nhà hàng theo ý muốn
+                                      </button>
+                                    </div>
+                                  )}
+
+                                  {/* System restaurant list */}
+                                  {mealChoice?.mode === "system" && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                      {(() => {
+                                        const options: Array<{ name: string; description?: string; diff: number; pricePerPerson?: number }> = [];
+
+                                        // 1. Mặc định theo tour (0đ)
+                                        options.push({
+                                          name: defaultMeal.serviceName || "Nhà hàng theo tour",
+                                          description: defaultMeal.description || "Thực đơn tiêu chuẩn của chương trình",
+                                          diff: 0,
+                                          pricePerPerson: defaultMeal.pricePerPerson,
+                                        });
+
+                                        // 2. Nếu tour đã cấu hình danh sách alternativeMeals
+                                        if (defaultMeal.alternativeMeals && defaultMeal.alternativeMeals.length > 0) {
+                                          defaultMeal.alternativeMeals.forEach((alt) => {
+                                            options.push({
+                                              name: alt.restaurantName,
+                                              description: alt.description || alt.address || "",
+                                              diff: alt.priceDifference,
+                                              pricePerPerson: (defaultMeal.pricePerPerson || 0) + alt.priceDifference,
+                                            });
+                                          });
+                                        } else {
+                                          // Fallback sang danh mục nhà hàng hệ thống
+                                          SYSTEM_RESTAURANTS.filter((r) => r.mealType === mealType && r.name !== defaultMeal.serviceName).forEach((r) => {
+                                            const diff = r.pricePerPerson - (defaultMeal.pricePerPerson ?? 0);
+                                            options.push({
+                                              name: r.name,
+                                              description: r.description,
+                                              diff,
+                                              pricePerPerson: r.pricePerPerson,
+                                            });
+                                          });
+                                        }
+
+                                        return options.map((opt) => {
+                                          const isSel = (mealChoice?.systemName || defaultMeal.serviceName) === opt.name;
+                                          return (
+                                            <button
+                                              type="button"
+                                              key={opt.name}
+                                              onClick={() => updateMealChoice(day.id, mealType, {
+                                                mode: "system",
+                                                systemName: opt.name,
+                                                systemPrice: opt.pricePerPerson,
+                                                priceDifference: opt.diff,
+                                              })}
+                                              className={`text-left p-2.5 rounded-xl border transition-all ${
+                                                isSel
+                                                  ? "border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400"
+                                                  : "border-gray-200 bg-white hover:border-emerald-200"
+                                              }`}
+                                            >
+                                              <div className="flex items-start justify-between gap-2">
+                                                <div>
+                                                  <p className="font-semibold text-gray-900 text-xs">{opt.name}</p>
+                                                  {opt.description && <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{opt.description}</p>}
+                                                </div>
+                                                <div className="text-right flex-shrink-0">
+                                                  {opt.diff === 0 ? (
+                                                    <span className="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">Mặc định (0đ)</span>
+                                                  ) : (
+                                                    <div className="space-y-0.5">
+                                                      <p className="text-[9px] text-gray-400 uppercase font-medium">Chênh lệch</p>
+                                                      <span className={`text-xs font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                                        {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}/người
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </button>
+                                          );
+                                        });
+                                      })()}
+                                    </div>
+                                  )}
+
+                                  {/* Custom restaurant form */}
+                                  {mealChoice?.mode === "custom" && (
+                                    <div className="space-y-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs">
+                                      <label className="font-semibold text-gray-800 block">Tên nhà hàng / quán ăn hoặc ghi chú khẩu vị:</label>
+                                      <input
+                                        type="text"
+                                        value={mealChoice.customName ?? ""}
+                                        onChange={(e) => updateMealChoice(day.id, mealType, { customName: e.target.value })}
+                                        placeholder={`VD: Quán nướng ngói Đà Lạt, yêu cầu ăn chay, hoặc nhà hàng bạn muốn...`}
+                                        className="w-full border border-amber-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                      />
+                                      <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-1">
+                                        <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                                        Công ty du lịch sẽ liên hệ kiểm tra với nhà hàng và báo giá chốt cho bạn.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

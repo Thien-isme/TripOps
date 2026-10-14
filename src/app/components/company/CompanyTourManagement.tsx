@@ -40,6 +40,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowLeft,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -330,6 +331,37 @@ export const SYSTEM_CATALOG_HOTELS = [
 ];
 
 export const SYSTEM_CATALOG_RESTAURANTS = [
+  // Bữa sáng (Breakfast)
+  {
+    restaurantName: "Buffet sáng tiêu chuẩn tại Khách sạn",
+    mealType: "breakfast" as const,
+    priceDifference: 0,
+    description: "Buffet sáng phong phú nhiều món Á - Âu kèm trà, cà phê tại khách sạn",
+  },
+  {
+    restaurantName: "Bánh căn Lệ Đà Lạt",
+    mealType: "breakfast" as const,
+    priceDifference: 20000,
+    description: "Bánh căn giòn rụm xíu mại trứng cút, nước mắm hành mỡ cay nồng",
+  },
+  {
+    restaurantName: "Bánh mì xíu mại Hoàng Diệu",
+    mealType: "breakfast" as const,
+    priceDifference: 15000,
+    description: "Bánh mì giòn chấm chén xíu mại nóng hổi béo ngậy đặc sản Đà Lạt",
+  },
+  {
+    restaurantName: "Phở thố đá Chu Gia Đà Lạt",
+    mealType: "breakfast" as const,
+    priceDifference: 35000,
+    description: "Phở bò thố đá sôi sục giữ trọn hương vị tươi ngọt đậm đà",
+  },
+  {
+    restaurantName: "Bún bò Huế ấp Ánh Sáng",
+    mealType: "breakfast" as const,
+    priceDifference: 25000,
+    description: "Tô bún bò đậm đà thơm mùi sả ruốc hương vị cố đô giữa lòng phố núi",
+  },
   // Bữa trưa (Lunch)
   {
     restaurantName: "Nhà hàng Trúc Lâm Viên",
@@ -607,6 +639,25 @@ export function TourFormPage({
     setItinerary(updated);
   };
 
+  const addMealToDay = (dayIdx: number, mealType: "lunch" | "dinner" | "breakfast" = "lunch") => {
+    const updated = [...itinerary];
+    const dayMeals = [...(updated[dayIdx].meals || [])];
+    const label = mealType === "lunch" ? "Ăn trưa" : mealType === "dinner" ? "Ăn tối" : "Ăn sáng";
+    const defaultPrice = mealType === "breakfast" ? 60000 : mealType === "dinner" ? 140000 : 120000;
+    const newMeal: TourMeal = {
+      type: mealType,
+      serviceName: `Nhà hàng đặc sản (${label})`,
+      description: "Thực đơn tiêu chuẩn theo chương trình tour",
+      pricePerPerson: defaultPrice,
+      allowCustomMealRequest: true,
+      alternativeMeals: [],
+    };
+    dayMeals.push(newMeal);
+    updated[dayIdx].meals = dayMeals;
+    setItinerary(updated);
+    setExpandedMealKey(`${updated[dayIdx].id}-${mealType}-${dayMeals.length - 1}`);
+  };
+
   // Helper methods for Alternative Meals (Đổi món / nhà hàng)
   const addAlternativeMeal = (dayIdx: number, mealIdx: number, prefill?: Partial<TourAlternativeMeal>) => {
     const updated = [...itinerary];
@@ -793,9 +844,17 @@ export function TourFormPage({
   const [newExclusion, setNewExclusion] = useState("");
   const [newRegulation, setNewRegulation] = useState("");
 
-  // Preview tab state
-  const [previewActiveTab, setPreviewActiveTab] = useState<"program" | "custom" | "regulations" | "pricing">("custom");
+  const [previewActiveTab, setPreviewActiveTab] = useState<"program" | "regulations" | "pricing" | "custom" | "reviews">("program");
   const [previewExpandedDays, setPreviewExpandedDays] = useState<Set<string>>(new Set([itinerary[0]?.id || "day-1"]));
+
+  const togglePreviewDay = (id: string) => {
+    setPreviewExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Handle local image file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1574,371 +1633,16 @@ export function TourFormPage({
                 </div>
               </div>
 
-              {/* ===== 2. CHẾ ĐỘ ẨM THỰC & BỮA ĂN (CHỖ ĂN) ===== */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                    <Utensils className="w-4 h-4 text-emerald-600" />
-                    CHẾ ĐỘ ẨM THỰC &amp; BỮA ĂN (CHỖ ĂN)
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddMealForm(!showAddMealForm)}
-                    className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Thêm bữa ăn
-                  </button>
-                </div>
-
-                {/* Inline form to add a meal */}
-                {showAddMealForm && (
-                  <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3 animate-in fade-in">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5" />
-                        Thêm bữa ăn mới vào chương trình tour
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddMealForm(false)}
-                        className="text-xs text-gray-400 hover:text-gray-600"
-                      >
-                        Đóng
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div>
-                        <Label className="text-[11px] text-gray-600">Ngày áp dụng</Label>
-                        <select
-                          value={newMealDay}
-                          onChange={(e) => setNewMealDay(parseInt(e.target.value) || 1)}
-                          className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-white mt-0.5"
-                        >
-                          {itinerary.map((d) => (
-                            <option key={d.day} value={d.day}>Ngày {d.day}: {d.title || `Ngày ${d.day}`}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <Label className="text-[11px] text-gray-600">Bữa ăn</Label>
-                        <select
-                          value={newMealType}
-                          onChange={(e) => setNewMealType(e.target.value as any)}
-                          className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-white mt-0.5"
-                        >
-                          <option value="lunch">Bữa trưa</option>
-                          <option value="dinner">Bữa tối</option>
-                          <option value="breakfast">Bữa sáng</option>
-                        </select>
-                      </div>
-                      <div>
-                        <Label className="text-[11px] text-gray-600">Tên nhà hàng</Label>
-                        <Input
-                          value={newMealRestaurant}
-                          onChange={(e) => setNewMealRestaurant(e.target.value)}
-                          placeholder="VD: Nhà hàng Hương Rừng"
-                          className="text-xs mt-0.5"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <Input
-                        value={newMealDesc}
-                        onChange={(e) => setNewMealDesc(e.target.value)}
-                        placeholder="Mô tả thực đơn tiêu chuẩn (VD: Cơm niêu gà đồi, canh atiso...)"
-                        className="text-xs flex-1"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleAddMeal}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs whitespace-nowrap"
-                      >
-                        Xác nhận thêm
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  {itinerary.flatMap((day, dIdx) => {
-                    return (day.meals ?? [])
-                      .filter((m) => m.type !== "breakfast")
-                      .map((meal, mIdx) => {
-                        const mealType = meal.type as "lunch" | "dinner";
-                        const mealKey = `${day.id}-${mealType}-${mIdx}`;
-                        const isExpanded = expandedMealKey === mealKey;
-                        const mealLabel = mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
-
-                        const altsCount = (meal.alternativeMeals || []).length;
-
-                        return (
-                          <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => setExpandedMealKey(isExpanded ? null : mealKey)}
-                              className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
-                                mealType === "lunch" ? "bg-emerald-50/50 hover:bg-emerald-100/50" : "bg-purple-50/50 hover:bg-purple-100/50"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                  mealType === "lunch" ? "bg-emerald-100 text-emerald-700" : "bg-purple-100 text-purple-700"
-                                }`}>
-                                  <Utensils className="w-4 h-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-semibold text-gray-900">
-                                    Ngày {day.day} · {mealLabel}:{" "}
-                                    <span className="font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo tour"}</span>
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-0.5">
-                                    Mặc định của tour: {meal.serviceName || "Nhà hàng địa phương"} {meal.pricePerPerson ? `(${formatVND(meal.pricePerPerson)}/người)` : ""}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
-                                  {altsCount > 0 ? `${altsCount} lựa chọn đổi món` : "Theo tour (0đ)"}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeMeal(dIdx, mIdx);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
-                                  title="Xóa bữa ăn này"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                                {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                              </div>
-                            </button>
-
-                            {isExpanded && (
-                              <div className="p-4 bg-white border-t border-gray-100 space-y-4">
-                                {/* Default Restaurant & Description */}
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                  <div className="sm:col-span-8">
-                                    <Label className="text-xs font-semibold text-gray-700">
-                                      Tên nhà hàng mặc định cho Ngày {day.day} ({mealLabel}) <span className="text-red-500">*</span>
-                                    </Label>
-                                    <Input
-                                      value={meal.serviceName || ""}
-                                      onChange={(e) => updateMealField(dIdx, mIdx, { serviceName: e.target.value })}
-                                      placeholder="VD: Nhà hàng Hương Rừng Đà Lạt"
-                                      className="mt-1 text-xs"
-                                    />
-                                  </div>
-                                  <div className="sm:col-span-4">
-                                    <Label className="text-xs font-semibold text-gray-700">
-                                      Giá tiêu chuẩn / người (VNĐ)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step={10000}
-                                      value={meal.pricePerPerson || 120000}
-                                      onChange={(e) => updateMealField(dIdx, mIdx, { pricePerPerson: parseInt(e.target.value) || 0 })}
-                                      placeholder="VD: 120000"
-                                      className="mt-1 text-xs font-semibold"
-                                    />
-                                  </div>
-                                  <div className="sm:col-span-12">
-                                    <Label className="text-xs font-semibold text-gray-700">Mô tả thực đơn tiêu chuẩn</Label>
-                                    <Input
-                                      value={meal.description ?? ""}
-                                      onChange={(e) => updateMealField(dIdx, mIdx, { description: e.target.value })}
-                                      placeholder="VD: Đặc sản gà đồi, cơm lam, rau củ tươi organic"
-                                      className="mt-1 text-xs"
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Sub-section: Cấu hình nhà hàng đổi món / nâng cấp */}
-                                <div className="border-t border-emerald-100 pt-4 space-y-3">
-                                  <div className="flex items-center justify-between flex-wrap gap-2">
-                                    <div>
-                                      <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
-                                        <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                                        CẤU HÌNH CÁC NHÀ HÀNG ĐỔI MÓN / NÂNG CẤP ({(meal.alternativeMeals || []).length})
-                                      </h4>
-                                      <p className="text-[11px] text-gray-500 mt-0.5">
-                                        Khách hàng khi xem tour có thể chọn đổi sang các nhà hàng này với mức giá chênh lệch do công ty ấn định (Hiển thị ở tab Lịch trình tùy chỉnh).
-                                      </p>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => addAlternativeMeal(dIdx, mIdx)}
-                                      className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 font-semibold transition-colors shadow-2xs"
-                                    >
-                                      <Plus className="w-3.5 h-3.5 text-emerald-700" />
-                                      Thêm nhà hàng đổi món
-                                    </button>
-                                  </div>
-
-                                  {/* Quick-add catalog recommendations */}
-                                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 space-y-2">
-                                    <p className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1">
-                                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                                      Chọn nhanh nhà hàng đối tác gợi ý ({mealLabel.toLowerCase()}):
-                                    </p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {SYSTEM_CATALOG_RESTAURANTS.filter((r) => r.mealType === mealType).map((catMeal, cIdx) => {
-                                        const alreadyAdded = (meal.alternativeMeals || []).some(
-                                          (a) => a.restaurantName.toLowerCase() === catMeal.restaurantName.toLowerCase()
-                                        );
-                                        return (
-                                          <button
-                                            key={cIdx}
-                                            type="button"
-                                            disabled={alreadyAdded}
-                                            onClick={() => addAlternativeMeal(dIdx, mIdx, catMeal)}
-                                            className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
-                                              alreadyAdded
-                                                ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                : "border-emerald-300 bg-white hover:bg-emerald-100 text-emerald-900 hover:border-emerald-400 font-medium"
-                                            }`}
-                                          >
-                                            <Plus className="w-3 h-3 text-emerald-600" />
-                                            <span>{catMeal.restaurantName}</span>
-                                            <span className={`font-bold ${catMeal.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                                              ({catMeal.priceDifference > 0 ? "+" : ""}{formatVND(catMeal.priceDifference)})
-                                            </span>
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-
-                                  {/* List of configured alternative meals */}
-                                  {(meal.alternativeMeals || []).length === 0 ? (
-                                    <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                                      Chưa có nhà hàng đổi món nào. Bấm nút "+ Thêm nhà hàng đổi món" hoặc chọn nhanh từ danh mục đối tác ở trên.
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2.5">
-                                      {(meal.alternativeMeals || []).map((alt, aIdx) => (
-                                        <div
-                                          key={alt.id || aIdx}
-                                          className="p-3 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white transition-all space-y-2 shadow-2xs"
-                                        >
-                                          <div className="flex items-center justify-between gap-2">
-                                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
-                                              {/* Tên nhà hàng */}
-                                              <div className="sm:col-span-7">
-                                                <Label className="text-[11px] text-gray-500 font-medium">Tên nhà hàng đổi món / nâng cấp</Label>
-                                                <Input
-                                                  value={alt.restaurantName}
-                                                  onChange={(e) =>
-                                                    updateAlternativeMeal(dIdx, mIdx, alt.id, { restaurantName: e.target.value })
-                                                  }
-                                                  placeholder="VD: Nhà hàng Trúc Lâm Viên"
-                                                  className="text-xs mt-0.5 bg-white font-semibold"
-                                                />
-                                              </div>
-
-                                              {/* Mức chênh lệch */}
-                                              <div className="sm:col-span-5">
-                                                <div className="flex items-center justify-between">
-                                                  <Label className="text-[11px] text-gray-500 font-medium">
-                                                    Giá chênh lệch / người (VNĐ)
-                                                  </Label>
-                                                  <span
-                                                    className={`text-[11px] font-bold ${
-                                                      alt.priceDifference > 0
-                                                        ? "text-amber-700"
-                                                        : alt.priceDifference < 0
-                                                        ? "text-emerald-600"
-                                                        : "text-gray-500"
-                                                    }`}
-                                                  >
-                                                    {alt.priceDifference > 0 ? "+" : ""}
-                                                    {formatVND(alt.priceDifference || 0)}
-                                                  </span>
-                                                </div>
-                                                <Input
-                                                  type="number"
-                                                  step={10000}
-                                                  value={alt.priceDifference}
-                                                  onChange={(e) =>
-                                                    updateAlternativeMeal(dIdx, mIdx, alt.id, {
-                                                      priceDifference: parseInt(e.target.value) || 0,
-                                                    })
-                                                  }
-                                                  placeholder="VD: 50000 hoặc -20000"
-                                                  className="text-xs mt-0.5 bg-white font-bold"
-                                                />
-                                              </div>
-                                            </div>
-
-                                            {/* Nút xóa */}
-                                            <button
-                                              type="button"
-                                              onClick={() => removeAlternativeMeal(dIdx, mIdx, alt.id)}
-                                              className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
-                                              title="Xóa nhà hàng này"
-                                            >
-                                              <Trash2 className="w-4 h-4" />
-                                            </button>
-                                          </div>
-
-                                          {/* Mô tả thực đơn / phong cách */}
-                                          <div>
-                                            <Input
-                                              value={alt.description ?? ""}
-                                              onChange={(e) =>
-                                                updateAlternativeMeal(dIdx, mIdx, alt.id, { description: e.target.value })
-                                              }
-                                              placeholder="Mô tả tóm tắt thực đơn (VD: Cơm niêu gia đình, cá kho tộ, canh atiso sườn non...)"
-                                              className="text-xs bg-white text-gray-600"
-                                            />
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-
-                                  {/* Toggle cho phép khách tự đề xuất nhà hàng ngoài danh sách */}
-                                  <div className="flex items-center gap-2 pt-1 text-xs">
-                                    <input
-                                      type="checkbox"
-                                      id={`custom-meal-req-${mealKey}`}
-                                      checked={meal.allowCustomMealRequest !== false}
-                                      onChange={(e) =>
-                                        updateMealField(dIdx, mIdx, { allowCustomMealRequest: e.target.checked })
-                                      }
-                                      className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer"
-                                    />
-                                    <label
-                                      htmlFor={`custom-meal-req-${mealKey}`}
-                                      className="text-gray-700 cursor-pointer select-none font-medium"
-                                    >
-                                      Cho phép khách hàng tự đề xuất nhà hàng / quán ăn khác ngoài danh sách (tab "Tự nhập nhà hàng" – công ty sẽ báo giá sau khi nhận booking)
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      });
-                  })}
-                </div>
-              </div>
-
-              {/* ===== 3. LỊCH TRÌNH CHI TIẾT (LỘ TRÌNH THAM QUAN CƠ BẢN CỦA CÔNG TY) ===== */}
+              {/* ===== 2. LỊCH TRÌNH CHI TIẾT & CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY) ===== */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-purple-600" />
-                      LỊCH TRÌNH CHI TIẾT (LỘ TRÌNH THAM QUAN CƠ BẢN CỦA CÔNG TY)
+                      LỊCH TRÌNH CHI TIẾT &amp; CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY)
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Lộ trình các điểm tham quan do công ty thiết lập theo từng ngày. Có thể kéo thả hoặc bấm mũi tên để đổi thứ tự các điểm tham quan.
+                      Lộ trình các điểm tham quan và các bữa ăn (trưa/tối) theo từng ngày. Bữa ăn nằm ngay dưới các điểm tham quan giúp theo dõi và tùy chỉnh trực quan.
                     </p>
                   </div>
                   <Button
@@ -2139,6 +1843,316 @@ export function TourFormPage({
                               })}
                             </div>
                           </div>
+                        </div>
+
+                        {/* CHẾ ĐỘ ẨM THỰC & BỮA ĂN (CHỖ ĂN) - ĐẶT NGAY DƯỚI CÁC ĐIỂM THAM QUAN */}
+                        <div className="border-t border-gray-100 pt-4 space-y-3">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div>
+                              <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
+                                <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                                BỮA ĂN TRONG NGÀY {day.day} (CHẾ ĐỘ ẨM THỰC)
+                              </h4>
+                              <p className="text-[11px] text-gray-500">
+                                Cấu hình nhà hàng mặc định và các lựa chọn đổi nhà hàng cho Ngày {day.day}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => addMealToDay(dIdx, "breakfast")}
+                                className="px-2.5 py-1 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Plus className="w-3 h-3" />
+                                Thêm bữa sáng
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => addMealToDay(dIdx, "lunch")}
+                                className="px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Plus className="w-3 h-3" />
+                                Thêm bữa trưa
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => addMealToDay(dIdx, "dinner")}
+                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium transition-colors flex items-center gap-1"
+                              >
+                                <Plus className="w-3 h-3" />
+                                Thêm bữa tối
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Danh sách các bữa ăn của ngày */}
+                          {(!day.meals || day.meals.length === 0) ? (
+                            <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400 bg-gray-50/50">
+                              Chưa có bữa ăn nào cho Ngày {day.day}. Nhấp nút "+ Thêm bữa sáng", "+ Thêm bữa trưa" hoặc "+ Thêm bữa tối" ở trên để bổ sung.
+                            </div>
+                          ) : (
+                            <div className="space-y-2.5">
+                              {day.meals.map((meal, mIdx) => {
+                                const mealType = meal.type;
+                                const mealKey = `${day.id}-${mealType}-${mIdx}`;
+                                const isExpanded = expandedMealKey === mealKey;
+                                const mealLabel = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                                const altsCount = (meal.alternativeMeals || []).length;
+
+                                return (
+                                  <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedMealKey(isExpanded ? null : mealKey)}
+                                      className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors text-left ${
+                                        mealType === "breakfast"
+                                          ? "bg-amber-50/50 hover:bg-amber-100/50"
+                                          : mealType === "lunch"
+                                          ? "bg-emerald-50/50 hover:bg-emerald-100/50"
+                                          : "bg-purple-50/50 hover:bg-purple-100/50"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                          mealType === "breakfast"
+                                            ? "bg-amber-100 text-amber-700"
+                                            : mealType === "lunch"
+                                            ? "bg-emerald-100 text-emerald-700"
+                                            : "bg-purple-100 text-purple-700"
+                                        }`}>
+                                          {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                                            {mealLabel}:{" "}
+                                            <span className="font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo tour"}</span>
+                                          </p>
+                                          <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                                            Mặc định: {meal.serviceName || "Nhà hàng địa phương"} {meal.pricePerPerson ? `(${formatVND(meal.pricePerPerson)}/người)` : ""}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
+                                          {altsCount > 0 ? `${altsCount} lựa chọn đổi món` : "Theo tour (0đ)"}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeMeal(dIdx, mIdx);
+                                          }}
+                                          className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                          title="Xóa bữa ăn này"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                      </div>
+                                    </button>
+
+                                    {isExpanded && (
+                                      <div className="p-4 bg-white border-t border-gray-100 space-y-4">
+                                        {/* Default Restaurant & Description */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                          <div className="sm:col-span-8">
+                                            <Label className="text-xs font-semibold text-gray-700">
+                                              Tên nhà hàng mặc định ({mealLabel}) <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Input
+                                              value={meal.serviceName || ""}
+                                              onChange={(e) => updateMealField(dIdx, mIdx, { serviceName: e.target.value })}
+                                              placeholder="VD: Nhà hàng Hương Rừng Đà Lạt"
+                                              className="mt-1 text-xs"
+                                            />
+                                          </div>
+                                          <div className="sm:col-span-4">
+                                            <Label className="text-xs font-semibold text-gray-700">
+                                              Giá tiêu chuẩn / người (VNĐ)
+                                            </Label>
+                                            <Input
+                                              type="number"
+                                              step={10000}
+                                              value={meal.pricePerPerson || 120000}
+                                              onChange={(e) => updateMealField(dIdx, mIdx, { pricePerPerson: parseInt(e.target.value) || 0 })}
+                                              placeholder="VD: 120000"
+                                              className="mt-1 text-xs font-semibold"
+                                            />
+                                          </div>
+                                          <div className="sm:col-span-12">
+                                            <Label className="text-xs font-semibold text-gray-700">Mô tả thực đơn tiêu chuẩn</Label>
+                                            <Input
+                                              value={meal.description ?? ""}
+                                              onChange={(e) => updateMealField(dIdx, mIdx, { description: e.target.value })}
+                                              placeholder="VD: Đặc sản gà đồi, cơm lam, rau củ tươi organic"
+                                              className="mt-1 text-xs"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Sub-section: Cấu hình nhà hàng đổi món / nâng cấp */}
+                                        <div className="border-t border-emerald-100 pt-3 space-y-3">
+                                          <div className="flex items-center justify-between flex-wrap gap-2">
+                                            <div>
+                                              <h5 className="text-[11px] font-bold text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
+                                                <Utensils className="w-3 h-3 text-emerald-600" />
+                                                CÁC LỰA CHỌN ĐỔI NHÀ HÀNG ({altsCount})
+                                              </h5>
+                                              <p className="text-[10px] text-gray-500">
+                                                Khách hàng có thể chọn đổi sang các nhà hàng này với mức giá chênh lệch
+                                              </p>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={() => addAlternativeMeal(dIdx, mIdx)}
+                                              className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 font-semibold transition-colors shadow-2xs"
+                                            >
+                                              <Plus className="w-3 h-3 text-emerald-700" />
+                                              Thêm nhà hàng đổi món
+                                            </button>
+                                          </div>
+
+                                          {/* Quick-add catalog recommendations */}
+                                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 space-y-1.5">
+                                            <p className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1">
+                                              <Sparkles className="w-3 h-3 text-emerald-600" />
+                                              Chọn nhanh nhà hàng đối tác ({mealLabel.toLowerCase()}):
+                                            </p>
+                                            <div className="flex flex-wrap gap-1.5">
+                                              {SYSTEM_CATALOG_RESTAURANTS.filter((r) => r.mealType === mealType).map((catMeal, cIdx) => {
+                                                const alreadyAdded = (meal.alternativeMeals || []).some(
+                                                  (a) => a.restaurantName.toLowerCase() === catMeal.restaurantName.toLowerCase()
+                                                );
+                                                return (
+                                                  <button
+                                                    key={cIdx}
+                                                    type="button"
+                                                    disabled={alreadyAdded}
+                                                    onClick={() => addAlternativeMeal(dIdx, mIdx, catMeal)}
+                                                    className={`text-[11px] px-2 py-0.5 rounded-lg border transition-all flex items-center gap-1 ${
+                                                      alreadyAdded
+                                                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                        : "border-emerald-300 bg-white hover:bg-emerald-100 text-emerald-900 hover:border-emerald-400 font-medium"
+                                                    }`}
+                                                  >
+                                                    <Plus className="w-2.5 h-2.5 text-emerald-600" />
+                                                    <span>{catMeal.restaurantName}</span>
+                                                    <span className={`font-bold ${catMeal.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
+                                                      ({catMeal.priceDifference > 0 ? "+" : ""}{formatVND(catMeal.priceDifference)})
+                                                    </span>
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+
+                                          {/* List of configured alternative meals */}
+                                          {altsCount === 0 ? (
+                                            <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-[11px] text-gray-400">
+                                              Chưa có nhà hàng đổi món nào. Bấm nút "+ Thêm nhà hàng đổi món" hoặc chọn nhanh ở trên.
+                                            </div>
+                                          ) : (
+                                            <div className="space-y-2">
+                                              {(meal.alternativeMeals || []).map((alt, aIdx) => (
+                                                <div
+                                                  key={alt.id || aIdx}
+                                                  className="p-2.5 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white transition-all space-y-1.5 shadow-2xs"
+                                                >
+                                                  <div className="flex items-center justify-between gap-2">
+                                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
+                                                      <div className="sm:col-span-7">
+                                                        <Label className="text-[10px] text-gray-500 font-medium">Tên nhà hàng đổi món</Label>
+                                                        <Input
+                                                          value={alt.restaurantName}
+                                                          onChange={(e) =>
+                                                            updateAlternativeMeal(dIdx, mIdx, alt.id, { restaurantName: e.target.value })
+                                                          }
+                                                          placeholder="VD: Nhà hàng Trúc Lâm Viên"
+                                                          className="text-xs mt-0.5 bg-white font-semibold"
+                                                        />
+                                                      </div>
+                                                      <div className="sm:col-span-5">
+                                                        <div className="flex items-center justify-between">
+                                                          <Label className="text-[10px] text-gray-500 font-medium">
+                                                            Giá chênh lệch / người
+                                                          </Label>
+                                                          <span
+                                                            className={`text-[10px] font-bold ${
+                                                              alt.priceDifference > 0
+                                                                ? "text-amber-700"
+                                                                : alt.priceDifference < 0
+                                                                ? "text-emerald-600"
+                                                                : "text-gray-500"
+                                                            }`}
+                                                          >
+                                                            {alt.priceDifference > 0 ? "+" : ""}
+                                                            {formatVND(alt.priceDifference || 0)}
+                                                          </span>
+                                                        </div>
+                                                        <Input
+                                                          type="number"
+                                                          step={10000}
+                                                          value={alt.priceDifference}
+                                                          onChange={(e) =>
+                                                            updateAlternativeMeal(dIdx, mIdx, alt.id, {
+                                                              priceDifference: parseInt(e.target.value) || 0,
+                                                            })
+                                                          }
+                                                          className="text-xs mt-0.5 bg-white font-bold"
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => removeAlternativeMeal(dIdx, mIdx, alt.id)}
+                                                      className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
+                                                      title="Xóa nhà hàng này"
+                                                    >
+                                                      <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                  </div>
+                                                  <div>
+                                                    <Input
+                                                      value={alt.description ?? ""}
+                                                      onChange={(e) =>
+                                                        updateAlternativeMeal(dIdx, mIdx, alt.id, { description: e.target.value })
+                                                      }
+                                                      placeholder="Mô tả thực đơn (VD: Cơm niêu gia đình, canh atiso...)"
+                                                      className="text-xs bg-white text-gray-600"
+                                                    />
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+
+                                          {/* Toggle custom request */}
+                                          <div className="flex items-center gap-2 pt-1 text-xs">
+                                            <input
+                                              type="checkbox"
+                                              id={`custom-meal-req-${mealKey}`}
+                                              checked={meal.allowCustomMealRequest !== false}
+                                              onChange={(e) =>
+                                                updateMealField(dIdx, mIdx, { allowCustomMealRequest: e.target.checked })
+                                              }
+                                              className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                                            />
+                                            <label
+                                              htmlFor={`custom-meal-req-${mealKey}`}
+                                              className="text-gray-700 cursor-pointer select-none font-medium text-[11px]"
+                                            >
+                                              Cho phép khách tự đề xuất nhà hàng khác ngoài danh sách (công ty sẽ báo giá sau khi nhận booking)
+                                            </label>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -2460,10 +2474,11 @@ export function TourFormPage({
                   <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
                     <div className="flex border-b border-gray-200 bg-gray-50/50">
                       {[
-                        { id: "custom", label: "Lịch trình tuỳ chỉnh" },
                         { id: "program", label: "Chương trình tour" },
-                        { id: "pricing", label: "Bảng giá tour" },
                         { id: "regulations", label: "Quy định" },
+                        { id: "pricing", label: "Bảng giá" },
+                        { id: "custom", label: "Lịch trình tùy chỉnh" },
+                        { id: "reviews", label: "Nhận xét" },
                       ].map((t) => (
                         <button
                           key={t.id}
@@ -2528,61 +2543,15 @@ export function TourFormPage({
                             </div>
                           </div>
 
-                          {/* 2. CHẾ ĐỘ ẨM THỰC & BỮA ĂN (CHỖ ĂN) */}
-                          <div className="space-y-2">
-                            <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
-                              <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                              Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
-                            </h4>
-                            <div className="space-y-2">
-                              {itinerary.flatMap((d) => (d.meals || []).filter(m => m.type !== "breakfast").map((m, mi) => (
-                                <div key={mi} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                  <div className={`p-3 flex items-center justify-between border-b border-gray-100 ${
-                                    m.type === "lunch" ? "bg-emerald-50/50" : "bg-purple-50/50"
-                                  }`}>
-                                    <div className="flex items-center gap-2.5">
-                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                                        m.type === "lunch" ? "bg-emerald-100 text-emerald-700" : "bg-purple-100 text-purple-700"
-                                      }`}>
-                                        <Utensils className="w-3.5 h-3.5" />
-                                      </div>
-                                      <div>
-                                        <p className="font-bold text-gray-900 text-xs">
-                                          Ngày {d.day} · {m.type === "lunch" ? "Ăn trưa" : "Ăn tối"}: {m.serviceName}
-                                        </p>
-                                        <p className="text-[10px] text-gray-500">Mặc định của tour: {m.serviceName} (0đ)</p>
-                                      </div>
-                                    </div>
-                                    <span className="text-[10px] bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-600 font-medium">
-                                      {(m.alternativeMeals || []).length} lựa chọn đổi món
-                                    </span>
-                                  </div>
-                                  {(m.alternativeMeals || []).length > 0 && (
-                                    <div className="p-2.5 space-y-1.5 bg-gray-50/50">
-                                      {(m.alternativeMeals || []).map((alt, ai) => (
-                                        <div key={ai} className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-100 text-[11px]">
-                                          <span className="font-medium text-gray-800">{alt.restaurantName}</span>
-                                          <span className={`font-bold ${alt.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                                            {alt.priceDifference > 0 ? "+" : ""}{formatVND(alt.priceDifference)}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              )))}
-                            </div>
-                          </div>
-
-                          {/* 3. LỊCH TRÌNH CHI TIẾT */}
+                          {/* 2. LỊCH TRÌNH CHI TIẾT & CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY) */}
                           <div className="space-y-2">
                             <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
                               <MapPin className="w-3.5 h-3.5 text-purple-600" />
-                              LỊCH TRÌNH CHI TIẾT (LỘ TRÌNH THAM QUAN CƠ BẢN CỦA CÔNG TY)
+                              LỊCH TRÌNH CHI TIẾT &amp; CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY)
                             </h4>
                             <div className="space-y-3">
                               {itinerary.map((d) => (
-                                <div key={d.id} className="border border-gray-200 rounded-xl p-3 bg-white space-y-2.5">
+                                <div key={d.id} className="border border-gray-200 rounded-xl p-3 bg-white space-y-2.5 shadow-2xs">
                                   <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center">
                                       {d.day}
@@ -2607,6 +2576,51 @@ export function TourFormPage({
                                       </div>
                                     ))}
                                   </div>
+
+                                  {/* Bữa ăn trong ngày: Nằm ngay dưới các điểm tham quan */}
+                                  {d.meals && d.meals.length > 0 && (
+                                    <div className="pt-2.5 border-t border-gray-100 space-y-2 pl-2">
+                                      <p className="text-[11px] font-bold text-emerald-950 uppercase flex items-center gap-1.5">
+                                        <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                                        Bữa ăn Ngày {d.day} (Chỗ ăn)
+                                      </p>
+                                      <div className="space-y-1.5">
+                                        {d.meals.map((m, mi) => (
+                                          <div key={mi} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                            <div className={`p-2 flex items-center justify-between border-b border-gray-100 ${
+                                              m.type === "breakfast" ? "bg-amber-50/50" : m.type === "lunch" ? "bg-emerald-50/50" : "bg-purple-50/50"
+                                            }`}>
+                                              <div className="flex items-center gap-2">
+                                                {m.type === "breakfast" ? (
+                                                  <Sun className="w-3 h-3 text-amber-600" />
+                                                ) : (
+                                                  <Utensils className="w-3 h-3 text-emerald-600" />
+                                                )}
+                                                <span className="font-semibold text-gray-900 text-[11px]">
+                                                  {m.type === "breakfast" ? "Ăn sáng" : m.type === "lunch" ? "Ăn trưa" : "Ăn tối"}: {m.serviceName}
+                                                </span>
+                                              </div>
+                                              <span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-600 font-medium">
+                                                {(m.alternativeMeals || []).length} lựa chọn đổi món
+                                              </span>
+                                            </div>
+                                            {(m.alternativeMeals || []).length > 0 && (
+                                              <div className="p-2 space-y-1 bg-gray-50/40">
+                                                {(m.alternativeMeals || []).map((alt, ai) => (
+                                                  <div key={ai} className="flex items-center justify-between p-1.5 rounded bg-white border border-gray-100 text-[10px]">
+                                                    <span className="font-medium text-gray-800">{alt.restaurantName}</span>
+                                                    <span className={`font-bold ${alt.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
+                                                      {alt.priceDifference > 0 ? "+" : ""}{formatVND(alt.priceDifference)}
+                                                    </span>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -2614,28 +2628,33 @@ export function TourFormPage({
                         </div>
                       )}
 
-                      {/* PROGRAM TAB */}
+                      {/* PROGRAM TAB (CHƯƠNG TRÌNH TOUR CHÍNH THỨC) */}
                       {previewActiveTab === "program" && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                          {/* Thời gian hoạt động */}
                           {operationPeriod && (
-                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                              <p className="text-[10px] text-blue-600 font-bold uppercase mb-0.5 flex items-center gap-1">
+                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5">
+                              <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                                 <Calendar className="w-3.5 h-3.5" />
-                                Thời gian hoạt động / Mùa tour
+                                Thời gian hoạt động
+                              </h4>
+                              <p className="text-xs text-gray-700">
+                                <span className="text-gray-500">Mùa tour / Thời gian hoạt động:</span>{" "}
+                                <strong>{operationPeriod}</strong>
                               </p>
-                              <p className="font-semibold text-gray-800 text-xs">{operationPeriod}</p>
                             </div>
                           )}
 
+                          {/* Điểm nổi bật */}
                           {highlights.length > 0 && (
                             <div>
-                              <h4 className="font-bold text-red-600 mb-2 flex items-center gap-1.5">
+                              <h4 className="text-sm font-bold text-red-600 mb-2.5 flex items-center gap-1.5">
                                 <Star className="w-4 h-4" />
                                 ĐIỂM NỔI BẬT:
                               </h4>
-                              <ul className="space-y-1">
+                              <ul className="space-y-1.5">
                                 {highlights.map((h, i) => (
-                                  <li key={i} className="flex items-start gap-1.5 text-gray-700">
+                                  <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
                                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                                     <span>{h}</span>
                                   </li>
@@ -2644,15 +2663,128 @@ export function TourFormPage({
                             </div>
                           )}
 
+                          {/* Lịch trình chi tiết */}
                           <div>
-                            <h4 className="font-bold text-red-600 mb-2.5">LỊCH TRÌNH CHI TIẾT:</h4>
-                            <div className="space-y-2">
-                              {itinerary.map((d) => (
-                                <div key={d.id} className="border border-gray-200 rounded-xl p-3 bg-gray-50/70 text-xs">
-                                  <p className="font-bold text-gray-900">Ngày {d.day}: {d.title}</p>
-                                  <p className="text-gray-600 mt-1">{d.description}</p>
-                                </div>
-                              ))}
+                            <h4 className="text-sm font-bold text-red-600 mb-3 uppercase">LỊCH TRÌNH CHI TIẾT:</h4>
+                            <div className="space-y-3">
+                              {itinerary.map((d) => {
+                                const isOpen = previewExpandedDays.has(d.id);
+                                return (
+                                  <div key={d.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                    <button
+                                      type="button"
+                                      onClick={() => togglePreviewDay(d.id)}
+                                      className="w-full flex items-center gap-3 px-3.5 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                    >
+                                      <div className="w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-xs">
+                                        {d.day}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-gray-900 text-xs sm:text-sm">
+                                          NGÀY {d.day}: {d.title.toUpperCase()}
+                                        </p>
+                                      </div>
+                                      {d.meals && d.meals.length > 0 && (
+                                        <div className="flex gap-1 flex-shrink-0">
+                                          {d.meals.map((m, mi) => {
+                                            const isBreakfast = m.type === "breakfast";
+                                            const isLunch = m.type === "lunch";
+                                            const badgeColor = isBreakfast
+                                              ? "text-amber-700 bg-amber-50 border border-amber-200"
+                                              : isLunch
+                                              ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                                              : "text-purple-700 bg-purple-50 border border-purple-200";
+                                            const label = isBreakfast ? "Sáng" : isLunch ? "Trưa" : "Tối";
+                                            return (
+                                              <span key={mi} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${badgeColor}`}>
+                                                {label}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                      {isOpen ? (
+                                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                                      ) : (
+                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                      )}
+                                    </button>
+
+                                    {isOpen && (
+                                      <div className="px-4 py-3.5 space-y-3 bg-white">
+                                        {d.description && (
+                                          <p className="text-gray-700 leading-relaxed text-xs">{d.description}</p>
+                                        )}
+
+                                        {/* Pure locations list (No detailed addresses) */}
+                                        {d.locations.length > 0 && (
+                                          <div className="space-y-1.5">
+                                            {d.locations.map((loc) => (
+                                              <div key={loc.id} className="flex items-center gap-2 text-xs text-gray-700">
+                                                <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                                                <span className="font-medium text-gray-900">{loc.name}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {/* Chế độ ẩm thực & Bữa ăn (Chỗ ăn) trong ngày */}
+                                        {d.meals && d.meals.length > 0 && (
+                                          <div className="pt-3 border-t border-gray-100 space-y-2">
+                                            <h5 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                                              <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                                              Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
+                                            </h5>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                              {d.meals.map((meal, mIdx) => {
+                                                const mealType = meal.type;
+                                                const label = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                                                const isBreakfast = mealType === "breakfast";
+                                                const isLunch = mealType === "lunch";
+                                                return (
+                                                  <div
+                                                    key={mIdx}
+                                                    className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
+                                                      isBreakfast
+                                                        ? "bg-amber-50/60 border-amber-200/80"
+                                                        : isLunch
+                                                        ? "bg-emerald-50/60 border-emerald-200/80"
+                                                        : "bg-purple-50/60 border-purple-200/80"
+                                                    }`}
+                                                  >
+                                                    <div
+                                                      className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                                        isBreakfast
+                                                          ? "bg-amber-100 text-amber-700"
+                                                          : isLunch
+                                                          ? "bg-emerald-100 text-emerald-700"
+                                                          : "bg-purple-100 text-purple-700"
+                                                      }`}
+                                                    >
+                                                      {isBreakfast ? <Sun className="w-3 h-3" /> : <Utensils className="w-3 h-3 text-emerald-600" />}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                      <p className="text-[11px] font-bold text-gray-900">{label}</p>
+                                                      <p className="text-xs text-gray-800 font-semibold truncate">
+                                                        {meal.serviceName || "Nhà hàng theo chương trình"}
+                                                      </p>
+                                                      {meal.description && (
+                                                        <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                                                          {meal.description}
+                                                        </p>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
@@ -2705,6 +2837,43 @@ export function TourFormPage({
                             <ul className="space-y-0.5 list-disc pl-4 text-gray-700">
                               {regulations.map((reg, i) => <li key={i}>{reg}</li>)}
                             </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* REVIEWS TAB */}
+                      {previewActiveTab === "reviews" && (
+                        <div className="space-y-4">
+                          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
+                            <div className="text-center">
+                              <p className="text-4xl font-bold text-blue-700">5.0</p>
+                              <div className="flex justify-center gap-0.5 mt-1">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                ))}
+                              </div>
+                              <p className="text-[11px] text-gray-500 mt-0.5">Tour mới (Chưa có đánh giá thực tế)</p>
+                            </div>
+                            <div className="flex-1 w-full space-y-1 text-xs">
+                              {[
+                                { star: 5, pct: "100%" },
+                                { star: 4, pct: "0%" },
+                                { star: 3, pct: "0%" },
+                                { star: 2, pct: "0%" },
+                                { star: 1, pct: "0%" },
+                              ].map(({ star, pct }) => (
+                                <div key={star} className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-600 w-3">{star}</span>
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                                    <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: pct }} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                            Khách hàng sẽ để lại đánh giá và nhận xét sau khi hoàn thành chuyến đi.
                           </div>
                         </div>
                       )}
