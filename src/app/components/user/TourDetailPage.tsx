@@ -1,0 +1,1654 @@
+import { useState, useEffect } from "react";
+import {
+  Tour,
+  Service,
+  TourHotel,
+  CustomHotelChange,
+  CustomLocationChange,
+  CustomMealChange,
+} from "@/app/types";
+import {
+  ArrowLeft,
+  Star,
+  MapPin,
+  Clock,
+  Users,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Building2,
+  Utensils,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Edit3,
+  RefreshCw,
+  Sun,
+  UtensilsCrossed,
+  Phone,
+  Share2,
+  Heart,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+
+export interface TourDetailCustomData {
+  customHotelChanges?: CustomHotelChange[];
+  customMealChanges?: CustomMealChange[];
+  locationChanges?: CustomLocationChange[];
+  hasLocationCustomization?: boolean;
+  estimatedPrice?: number;
+}
+
+interface TourDetailPageProps {
+  tour: Tour;
+  services: Service[];
+  currentUser?: { id: string; name: string } | null;
+  onBack: () => void;
+  onBookNow: (tour: Tour, customData?: TourDetailCustomData) => void;
+  onShowLogin?: () => void;
+}
+
+type TabId = "program" | "regulations" | "pricing" | "custom" | "reviews";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "program", label: "Chương trình tour" },
+  { id: "regulations", label: "Quy định" },
+  { id: "pricing", label: "Bảng giá" },
+  { id: "custom", label: "Lịch trình tùy chỉnh" },
+  { id: "reviews", label: "Nhận xét" },
+];
+
+const MEAL_LABELS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  breakfast: { label: "Sáng", icon: Sun, color: "text-amber-600 bg-amber-50" },
+  lunch: { label: "Trưa", icon: Utensils, color: "text-emerald-600 bg-emerald-50" },
+  dinner: { label: "Tối", icon: UtensilsCrossed, color: "text-purple-600 bg-purple-50" },
+};
+
+function formatVND(n: number) {
+  return n.toLocaleString("vi-VN") + "đ";
+}
+
+// -------- Program Tab --------
+function ProgramTab({ tour }: { tour: Tour }) {
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(
+    new Set(tour.itinerary.slice(0, 1).map((d) => d.id)),
+  );
+
+  const toggle = (id: string) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Operation period */}
+      {tour.operationPeriod && (
+        <section className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+          <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Thời gian hoạt động
+          </h3>
+          <div className="space-y-1 text-sm text-gray-700">
+            <p>
+              <span className="text-gray-500">Mùa tour / Thời gian hoạt động:</span>{" "}
+              <strong>{tour.operationPeriod}</strong>
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Highlights */}
+      {tour.highlights.length > 0 && (
+        <section>
+          <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+            <Star className="w-5 h-5" />
+            ĐIỂM NỔI BẬT:
+          </h3>
+          <ul className="space-y-1.5">
+            {tour.highlights.map((h, i) => (
+              <li key={i} className="flex items-start gap-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                <span dangerouslySetInnerHTML={{ __html: h }} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Day-by-day itinerary */}
+      <section>
+        <h3 className="text-lg font-bold text-red-600 mb-4">LỊCH TRÌNH CHI TIẾT:</h3>
+        <div className="space-y-3">
+          {tour.itinerary.map((day) => {
+            const isOpen = expandedDays.has(day.id);
+            return (
+              <div key={day.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => toggle(day.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {day.day}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900">
+                      NGÀY {day.day}: {day.title.toUpperCase()}
+                    </p>
+                  </div>
+                  {day.meals && day.meals.length > 0 && (
+                    <div className="flex gap-1 flex-shrink-0">
+                      {day.meals.map((m) => {
+                        const cfg = MEAL_LABELS[m.type];
+                        return (
+                          <span key={m.type} className={`text-xs px-1.5 py-0.5 rounded font-medium ${cfg.color}`}>
+                            {cfg.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {isOpen ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </button>
+
+                {isOpen && (
+                  <div className="px-4 py-4 space-y-3">
+                    <p className="text-gray-700 leading-relaxed">{day.description}</p>
+                    {day.locations.length > 0 && (
+                      <div className="space-y-1.5">
+                        {day.locations.map((loc) => (
+                          <div key={loc.id} className="flex items-center gap-2 text-sm text-gray-700">
+                            <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                            <span className="font-medium">{loc.name}</span>
+                            {loc.address && (
+                              <span className="text-gray-400 text-xs">– {loc.address}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {tour.companyNote && (
+        <p className="text-center text-red-600 font-bold text-lg py-4">{tour.companyNote}</p>
+      )}
+    </div>
+  );
+}
+
+// -------- Regulations Tab --------
+function RegulationsTab({ tour }: { tour: Tour }) {
+  return (
+    <div className="space-y-8">
+      {tour.inclusions && tour.inclusions.length > 0 && (
+        <section>
+          <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            GIÁ TOUR BAO GỒM:
+          </h3>
+          <ul className="space-y-2">
+            {tour.inclusions.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-gray-700">
+                <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                <span dangerouslySetInnerHTML={{ __html: item }} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {tour.exclusions && tour.exclusions.length > 0 && (
+        <section>
+          <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+            <XCircle className="w-5 h-5" />
+            GIÁ TOUR KHÔNG BAO GỒM:
+          </h3>
+          <ul className="space-y-2">
+            {tour.exclusions.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-gray-700">
+                <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                <span dangerouslySetInnerHTML={{ __html: item }} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {tour.regulations && tour.regulations.length > 0 && (
+        <section>
+          <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+            <Info className="w-5 h-5" />
+            ĐIỀU KIỆN & LƯU Ý:
+          </h3>
+          <ul className="space-y-2">
+            {tour.regulations.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-gray-700">
+                <span className="w-5 h-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {tour.companyNote && (
+        <p className="text-center text-red-600 font-bold text-lg py-6 border-t border-gray-200">
+          {tour.companyNote}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// -------- Pricing Tab --------
+function PricingTab({ tour }: { tour: Tour }) {
+  if (!tour.priceTable || tour.priceTable.length === 0) {
+    return <div className="text-gray-500 py-8 text-center">Chưa có bảng giá chi tiết.</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-bold text-red-600">BẢNG GIÁ CHI TIẾT:</h3>
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Loại khách</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Độ tuổi</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">Khách sạn</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-700">Giá tiền</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {tour.priceTable.map((row, i) => (
+              <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <td className="px-4 py-3 font-medium text-gray-900">{row.ageGroupLabel ?? row.ageGroup}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{row.ageRange || "—"}</td>
+                <td className="px-4 py-3 text-gray-700">{row.hotelType || "—"}</td>
+                <td className="px-4 py-3 text-right font-bold text-blue-700">
+                  {row.price === 0 ? "Miễn phí" : formatVND(row.price)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        <p className="font-medium mb-1">Lưu ý:</p>
+        <ul className="space-y-1 list-disc list-inside">
+          <li>Giá trên là giá cơ bản. Xem "Lịch trình tùy chỉnh" để tính giá nâng cấp.</li>
+          <li>Giá dịp Tết/lễ có thể tăng theo lịch khởi hành thực tế.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// -------- Custom Tab --------
+
+const SYSTEM_HOTELS = [
+  { name: "Khách sạn Đà Lạt Palace Heritage", pricePerNight: 2800000, description: "Khách sạn cổ kính – View hồ Xuân Hương thơ mộng" },
+  { name: "Dalat Edensee Lake Resort & Spa", pricePerNight: 3200000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
+  { name: "Ana Mandara Villas Dalat Resort", pricePerNight: 3550000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
+  { name: "MerPerle Dalat Hotel", pricePerNight: 4000000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
+  { name: "Tuyền Lâm Lake View Resort", pricePerNight: 4600000, description: "Khu nghỉ dưỡng cao cấp hòa quyện thiên nhiên hồ Tuyền Lâm" },
+  { name: "Terracotta Hotel & Resort Dalat", pricePerNight: 3100000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
+  { name: "TTC Hotel Premium Ngọc Lan", pricePerNight: 2450000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
+  { name: "Khách sạn Sammy Đà Lạt", pricePerNight: 2200000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
+  { name: "Khách sạn Golf 3 Đà Lạt", pricePerNight: 2000000, description: "Khách sạn ngay phố đi bộ, thuận tiện mua sắm và ẩm thực" },
+];
+
+const SYSTEM_RESTAURANTS: Array<{ name: string; mealType: "lunch" | "dinner"; pricePerPerson: number; description: string }> = [
+  // Bữa trưa (Lunch)
+  { name: "Nhà hàng Hương Rừng Đà Lạt", mealType: "lunch", pricePerPerson: 120000, description: "Đặc sản gà đồi, cơm lam, rau củ tươi organic Đà Lạt" },
+  { name: "Nhà hàng Trúc Lâm Viên", mealType: "lunch", pricePerPerson: 140000, description: "Cơm niêu gia đình, cá kho tộ, canh atiso sườn non" },
+  { name: "Nhà hàng Làng Nướng Đà Lạt", mealType: "lunch", pricePerPerson: 160000, description: "Thịt rừng nướng ngói, rau rừng xào tỏi thơm lừng" },
+  { name: "Nhà hàng Leguda Buffet Rau Cáp Treo", mealType: "lunch", pricePerPerson: 150000, description: "Buffet không giới hạn các loại rau tươi sạch trên đỉnh đồi Robin" },
+  
+  // Bữa tối (Dinner)
+  { name: "Nhà hàng Chợ Đêm & Phố Ẩm Thực Đà Lạt", mealType: "dinner", pricePerPerson: 90000, description: "Ẩm thực đường phố: bánh tráng nướng, sữa đậu nành, dâu lắc" },
+  { name: "Nhà hàng Dalat Palace Ristorante", mealType: "dinner", pricePerPerson: 320000, description: "Ẩm thực Âu - Á cao cấp sang trọng" },
+  { name: "Nhà hàng Lẩu Gà Lá É Tao Ngộ", mealType: "dinner", pricePerPerson: 130000, description: "Đặc sản lẩu gà lá é trứ danh thơm cay ấm bụng đêm sương mù" },
+  { name: "Nhà hàng Quán Nướng Chu", mealType: "dinner", pricePerPerson: 180000, description: "Các món nướng đá nóng, bò tơ nướng sa tế đậm đà" },
+  { name: "Nhà hàng La Viet Coffee & Fine Dining", mealType: "dinner", pricePerPerson: 220000, description: "Trải nghiệm ẩm thực phong cách hiện đại kết hợp cà phê nguyên bản" },
+];
+
+interface HotelChoice {
+  mode: "system" | "custom";
+  systemName?: string;
+  systemPricePerNight?: number;
+  priceDifference?: number;
+  customName?: string;
+  customAddress?: string;
+  customNote?: string;
+}
+
+interface MealChoice {
+  mealType: "lunch" | "dinner";
+  mode: "system" | "custom";
+  systemName?: string;
+  systemPrice?: number;
+  customName?: string;
+}
+
+interface LocationChoice {
+  locationId: string;
+  locationName: string;
+  changed: boolean;
+  changeRequest: string;
+}
+
+interface DestinationHotelState {
+  destination: string; // city/stop name, e.g. "Đà Lạt"
+  nightCount: number;
+  defaultHotel?: TourHotel;
+  hotelChoice: HotelChoice;
+}
+
+interface DayState {
+  locations: LocationChoice[];
+  mealChoices: MealChoice[];
+}
+
+// Derive distinct destination groups from tour.hotels or itinerary
+function getDestinationGroups(tour: Tour): DestinationHotelState[] {
+  // If tour has explicit hotels array (supports multiple hotels per tour)
+  if (tour.hotels && tour.hotels.length > 0) {
+    return tour.hotels.map((h, idx) => ({
+      destination: h.destination || (tour.destination ? `${tour.destination} (${idx + 1})` : `Chặng ${idx + 1}`),
+      nightCount: h.nights || 1,
+      defaultHotel: h,
+      hotelChoice: {
+        mode: "system",
+        systemName: h.name,
+        systemPricePerNight: h.pricePerNight,
+      },
+    }));
+  }
+
+  const globalDefault = tour.itinerary.find((d) => d.hotel)?.hotel;
+  const mainDest = tour.destination ?? "Điểm đến";
+
+  // Build ordered list of (destination, day) pairs
+  const dayDests = tour.itinerary.map((day) => ({
+    dest: day.destinationCity ?? mainDest,
+    hotel: day.hotel,
+  }));
+
+  // Group consecutive days with the same destination
+  const groups: DestinationHotelState[] = [];
+  dayDests.forEach((entry, idx) => {
+    const last = groups[groups.length - 1];
+    // Nights = days spent sleeping there (all except last day of tour)
+    const isLastDay = idx === dayDests.length - 1;
+    if (last && last.destination === entry.dest) {
+      if (!isLastDay) last.nightCount++;
+      if (!last.defaultHotel) last.defaultHotel = entry.hotel;
+    } else {
+      const defHotel = entry.hotel ?? globalDefault;
+      groups.push({
+        destination: entry.dest,
+        nightCount: isLastDay ? 0 : 1,
+        defaultHotel: defHotel,
+        hotelChoice: defHotel
+          ? { mode: "system", systemName: defHotel.name, systemPricePerNight: defHotel.pricePerNight }
+          : { mode: "system", systemName: SYSTEM_HOTELS[0].name, systemPricePerNight: SYSTEM_HOTELS[0].pricePerNight },
+      });
+    }
+  });
+  return groups.filter((g) => g.nightCount > 0);
+}
+
+function CustomTab({
+  tour,
+  basePrice,
+  onBookCustom,
+  onCustomChange,
+}: {
+  tour: Tour;
+  basePrice: number;
+  onBookCustom?: (customData: TourDetailCustomData) => void;
+  onCustomChange?: (customData: TourDetailCustomData, currentPrice: number) => void;
+}) {
+  const initDestHotels = (): Record<string, DestinationHotelState> => {
+    const groups = getDestinationGroups(tour);
+    const s: Record<string, DestinationHotelState> = {};
+    groups.forEach((g) => { s[g.destination] = g; });
+    return s;
+  };
+
+  const initDays = (): Record<string, DayState> => {
+    const s: Record<string, DayState> = {};
+    tour.itinerary.forEach((day) => {
+      s[day.id] = {
+        locations: day.locations.map((loc) => ({
+          locationId: loc.id,
+          locationName: loc.name,
+          changed: false,
+          changeRequest: "",
+        })),
+        mealChoices: (day.meals ?? [])
+          .filter((m) => m.type !== "breakfast")
+          .map((m) => ({
+            mealType: m.type as "lunch" | "dinner",
+            mode: "system" as const,
+            systemName: m.serviceName ?? "",
+            systemPrice: m.pricePerPerson ?? 0,
+          })),
+      };
+    });
+    return s;
+  };
+
+  const [destHotels, setDestHotels] = useState(initDestHotels);
+  const [days, setDays] = useState(initDays);
+  const [expandedHotelDest, setExpandedHotelDest] = useState<string | null>("Đà Lạt");
+  const [expandedMeal, setExpandedMeal] = useState<string | null>(null); // "dayId-mealType"
+
+  const updateDestHotel = (dest: string, choice: HotelChoice) =>
+    setDestHotels((prev) => ({ ...prev, [dest]: { ...prev[dest], hotelChoice: choice } }));
+
+  const updateDay = (dayId: string, update: Partial<DayState>) =>
+    setDays((prev) => ({ ...prev, [dayId]: { ...prev[dayId], ...update } }));
+
+  const updateLocation = (dayId: string, locId: string, update: Partial<LocationChoice>) => {
+    setDays((prev) => ({
+      ...prev,
+      [dayId]: {
+        ...prev[dayId],
+        locations: prev[dayId].locations.map((l) =>
+          l.locationId === locId ? { ...l, ...update } : l,
+        ),
+      },
+    }));
+  };
+
+  const updateMealChoice = (dayId: string, mealType: "lunch" | "dinner", update: Partial<MealChoice>) => {
+    setDays((prev) => ({
+      ...prev,
+      [dayId]: {
+        ...prev[dayId],
+        mealChoices: prev[dayId].mealChoices.map((m) =>
+          m.mealType === mealType ? { ...m, ...update } : m,
+        ),
+      },
+    }));
+  };
+
+  const hasAnyLocationChange = Object.values(days).some((d) =>
+    d.locations.some((l) => l.changed && l.changeRequest.trim()),
+  );
+
+  const hasAnyCustomHotel = Object.values(destHotels).some((n) => n.hotelChoice.mode === "custom");
+
+  // Tăng giá chênh lệch trực tiếp giữa khách sạn được chọn và khách sạn mặc định, không nhân theo số đêm
+  const calcHotelDelta = (): number => {
+    let delta = 0;
+    Object.values(destHotels).forEach((g) => {
+      const choice = g.hotelChoice;
+      if (choice.mode === "system") {
+        if (choice.priceDifference !== undefined) {
+          delta += choice.priceDifference;
+        } else if (g.defaultHotel && choice.systemPricePerNight !== undefined) {
+          delta += choice.systemPricePerNight - g.defaultHotel.pricePerNight;
+        }
+      }
+    });
+    return delta;
+  };
+
+  const calcMealDelta = (): number => {
+    let delta = 0;
+    tour.itinerary.forEach((day) => {
+      const dayState = days[day.id];
+      dayState?.mealChoices.forEach((mc) => {
+        if (mc.mode === "custom") return;
+        const defaultMeal = day.meals?.find((m) => m.type === mc.mealType);
+        delta += (mc.systemPrice ?? 0) - (defaultMeal?.pricePerPerson ?? 0);
+      });
+    });
+    return delta;
+  };
+
+  const needsCompanyQuote = hasAnyLocationChange || hasAnyCustomHotel;
+  const hotelDelta = calcHotelDelta();
+  const mealDelta = calcMealDelta();
+  const knownDelta = hotelDelta + mealDelta;
+  const estimatedTotal = basePrice + knownDelta;
+
+  // Tự động đồng bộ các lựa chọn tùy chỉnh và tổng giá dự kiến sang TourDetailPage (và sidebar)
+  useEffect(() => {
+    const customHotelChanges: CustomHotelChange[] = [];
+    Object.values(destHotels).forEach((g) => {
+      const choice = g.hotelChoice;
+      const def = g.defaultHotel;
+      const isCustomMode = choice.mode === "custom" && Boolean(choice.customName?.trim());
+      const isSystemChanged =
+        choice.mode === "system" &&
+        Boolean(choice.systemName) &&
+        Boolean(def) &&
+        choice.systemName !== def?.name;
+
+      if (isCustomMode || isSystemChanged) {
+        customHotelChanges.push({
+          destination: g.destination,
+          originalHotelName: def ? def.name : "Khách sạn mặc định của tour",
+          originalPricePerNight: def?.pricePerNight ?? 0,
+          newHotelName: choice.mode === "custom" ? (choice.customName || "Khách sạn tự đề xuất") : (choice.systemName || ""),
+          mode: choice.mode,
+          newPricePerNight: choice.systemPricePerNight,
+          address: choice.customAddress,
+          note: choice.customNote,
+        });
+      }
+    });
+
+    const customMealChanges: CustomMealChange[] = [];
+    tour.itinerary.forEach((day) => {
+      const dayState = days[day.id];
+      if (!dayState) return;
+      dayState.mealChoices.forEach((mc) => {
+        const defaultMeal = day.meals?.find((m) => m.type === mc.mealType);
+        const isCustom = mc.mode === "custom" && Boolean(mc.customName?.trim());
+        const isSystemChanged =
+          mc.mode === "system" &&
+          Boolean(mc.systemName) &&
+          Boolean(defaultMeal?.serviceName) &&
+          mc.systemName !== defaultMeal?.serviceName;
+
+        if (isCustom || isSystemChanged) {
+          customMealChanges.push({
+            dayNumber: day.day,
+            mealType: mc.mealType,
+            originalMealName: defaultMeal?.serviceName || "Nhà hàng theo tour",
+            newMealName: mc.mode === "custom" ? (mc.customName || "Nhà hàng tự chọn") : mc.systemName || "",
+            mode: mc.mode,
+            pricePerPerson: mc.systemPrice,
+          });
+        }
+      });
+    });
+
+    const locationChanges: CustomLocationChange[] = [];
+    tour.itinerary.forEach((day) => {
+      const dayState = days[day.id];
+      if (!dayState) return;
+      const changedLocs = dayState.locations.filter((l) => l.changed && l.changeRequest.trim());
+      if (changedLocs.length > 0) {
+        locationChanges.push({
+          dayId: day.id,
+          dayNumber: day.day,
+          originalLocations: day.locations.map((loc) => loc.name),
+          requestedLocations: changedLocs.map((l) => l.changeRequest.trim()).join(", "),
+          note: `Khách yêu cầu thay đổi ${changedLocs.length} điểm tham quan trong ngày`,
+        });
+      }
+    });
+
+    onCustomChange?.({
+      customHotelChanges,
+      customMealChanges,
+      locationChanges,
+      hasLocationCustomization: customHotelChanges.length > 0 || customMealChanges.length > 0 || locationChanges.length > 0,
+      estimatedPrice: estimatedTotal,
+    }, estimatedTotal);
+  }, [destHotels, days, basePrice, knownDelta]);
+
+  const reset = () => { setDestHotels(initDestHotels()); setDays(initDays()); };
+
+  return (
+    <div className="space-y-6">
+      {/* Price banner matching thaydoikhachsan.png */}
+      <div className="rounded-2xl p-5 bg-blue-600 text-white shadow-sm">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-sm text-blue-100 font-medium">Giá cơ bản / người</p>
+            <p className="text-3xl font-extrabold tracking-tight">{formatVND(basePrice)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-blue-100 font-medium">Tổng dự kiến / người</p>
+            <p className="text-3xl font-extrabold tracking-tight">{formatVND(estimatedTotal)}</p>
+            {needsCompanyQuote && (
+              <span className="inline-block text-[11px] bg-amber-400 text-amber-950 font-semibold px-2 py-0.5 rounded mt-1">
+                Lịch trình có yêu cầu tự nhập – chờ công ty báo giá
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          Chọn khách sạn và tùy chỉnh lịch trình. Thay đổi địa điểm hoặc tự nhập khách sạn → công ty sẽ báo giá.
+        </p>
+        <Button variant="outline" size="sm" onClick={reset} className="gap-2 text-xs">
+          <RefreshCw className="w-3.5 h-3.5" />
+          Đặt lại
+        </Button>
+      </div>
+
+      {/* ===== HOTEL SECTION ===== */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-blue-600" />
+          Khách sạn lưu trú
+        </h3>
+
+        {Object.values(destHotels).map((group) => {
+          const { destination, nightCount, defaultHotel: defHotel, hotelChoice: choice } = group;
+          const isExpanded = expandedHotelDest === destination;
+          const selectedSystem = choice.mode === "system"
+            ? SYSTEM_HOTELS.find((h) => h.name === choice.systemName)
+            : null;
+          const priceDiffPerNight = selectedSystem && defHotel
+            ? selectedSystem.pricePerNight - defHotel.pricePerNight
+            : 0;
+
+          return (
+            <div key={destination} className="border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setExpandedHotelDest(isExpanded ? null : destination)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <Building2 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{destination}</p>
+                    <p className="text-xs text-gray-500">
+                      {nightCount} đêm •{" "}
+                      {choice.mode === "system"
+                        ? (choice.systemName ?? "Chưa chọn")
+                        : choice.customName
+                          ? `Tự nhập: ${choice.customName}`
+                          : "Tự nhập (chưa điền)"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {choice.mode === "custom" && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                      Tự nhập – chờ báo giá
+                    </span>
+                  )}
+                  {choice.mode === "system" && (choice.priceDifference !== undefined ? choice.priceDifference !== 0 : selectedSystem && priceDiffPerNight !== 0) && (
+                    <span className={`text-xs font-bold ${(choice.priceDifference ?? priceDiffPerNight) > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                      {(choice.priceDifference ?? priceDiffPerNight) > 0 ? "+" : ""}{formatVND(choice.priceDifference ?? priceDiffPerNight)}
+                    </span>
+                  )}
+                  {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="px-4 py-4 space-y-4">
+                  {/* Mode tabs (Hide custom request if company disabled it) */}
+                  {defHotel?.allowCustomHotelRequest !== false && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => updateDestHotel(destination, { ...choice, mode: "system" })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          choice.mode === "system"
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        Chọn từ hệ thống
+                      </button>
+                      <button
+                        onClick={() => updateDestHotel(destination, { ...choice, mode: "custom" })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          choice.mode === "custom"
+                            ? "bg-amber-500 text-white border-amber-500"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
+                        }`}
+                      >
+                        Tự nhập khách sạn
+                      </button>
+                    </div>
+                  )}
+
+                  {/* System / Configured hotel cards */}
+                  {choice.mode === "system" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(() => {
+                        const options: Array<{ name: string; description?: string; diff: number; pricePerNight?: number }> = [];
+
+                        // 1. Default Tour Hotel (0đ)
+                        if (defHotel) {
+                          options.push({
+                            name: defHotel.name,
+                            description: defHotel.description || defHotel.address || "Khách sạn tiêu chuẩn theo tour",
+                            diff: 0,
+                            pricePerNight: defHotel.pricePerNight,
+                          });
+                        }
+
+                        // 2. If defHotel has configured alternativeHotels from company
+                        if (defHotel?.alternativeHotels && defHotel.alternativeHotels.length > 0) {
+                          defHotel.alternativeHotels.forEach((alt) => {
+                            options.push({
+                              name: alt.name,
+                              description: alt.description || alt.address || "",
+                              diff: alt.priceDifference,
+                              pricePerNight: (defHotel.pricePerNight || 0) + alt.priceDifference,
+                            });
+                          });
+                        } else {
+                          // Fallback to SYSTEM_HOTELS if no alternatives configured yet
+                          SYSTEM_HOTELS.forEach((h) => {
+                            if (h.name !== defHotel?.name) {
+                              const diff = defHotel ? h.pricePerNight - defHotel.pricePerNight : 0;
+                              options.push({
+                                name: h.name,
+                                description: h.description,
+                                diff,
+                                pricePerNight: h.pricePerNight,
+                              });
+                            }
+                          });
+                        }
+
+                        return options.map((opt) => {
+                          const isSel = choice.systemName === opt.name;
+                          return (
+                            <button
+                              key={opt.name}
+                              onClick={() => updateDestHotel(destination, {
+                                mode: "system",
+                                systemName: opt.name,
+                                systemPricePerNight: opt.pricePerNight,
+                                priceDifference: opt.diff,
+                              })}
+                              className={`text-left p-3.5 rounded-xl border-2 transition-all ${
+                                isSel ? "border-blue-500 bg-white ring-1 ring-blue-400/30" : "border-gray-200 bg-white hover:border-blue-200"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
+                                  {opt.description && <p className="text-xs text-gray-400 mt-1">{opt.description}</p>}
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  {opt.diff === 0 ? (
+                                    <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded">
+                                      Tiêu chuẩn tour (0đ)
+                                    </span>
+                                  ) : (
+                                    <div className="space-y-0.5">
+                                      <p className="text-[10px] text-gray-400 uppercase font-medium">CHÊNH LỆCH</p>
+                                      <p className={`text-sm font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                        {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Custom hotel form */}
+                  {choice.mode === "custom" && (
+                    <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                      <p className="text-xs text-amber-700 flex items-start gap-1.5">
+                        <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        Nhập thông tin khách sạn bạn muốn tại {destination}. Công ty sẽ xác nhận và báo giá.
+                      </p>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 block mb-1">Tên khách sạn *</label>
+                        <input
+                          type="text"
+                          value={choice.customName ?? ""}
+                          onChange={(e) => updateDestHotel(destination, { ...choice, customName: e.target.value })}
+                          placeholder={`VD: Khách sạn Hoa ${destination}`}
+                          className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 block mb-1">Địa chỉ</label>
+                        <input
+                          type="text"
+                          value={choice.customAddress ?? ""}
+                          onChange={(e) => updateDestHotel(destination, { ...choice, customAddress: e.target.value })}
+                          placeholder={`VD: 123 Đường Nguyễn Văn Trỗi, ${destination}`}
+                          className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 block mb-1">Ghi chú thêm</label>
+                        <input
+                          type="text"
+                          value={choice.customNote ?? ""}
+                          onChange={(e) => updateDestHotel(destination, { ...choice, customNote: e.target.value })}
+                          placeholder="VD: Yêu cầu phòng view hồ, loại phòng superior…"
+                          className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ===== MEAL SECTION (CHỖ ĂN / NHÀ HÀNG RIÊNG BIỆT TƯƠNG TỰ CHỖ Ở) ===== */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+          <Utensils className="w-4 h-4 text-emerald-600" />
+          Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
+        </h3>
+
+        <div className="space-y-2.5">
+          {tour.itinerary.flatMap((day) => {
+            const dayState = days[day.id];
+            const mealChoices = dayState?.mealChoices ?? [];
+            return (day.meals ?? [])
+              .filter((m) => m.type !== "breakfast")
+              .map((defaultMeal) => {
+                const mealType = defaultMeal.type as "lunch" | "dinner";
+                const mealChoice = mealChoices.find((mc) => mc.mealType === mealType);
+                const mealKey = `${day.id}-${mealType}`;
+                const isExpanded = expandedMeal === mealKey;
+                const mealLabel = mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                const isCustom = mealChoice?.mode === "custom" && Boolean(mealChoice.customName?.trim());
+                const isSystemChanged =
+                  mealChoice?.mode === "system" &&
+                  Boolean(mealChoice.systemName) &&
+                  Boolean(defaultMeal.serviceName) &&
+                  mealChoice.systemName !== defaultMeal.serviceName;
+
+                return (
+                  <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedMeal(isExpanded ? null : mealKey)}
+                      className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
+                        mealType === "lunch" ? "bg-emerald-50/60 hover:bg-emerald-100/50" : "bg-purple-50/60 hover:bg-purple-100/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          mealType === "lunch" ? "bg-emerald-100 text-emerald-700" : "bg-purple-100 text-purple-700"
+                        }`}>
+                          <Utensils className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">
+                            Ngày {day.day} · {mealLabel}:{" "}
+                            <span className="font-bold text-gray-900">
+                              {mealChoice?.mode === "custom"
+                                ? (mealChoice.customName || "Tự nhập (chưa điền)")
+                                : (mealChoice?.systemName || defaultMeal.serviceName || "Nhà hàng theo tour")}
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Mặc định của tour: {defaultMeal.serviceName || "Nhà hàng địa phương"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {isCustom && (
+                          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium border border-amber-200">
+                            Tự nhập – chờ báo giá
+                          </span>
+                        )}
+                        {isSystemChanged && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-medium border border-emerald-200">
+                              Đã đổi nhà hàng
+                            </span>
+                            {mealChoice?.systemPrice !== undefined && defaultMeal.pricePerPerson !== undefined && (
+                              <span className={`text-xs font-bold ${
+                                mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "text-amber-600" : "text-emerald-600"
+                              }`}>
+                                {mealChoice.systemPrice - defaultMeal.pricePerPerson > 0 ? "+" : ""}
+                                {formatVND(mealChoice.systemPrice - defaultMeal.pricePerPerson)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {!isCustom && !isSystemChanged && (
+                          <span className="text-xs text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200">
+                            Theo tour (0đ)
+                          </span>
+                        )}
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="p-4 space-y-3 bg-white border-t border-gray-100">
+                        {/* Mode tabs */}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateMealChoice(day.id, mealType, { mode: "system" })}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                              mealChoice?.mode === "system"
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-emerald-300"
+                            }`}
+                          >
+                            Chọn nhà hàng từ hệ thống
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateMealChoice(day.id, mealType, { mode: "custom" })}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                              mealChoice?.mode === "custom"
+                                ? "bg-amber-500 text-white border-amber-500"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
+                            }`}
+                          >
+                            Tự nhập nhà hàng theo ý muốn
+                          </button>
+                        </div>
+
+                        {/* System restaurant list */}
+                        {mealChoice?.mode === "system" && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {/* Option mặc định ban đầu */}
+                            <button
+                              type="button"
+                              onClick={() => updateMealChoice(day.id, mealType, {
+                                systemName: defaultMeal.serviceName,
+                                systemPrice: defaultMeal.pricePerPerson,
+                              })}
+                              className={`text-left p-3 rounded-xl border transition-all ${
+                                (!mealChoice.systemName || mealChoice.systemName === defaultMeal.serviceName)
+                                  ? "border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400"
+                                  : "border-gray-200 bg-white hover:border-emerald-200"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <p className="font-semibold text-gray-900 text-sm">{defaultMeal.serviceName || "Nhà hàng theo tour"}</p>
+                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">Mặc định (0đ)</span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{defaultMeal.description || "Thực đơn tiêu chuẩn của chương trình"}</p>
+                            </button>
+
+                            {/* Các nhà hàng khác từ hệ thống */}
+                            {SYSTEM_RESTAURANTS.filter((r) => r.mealType === mealType && r.name !== defaultMeal.serviceName).map((r) => {
+                              const isSel = mealChoice?.systemName === r.name;
+                              const mealDiff = r.pricePerPerson - (defaultMeal.pricePerPerson ?? 0);
+                              return (
+                                <button
+                                  type="button"
+                                  key={r.name}
+                                  onClick={() => updateMealChoice(day.id, mealType, {
+                                    systemName: r.name,
+                                    systemPrice: r.pricePerPerson,
+                                  })}
+                                  className={`text-left p-3 rounded-xl border transition-all ${
+                                    isSel
+                                      ? "border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400"
+                                      : "border-gray-200 bg-white hover:border-emerald-200"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                      <p className="font-semibold text-gray-900 text-sm">{r.name}</p>
+                                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{r.description}</p>
+                                    </div>
+                                    <div className="text-right flex-shrink-0">
+                                      {mealDiff === 0 ? (
+                                        <span className="text-[11px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">0đ</span>
+                                      ) : (
+                                        <div className="space-y-0.5">
+                                          <p className="text-[9px] text-gray-400 uppercase font-medium">Chênh lệch</p>
+                                          <span className={`text-xs font-bold ${mealDiff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                            {mealDiff > 0 ? "+" : ""}{formatVND(mealDiff)}/người
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Custom restaurant form */}
+                        {mealChoice?.mode === "custom" && (
+                          <div className="space-y-2 bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs">
+                            <label className="font-semibold text-gray-800 block">Tên nhà hàng / quán ăn hoặc ghi chú khẩu vị:</label>
+                            <input
+                              type="text"
+                              value={mealChoice.customName ?? ""}
+                              onChange={(e) => updateMealChoice(day.id, mealType, { customName: e.target.value })}
+                              placeholder={`VD: Quán nướng ngói Đà Lạt, yêu cầu ăn chay, hoặc nhà hàng bạn muốn...`}
+                              className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                            />
+                            <p className="text-xs text-amber-700 flex items-center gap-1 mt-1">
+                              <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                              Công ty du lịch sẽ liên hệ kiểm tra với nhà hàng và báo giá chốt cho bạn.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+          })}
+        </div>
+      </div>
+
+      {/* ===== ITINERARY TIMELINE (THÔNG TIN THAM QUAN CƠ BẢN CỦA TOUR) ===== */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-purple-600" />
+            Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Lộ trình các điểm tham quan do công ty thiết lập. Bạn có thể xem hoặc gửi yêu cầu đổi địa điểm tham quan nếu muốn.
+          </p>
+        </div>
+
+        {tour.itinerary.map((day) => {
+          const dayState = days[day.id];
+          const locations = dayState?.locations ?? [];
+          const hasChanges = locations.some((l) => l.changed && l.changeRequest.trim());
+
+          return (
+            <div key={day.id} className={`rounded-xl border overflow-hidden ${hasChanges ? "border-amber-300" : "border-gray-200"}`}>
+              {/* Day header */}
+              <div className={`px-4 py-3 flex items-center justify-between ${hasChanges ? "bg-amber-50" : "bg-gray-50"}`}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
+                    {day.day}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">
+                      Ngày {day.day}: {day.title}
+                      {day.meals && day.meals.length > 0 && (
+                        <span className="text-xs text-gray-500 font-normal ml-1.5">
+                          (Ăn {day.meals.map((m) => m.type === "breakfast" ? "sáng" : m.type === "lunch" ? "trưa" : "tối").join(", ")})
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {hasChanges && (
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
+                    Có yêu cầu đổi điểm
+                  </span>
+                )}
+              </div>
+
+              {/* Day description & Sightseeing locations */}
+              <div className="px-4 py-3.5 space-y-3 bg-white">
+                {day.description && (
+                  <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    {day.description}
+                  </p>
+                )}
+
+                {/* Pure locations timeline (No meal changes here) */}
+                <div className="relative pl-1">
+                  <div className="absolute left-3.5 top-2 bottom-2 w-0.5 bg-gray-200" />
+
+                  <div className="space-y-2.5">
+                    {locations.map((loc) => (
+                      <div key={loc.locationId} className="relative flex items-start gap-3">
+                        {/* Dot */}
+                        <div className={`relative z-10 flex-shrink-0 mt-3 w-7 h-7 rounded-full flex items-center justify-center border-2 ${
+                          loc.changed ? "bg-amber-400 border-amber-400" : "bg-white border-blue-400"
+                        }`}>
+                          <MapPin className={`w-3.5 h-3.5 ${loc.changed ? "text-white" : "text-blue-500"}`} />
+                        </div>
+
+                        {/* Content */}
+                        <div className={`flex-1 rounded-xl border p-3 ${
+                          loc.changed ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
+                        }`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1">
+                              {loc.changed ? (
+                                <p className="text-xs text-gray-400 line-through">{loc.locationName}</p>
+                              ) : (
+                                <p className="font-medium text-gray-900 text-sm">{loc.locationName}</p>
+                              )}
+                              {loc.changed && loc.changeRequest && (
+                                <p className="text-sm font-medium text-amber-800 mt-0.5">
+                                  → {loc.changeRequest}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => updateLocation(day.id, loc.locationId, {
+                                changed: !loc.changed,
+                                changeRequest: loc.changed ? "" : loc.changeRequest,
+                              })}
+                              className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                                loc.changed
+                                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700"
+                              }`}
+                            >
+                              {loc.changed ? "Huỷ thay đổi" : "Thay đổi"}
+                            </button>
+                          </div>
+
+                          {loc.changed && (
+                            <div className="mt-2">
+                              <textarea
+                                value={loc.changeRequest}
+                                onChange={(e) => updateLocation(day.id, loc.locationId, { changeRequest: e.target.value })}
+                                placeholder={`Thay thế "${loc.locationName}" bằng địa điểm nào? (VD: Vườn hoa thành phố Đà Lạt, Ga Đà Lạt, ...)`}
+                                className="w-full border border-amber-300 rounded-lg p-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                rows={2}
+                              />
+                              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                <Info className="w-3 h-3 flex-shrink-0" />
+                                Công ty sẽ xem xét và báo giá sau khi nhận booking.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Price summary */}
+      {!needsCompanyQuote && knownDelta !== 0 && (
+        <div className="bg-white border-2 border-blue-200 rounded-2xl p-5">
+          <h4 className="font-bold text-gray-900 mb-3 text-sm">Tóm tắt điều chỉnh / người:</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>Giá tour cơ bản</span>
+              <span className="font-medium">{formatVND(basePrice)}</span>
+            </div>
+            {hotelDelta !== 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Điều chỉnh khách sạn</span>
+                <span className={`font-semibold ${hotelDelta > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                  {hotelDelta > 0 ? "+" : ""}{formatVND(hotelDelta)}
+                </span>
+              </div>
+            )}
+            {mealDelta !== 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Điều chỉnh bữa ăn</span>
+                <span className={`font-semibold ${mealDelta > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                  {mealDelta > 0 ? "+" : ""}{formatVND(mealDelta)}
+                </span>
+              </div>
+            )}
+            <div className="border-t border-gray-200 pt-2 flex justify-between font-bold">
+              <span>Tổng dự kiến / người</span>
+              <span className="text-blue-700 text-base">{formatVND(estimatedTotal ?? basePrice)}</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">* Giá chính thức xác nhận khi công ty duyệt booking.</p>
+        </div>
+      )}
+
+      {/* Action button to book with customized itinerary */}
+      <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 rounded-2xl p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 border border-blue-500">
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase bg-amber-400 text-amber-950 px-2.5 py-0.5 rounded-full mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            Lịch trình theo ý muốn
+          </span>
+          <h4 className="text-lg font-bold">
+            Hoàn tất tùy chỉnh &amp; Đặt tour ngay
+          </h4>
+          <p className="text-xs text-blue-100 mt-1 max-w-xl">
+            Toàn bộ thông tin thay đổi về chỗ ở/khách sạn, chế độ ẩm thực (chỗ ăn) và địa điểm tham quan sẽ được gửi trực tiếp đến công ty du lịch để đối soát và chốt giá.
+          </p>
+        </div>
+        <Button
+          size="lg"
+          onClick={() => {
+            const customHotelChanges: CustomHotelChange[] = [];
+            Object.values(destHotels).forEach((g) => {
+              const choice = g.hotelChoice;
+              const def = g.defaultHotel;
+              const isCustomMode = choice.mode === "custom" && Boolean(choice.customName?.trim());
+              const isSystemChanged =
+                choice.mode === "system" &&
+                Boolean(choice.systemName) &&
+                Boolean(def) &&
+                choice.systemName !== def?.name;
+
+              if (isCustomMode || isSystemChanged) {
+                customHotelChanges.push({
+                  destination: g.destination,
+                  originalHotelName: def ? `${def.name} (${def.stars}★)` : "Khách sạn mặc định của tour",
+                  originalPricePerNight: def?.pricePerNight ?? 0,
+                  newHotelName:
+                    choice.mode === "custom"
+                      ? (choice.customName || "Khách sạn tự đề xuất")
+                      : `${choice.systemName} (${choice.systemStars ?? 4}★)`,
+                  mode: choice.mode,
+                  stars: choice.systemStars,
+                  newPricePerNight: choice.systemPricePerNight,
+                  address: choice.customAddress,
+                  note: choice.customNote,
+                });
+              }
+            });
+
+            // Gather custom meal changes
+            const customMealChanges: CustomMealChange[] = [];
+            tour.itinerary.forEach((day) => {
+              const dayState = days[day.id];
+              if (!dayState) return;
+              dayState.mealChoices.forEach((mc) => {
+                const defaultMeal = day.meals?.find((m) => m.type === mc.mealType);
+                const isCustom = mc.mode === "custom" && Boolean(mc.customName?.trim());
+                const isSystemChanged =
+                  mc.mode === "system" &&
+                  Boolean(mc.systemName) &&
+                  Boolean(defaultMeal?.serviceName) &&
+                  mc.systemName !== defaultMeal?.serviceName;
+
+                if (isCustom || isSystemChanged) {
+                  customMealChanges.push({
+                    dayNumber: day.day,
+                    mealType: mc.mealType,
+                    originalMealName: defaultMeal?.serviceName || "Nhà hàng theo tour",
+                    newMealName: mc.mode === "custom" ? (mc.customName || "Nhà hàng tự chọn") : mc.systemName || "",
+                    mode: mc.mode,
+                    pricePerPerson: mc.systemPrice,
+                  });
+                }
+              });
+            });
+
+            const locationChanges: CustomLocationChange[] = [];
+            tour.itinerary.forEach((day) => {
+              const dayState = days[day.id];
+              if (!dayState) return;
+              const changedLocs = dayState.locations.filter((l) => l.changed && l.changeRequest.trim());
+              if (changedLocs.length > 0) {
+                locationChanges.push({
+                  dayId: day.id,
+                  dayNumber: day.day,
+                  originalLocations: day.locations.map((loc) => loc.name),
+                  requestedLocations: changedLocs.map((l) => l.changeRequest.trim()).join(", "),
+                  note: `Khách yêu cầu thay đổi ${changedLocs.length} điểm tham quan trong ngày`,
+                });
+              }
+            });
+
+            onBookCustom?.({
+              customHotelChanges,
+              customMealChanges,
+              locationChanges,
+              hasLocationCustomization:
+                customHotelChanges.length > 0 ||
+                customMealChanges.length > 0 ||
+                locationChanges.length > 0,
+              estimatedPrice: estimatedTotal ?? basePrice,
+            });
+          }}
+          className="bg-amber-400 hover:bg-amber-300 text-gray-900 font-bold px-6 py-3 rounded-xl shadow-lg whitespace-nowrap text-sm flex-shrink-0"
+        >
+          Đặt tour theo lịch trình này →
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// -------- Reviews Tab --------
+function ReviewsTab({ tour }: { tour: Tour }) {
+  const reviews = tour.reviews ?? [];
+  const avg = reviews.length > 0
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : tour.rating;
+
+  const dist = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: reviews.filter((r) => r.rating === star).length,
+  }));
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
+        <div className="text-center">
+          <p className="text-6xl font-bold text-blue-700">{avg.toFixed(1)}</p>
+          <div className="flex justify-center gap-0.5 mt-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className={`w-5 h-5 ${i < Math.round(avg) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+            ))}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">{reviews.length} đánh giá</p>
+        </div>
+        <div className="flex-1 w-full space-y-1.5">
+          {dist.map(({ star, count }) => (
+            <div key={star} className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 w-4">{star}</span>
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-amber-400 h-2 rounded-full"
+                  style={{ width: reviews.length > 0 ? `${(count / reviews.length) * 100}%` : "0%" }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 w-4">{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {reviews.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Star className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          <p>Chưa có đánh giá nào</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((r) => (
+            <div key={r.id} className="bg-white border border-gray-200 rounded-xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {r.userAvatar ? (
+                    <img src={r.userAvatar} alt={r.userName} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700">
+                      {r.userName[0]}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold text-gray-900">{r.userName}</p>
+                    <p className="text-xs text-gray-400">
+                      {r.tourDate && `Đi tour: ${r.tourDate} · `}Đăng: {r.date}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700 leading-relaxed">{r.comment}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -------- Main Component --------
+export function TourDetailPage({
+  tour,
+  services,
+  currentUser,
+  onBack,
+  onBookNow,
+  onShowLogin,
+}: TourDetailPageProps) {
+  const basePrice = tour.priceTable?.find((r) => r.ageGroup === "adult")?.price ?? tour.price;
+  const [activeTab, setActiveTab] = useState<TabId>("program");
+  const [liked, setLiked] = useState(false);
+  const [customData, setCustomData] = useState<TourDetailCustomData | null>(null);
+  const [customPrice, setCustomPrice] = useState<number>(basePrice);
+
+  useEffect(() => {
+    setCustomPrice(basePrice);
+  }, [basePrice]);
+
+  const handleBook = () => {
+    if (!currentUser) {
+      onShowLogin?.();
+      return;
+    }
+    if (customData && (customData.customHotelChanges?.length || customData.customMealChanges?.length || customData.locationChanges?.length)) {
+      onBookNow(tour, customData);
+    } else {
+      onBookNow(tour);
+    }
+  };
+
+  const handleBookWithCustom = (cData: TourDetailCustomData) => {
+    if (!currentUser) {
+      onShowLogin?.();
+      return;
+    }
+    onBookNow(tour, cData);
+  };
+
+  const [selectedPhoto, setSelectedPhoto] = useState<string>(
+    tour.image || (tour.images && tour.images[0]) || ""
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Sticky top bar */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLiked(!liked)}
+              className={`p-2 rounded-full transition-colors ${liked ? "text-red-500 bg-red-50" : "text-gray-400 hover:bg-gray-100"}`}
+            >
+              <Heart className={`w-5 h-5 ${liked ? "fill-red-500" : ""}`} />
+            </button>
+            <button className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Hero */}
+            <div className="relative rounded-2xl overflow-hidden shadow-lg h-72 sm:h-96">
+              <img src={selectedPhoto || tour.image} alt={tour.name} className="w-full h-full object-cover transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              {tour.companyName && (
+                <div className="absolute top-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5">
+                  {tour.companyLogo && (
+                    <img src={tour.companyLogo} alt="" className="w-5 h-5 rounded object-cover" />
+                  )}
+                  <span className="text-xs font-semibold text-gray-800">{tour.companyName}</span>
+                </div>
+              )}
+              <div className="absolute top-4 right-4 bg-amber-400 text-white text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-white" />
+                {tour.rating}
+              </div>
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-xs text-white/70 font-medium mb-1">MÃ TOUR: {tour.tourCode}</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">{tour.name}</h1>
+              </div>
+            </div>
+
+            {/* Gallery thumbnails switcher if tour has multiple images */}
+            {tour.images && tour.images.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {tour.images.map((img, i) => (
+                  <button
+                    type="button"
+                    key={i}
+                    onClick={() => setSelectedPhoto(img)}
+                    className={`relative rounded-xl overflow-hidden border-2 flex-shrink-0 w-20 h-14 transition-all ${
+                      (selectedPhoto === img)
+                        ? "border-blue-600 ring-2 ring-blue-500/50 scale-105"
+                        : "border-gray-200 hover:border-blue-300 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Meta strip */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-wrap gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <MapPin className="w-4 h-4 text-blue-500" />
+                {tour.destination}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Clock className="w-4 h-4 text-blue-500" />
+                {tour.duration}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Users className="w-4 h-4 text-blue-500" />
+                {tour.minGuests}–{tour.maxGuests} khách
+              </div>
+              {tour.operationPeriod && (
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  {tour.operationPeriod}
+                </div>
+              )}
+            </div>
+
+            {/* Tabs */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="flex overflow-x-auto border-b border-gray-200">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-shrink-0 px-4 py-3 text-sm font-medium transition-all border-b-2 ${
+                      activeTab === tab.id
+                        ? "border-blue-600 text-blue-700 bg-blue-50/50"
+                        : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <div className="p-5">
+                {activeTab === "program" && <ProgramTab tour={tour} />}
+                {activeTab === "regulations" && <RegulationsTab tour={tour} />}
+                {activeTab === "pricing" && <PricingTab tour={tour} />}
+                {activeTab === "custom" && (
+                  <CustomTab
+                    tour={tour}
+                    basePrice={basePrice}
+                    onBookCustom={handleBookWithCustom}
+                    onCustomChange={(cData, price) => {
+                      setCustomData(cData);
+                      setCustomPrice(price);
+                    }}
+                  />
+                )}
+                {activeTab === "reviews" && <ReviewsTab tour={tour} />}
+              </div>
+            </div>
+          </div>
+
+          {/* Booking sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-5 sticky top-20 space-y-4">
+              <div>
+                <p className="text-sm text-gray-500">Giá tour / người</p>
+                <p className="text-3xl font-bold text-blue-700">{formatVND(customPrice)}</p>
+                <p className="text-xs text-gray-400">/ người lớn</p>
+                {customPrice !== basePrice && (
+                  <p className={`text-xs font-semibold mt-1 ${customPrice > basePrice ? "text-amber-600" : "text-emerald-600"}`}>
+                    {customPrice > basePrice ? "+" : ""}{formatVND(customPrice - basePrice)} (chênh lệch tùy chỉnh)
+                  </p>
+                )}
+              </div>
+
+              {tour.operationPeriod && (
+                <div className="bg-blue-50 rounded-xl p-3 text-sm">
+                  <p className="text-xs text-blue-500 font-medium mb-1">Thời gian hoạt động</p>
+                  <p className="text-gray-800">{tour.operationPeriod}</p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-xl p-3 space-y-1.5 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Thời gian</span>
+                  <span className="font-medium">{tour.duration}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Điểm đến</span>
+                  <span className="font-medium">{tour.destination}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Nhóm khách</span>
+                  <span className="font-medium">{tour.minGuests}–{tour.maxGuests} người</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleBook}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 text-base rounded-xl"
+              >
+                {currentUser ? "Đặt tour ngay" : "Đăng nhập để đặt"}
+              </Button>
+
+              {!currentUser && (
+                <p className="text-center text-xs text-gray-400">
+                  Đã có tài khoản?{" "}
+                  <button onClick={onShowLogin} className="text-blue-600 hover:underline">
+                    Đăng nhập
+                  </button>
+                </p>
+              )}
+
+              {tour.companyName && (
+                <div className="border-t border-gray-100 pt-4 space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Liên hệ công ty</p>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <span className="font-medium">{tour.companyName}</span>
+                  </div>
+                  <button className="w-full flex items-center justify-center gap-2 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Phone className="w-4 h-4" />
+                    Gọi tư vấn miễn phí
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
