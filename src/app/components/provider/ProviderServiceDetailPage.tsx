@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Info,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Badge } from "@/app/components/ui/badge";
@@ -84,7 +85,9 @@ export function ProviderServiceDetailPage({
           label: "Lưu trú & Khách sạn",
           icon: Hotel,
           color: "bg-blue-50 text-blue-700 border-blue-200",
-          unit: "/phòng",
+          unit: "/ phòng",
+          capacityLabel: "Tổng số phòng",
+          capacityUnit: "phòng",
         };
       case "fnb":
       case "restaurant":
@@ -92,35 +95,29 @@ export function ProviderServiceDetailPage({
           label: "Ẩm thực & Nhà hàng",
           icon: Utensils,
           color: "bg-orange-50 text-orange-700 border-orange-200",
-          unit: service.pricePerPerson ? "/người" : "/suất",
-        };
-      case "attraction":
-        return {
-          label: "Điểm tham quan & Vé",
-          icon: Compass,
-          color: "bg-teal-50 text-teal-700 border-teal-200",
-          unit: "/vé",
-        };
-      case "activity":
-        return {
-          label: "Hoạt động & Trải nghiệm",
-          icon: Sparkles,
-          color: "bg-purple-50 text-purple-700 border-purple-200",
-          unit: "/người",
+          unit: "/ người",
+          capacityLabel: "Sức chứa phục vụ",
+          capacityUnit: "khách",
         };
       case "transportation":
         return {
           label: "Phương tiện & Vận chuyển",
           icon: Car,
           color: "bg-cyan-50 text-cyan-700 border-cyan-200",
-          unit: service.seats ? `/${service.seats} chỗ` : "/chuyến",
+          unit: "/ người",
+          capacityLabel: "Số lượng chỗ ngồi",
+          capacityUnit: "ghế",
         };
+      case "attraction":
+      case "activity":
       default:
         return {
-          label: service.category,
-          icon: Layers,
-          color: "bg-gray-100 text-gray-700 border-gray-200",
-          unit: "",
+          label: "Điểm tham quan & Hoạt động",
+          icon: Compass,
+          color: "bg-teal-50 text-teal-700 border-teal-200",
+          unit: "/ người",
+          capacityLabel: "Sức chứa tối đa / lượt",
+          capacityUnit: "khách",
         };
     }
   };
@@ -351,39 +348,36 @@ export function ProviderServiceDetailPage({
 
           {/* Quick Specs summary */}
           <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-gray-100">
-            {service.category === "hotel" ? (
-              (service.totalRooms || service.capacity) && (
-                <div className="p-2.5 bg-gray-50 rounded-xl">
-                  <span className="text-gray-500 block">Tổng số phòng:</span>
-                  <strong className="text-gray-900 text-sm">
-                    {service.totalRooms || service.capacity} phòng
-                  </strong>
-                </div>
-              )
-            ) : (
-              service.capacity && (
-                <div className="p-2.5 bg-gray-50 rounded-xl">
-                  <span className="text-gray-500 block">Sức chứa tối đa:</span>
-                  <strong className="text-gray-900 text-sm">{service.capacity} người</strong>
-                </div>
-              )
-            )}
-            {service.seats && (
-              <div className="p-2.5 bg-gray-50 rounded-xl">
-                <span className="text-gray-500 block">Số chỗ ngồi:</span>
-                <strong className="text-gray-900 text-sm">{service.seats} ghế</strong>
-              </div>
-            )}
-            {service.stars && (
+            <div className="p-2.5 bg-gray-50 rounded-xl">
+              <span className="text-gray-500 block">{meta.capacityLabel}:</span>
+              <strong className="text-gray-900 text-sm">
+                {service.capacity || service.totalRooms || service.seats || "—"} {meta.capacityUnit}
+              </strong>
+            </div>
+
+            {service.category === "hotel" && service.stars ? (
               <div className="p-2.5 bg-gray-50 rounded-xl">
                 <span className="text-gray-500 block">Xếp hạng:</span>
                 <strong className="text-amber-600 text-sm">{service.stars} Sao ⭐</strong>
               </div>
+            ) : (
+              <div className="p-2.5 bg-gray-50 rounded-xl">
+                <span className="text-gray-500 block">Phân loại:</span>
+                <strong className="text-gray-900 text-sm">{service.subCategory || "Tiêu chuẩn"}</strong>
+              </div>
             )}
+
             <div className="p-2.5 bg-gray-50 rounded-xl">
               <span className="text-gray-500 block">Ngày tạo bài:</span>
               <strong className="text-gray-900">
                 {new Date(service.createdAt).toLocaleDateString("vi-VN")}
+              </strong>
+            </div>
+
+            <div className="p-2.5 bg-gray-50 rounded-xl">
+              <span className="text-gray-500 block">Cập nhật:</span>
+              <strong className="text-gray-900">
+                {service.updatedAt ? new Date(service.updatedAt).toLocaleDateString("vi-VN") : "Gần đây"}
               </strong>
             </div>
           </div>
@@ -409,148 +403,88 @@ export function ProviderServiceDetailPage({
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
               <Icon className="w-5 h-5 text-blue-600" />
-              Thông số chi tiết [{meta.label}]
+              Thông số & Quy mô dịch vụ [{meta.label}]
             </h3>
 
-            {/* Hotel Specs */}
-            {service.category === "hotel" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Tên cơ sở lưu trú:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.name}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Loại hình lưu trú:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.subCategory || "Khách sạn (Hotel)"}
-                  </span>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-gray-500 block mb-0.5">Tên cơ sở / Dịch vụ:</span>
+                <span className="font-semibold text-gray-900 text-sm">
+                  {service.name}
+                </span>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-gray-500 block mb-0.5">Loại hình / Phân loại:</span>
+                <span className="font-semibold text-gray-900 text-sm">
+                  {service.subCategory || "Dịch vụ tiêu chuẩn"}
+                </span>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-gray-500 block mb-0.5">{meta.capacityLabel}:</span>
+                <span className="font-bold text-blue-700 text-sm">
+                  {service.capacity || service.totalRooms || service.seats || "Đang cập nhật"} {meta.capacityUnit}
+                </span>
+              </div>
+
+              {service.category === "hotel" && (
                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <span className="text-gray-500 block mb-0.5">Xếp hạng sao:</span>
                   <span className="font-semibold text-amber-600 text-sm">
                     {service.stars && service.stars > 0 ? `${service.stars} Sao ⭐` : "Tiêu chuẩn du lịch"}
                   </span>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Tổng số lượng phòng:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.totalRooms || service.capacity || "Chưa cập nhật"} phòng
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 sm:col-span-2">
-                  <span className="text-gray-500 block mb-0.5">Các chính sách đi kèm:</span>
-                  <span className="font-semibold text-gray-900 text-sm leading-relaxed whitespace-pre-line">
-                    {service.policies || (service.checkInTime ? `Nhận phòng: ${service.checkInTime} - Trả phòng: ${service.checkOutTime}` : "Đang cập nhật")}
-                  </span>
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* FnB Specs */}
-            {(service.category === "fnb" || service.category === "restaurant") && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Phân loại ẩm thực:</span>
-                  <span className="font-semibold text-gray-900 text-sm capitalize">
-                    {service.subCategory === "restaurant"
-                      ? "Nhà hàng ăn uống"
-                      : service.subCategory === "cafe"
-                      ? "Quán Cà phê & Trà"
-                      : service.subCategory || "Ẩm thực"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Phong cách ẩm thực:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.cuisineType || "Đặc sản địa phương"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 sm:col-span-2">
-                  <span className="text-gray-500 block mb-0.5">Khung giờ mở cửa đón khách:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.openingHours || "07:00 - 22:00"}
-                  </span>
-                </div>
-                {service.dietaryOptions && service.dietaryOptions.length > 0 && (
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 sm:col-span-2">
-                    <span className="text-gray-500 block mb-1">Thực đơn đặc biệt:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {service.dietaryOptions.map((opt, i) => (
-                        <Badge key={i} variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                          {opt}
-                        </Badge>
-                      ))}
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-gray-500 block mb-0.5">Đơn vị định giá đối tác:</span>
+                <span className="font-semibold text-gray-900 text-sm">
+                  Khoảng giá tính theo {service.category === "hotel" ? "phòng / đêm" : "người (đầu khách)"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Unified Policies & Special Operating Conditions (Gộp vào 1 trường duy nhất) */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-amber-600" />
+                Chính sách, điều kiện & Thông số đặc thù
+              </h3>
+              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-xs">
+                Quy chuẩn áp dụng
+              </Badge>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              Bao gồm thông tin vận hành chuyên biệt (giờ giấc nhận/trả/đón khách, quy định hủy phòng, phụ thu trẻ em/ngày lễ, dòng xe, set menu, quyền lợi vé...) được chuẩn hóa trong hợp đồng tour.
+            </p>
+
+            {service.policies && (Array.isArray(service.policies) ? service.policies.length > 0 : Boolean(service.policies)) ? (
+              <div className="space-y-2">
+                {Array.isArray(service.policies) ? (
+                  service.policies.map((policy, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-amber-50/50 rounded-xl border border-amber-200/70 text-gray-800 text-sm flex items-start gap-2.5 leading-relaxed"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-amber-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <span className="font-normal">{policy}</span>
                     </div>
+                  ))
+                ) : (
+                  <div className="p-4 bg-amber-50/40 rounded-xl border border-amber-200/60 text-gray-800 text-sm leading-relaxed whitespace-pre-line font-normal">
+                    {service.policies}
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Attraction Specs */}
-            {service.category === "attraction" && (
-              <div className="grid grid-cols-1 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Giờ đón khách / mở cửa:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.openingHours || "07:30 - 17:30 hàng ngày"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Quyền lợi vé bao gồm:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.ticketIncludes || "Vé vào cổng tham quan đầy đủ tiện ích nội khu"}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Activity Specs */}
-            {service.category === "activity" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Thời lượng trải nghiệm:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.duration || "Khoảng 2 - 3 giờ"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Mức độ thể lực / Độ khó:</span>
-                  <span className="font-semibold text-purple-700 text-sm">
-                    {service.difficultyLevel || "Dễ dàng"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Giới hạn độ tuổi:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.ageRestriction || "Thích hợp mọi lứa tuổi"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Thiết bị bảo hộ an toàn:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.safetyGear || "Đầy đủ trang thiết bị bảo hộ chuẩn quy chuẩn"}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Transportation Specs */}
-            {service.category === "transportation" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Dòng xe / Phương tiện:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.vehicleType || "Xe du lịch"}
-                  </span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <span className="text-gray-500 block mb-0.5">Số lượng chỗ ngồi:</span>
-                  <span className="font-semibold text-gray-900 text-sm">
-                    {service.seats || 16} Chỗ ngồi
-                  </span>
-                </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-500 text-sm italic">
+                Chưa có ghi chú chính sách đặc thù. Nhà cung cấp có thể chỉnh sửa để bổ sung thêm quy định giờ giấc, hoàn hủy và phụ thu.
               </div>
             )}
           </div>

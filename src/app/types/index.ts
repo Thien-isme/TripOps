@@ -341,7 +341,7 @@ export interface Service {
   // Hotel specific fields
   stars?: number;
   totalRooms?: number; // Tổng số lượng phòng ở cơ sở lưu trú
-  policies?: string; // Các chính sách đi kèm (nhận/trả phòng, phụ thu, hoàn huỷ...)
+  policies?: string[] | string; // Các chính sách đi kèm (dạng mảng string[])
   amenities?: string[];
   checkInTime?: string;
   checkOutTime?: string;

@@ -232,8 +232,8 @@ export function ServicePostManagement({
   };
 
   const formatAddress = (service: Service) => {
-    // Strictly 2 administrative levels: Phường/Xã and Tỉnh/Thành phố (no Quận/Huyện)
-    const parts = [service.street, service.ward, service.province].filter(Boolean);
+    // Strictly 2 administrative levels: Phường/Xã and Tỉnh/Thành phố
+    const parts = [service.ward, service.province].filter(Boolean);
     if (parts.length > 0) {
       return parts.join(", ");
     }
@@ -377,7 +377,7 @@ export function ServicePostManagement({
                 <th className="py-3.5 px-4 text-center w-12">#</th>
                 <th className="py-3.5 px-4 min-w-[240px]">Dịch vụ</th>
                 <th className="py-3.5 px-4 min-w-[130px]">Phân loại</th>
-                <th className="py-3.5 px-4 min-w-[200px]">Khu vực / Địa chỉ</th>
+                <th className="py-3.5 px-4 min-w-[180px]">Khu vực</th>
                 <th className="py-3.5 px-4 min-w-[160px]">Khoảng giá</th>
                 <th className="py-3.5 px-4 text-center min-w-[130px]">Trạng thái</th>
                 <th className="py-3.5 px-4 text-center min-w-[160px]">Thao tác</th>
@@ -457,47 +457,16 @@ export function ServicePostManagement({
                         </div>
                       </td>
 
-                      {/* Category */}
+                      {/* Category - Only main type badge */}
                       <td className="py-3.5 px-4">
                         {getCategoryBadge(service.category)}
-                        {service.subCategory && (
-                          <div className="text-[11px] text-gray-500 mt-1 capitalize">
-                            {service.subCategory === "restaurant"
-                              ? "Quán ăn"
-                              : service.subCategory === "cafe"
-                              ? "Cà phê"
-                              : service.subCategory}
-                          </div>
-                        )}
-                        {service.stars && (
-                          <div className="text-[11px] text-amber-600 font-medium mt-0.5">
-                            {service.stars} ⭐ hạng sao
-                          </div>
-                        )}
                       </td>
 
-                      {/* Location & GPS */}
-                      <td className="py-3.5 px-4 text-xs text-gray-600">
-                        <div className="flex items-start gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-                          <div className="space-y-1">
-                            <div className="line-clamp-2">
-                              {formatAddress(service)}
-                            </div>
-                            {service.latitude && service.longitude && (
-                              <a
-                                href={`https://www.google.com/maps?q=${service.latitude},${service.longitude}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline bg-blue-50/80 px-2 py-0.5 rounded border border-blue-200"
-                                title="Mở vị trí trên Google Maps"
-                              >
-                                <Compass className="w-3 h-3 text-blue-500" />
-                                <span>{service.latitude.toFixed(4)}, {service.longitude.toFixed(4)}</span>
-                              </a>
-                            )}
-                          </div>
+                      {/* Area - Only Ward & Province */}
+                      <td className="py-3.5 px-4 text-xs text-gray-700">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          <span>{formatAddress(service)}</span>
                         </div>
                       </td>
 
@@ -784,131 +753,87 @@ export function ServicePostManagement({
                 </div>
               </div>
 
-              {/* Category-Specific Specifications */}
+              {/* Unified Specifications & Policies */}
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-                <h4 className="font-bold text-sm text-gray-900">
-                  Thông số chi tiết loại dịch vụ
+                <h4 className="font-bold text-sm text-gray-900 flex items-center justify-between">
+                  <span>Thông số & Quy mô dịch vụ</span>
+                  <span className="text-xs font-normal text-gray-500">
+                    {selectedService.category === "hotel"
+                      ? "Lưu trú & Khách sạn"
+                      : selectedService.category === "fnb"
+                      ? "Ẩm thực & Nhà hàng"
+                      : selectedService.category === "transportation"
+                      ? "Phương tiện & Vận chuyển"
+                      : "Điểm tham quan & Trải nghiệm"}
+                  </span>
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  {selectedService.category === "hotel" && (
-                    <>
-                      {selectedService.subCategory && (
-                        <div>
-                          <span className="text-gray-500 block">Loại hình:</span>
-                          <strong>{selectedService.subCategory}</strong>
-                        </div>
-                      )}
-                      {selectedService.stars && (
-                        <div>
-                          <span className="text-gray-500 block">Hạng sao:</span>
-                          <strong className="text-amber-600 font-semibold">
-                            {selectedService.stars} Sao ⭐
-                          </strong>
-                        </div>
-                      )}
-                      {(selectedService.totalRooms || selectedService.capacity) && (
-                        <div>
-                          <span className="text-gray-500 block">Tổng số phòng:</span>
-                          <strong>{selectedService.totalRooms || selectedService.capacity} phòng</strong>
-                        </div>
-                      )}
-                      {selectedService.policies && (
-                        <div className="sm:col-span-3">
-                          <span className="text-gray-500 block">Chính sách đi kèm:</span>
-                          <strong className="font-normal text-gray-700 leading-relaxed whitespace-pre-line">
-                            {selectedService.policies}
-                          </strong>
-                        </div>
-                      )}
-                    </>
+                  {selectedService.subCategory && (
+                    <div>
+                      <span className="text-gray-500 block">Phân loại chi tiết:</span>
+                      <strong className="text-gray-900">{selectedService.subCategory}</strong>
+                    </div>
                   )}
-
-                  {(selectedService.category === "fnb" || selectedService.category === "restaurant") && (
-                    <>
-                      {selectedService.subCategory && (
-                        <div>
-                          <span className="text-gray-500 block">Loại ẩm thực:</span>
-                          <strong className="capitalize">{selectedService.subCategory}</strong>
-                        </div>
-                      )}
-                      {selectedService.cuisineType && (
-                        <div>
-                          <span className="text-gray-500 block">Phong cách món:</span>
-                          <strong>{selectedService.cuisineType}</strong>
-                        </div>
-                      )}
-                      {selectedService.openingHours && (
-                        <div>
-                          <span className="text-gray-500 block">Giờ mở cửa:</span>
-                          <strong>{selectedService.openingHours}</strong>
-                        </div>
-                      )}
-                    </>
+                  {selectedService.category === "hotel" && selectedService.stars && (
+                    <div>
+                      <span className="text-gray-500 block">Hạng sao:</span>
+                      <strong className="text-amber-600 font-semibold">
+                        {selectedService.stars} Sao ⭐
+                      </strong>
+                    </div>
                   )}
-
-                  {selectedService.category === "attraction" && (
-                    <>
-                      {selectedService.openingHours && (
-                        <div>
-                          <span className="text-gray-500 block">Giờ đón khách:</span>
-                          <strong>{selectedService.openingHours}</strong>
-                        </div>
-                      )}
-                      {selectedService.ticketIncludes && (
-                        <div className="col-span-2">
-                          <span className="text-gray-500 block">Vé bao gồm:</span>
-                          <strong>{selectedService.ticketIncludes}</strong>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {selectedService.category === "activity" && (
-                    <>
-                      {selectedService.duration && (
-                        <div>
-                          <span className="text-gray-500 block">Thời lượng:</span>
-                          <strong>{selectedService.duration}</strong>
-                        </div>
-                      )}
-                      {selectedService.difficultyLevel && (
-                        <div>
-                          <span className="text-gray-500 block">Độ khó:</span>
-                          <strong>{selectedService.difficultyLevel}</strong>
-                        </div>
-                      )}
-                      {selectedService.ageRestriction && (
-                        <div>
-                          <span className="text-gray-500 block">Độ tuổi:</span>
-                          <strong>{selectedService.ageRestriction}</strong>
-                        </div>
-                      )}
-                      {selectedService.safetyGear && (
-                        <div className="col-span-2">
-                          <span className="text-gray-500 block">Bảo hộ an toàn:</span>
-                          <strong>{selectedService.safetyGear}</strong>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {selectedService.category === "transportation" && (
-                    <>
-                      {selectedService.vehicleType && (
-                        <div>
-                          <span className="text-gray-500 block">Loại xe:</span>
-                          <strong>{selectedService.vehicleType}</strong>
-                        </div>
-                      )}
-                      {selectedService.seats && (
-                        <div>
-                          <span className="text-gray-500 block">Số chỗ ngồi:</span>
-                          <strong>{selectedService.seats} chỗ</strong>
-                        </div>
-                      )}
-                    </>
-                  )}
+                  <div>
+                    <span className="text-gray-500 block">
+                      {selectedService.category === "hotel"
+                        ? "Tổng số phòng:"
+                        : selectedService.category === "transportation"
+                        ? "Số lượng chỗ ngồi:"
+                        : selectedService.category === "fnb"
+                        ? "Sức chứa phục vụ:"
+                        : "Sức chứa tối đa:"}
+                    </span>
+                    <strong className="text-blue-700">
+                      {selectedService.capacity || selectedService.totalRooms || selectedService.seats || "—"}{" "}
+                      {selectedService.category === "hotel"
+                        ? "phòng"
+                        : selectedService.category === "transportation"
+                        ? "ghế"
+                        : "khách"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">Định giá đối tác:</span>
+                    <strong className="text-gray-900">
+                      {selectedService.category === "hotel" ? "Tính theo phòng" : "Tính theo đầu người"}
+                    </strong>
+                  </div>
                 </div>
+
+                {/* Policies & Special Conditions */}
+                {selectedService.policies && (Array.isArray(selectedService.policies) ? selectedService.policies.length > 0 : Boolean(selectedService.policies)) && (
+                  <div className="pt-2 border-t border-gray-200">
+                    <span className="text-xs font-semibold text-amber-800 block mb-1.5">
+                      Chính sách, điều kiện & Thông số đặc thù ({Array.isArray(selectedService.policies) ? selectedService.policies.length : 1}):
+                    </span>
+                    {Array.isArray(selectedService.policies) ? (
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        {selectedService.policies.map((p, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2 bg-amber-50/60 rounded-lg border border-amber-200/70 text-gray-800 text-xs flex items-start gap-2"
+                          >
+                            <span className="text-amber-700 font-bold">•</span>
+                            <span className="leading-relaxed">{p}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-amber-50/60 rounded-lg border border-amber-200/70 text-gray-800 text-xs leading-relaxed whitespace-pre-line">
+                        {selectedService.policies}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Amenities / Features */}
