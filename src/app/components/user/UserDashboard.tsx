@@ -19,6 +19,7 @@ interface UserDashboardProps {
   onViewTour?: (tour: Tour) => void;
   onCancelCustomRequest?: (id: string) => void;
   onNavigateToCustomTourForm?: () => void;
+  onViewBookingDetail?: (booking: Booking) => void;
 }
 
 export function UserDashboard({
@@ -30,6 +31,7 @@ export function UserDashboard({
   onViewTour,
   onCancelCustomRequest,
   onNavigateToCustomTourForm,
+  onViewBookingDetail,
 }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "explore" | "mybookings" | "custom-requests"
@@ -98,6 +100,11 @@ export function UserDashboard({
         <MyBookings
           bookings={userBookings}
           onCancelBooking={onCancelBooking}
+          onViewBookingDetail={(booking) => {
+            if (onViewBookingDetail) {
+              onViewBookingDetail(booking);
+            }
+          }}
         />
       )}
 

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import * as XLSX from "xlsx";
 import { Tour, BookingPassenger, TourPriceRow, CustomHotelChange, CustomLocationChange, CustomMealChange } from "@/app/types";
 import {
   ArrowLeft,
@@ -8,6 +9,7 @@ import {
   Plus,
   Trash2,
   User,
+  Users,
   MapPin,
   Phone,
   Mail,
@@ -16,9 +18,14 @@ import {
   AlertTriangle,
   Building2,
   Utensils,
+  Sun,
+  UtensilsCrossed,
+  ChevronDown,
   Clock,
   Calendar,
   Sparkles,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -154,6 +161,192 @@ export function BookingFormPage({
     );
   };
 
+  // Excel template download & upload states & handlers
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [excelError, setExcelError] = useState<string | null>(null);
+  const [excelSuccess, setExcelSuccess] = useState<string | null>(null);
+
+  const handleDownloadExcelTemplate = () => {
+    try {
+      const templateRows = [
+        {
+          "STT": 1,
+          "Họ và tên (*)": "Nguyễn Văn An",
+          "Ngày sinh (YYYY-MM-DD) (*)": "1990-05-15",
+          "Giới tính (Nam/Nữ)": "Nam",
+          "Loại khách": "Người lớn",
+          "Ghi chú": "Người đại diện đoàn",
+        },
+        {
+          "STT": 2,
+          "Họ và tên (*)": "Trần Thị Bình",
+          "Ngày sinh (YYYY-MM-DD) (*)": "1992-08-20",
+          "Giới tính (Nam/Nữ)": "Nữ",
+          "Loại khách": "Người lớn",
+          "Ghi chú": "Ăn chay nhẹ",
+        },
+        {
+          "STT": 3,
+          "Họ và tên (*)": "Nguyễn Gia Hưng",
+          "Ngày sinh (YYYY-MM-DD) (*)": "2018-11-10",
+          "Giới tính (Nam/Nữ)": "Nam",
+          "Loại khách": "Trẻ em (2–11 tuổi)",
+          "Ghi chú": "",
+        },
+        {
+          "STT": 4,
+          "Họ và tên (*)": "Nguyễn Bảo Ngọc",
+          "Ngày sinh (YYYY-MM-DD) (*)": "2024-03-25",
+          "Giới tính (Nam/Nữ)": "Nữ",
+          "Loại khách": "Trẻ em (dưới 2 tuổi)",
+          "Ghi chú": "Cần nôi / ghế trẻ em",
+        },
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateRows);
+      ws["!cols"] = [
+        { wch: 6 },
+        { wch: 25 },
+        { wch: 28 },
+        { wch: 18 },
+        { wch: 26 },
+        { wch: 25 },
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach_Khach");
+      XLSX.writeFile(wb, `Mau_Danh_Sach_Khach_Tour_${tour.tourCode || "Tour"}.xlsx`);
+    } catch (err: any) {
+      alert("Không thể tải file mẫu: " + (err?.message || "Lỗi không xác định"));
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setExcelError(null);
+    setExcelSuccess(null);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const buffer = evt.target?.result as ArrayBuffer;
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        if (!sheetName) {
+          throw new Error("File Excel không có sheet nào!");
+        }
+
+        const sheet = workbook.Sheets[sheetName];
+        const rawRows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+        if (!rawRows || rawRows.length === 0) {
+          throw new Error("File Excel không có dữ liệu hàng nào!");
+        }
+
+        const parsed: BookingPassenger[] = [];
+
+        rawRows.forEach((row, i) => {
+          const keys = Object.keys(row);
+          const findVal = (keywords: string[]) => {
+            const k = keys.find((key) => {
+              const lower = key.toLowerCase().trim();
+              return keywords.some((kw) => lower.includes(kw));
+            });
+            return k ? String(row[k]).trim() : "";
+          };
+
+          const fullName = findVal(["họ và tên", "họ tên", "tên", "fullname", "name"]);
+          if (!fullName) return;
+
+          let dateOfBirth = findVal(["ngày sinh", "ngaysinh", "dob", "birth"]);
+          if (/^\d{5}$/.test(dateOfBirth)) {
+            const d = new Date(Math.round((parseInt(dateOfBirth) - 25569) * 86400 * 1000));
+            dateOfBirth = d.toISOString().split("T")[0];
+          } else if (dateOfBirth.includes("/")) {
+            const parts = dateOfBirth.split("/");
+            if (parts.length === 3) {
+              const day = parts[0].padStart(2, "0");
+              const month = parts[1].padStart(2, "0");
+              const year = parts[2];
+              if (year.length === 4) {
+                dateOfBirth = `${year}-${month}-${day}`;
+              }
+            }
+          }
+
+          if (!dateOfBirth) {
+            dateOfBirth = "1995-01-01";
+          }
+
+          const rawGender = findVal(["giới tính", "gioitinh", "gender"]).toLowerCase();
+          const gender: "male" | "female" =
+            rawGender.includes("nữ") || rawGender.includes("female") ? "female" : "male";
+
+          const rawAge = findVal(["loại khách", "loaikhach", "nhóm tuổi", "age"]).toLowerCase();
+          let ageGroup: BookingPassenger["ageGroup"] = "adult";
+          if (
+            rawAge.includes("dưới 2") ||
+            rawAge.includes("<2") ||
+            rawAge.includes("em bé") ||
+            rawAge.includes("infant")
+          ) {
+            ageGroup = "child_under_2";
+          } else if (
+            rawAge.includes("trẻ em") ||
+            rawAge.includes("2-11") ||
+            rawAge.includes("2–11") ||
+            rawAge.includes("child")
+          ) {
+            ageGroup = "child_2_11";
+          } else {
+            const birthYear = parseInt(dateOfBirth.split("-")[0]);
+            if (!isNaN(birthYear)) {
+              const curYear = new Date().getFullYear();
+              const age = curYear - birthYear;
+              if (age < 2) ageGroup = "child_under_2";
+              else if (age <= 11) ageGroup = "child_2_11";
+              else ageGroup = "adult";
+            }
+          }
+
+          parsed.push({
+            id: `p_excel_${Date.now()}_${i}`,
+            fullName,
+            dateOfBirth,
+            gender,
+            ageGroup,
+            price: getPriceForAgeGroup(tour, ageGroup),
+          });
+        });
+
+        if (parsed.length === 0) {
+          throw new Error("Không tìm thấy dòng thông tin khách hợp lệ. Vui lòng kiểm tra cột 'Họ và tên' trong file.");
+        }
+
+        setPassengers(parsed);
+        setExcelSuccess(`Đã nạp thành công ${parsed.length} khách từ file: ${file.name}`);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } catch (err: any) {
+        setExcelError(err?.message || "Lỗi khi đọc file Excel.");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };
+
+    reader.onerror = () => {
+      setExcelError("Không thể đọc file đã chọn.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
   const isStep2Valid =
     tourStartDate.trim() &&
     passengers.every((p) => p.fullName.trim() && p.dateOfBirth) &&
@@ -269,45 +462,6 @@ export function BookingFormPage({
                     Bạn có thể chọn bất kỳ ngày nào thuận tiện cho chuyến đi. Công ty du lịch sẽ tiếp nhận và sắp xếp lịch khởi hành theo ngày này.
                   </p>
                 </div>
-
-                {/* Quick-pick from scheduled departure dates if available */}
-                {tour.departureDates && tour.departureDates.length > 0 && (
-                  <div className="space-y-1.5 pt-1">
-                    <p className="text-xs font-medium text-gray-600">
-                      Hoặc bấm chọn nhanh từ các đợt khởi hành định kỳ của tour:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {tour.departureDates.map((d) => {
-                        const isSelected = tourStartDate === d.date;
-                        return (
-                          <button
-                            type="button"
-                            key={d.date}
-                            onClick={() => setTourStartDate(d.date)}
-                            className={`p-2.5 rounded-xl border text-left transition-all ${
-                              isSelected
-                                ? "border-teal-600 bg-teal-50 text-teal-900 ring-2 ring-teal-500 shadow-sm"
-                                : "border-gray-200 hover:border-teal-300 bg-white text-gray-700 hover:bg-teal-50/30"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <p className="font-bold text-sm text-gray-900">{d.date}</p>
-                              {isSelected && (
-                                <span className="text-[10px] bg-teal-600 text-white font-bold px-1.5 py-0.5 rounded">
-                                  Đang chọn
-                                </span>
-                              )}
-                            </div>
-                            {d.label && <p className="text-xs text-gray-500 mt-0.5">{d.label}</p>}
-                            {d.seatsAvailable !== undefined && (
-                              <p className="text-xs text-teal-700 font-medium mt-0.5">Còn {d.seatsAvailable} chỗ</p>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -414,17 +568,102 @@ export function BookingFormPage({
 
             {/* Passenger list */}
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
-                <h2 className="text-base font-bold text-teal-700">
-                  Danh sách khách hàng đi tour
-                </h2>
-                <button
-                  onClick={addPassenger}
-                  className="flex items-center gap-1.5 text-sm text-teal-700 hover:text-teal-900 font-medium"
-                >
-                  <Plus className="w-4 h-4" />
-                  Thêm khách
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-3 mb-4 gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-teal-700 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-teal-600" />
+                    Danh sách khách hàng đi tour ({passengers.length} người)
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Nhập từng khách thủ công hoặc tải file Excel lên để tự động điền danh sách nhanh chóng
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Download Excel Template Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDownloadExcelTemplate}
+                    className="text-xs h-9 px-3 border-teal-300 text-teal-800 hover:bg-teal-50 font-semibold gap-1.5 shadow-2xs"
+                    title="Tải file mẫu Excel (.xlsx)"
+                  >
+                    <Download className="w-3.5 h-3.5 text-teal-600" />
+                    Tải mẫu Excel
+                  </Button>
+
+                  {/* Upload Excel Button */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".xlsx,.xls,.csv"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs h-9 px-3 border-blue-300 text-blue-800 hover:bg-blue-50 font-semibold gap-1.5 shadow-2xs"
+                    title="Tải lên file danh sách khách (.xlsx, .xls, .csv)"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+                    Upload file Excel
+                  </Button>
+
+                  {/* Add Passenger Button */}
+                  <Button
+                    type="button"
+                    onClick={addPassenger}
+                    className="text-xs h-9 px-3.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold gap-1.5 shadow-2xs"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Thêm khách
+                  </Button>
+                </div>
+              </div>
+
+              {/* Excel Feedback Alerts */}
+              {excelSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs text-emerald-800 mb-4 animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="font-semibold">{excelSuccess}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExcelSuccess(null)}
+                    className="text-emerald-700 hover:text-emerald-900 font-bold ml-2 p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {excelError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center justify-between text-xs text-red-800 mb-4 animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                    <span className="font-semibold">{excelError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExcelError(null)}
+                    className="text-red-700 hover:text-red-900 font-bold ml-2 p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Fast Excel Guide Tip */}
+              <div className="bg-teal-50/60 border border-teal-200/80 rounded-xl p-3 mb-4 flex items-center justify-between text-xs text-teal-900">
+                <div className="flex items-start sm:items-center gap-2.5">
+                  <FileSpreadsheet className="w-4 h-4 text-teal-700 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <span>
+                    <strong>Mẹo nhập nhanh danh sách đoàn:</strong> Nhấn <strong>"Tải mẫu Excel"</strong> để nhận file mẫu ➔ Điền tên, ngày sinh của đoàn ➔ Bấm <strong>"Upload file Excel"</strong> để tự động nhập vào hệ thống.
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -611,77 +850,407 @@ export function BookingFormPage({
                 </div>
               </div>
 
-              {/* Customized details if any */}
-              {((customHotelChanges && customHotelChanges.length > 0) || (customMealChanges && customMealChanges.length > 0) || (locationChanges && locationChanges.length > 0)) && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 space-y-3">
-                  <h3 className="text-sm font-bold text-purple-900 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-600" />
-                    Lịch trình tùy chỉnh theo yêu cầu của bạn
-                  </h3>
-
-                  {/* Hotel customizations */}
-                  {customHotelChanges && customHotelChanges.length > 0 && (
-                    <div className="space-y-1.5 text-xs">
-                      <p className="font-semibold text-purple-800 flex items-center gap-1">
-                        <Building2 className="w-3.5 h-3.5 text-purple-600" />
-                        Chỗ ở / Khách sạn yêu cầu:
-                      </p>
-                      {customHotelChanges.map((hc, idx) => (
-                        <div key={idx} className="bg-white rounded-lg p-2.5 border border-purple-200 text-xs">
-                          <p className="font-semibold text-gray-900">
-                            {hc.destination}: <span className="text-purple-700 font-bold">{hc.newHotelName}</span>
-                          </p>
-                          <p className="text-gray-500 mt-0.5">
-                            (Gốc: {hc.originalHotelName} • {hc.mode === "custom" ? "Tự nhập – Chờ công ty hỏi giá" : "Từ hệ thống"})
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+              {/* ===== ITINERARY TIMELINE (LỘ TRÌNH THAM QUAN CƠ BẢN CỦA CÔNG TY) ===== */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-purple-600" />
+                      Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Lộ trình các điểm tham quan, ẩm thực và nơi lưu trú được thiết lập cho đoàn.
+                    </p>
+                  </div>
+                  {isCustomized ? (
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1 self-start sm:self-auto">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                      Lịch trình có tùy chỉnh theo yêu cầu
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1 self-start sm:self-auto">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      Theo lịch trình tiêu chuẩn của tour
+                    </span>
                   )}
+                </div>
 
-                  {/* Meal customizations */}
-                  {customMealChanges && customMealChanges.length > 0 && (
-                    <div className="space-y-1.5 text-xs">
-                      <p className="font-semibold text-purple-800 flex items-center gap-1">
-                        <Utensils className="w-3.5 h-3.5 text-purple-600" />
-                        Nhà hàng / Bữa ăn yêu cầu (Chỗ ăn):
-                      </p>
-                      {customMealChanges.map((mc, idx) => (
-                        <div key={idx} className="bg-white rounded-lg p-2.5 border border-purple-200 text-xs">
-                          <p className="font-semibold text-gray-900">
-                            Ngày {mc.dayNumber} ({mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):{" "}
-                            <span className="text-purple-700 font-bold">{mc.newMealName}</span>
-                          </p>
-                          <p className="text-gray-500 mt-0.5">
-                            (Gốc: {mc.originalMealName || "Nhà hàng theo tour"} • {mc.mode === "custom" ? "Tự nhập – Chờ công ty hỏi giá" : "Từ hệ thống"})
-                          </p>
-                        </div>
-                      ))}
+                {/* CUSTOMIZATION HIGHLIGHTS (NẾU CÓ) */}
+                {isCustomized && (
+                  <div className="bg-purple-50/70 rounded-2xl border border-purple-200 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-700" />
+                      <h4 className="font-bold text-xs text-purple-900 uppercase">
+                        Các tùy chỉnh bạn đã chọn cho chuyến đi này
+                      </h4>
                     </div>
-                  )}
-
-                  {/* Location customizations */}
-                  {locationChanges && locationChanges.length > 0 && (
-                    <div className="space-y-1.5 text-xs">
-                      <p className="font-semibold text-purple-800 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-purple-600" />
-                        Địa điểm tham quan yêu cầu thay đổi:
-                      </p>
-                      {locationChanges.map((lc, idx) => (
-                        <div key={idx} className="bg-white rounded-lg p-2.5 border border-purple-200 text-xs">
-                          <p className="font-semibold text-gray-900">Ngày {lc.dayNumber}:</p>
-                          <p className="text-amber-800 font-medium mt-0.5">→ {lc.requestedLocations}</p>
-                          {lc.originalLocations && (
-                            <p className="text-gray-400 mt-0.5 line-through">
-                              Gốc: {lc.originalLocations.join(", ")}
-                            </p>
-                          )}
+                    <div className="space-y-2 text-xs">
+                      {/* Hotel changes */}
+                      {customHotelChanges && customHotelChanges.length > 0 && (
+                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                          <p className="font-bold text-purple-900 flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                            Khách sạn lưu trú:
+                          </p>
+                          {customHotelChanges.map((hc, idx) => (
+                            <div key={idx} className="pl-5 space-y-0.5">
+                              <p className="font-bold text-gray-900">
+                                {hc.destination}:{" "}
+                                <span className="text-purple-700 font-bold">{hc.newHotelName}</span>
+                                {hc.stars && ` (${hc.stars}★)`}
+                              </p>
+                              {hc.originalHotelName && (
+                                <p className="text-gray-400 line-through text-[11px]">Gốc: {hc.originalHotelName}</p>
+                              )}
+                              {hc.note && <p className="text-gray-500 italic text-[11px]">Yêu cầu: {hc.note}</p>}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
+
+                      {/* Location changes */}
+                      {locationChanges && locationChanges.length > 0 && (
+                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                          <p className="font-bold text-purple-900 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                            Điểm tham quan:
+                          </p>
+                          {locationChanges.map((lc, idx) => (
+                            <div key={idx} className="pl-5 space-y-0.5">
+                              <p className="font-bold text-gray-900">
+                                Ngày {lc.dayNumber}: <span className="text-amber-800 font-bold">→ {lc.requestedLocations}</span>
+                              </p>
+                              {lc.originalLocations && (
+                                <p className="text-gray-400 line-through text-[11px]">
+                                  Gốc: {lc.originalLocations.join(", ")}
+                                </p>
+                              )}
+                              {lc.note && <p className="text-gray-500 italic text-[11px]">Ghi chú: {lc.note}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Meal changes */}
+                      {customMealChanges && customMealChanges.length > 0 && (
+                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                          <p className="font-bold text-purple-900 flex items-center gap-1.5">
+                            <Utensils className="w-3.5 h-3.5 text-purple-600" />
+                            Ẩm thực &amp; Thực đơn:
+                          </p>
+                          {customMealChanges.map((mc, idx) => (
+                            <div key={idx} className="pl-5 space-y-0.5">
+                              <p className="font-bold text-gray-900">
+                                Ngày {mc.dayNumber} ({mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):{" "}
+                                <span className="text-purple-700 font-bold">{mc.newMealName}</span>
+                              </p>
+                              {mc.originalMealName && (
+                                <p className="text-gray-400 line-through text-[11px]">
+                                  Gốc: {mc.originalMealName}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Days List styled exactly like TourDetailPage.tsx */}
+                <div className="space-y-4">
+                  {tour.itinerary && tour.itinerary.length > 0 ? (
+                    tour.itinerary.map((day) => {
+                      const dayLocChange = locationChanges?.find(
+                        (lc) => lc.dayNumber === day.day || lc.dayId === day.id,
+                      );
+                      const dayDest = day.destinationCity || tour.destination;
+                      const dayHotelChange = customHotelChanges?.find(
+                        (hc) => hc.destination === dayDest || tour.itinerary.length === 1,
+                      );
+                      const dayMealChanges = customMealChanges?.filter(
+                        (mc) => mc.dayNumber === day.day,
+                      );
+
+                      const hasAnyDayCustomization = Boolean(
+                        dayLocChange || dayHotelChange || (dayMealChanges && dayMealChanges.length > 0),
+                      );
+
+                      return (
+                        <div
+                          key={day.id || day.day}
+                          className={`rounded-xl border overflow-hidden transition-all ${
+                            hasAnyDayCustomization ? "border-amber-300" : "border-gray-200"
+                          }`}
+                        >
+                          {/* Day header */}
+                          <div
+                            className={`px-4 py-3 flex items-center justify-between ${
+                              hasAnyDayCustomization ? "bg-amber-50" : "bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
+                                {day.day}
+                              </div>
+                              <div>
+                                <p className="font-bold text-gray-900 text-sm">
+                                  Ngày {day.day}: {day.title}
+                                  {day.meals && day.meals.length > 0 && (
+                                    <span className="text-xs text-gray-500 font-normal ml-1.5">
+                                      (Ăn{" "}
+                                      {day.meals
+                                        .map((m) =>
+                                          m.type === "breakfast" ? "sáng" : m.type === "lunch" ? "trưa" : "tối",
+                                        )
+                                        .join(", ")}
+                                      )
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {dayLocChange && (
+                                <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
+                                  Đổi điểm tham quan
+                                </span>
+                              )}
+                              {dayHotelChange && (
+                                <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-medium border border-purple-300">
+                                  Đổi khách sạn
+                                </span>
+                              )}
+                              {dayMealChanges && dayMealChanges.length > 0 && (
+                                <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full font-medium border border-emerald-300">
+                                  Đổi bữa ăn
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Day description & Sightseeing locations */}
+                          <div className="px-4 py-3.5 space-y-3 bg-white">
+                            {day.description && (
+                              <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                                {day.description}
+                              </p>
+                            )}
+
+                            {/* Locations timeline */}
+                            <div className="relative pl-1">
+                              <div className="absolute left-3.5 top-2 bottom-2 w-0.5 bg-gray-200" />
+
+                              <div className="space-y-2.5">
+                                {day.locations && day.locations.length > 0 ? (
+                                  day.locations.map((loc, lIdx) => {
+                                    const isLocChanged = Boolean(dayLocChange);
+                                    return (
+                                      <div key={loc.id || lIdx} className="relative flex items-center gap-3">
+                                        {/* Dot */}
+                                        <div
+                                          className={`relative z-10 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border-2 ${
+                                            isLocChanged
+                                              ? "bg-amber-400 border-amber-400 text-white"
+                                              : "bg-white border-blue-400 text-blue-500"
+                                          }`}
+                                        >
+                                          <MapPin className="w-3.5 h-3.5" />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div
+                                          className={`flex-1 rounded-xl border p-3 ${
+                                            isLocChanged ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
+                                          }`}
+                                        >
+                                          <div className="flex items-center justify-between gap-2">
+                                            <div className="flex-1 min-w-0">
+                                              {isLocChanged ? (
+                                                <>
+                                                  <p className="text-xs text-gray-400 line-through">{loc.name}</p>
+                                                  <p className="text-sm font-medium text-amber-800 mt-0.5">
+                                                    → {dayLocChange?.requestedLocations}
+                                                  </p>
+                                                  {dayLocChange?.note && (
+                                                    <p className="text-xs text-amber-600 mt-0.5 italic">
+                                                      Ghi chú: {dayLocChange.note}
+                                                    </p>
+                                                  )}
+                                                </>
+                                              ) : (
+                                                <p className="font-medium text-gray-900 text-sm">{loc.name}</p>
+                                              )}
+                                            </div>
+                                            <span
+                                              className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                                                isLocChanged
+                                                  ? "bg-amber-100 text-amber-700 border border-amber-300"
+                                                  : "bg-gray-100 text-gray-600"
+                                              }`}
+                                            >
+                                              {isLocChanged ? "Đã đổi" : "Theo tour"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <p className="text-xs text-gray-500 italic pl-8">
+                                    Hoạt động tự do hoặc di chuyển theo lịch trình tour.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Day Meals Section */}
+                            {day.meals && day.meals.length > 0 && (
+                              <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                                    <Utensils className="w-3.5 h-3.5 text-emerald-600" />
+                                    Chế độ ẩm thực &amp; Bữa ăn Ngày {day.day}
+                                  </span>
+                                  <span className="text-[11px] text-gray-400">
+                                    (Có thể đổi nhà hàng hoặc yêu cầu riêng)
+                                  </span>
+                                </div>
+
+                                <div className="space-y-2">
+                                  {day.meals.map((defaultMeal, mIdx) => {
+                                    const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
+                                    const mealChange = dayMealChanges?.find((mc) => mc.mealType === mealType);
+                                    const isChanged = Boolean(mealChange);
+                                    const mealLabel =
+                                      mealType === "breakfast" ? "Bữa sáng" : mealType === "lunch" ? "Bữa trưa" : "Bữa tối";
+
+                                    return (
+                                      <div
+                                        key={mIdx}
+                                        className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs"
+                                      >
+                                        <div
+                                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left ${
+                                            mealType === "breakfast"
+                                              ? "bg-amber-50/60"
+                                              : mealType === "lunch"
+                                              ? "bg-emerald-50/60"
+                                              : "bg-purple-50/60"
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2.5 min-w-0">
+                                            <div
+                                              className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                                mealType === "breakfast"
+                                                  ? "bg-amber-100 text-amber-700"
+                                                  : mealType === "lunch"
+                                                  ? "bg-emerald-100 text-emerald-700"
+                                                  : "bg-purple-100 text-purple-700"
+                                              }`}
+                                            >
+                                              {mealType === "breakfast" ? (
+                                                <Sun className="w-4 h-4" />
+                                              ) : mealType === "dinner" ? (
+                                                <UtensilsCrossed className="w-4 h-4" />
+                                              ) : (
+                                                <Utensils className="w-4 h-4" />
+                                              )}
+                                            </div>
+                                            <div className="min-w-0">
+                                              <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                                                {mealLabel}:{" "}
+                                                <span className="font-bold text-gray-900">
+                                                  {isChanged
+                                                    ? mealChange?.newMealName
+                                                    : defaultMeal.serviceName || "Nhà hàng theo tour"}
+                                                </span>
+                                              </p>
+                                              <p className="text-[11px] text-gray-500">
+                                                Mặc định: {defaultMeal.serviceName || "Nhà hàng địa phương"}
+                                              </p>
+                                            </div>
+                                          </div>
+
+                                          <div className="flex items-center gap-2 flex-shrink-0">
+                                            <div className="border border-gray-200 bg-white px-3 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1.5 shadow-2xs">
+                                              {isChanged ? (
+                                                <span className="text-[10px] text-emerald-800 font-bold">
+                                                  Đã đổi {mealChange?.priceDifference ? `(+${formatVND(mealChange.priceDifference)})` : ""}
+                                                </span>
+                                              ) : (
+                                                <span>Theo tour (0đ)</span>
+                                              )}
+                                              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Accommodation / Hotel */}
+                            <div className="pt-3 border-t border-gray-100">
+                              <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl flex items-start justify-between gap-3 text-xs">
+                                <div className="space-y-1 min-w-0">
+                                  <span className="font-bold text-[11px] text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+                                    <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                    Chỗ ở / Khách sạn đêm nay:
+                                  </span>
+                                  {dayHotelChange ? (
+                                    <div>
+                                      <p className="text-gray-400 line-through text-[11px]">
+                                        {dayHotelChange.originalHotelName || day.hotel?.name || "Khách sạn mặc định theo tour"}
+                                      </p>
+                                      <p className="font-bold text-purple-950 text-sm flex items-center gap-1 mt-0.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                                        → {dayHotelChange.newHotelName}
+                                      </p>
+                                      {dayHotelChange.note && (
+                                        <p className="text-purple-700 italic text-[11px] mt-0.5">
+                                          Ghi chú: {dayHotelChange.note}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <p className="font-bold text-gray-900 text-sm">
+                                        {day.hotel?.name || tour.hotels?.[0]?.name || "Khách sạn tiêu chuẩn theo tour"}
+                                      </p>
+                                      {day.hotel?.stars && (
+                                        <p className="text-gray-500 text-[11px]">
+                                          Hạng: {day.hotel.stars}★ tiêu chuẩn
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {dayHotelChange ? (
+                                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-300 flex-shrink-0">
+                                    Đã đổi khách sạn
+                                  </span>
+                                ) : (
+                                  <span className="text-xs px-2 py-0.5 rounded border bg-white text-blue-700 border-blue-200 font-medium flex-shrink-0">
+                                    Theo tour
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
+                      Điểm đến: <strong>{tour.destination}</strong> · Lịch trình tiêu chuẩn {tour.duration}.
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
               {/* Payment & Provider Verification info */}
               <div className="rounded-xl p-4.5 border bg-teal-50/80 border-teal-200 space-y-2.5">

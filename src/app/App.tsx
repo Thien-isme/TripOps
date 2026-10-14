@@ -27,6 +27,7 @@ import { UserProfile } from "@/app/components/user/UserProfile";
 import { TourDetailPage } from "@/app/components/user/TourDetailPage";
 import { BookingFormPage, BookingSubmitData } from "@/app/components/user/BookingFormPage";
 import { CustomTourRequestPage } from "@/app/components/user/CustomTourRequestPage";
+import { UserBookingDetailPage } from "@/app/components/user/UserBookingDetailPage";
 import {
   User,
   Tour,
@@ -74,6 +75,7 @@ function App() {
   const [companies, setCompanies] =
     useState<TourCompany[]>(mockTourCompanies);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  const [selectedUserBooking, setSelectedUserBooking] = useState<Booking | null>(null);
   const [bookingTour, setBookingTour] = useState<Tour | null>(null);
   const [bookingCustomData, setBookingCustomData] = useState<{
     customHotelChanges?: CustomHotelChange[];
@@ -99,6 +101,13 @@ function App() {
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
     setSelectedTour(null);
+    setSelectedUserBooking(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleViewUserBookingDetail = (booking: Booking) => {
+    setSelectedUserBooking(booking);
+    setCurrentPage("user-booking-detail");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -906,6 +915,7 @@ function App() {
                 onViewTour={handleViewTour}
                 onCancelCustomRequest={handleCancelCustomTourRequest}
                 onNavigateToCustomTourForm={() => handleNavigate("custom-tour")}
+                onViewBookingDetail={handleViewUserBookingDetail}
               />
             </main>
           </div>
@@ -951,6 +961,17 @@ function App() {
         ) : currentPage === "my-bookings" ? (
           <MyBookings
             bookings={userBookings}
+            onCancelBooking={handleCancelBooking}
+            onViewBookingDetail={handleViewUserBookingDetail}
+          />
+        ) : currentPage === "user-booking-detail" && selectedUserBooking ? (
+          <UserBookingDetailPage
+            booking={selectedUserBooking}
+            onBack={() => {
+              setSelectedUserBooking(null);
+              setCurrentPage("my-bookings");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
             onCancelBooking={handleCancelBooking}
           />
         ) : currentPage === "user-profile" ? (

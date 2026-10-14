@@ -850,6 +850,18 @@ export const mockBookings: Booking[] = [
         note: "Khách muốn đi dạo quảng trường và chụp ảnh nụ hoa Atiso",
       },
     ],
+    customMealChanges: [
+      {
+        dayNumber: 1,
+        mealType: "dinner",
+        originalMealName: "Nhà hàng Chợ Đêm & Phố Ẩm Thực Đà Lạt",
+        newMealName: "Nhà hàng Lẩu Gà Lá É Tao Ngộ",
+        mode: "system",
+        pricePerPerson: 130000,
+        priceDifference: 40000,
+        note: "Đổi sang lẩu gà lá é đặc sản ấm cúng buổi tối",
+      },
+    ],
   },
   {
     id: "booking-2",

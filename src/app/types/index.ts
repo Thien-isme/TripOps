@@ -170,11 +170,13 @@ export interface CustomHotelChange {
 
 export interface CustomMealChange {
   dayNumber: number;
-  mealType: "lunch" | "dinner";
+  mealType: "breakfast" | "lunch" | "dinner";
   originalMealName?: string;
   newMealName: string;
   mode: "system" | "custom";
   pricePerPerson?: number;
+  priceDifference?: number;
+  note?: string;
 }
 
 export interface PaymentRequest {
