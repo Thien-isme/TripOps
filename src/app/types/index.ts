@@ -46,6 +46,12 @@ export interface User {
   businessPhone?: string;
   businessEmail?: string;
   taxCode?: string;
+  province?: string; // Tỉnh/Thành phố
+  ward?: string; // Phường/Xã
+  street?: string; // Số nhà, đường
+  latitude?: number; // Vĩ độ
+  longitude?: number; // Kinh độ
+  businessDescription?: string;
   accountStatus?: "pending" | "approved" | "rejected";
   rejectionReason?: string;
 }
@@ -306,20 +312,27 @@ export interface Service {
   category:
     | "hotel"
     | "fnb"
-    | "transportation"
-    | "activity";
-  subCategory?: string; // Sub-category cho FnB: "restaurant", "cafe"
+    | "restaurant"
+    | "attraction"
+    | "activity"
+    | "transportation";
+  subCategory?: string; // Sub-category cho FnB: "restaurant", "cafe", "streetfood"
   description: string;
   price: number;
+  priceFrom?: number; // Khoảng giá từ (VNĐ/người)
+  priceTo?: number; // Khoảng giá đến (VNĐ/người)
   pricePerPerson?: number; // Giá cho một người
   location: string;
-  // Địa chỉ chi tiết
+  // Địa chỉ chuẩn 2 cấp (Tỉnh/Thành phố & Phường/Xã)
   province?: string; // Tỉnh/Thành phố
-  district?: string; // Quận/Huyện
   ward?: string; // Phường/Xã
+  district?: string; // Giữ để tương thích dữ liệu cũ
   street?: string; // Số nhà, đường
+  latitude?: number; // Vĩ độ GPS
+  longitude?: number; // Kinh độ GPS
   image: string;
   images?: string[]; // Nhiều ảnh cho bài đăng
+  thumbnailIndex?: number; // Vị trí ảnh làm thumbnail
   rating: number;
   capacity?: number;
   status: "pending" | "approved" | "rejected";
@@ -327,17 +340,27 @@ export interface Service {
   createdAt: string;
   // Hotel specific fields
   stars?: number;
+  totalRooms?: number; // Tổng số lượng phòng ở cơ sở lưu trú
+  policies?: string; // Các chính sách đi kèm (nhận/trả phòng, phụ thu, hoàn huỷ...)
   amenities?: string[];
   checkInTime?: string;
   checkOutTime?: string;
+  roomType?: string;
   // FnB specific fields (Restaurant/Cafe)
   openingHours?: string;
+  cuisineType?: string;
+  dietaryOptions?: string[];
+  // Attraction specific fields
+  childPrice?: number;
+  ticketIncludes?: string;
   // Transportation specific fields
   vehicleType?: string;
   seats?: number;
   // Activity specific fields
   duration?: string;
   ageRestriction?: string;
+  difficultyLevel?: string;
+  safetyGear?: string;
 }
 
 // Room booking for accommodation providers

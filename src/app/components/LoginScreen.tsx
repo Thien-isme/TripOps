@@ -263,9 +263,9 @@ export function LoginScreen({
                 </code>
               </p>
               <p>
-                Nhà cung cấp:{" "}
+                Nhà cung cấp (Provider):{" "}
                 <code className="bg-white px-1.5 py-0.5 rounded">
-                  accommodation@demo.com
+                  provider@demo.com
                 </code>
               </p>
             </div>

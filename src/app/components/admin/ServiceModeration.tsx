@@ -601,17 +601,17 @@ export function ServiceModeration({
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >
-            Lữ hành
+            Vận chuyển
           </button>
           <button
-            onClick={() => setFilterCategory("activity")}
+            onClick={() => setFilterCategory("attraction")}
             className={`px-4 py-2 ${
-              filterCategory === "activity"
-                ? "bg-pink-600 text-white"
+              filterCategory === "attraction"
+                ? "bg-teal-600 text-white"
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >
-            Khu vui chơi
+            Tham quan
           </button>
         </div>
       </div>

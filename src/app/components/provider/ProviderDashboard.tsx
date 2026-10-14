@@ -1,117 +1,169 @@
 import { useState } from "react";
-import { Service } from "@/app/types";
-import { ServiceManagement } from "./ServiceManagement";
-import { CreateServiceForm } from "./CreateServiceForm";
-import { Package, DollarSign, Star } from "lucide-react";
+import { Service, User } from "@/app/types";
+import { ProviderLayout } from "./ProviderLayout";
+import { ServicePostManagement } from "./ServicePostManagement";
+import { ProviderServiceDetailPage } from "./ProviderServiceDetailPage";
+import { ProviderOverview } from "./ProviderOverview";
+import { ProviderCreateServicePage } from "./ProviderCreateServicePage";
+import { ProviderProfilePage } from "./ProviderProfilePage";
 
 interface ProviderDashboardProps {
+  currentUser: User;
   services: Service[];
-  currentProviderId: string;
-  onCreateService: () => void;
-  onEditService: (service: Service) => void;
+  onCreateService?: () => void;
+  onEditService?: (service: Service) => void;
   onDeleteService: (serviceId: string) => void;
-  showCreateServiceForm: boolean;
-  handleSubmitService: (
-    serviceData: Omit<Service, "id">,
+  onSubmitService?: (
+    serviceData: Omit<Service, "id" | "status" | "createdAt">
   ) => void;
-  onCloseServiceForm?: () => void;
+  onUpdateService?: (
+    serviceId: string,
+    serviceData: Omit<Service, "id">
+  ) => void;
+  onUpdateProfile?: (updatedUser: Partial<User>) => void;
+  onLogout?: () => void;
 }
 
 export function ProviderDashboard({
+  currentUser,
   services,
-  currentProviderId,
   onCreateService,
   onEditService,
   onDeleteService,
-  showCreateServiceForm,
-  handleSubmitService,
-  onCloseServiceForm,
+  onSubmitService,
+  onUpdateService,
+  onUpdateProfile,
+  onLogout,
 }: ProviderDashboardProps) {
-  const currentProvider = {
-    id: currentProviderId,
-    name: "Nhà cung cấp",
-  }; // In real app, get from user data
-  const myServices = services.filter(
-    (s) => s.providerId === currentProviderId,
-  );
-  const totalRevenue = myServices.reduce(
-    (sum, s) => sum + s.price,
-    0,
-  );
-  const avgRating =
-    myServices.length > 0
-      ? myServices.reduce((sum, s) => sum + s.rating, 0) /
-        myServices.length
-      : 0;
+  const [activeSection, setActiveSection] = useState<
+    "overview" | "services" | "create" | "detail" | "profile"
+  >("overview");
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+
+  // Find currently selected service for detail view
+  const selectedService = selectedServiceId
+    ? services.find((s) => s.id === selectedServiceId)
+    : null;
+
+  const handleNavigateSection = (section: string) => {
+    if (section === "create") {
+      setEditingService(null);
+      setSelectedServiceId(null);
+      setActiveSection("create");
+    } else {
+      setSelectedServiceId(null);
+      setEditingService(null);
+      setActiveSection(
+        section as "overview" | "services" | "create" | "detail" | "profile"
+      );
+    }
+  };
+
+  const handleStartCreateService = () => {
+    setEditingService(null);
+    setSelectedServiceId(null);
+    setActiveSection("create");
+  };
+
+  const handleStartEditService = (service: Service) => {
+    setEditingService(service);
+    setSelectedServiceId(null);
+    setActiveSection("create");
+  };
+
+  const handleViewDetail = (service: Service) => {
+    setSelectedServiceId(service.id);
+    setEditingService(null);
+    setActiveSection("detail");
+  };
+
+  const handleSaveServiceFromPage = (serviceData: Omit<Service, "id">) => {
+    if (editingService) {
+      // Editing existing service
+      if (onUpdateService) {
+        onUpdateService(editingService.id, serviceData);
+      } else if (onEditService) {
+        onEditService({ ...serviceData, id: editingService.id });
+      }
+    } else {
+      // Creating new service
+      if (onSubmitService) {
+        onSubmitService(serviceData);
+      } else if (onCreateService) {
+        onCreateService();
+      }
+    }
+    // Return to services list
+    setEditingService(null);
+    setSelectedServiceId(null);
+    setActiveSection("services");
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm mb-1">
-                Dịch vụ
-              </p>
-              <p className="text-3xl font-bold">
-                {myServices.length}
-              </p>
-            </div>
-            <Package className="w-12 h-12 text-blue-200" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm mb-1">
-                Tổng giá trị
-              </p>
-              <p className="text-2xl font-bold">
-                {formatPrice(totalRevenue)}
-              </p>
-            </div>
-            <DollarSign className="w-12 h-12 text-green-200" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-yellow-100 text-sm mb-1">
-                Đánh giá TB
-              </p>
-              <p className="text-3xl font-bold">
-                {avgRating.toFixed(1)}
-              </p>
-            </div>
-            <Star className="w-12 h-12 text-yellow-200" />
-          </div>
-        </div>
-      </div>
-
-      <ServiceManagement
-        services={services}
-        currentProviderId={currentProviderId}
-        onCreateService={onCreateService}
-        onEditService={onEditService}
-        onDeleteService={onDeleteService}
-      />
-
-      {showCreateServiceForm && (
-        <CreateServiceForm
-          handleSubmitService={handleSubmitService}
-          currentProvider={currentProvider}
-          onCloseServiceForm={onCloseServiceForm}
+    <ProviderLayout
+      activeSection={activeSection}
+      onNavigate={handleNavigateSection}
+      currentUser={currentUser}
+      onLogout={onLogout}
+      onCreateService={handleStartCreateService}
+    >
+      {/* 1. Dedicated Service Detail Page */}
+      {activeSection === "detail" && selectedService ? (
+        <ProviderServiceDetailPage
+          service={selectedService}
+          onBack={() => {
+            setSelectedServiceId(null);
+            setActiveSection("services");
+          }}
+          onEdit={(svc) => handleStartEditService(svc)}
+          onDelete={(id) => {
+            onDeleteService(id);
+            setSelectedServiceId(null);
+            setActiveSection("services");
+          }}
+        />
+      ) : activeSection === "create" ? (
+        /* 2. Dedicated Create / Edit Service Page (NOT A POPUP) */
+        <ProviderCreateServicePage
+          currentUser={currentUser}
+          initialService={editingService || undefined}
+          onSaveService={handleSaveServiceFromPage}
+          onBack={() => {
+            setEditingService(null);
+            setActiveSection("services");
+          }}
+        />
+      ) : activeSection === "profile" ? (
+        /* 3. Provider Business Profile Page */
+        <ProviderProfilePage
+          currentUser={currentUser}
+          onUpdateProfile={onUpdateProfile}
+        />
+      ) : activeSection === "services" ? (
+        /* 4. Services Management - Table View */
+        <ServicePostManagement
+          services={services}
+          providerId={currentUser.id}
+          onCreateService={handleStartCreateService}
+          onEditService={handleStartEditService}
+          onDeleteService={onDeleteService}
+          onViewDetail={handleViewDetail}
+        />
+      ) : (
+        /* 5. Provider Overview Dashboard (KPIs, Charts, Recent items) */
+        <ProviderOverview
+          currentUser={currentUser}
+          services={services}
+          onCreateService={handleStartCreateService}
+          onNavigateToServices={() => {
+            setSelectedServiceId(null);
+            setActiveSection("services");
+          }}
+          onViewDetail={handleViewDetail}
         />
       )}
-    </div>
+    </ProviderLayout>
   );
 }

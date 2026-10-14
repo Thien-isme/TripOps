@@ -7,7 +7,7 @@ import { PublicFooter } from "@/app/components/PublicFooter";
 import { UserDashboard } from "@/app/components/user/UserDashboard";
 import { GuideDashboard } from "@/app/components/guide/GuideDashboard";
 import { AdminDashboard } from "@/app/components/admin/AdminDashboard";
-import { AccommodationProviderDashboard } from "@/app/components/provider/AccommodationProviderDashboard";
+import { ProviderDashboard } from "@/app/components/provider/ProviderDashboard";
 import { ServicePostManagement } from "@/app/components/provider/ServicePostManagement";
 import { CreatePostModal } from "@/app/components/provider/CreatePostModal";
 import { EditServiceModal } from "@/app/components/provider/EditServiceModal";
@@ -435,6 +435,18 @@ function App() {
     setServices(services.filter((s) => s.id !== serviceId));
   };
 
+  const handleUpdateProviderProfile = (updatedUser: Partial<User>) => {
+    if (!currentUser) return;
+    setUsers((prevUsers) =>
+      prevUsers.map((u) =>
+        u.id === currentUser.id ? { ...u, ...updatedUser } : u
+      )
+    );
+    setCurrentUser((prev) =>
+      prev ? ({ ...prev, ...updatedUser } as User) : null
+    );
+  };
+
   // Service moderation actions (for Admin)
   const handleApproveService = (serviceId: string) => {
     setServices(
@@ -763,8 +775,8 @@ function App() {
 
         <main
           className={
-            currentUser.role === "admin"
-              ? ""
+            currentUser.role === "admin" || currentUser.role === "provider"
+              ? "min-h-screen"
               : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24"
           }
         >
@@ -803,60 +815,21 @@ function App() {
             />
           )}
 
-          {currentUser.role === "provider" &&
-            currentUser.providerType === "accommodation" && (
-              <AccommodationProviderDashboard
-                bookings={roomBookings}
-                providerId={currentUser.id}
-                onApproveBooking={handleApproveRoomBooking}
-                onRejectBooking={handleRejectRoomBooking}
-                services={services}
-                onCreateService={handleCreateService}
-                onEditService={handleEditService}
-                onDeleteService={handleDeleteService}
-              />
-            )}
-
-          {currentUser.role === "provider" &&
-            currentUser.providerType !== "accommodation" && (
-              <ServicePostManagement
-                services={services}
-                providerId={currentUser.id}
-                onCreateService={handleCreateService}
-                onEditService={handleEditService}
-                onDeleteService={handleDeleteService}
-              />
-            )}
-        </main>
-
-        {currentUser.role !== "admin" && <PublicFooter />}
-
-        {showCreateServiceForm &&
-          currentUser.role === "provider" && (
-            <CreatePostModal
-              currentProvider={{
-                id: currentUser.id,
-                name:
-                  currentUser.businessName || currentUser.name,
-                providerType: currentUser.providerType,
-              }}
-              handleSubmitService={handleSubmitService}
-              onClose={() => setShowCreateServiceForm(false)}
+          {currentUser.role === "provider" && (
+            <ProviderDashboard
+              currentUser={currentUser}
+              services={services}
+              onDeleteService={handleDeleteService}
+              onSubmitService={handleSubmitService}
+              onUpdateService={handleUpdateService}
+              onUpdateProfile={handleUpdateProviderProfile}
+              onLogout={handleLogout}
             />
           )}
+        </main>
 
-        {editingService && currentUser.role === "provider" && (
-          <EditServiceModal
-            service={editingService}
-            currentProvider={{
-              id: currentUser.id,
-              name:
-                currentUser.businessName || currentUser.name,
-              providerType: currentUser.providerType,
-            }}
-            handleUpdateService={handleUpdateService}
-            onClose={() => setEditingService(null)}
-          />
+        {currentUser.role !== "admin" && currentUser.role !== "provider" && (
+          <PublicFooter />
         )}
       </div>
     );

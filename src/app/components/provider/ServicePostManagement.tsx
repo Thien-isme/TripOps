@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Service } from "@/app/types";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/app/components/ui/card";
@@ -15,12 +14,21 @@ import {
   Trash2,
   Eye,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   MapPin,
   Users,
-  DollarSign,
   Image as ImageIcon,
+  Search,
+  Hotel,
+  Utensils,
+  Compass,
+  Sparkles,
+  Car,
+  Star,
+  Layers,
+  Filter,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -29,12 +37,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/app/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/app/components/ui/tabs";
 import { ImageUploadManager } from "../ImageUploadManager";
 
 interface ServicePostManagementProps {
@@ -43,6 +45,7 @@ interface ServicePostManagementProps {
   onCreateService: () => void;
   onEditService: (service: Service) => void;
   onDeleteService: (serviceId: string) => void;
+  onViewDetail?: (service: Service) => void;
 }
 
 export function ServicePostManagement({
@@ -51,601 +54,914 @@ export function ServicePostManagement({
   onCreateService,
   onEditService,
   onDeleteService,
+  onViewDetail,
 }: ServicePostManagementProps) {
-  const [selectedService, setSelectedService] =
-    useState<Service | null>(null);
-  const [filter, setFilter] = useState<
-    "all" | "pending" | "approved" | "rejected"
-  >("all");
-  const [imageManagementService, setImageManagementService] =
-    useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [imageManagementService, setImageManagementService] = useState<Service | null>(null);
 
-  // Filter services by provider
-  const providerServices = services.filter(
-    (s) => s.providerId === providerId,
-  );
+  // Filter services by current provider
+  const providerServices = useMemo(() => {
+    return services.filter((s) => s.providerId === providerId);
+  }, [services, providerId]);
 
-  // Calculate stats
-  const pendingServices = providerServices.filter(
-    (s) => s.status === "pending",
-  ).length;
-  const approvedServices = providerServices.filter(
-    (s) => s.status === "approved",
-  ).length;
-  const rejectedServices = providerServices.filter(
-    (s) => s.status === "rejected",
-  ).length;
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const pending = providerServices.filter((s) => s.status === "pending").length;
+    const approved = providerServices.filter((s) => s.status === "approved").length;
+    const rejected = providerServices.filter((s) => s.status === "rejected").length;
+    return {
+      total: providerServices.length,
+      pending,
+      approved,
+      rejected,
+    };
+  }, [providerServices]);
 
-  // Filter services
-  const filteredServices =
-    filter === "all"
-      ? providerServices
-      : providerServices.filter((s) => s.status === filter);
+  // Filter and search services
+  const filteredServices = useMemo(() => {
+    return providerServices.filter((service) => {
+      // Status filter
+      if (filter !== "all" && service.status !== filter) return false;
+
+      // Category filter
+      if (categoryFilter !== "all") {
+        if (categoryFilter === "fnb") {
+          if (service.category !== "fnb" && service.category !== "restaurant") return false;
+        } else if (service.category !== categoryFilter) {
+          return false;
+        }
+      }
+
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = service.name?.toLowerCase().includes(q);
+        const matchLocation = service.location?.toLowerCase().includes(q);
+        const matchProvince = service.province?.toLowerCase().includes(q);
+        const matchDistrict = service.district?.toLowerCase().includes(q);
+        const matchDesc = service.description?.toLowerCase().includes(q);
+        return matchName || matchLocation || matchProvince || matchDistrict || matchDesc;
+      }
+
+      return true;
+    });
+  }, [providerServices, filter, categoryFilter, searchQuery]);
 
   const getStatusBadge = (status: Service["status"]) => {
-    const variants = {
-      pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-    };
-    const labels = {
-      pending: "Chờ kiểm duyệt",
-      approved: "Đã phê duyệt",
-      rejected: "Đã từ chối",
-    };
+    switch (status) {
+      case "approved":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            Đã duyệt
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+            <XCircle className="w-3.5 h-3.5 text-rose-600" />
+            Bị từ chối
+          </span>
+        );
+      case "pending":
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin-slow" />
+            Chờ duyệt
+          </span>
+        );
+    }
+  };
+
+  const getCategoryBadge = (category: Service["category"]) => {
+    switch (category) {
+      case "hotel":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+            <Hotel className="w-3.5 h-3.5 text-blue-600" />
+            Lưu trú
+          </span>
+        );
+      case "fnb":
+      case "restaurant":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
+            <Utensils className="w-3.5 h-3.5 text-orange-600" />
+            Ẩm thực
+          </span>
+        );
+      case "attraction":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+            <Compass className="w-3.5 h-3.5 text-teal-600" />
+            Tham quan
+          </span>
+        );
+      case "activity":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            Trải nghiệm
+          </span>
+        );
+      case "transportation":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
+            <Car className="w-3.5 h-3.5 text-cyan-600" />
+            Vận chuyển
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+            <Layers className="w-3.5 h-3.5" />
+            {category}
+          </span>
+        );
+    }
+  };
+
+  const formatPriceDisplay = (service: Service) => {
+    const isHotel = service.category === "hotel";
+    const unitLabel = isHotel ? "phòng" : "người";
+
+    if (service.priceFrom && service.priceTo) {
+      return (
+        <div>
+          <div className="font-bold text-gray-900 text-sm">
+            {service.priceFrom.toLocaleString("vi-VN")}đ - {service.priceTo.toLocaleString("vi-VN")}đ
+          </div>
+          <div className="text-xs text-blue-600 font-medium">/ {unitLabel} (ước lượng)</div>
+        </div>
+      );
+    }
+    if (service.priceFrom) {
+      return (
+        <div>
+          <div className="font-bold text-gray-900 text-sm">
+            từ {service.priceFrom.toLocaleString("vi-VN")}đ
+          </div>
+          <div className="text-xs text-blue-600 font-medium">/ {unitLabel}</div>
+        </div>
+      );
+    }
+
+    const formattedPrice = service.price ? service.price.toLocaleString("vi-VN") + "đ" : "Liên hệ";
+    let unit = "";
+
+    if (service.category === "hotel") {
+      unit = "/phòng";
+    } else if (service.category === "attraction") {
+      unit = "/vé";
+    } else if (service.category === "transportation") {
+      unit = service.seats ? `/${service.seats} chỗ` : "/chuyến";
+    } else if (service.pricePerPerson) {
+      unit = "/người";
+    }
+
     return (
-      <Badge className={variants[status]}>
-        {labels[status]}
-      </Badge>
+      <div>
+        <div className="font-bold text-gray-900 text-sm">{formattedPrice}</div>
+        {unit && <div className="text-xs text-gray-500 font-normal">{unit}</div>}
+      </div>
     );
   };
 
-  const getCategoryLabel = (category: Service["category"]) => {
-    const labels = {
-      hotel: "Khách sạn",
-      restaurant: "Nhà hàng",
-      eatery: "Quán ăn",
-      transportation: "Vận chuyển",
-      activity: "Hoạt động",
-    };
-    return labels[category] || category;
+  const formatAddress = (service: Service) => {
+    // Strictly 2 administrative levels: Phường/Xã and Tỉnh/Thành phố (no Quận/Huyện)
+    const parts = [service.street, service.ward, service.province].filter(Boolean);
+    if (parts.length > 0) {
+      return parts.join(", ");
+    }
+    return service.location || "Chưa cập nhật";
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Quản lý Bài đăng
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Quản lý các bài đăng dịch vụ của bạn
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+              Quản lý Dịch vụ & Bài đăng
+            </h1>
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              Provider Portal
+            </Badge>
+          </div>
+          <p className="text-gray-600 text-sm mt-1">
+            Đăng ký và quản lý tất cả các loại dịch vụ (Lưu trú, Ẩm thực, Tham quan, Trải nghiệm, Vận chuyển)
           </p>
         </div>
         <Button
           onClick={onCreateService}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Tạo bài đăng mới
+          <Plus className="w-5 h-5 mr-1.5" />
+          Đăng dịch vụ mới
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">
-              Tổng bài đăng
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-700">
-              {providerServices.length}
-            </div>
-            <p className="text-xs text-blue-600 mt-1">
-              Tất cả bài đăng
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-900">
-              Chờ kiểm duyệt
-            </CardTitle>
-            <Clock className="w-5 h-5 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-700">
-              {pendingServices}
-            </div>
-            <p className="text-xs text-yellow-600 mt-1">
-              Đang chờ xét duyệt
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">
-              Đã phê duyệt
-            </CardTitle>
-            <CheckCircle className="w-5 h-5 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-700">
-              {approvedServices}
-            </div>
-            <p className="text-xs text-green-600 mt-1">
-              Đang hoạt động
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-red-900">
-              Đã từ chối
-            </CardTitle>
-            <XCircle className="w-5 h-5 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-700">
-              {rejectedServices}
-            </div>
-            <p className="text-xs text-red-600 mt-1">
-              Cần chỉnh sửa
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filter Tabs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách bài đăng</CardTitle>
-          <CardDescription>
-            Xem và quản lý các bài đăng dịch vụ
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            value={filter}
-            onValueChange={(v) => setFilter(v as any)}
-          >
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">Tất cả</TabsTrigger>
-              <TabsTrigger value="pending">
-                Chờ kiểm duyệt
-              </TabsTrigger>
-              <TabsTrigger value="approved">
-                Đã phê duyệt
-              </TabsTrigger>
-              <TabsTrigger value="rejected">
-                Đã từ chối
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Services List */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredServices.length === 0 ? (
-              <div className="col-span-2 text-center py-12 text-gray-500">
-                <p>Chưa có bài đăng nào</p>
-                <Button
-                  onClick={onCreateService}
-                  className="mt-4"
+      {/* Main Table Card */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Filters Toolbar */}
+        <div className="p-5 border-b border-gray-200 space-y-4">
+          <div className="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm theo tên dịch vụ, địa chỉ, tỉnh thành..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600"
                 >
-                  Tạo bài đăng đầu tiên
-                </Button>
-              </div>
-            ) : (
-              filteredServices.map((service) => (
-                <Card
-                  key={service.id}
-                  className="hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative">
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <div className="absolute top-3 right-3">
-                      {getStatusBadge(service.status)}
-                    </div>
-                    {/* Hiển thị số lượng ảnh nếu có nhiều ảnh */}
-                    {service.images &&
-                      service.images.length > 1 && (
-                        <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs flex items-center gap-1">
-                          <ImageIcon className="w-3 h-3" />
-                          {service.images.length}
-                        </div>
-                      )}
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {getCategoryLabel(service.category)}
-                      </Badge>
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">
-                      {service.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {service.description}
-                    </p>
+                  Xoá
+                </button>
+              )}
+            </div>
 
-                    {/* Hiển thị địa chỉ chi tiết */}
-                    {(service.province ||
-                      service.district ||
-                      service.ward) && (
-                      <div className="flex items-start gap-1 mb-2 text-xs text-gray-500">
-                        <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-1">
-                          {[
-                            service.street,
-                            service.ward,
-                            service.district,
-                            service.province,
-                          ]
-                            .filter(Boolean)
-                            .join(", ")}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Hiển thị giá */}
-                    <div className="space-y-1 mb-3">
-                      <div className="flex items-center gap-1 text-blue-600 font-bold text-lg">
-                        <DollarSign className="w-4 h-4" />
-                        {service.price.toLocaleString("vi-VN")}đ
-                        {service.category === "hotel" && (
-                          <span className="text-xs text-gray-600 font-normal ml-1">
-                            /đêm
-                          </span>
-                        )}
-                      </div>
-                      {service.pricePerPerson && service.category !== "hotel" && service.category !== "restaurant" && service.category !== "eatery" && (
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Users className="w-3 h-3" />
-                          {service.pricePerPerson.toLocaleString(
-                            "vi-VN",
-                          )}
-                          đ/{service.category === "activity" ? "người (TB)" : "người"}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() =>
-                          setSelectedService(service)
-                        }
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        Xem
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => onEditService(service)}
-                        disabled={service.status === "pending"}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Sửa
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-purple-600 hover:bg-purple-50 hover:border-purple-300"
-                        onClick={() => setImageManagementService(service)}
-                        title="Quản lý ảnh"
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:bg-red-50 hover:border-red-300"
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Bạn có chắc muốn hủy bài đăng này? Hành động này không thể hoàn tác.",
-                            )
-                          ) {
-                            onDeleteService(service.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    {service.status === "pending" && (
-                      <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                        ⏳ Bài đăng đang chờ admin kiểm duyệt
-                      </div>
-                    )}
-                    {service.status === "rejected" && (
-                      <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
-                        ❌ Bài đăng đã bị từ chối. Vui lòng
-                        chỉnh sửa và gửi lại.
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
+            {/* Status Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-gray-100/80 p-1 rounded-xl">
+              <button
+                onClick={() => setFilter("all")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  filter === "all"
+                    ? "bg-white text-gray-900 shadow-sm font-semibold"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                Tất cả ({providerServices.length})
+              </button>
+              <button
+                onClick={() => setFilter("pending")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  filter === "pending"
+                    ? "bg-amber-500 text-white shadow-sm font-semibold"
+                    : "text-gray-600 hover:text-amber-700"
+                }`}
+              >
+                Chờ duyệt ({stats.pending})
+              </button>
+              <button
+                onClick={() => setFilter("approved")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  filter === "approved"
+                    ? "bg-emerald-600 text-white shadow-sm font-semibold"
+                    : "text-gray-600 hover:text-emerald-700"
+                }`}
+              >
+                Đã duyệt ({stats.approved})
+              </button>
+              <button
+                onClick={() => setFilter("rejected")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  filter === "rejected"
+                    ? "bg-rose-600 text-white shadow-sm font-semibold"
+                    : "text-gray-600 hover:text-rose-700"
+                }`}
+              >
+                Từ chối ({stats.rejected})
+              </button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+            <span className="text-xs text-gray-500 flex items-center gap-1 mr-1">
+              <Filter className="w-3.5 h-3.5" />
+              Phân loại:
+            </span>
+            {[
+              { id: "all", label: "Tất cả loại" },
+              { id: "hotel", label: "Lưu trú", icon: Hotel },
+              { id: "fnb", label: "Ẩm thực", icon: Utensils },
+              { id: "transportation", label: "Vận chuyển", icon: Car },
+              { id: "attraction", label: "Tham quan", icon: Compass },
+            ].map((cat) => {
+              const Icon = cat.icon;
+              const isActive = categoryFilter === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all ${
+                    isActive
+                      ? "bg-blue-600 text-white font-semibold shadow-xs"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {Icon && <Icon className="w-3 h-3" />}
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* TABLE VIEW */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4 text-center w-12">#</th>
+                <th className="py-3.5 px-4 min-w-[240px]">Dịch vụ</th>
+                <th className="py-3.5 px-4 min-w-[130px]">Phân loại</th>
+                <th className="py-3.5 px-4 min-w-[200px]">Khu vực / Địa chỉ</th>
+                <th className="py-3.5 px-4 min-w-[160px]">Khoảng giá</th>
+                <th className="py-3.5 px-4 text-center min-w-[130px]">Trạng thái</th>
+                <th className="py-3.5 px-4 text-center min-w-[160px]">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-sm">
+              {filteredServices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                        <Search className="w-6 h-6" />
+                      </div>
+                      <p className="text-base font-medium text-gray-700">
+                        Không tìm thấy dịch vụ nào phù hợp
+                      </p>
+                      <p className="text-xs text-gray-500 max-w-sm">
+                        Thử thay đổi bộ lọc trạng thái, phân loại dịch vụ hoặc tạo bài đăng dịch vụ mới.
+                      </p>
+                      <Button
+                        onClick={onCreateService}
+                        size="sm"
+                        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Đăng dịch vụ mới
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredServices.map((service, index) => {
+                  const imageCount = service.images?.length || 1;
+                  return (
+                    <tr
+                      key={service.id}
+                      className="hover:bg-blue-50/40 transition-colors group"
+                    >
+                      {/* Index */}
+                      <td className="py-3.5 px-4 text-center text-xs text-gray-500 font-medium">
+                        {index + 1}
+                      </td>
+
+                      {/* Service Info */}
+                      <td className="py-3.5 px-4">
+                        <div
+                          className="flex items-center gap-3 cursor-pointer group/item"
+                          onClick={() => onViewDetail ? onViewDetail(service) : setSelectedService(service)}
+                        >
+                          <div className="relative flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-2xs">
+                            <img
+                              src={service.image}
+                              alt={service.name}
+                              className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300"
+                            />
+                            {imageCount > 1 && (
+                              <div
+                                className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] font-semibold px-1 rounded flex items-center gap-0.5"
+                                title={`${imageCount} hình ảnh`}
+                              >
+                                <ImageIcon className="w-2.5 h-2.5" />
+                                {imageCount}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-gray-900 group-hover/item:text-blue-600 transition-colors line-clamp-1">
+                              {service.name}
+                            </div>
+                            <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                              {service.description}
+                            </div>
+                            <div className="text-[11px] text-gray-400 mt-0.5 font-mono">
+                              Mã: {service.id}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4">
+                        {getCategoryBadge(service.category)}
+                        {service.subCategory && (
+                          <div className="text-[11px] text-gray-500 mt-1 capitalize">
+                            {service.subCategory === "restaurant"
+                              ? "Quán ăn"
+                              : service.subCategory === "cafe"
+                              ? "Cà phê"
+                              : service.subCategory}
+                          </div>
+                        )}
+                        {service.stars && (
+                          <div className="text-[11px] text-amber-600 font-medium mt-0.5">
+                            {service.stars} ⭐ hạng sao
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Location & GPS */}
+                      <td className="py-3.5 px-4 text-xs text-gray-600">
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <div className="space-y-1">
+                            <div className="line-clamp-2">
+                              {formatAddress(service)}
+                            </div>
+                            {service.latitude && service.longitude && (
+                              <a
+                                href={`https://www.google.com/maps?q=${service.latitude},${service.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 hover:underline bg-blue-50/80 px-2 py-0.5 rounded border border-blue-200"
+                                title="Mở vị trí trên Google Maps"
+                              >
+                                <Compass className="w-3 h-3 text-blue-500" />
+                                <span>{service.latitude.toFixed(4)}, {service.longitude.toFixed(4)}</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Price */}
+                      <td className="py-3.5 px-4">
+                        {formatPriceDisplay(service)}
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          {getStatusBadge(service.status)}
+                          {service.status === "rejected" && service.rejectionReason && (
+                            <span
+                              className="text-[10px] text-rose-600 max-w-[140px] truncate underline cursor-help"
+                              title={`Lý do từ chối: ${service.rejectionReason}`}
+                            >
+                              Lý do: {service.rejectionReason}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="inline-flex items-center gap-1 justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                            onClick={() => onViewDetail ? onViewDetail(service) : setSelectedService(service)}
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-amber-600 hover:bg-amber-50"
+                            onClick={() => onEditService(service)}
+                            title="Chỉnh sửa dịch vụ"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                            onClick={() => setImageManagementService(service)}
+                            title="Quản lý thư viện ảnh"
+                          >
+                            <ImageIcon className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-rose-600 hover:bg-rose-50"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  `Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này không thể hoàn tác.`
+                                )
+                              ) {
+                                onDeleteService(service.id);
+                              }
+                            }}
+                            title="Xóa bài đăng"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table Footer */}
+        <div className="p-4 bg-gray-50/60 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
+          <span>
+            Hiển thị <strong>{filteredServices.length}</strong> trên tổng số{" "}
+            <strong>{providerServices.length}</strong> dịch vụ của bạn
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Dạng hiển thị: <strong>Bảng dữ liệu (Table View)</strong></span>
+          </div>
+        </div>
+      </div>
 
       {/* Detail Dialog */}
       <Dialog
         open={!!selectedService}
         onOpenChange={() => setSelectedService(null)}
       >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedService?.name}</DialogTitle>
-            <DialogDescription>
-              Chi tiết về dịch vụ
-            </DialogDescription>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl">
+          <DialogHeader className="border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">
+                  {selectedService?.name}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-gray-500 mt-1">
+                  Mã dịch vụ: {selectedService?.id} • Nhà cung cấp: {selectedService?.providerName}
+                </DialogDescription>
+              </div>
+              {selectedService && (
+                <div className="flex items-center gap-2">
+                  {getCategoryBadge(selectedService.category)}
+                  {getStatusBadge(selectedService.status)}
+                </div>
+              )}
+            </div>
           </DialogHeader>
 
           {selectedService && (
-            <div className="space-y-4">
-              {/* Hiển thị tất cả ảnh nếu có nhiều ảnh */}
-              {selectedService.images &&
-              selectedService.images.length > 0 ? (
-                <div className="space-y-2">
+            <div className="space-y-6 pt-2">
+              {/* Photo Showcase */}
+              <div className="space-y-2">
+                <div className="relative rounded-2xl overflow-hidden bg-gray-100 h-64 border border-gray-200">
                   <img
-                    src={selectedService.images[0]}
+                    src={selectedService.image}
                     alt={selectedService.name}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
-                  {selectedService.images.length > 1 && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {selectedService.images
-                        .slice(1)
-                        .map((img, idx) => (
-                          <img
-                            key={idx}
-                            src={img}
-                            alt={`${selectedService.name} ${idx + 2}`}
-                            className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
-                          />
-                        ))}
-                    </div>
-                  )}
+                  <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs text-white px-3 py-1 rounded-lg text-xs flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    {selectedService.images?.length || 1} ảnh trong bộ sưu tập
+                  </div>
                 </div>
-              ) : (
-                <img
-                  src={selectedService.image}
-                  alt={selectedService.name}
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-              )}
 
-              <div className="flex items-center justify-between">
-                <Badge variant="outline">
-                  {getCategoryLabel(selectedService.category)}
-                </Badge>
-                {getStatusBadge(selectedService.status)}
+                {selectedService.images && selectedService.images.length > 1 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {selectedService.images.slice(0, 4).map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-50"
+                      >
+                        <img
+                          src={img}
+                          alt={`Ảnh ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {/* Rejected reason banner if any */}
+              {selectedService.status === "rejected" && selectedService.rejectionReason && (
+                <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-semibold text-rose-900 text-sm">
+                      Lý do từ chối kiểm duyệt
+                    </h5>
+                    <p className="text-xs text-rose-700 mt-0.5">
+                      {selectedService.rejectionReason}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
               <div>
-                <h4 className="font-semibold mb-2">Mô tả</h4>
-                <p className="text-gray-700">
+                <h4 className="text-sm font-bold text-gray-900 mb-1.5">
+                  Mô tả dịch vụ
+                </h4>
+                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
                   {selectedService.description}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">
-                    Thông tin cơ bản
+              {/* Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Basic & Pricing Info */}
+                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2.5">
+                  <h4 className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    Thông tin bảng giá
                   </h4>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <strong>
-                        {selectedService.category === "hotel"
-                          ? "Giá phòng/đêm:"
-                          : "Giá cơ bản:"}
-                      </strong>{" "}
-                      {selectedService.price.toLocaleString(
-                        "vi-VN",
-                      )}
-                      đ
-                    </p>
-                    {selectedService.pricePerPerson &&
-                      selectedService.category !== "hotel" && (
-                        <p>
-                          <strong>Giá/người:</strong>{" "}
-                          {selectedService.pricePerPerson.toLocaleString(
-                            "vi-VN",
-                          )}
-                          đ
-                        </p>
-                      )}
-                    {selectedService.capacity && selectedService.category !== "fnb" && selectedService.category !== "activity" && (
-                      <p>
-                        <strong>Sức chứa:</strong>{" "}
-                        {selectedService.capacity} người
-                      </p>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between py-1 border-b border-blue-100/60">
+                      <span className="text-gray-600">Đơn giá niêm yết:</span>
+                      <strong className="text-blue-700 text-sm">
+                        {selectedService.price?.toLocaleString("vi-VN")}đ
+                      </strong>
+                    </div>
+
+                    {selectedService.priceFrom && selectedService.priceTo && (
+                      <div className="flex justify-between py-1 border-b border-blue-100/60">
+                        <span className="text-gray-600">Khoảng giá ước lượng:</span>
+                        <strong className="text-blue-700">
+                          {selectedService.priceFrom.toLocaleString("vi-VN")}đ - {selectedService.priceTo.toLocaleString("vi-VN")}đ / {selectedService.category === "hotel" ? "phòng" : "người"}
+                        </strong>
+                      </div>
                     )}
-                    <p>
-                      <strong>Đánh giá:</strong> ⭐{" "}
-                      {selectedService.rating}/5
-                    </p>
+
+                    {selectedService.pricePerPerson && !selectedService.priceFrom && (
+                      <div className="flex justify-between py-1 border-b border-blue-100/60">
+                        <span className="text-gray-600">Giá theo người:</span>
+                        <strong>
+                          {selectedService.pricePerPerson.toLocaleString("vi-VN")}đ/người
+                        </strong>
+                      </div>
+                    )}
+
+                    {selectedService.childPrice && (
+                      <div className="flex justify-between py-1 border-b border-blue-100/60">
+                        <span className="text-gray-600">Giá vé trẻ em:</span>
+                        <strong>
+                          {selectedService.childPrice.toLocaleString("vi-VN")}đ/trẻ
+                        </strong>
+                      </div>
+                    )}
+
+                    {selectedService.category === "hotel" ? (
+                      (selectedService.totalRooms || selectedService.capacity) && (
+                        <div className="flex justify-between py-1 border-b border-blue-100/60">
+                          <span className="text-gray-600">Tổng số phòng:</span>
+                          <strong>{selectedService.totalRooms || selectedService.capacity} phòng</strong>
+                        </div>
+                      )
+                    ) : (
+                      selectedService.capacity && (
+                        <div className="flex justify-between py-1 border-b border-blue-100/60">
+                          <span className="text-gray-600">Sức chứa tối đa:</span>
+                          <strong>{selectedService.capacity} người</strong>
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-2">
-                    Địa chỉ
+                {/* Location Info */}
+                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2.5">
+                  <h4 className="font-bold text-sm text-emerald-900 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    Địa chỉ & Khu vực
                   </h4>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-1.5 text-xs">
                     {selectedService.province && (
-                      <p>
-                        <strong>Tỉnh/TP:</strong>{" "}
-                        {selectedService.province}
-                      </p>
-                    )}
-                    {selectedService.district && (
-                      <p>
-                        <strong>Quận/Huyện:</strong>{" "}
-                        {selectedService.district}
-                      </p>
+                      <div className="flex justify-between py-1 border-b border-emerald-100/60">
+                        <span className="text-gray-600">Tỉnh / Thành phố:</span>
+                        <strong>{selectedService.province}</strong>
+                      </div>
                     )}
                     {selectedService.ward && (
-                      <p>
-                        <strong>Phường/Xã:</strong>{" "}
-                        {selectedService.ward}
-                      </p>
+                      <div className="flex justify-between py-1 border-b border-emerald-100/60">
+                        <span className="text-gray-600">Phường / Xã:</span>
+                        <strong>{selectedService.ward}</strong>
+                      </div>
                     )}
                     {selectedService.street && (
-                      <p>
-                        <strong>Đường:</strong>{" "}
-                        {selectedService.street}
-                      </p>
+                      <div className="flex justify-between py-1 border-b border-emerald-100/60">
+                        <span className="text-gray-600">Đường / Số nhà:</span>
+                        <strong>{selectedService.street}</strong>
+                      </div>
                     )}
-                    {selectedService.location && (
-                      <p className="text-gray-600 italic">
-                        {selectedService.location}
-                      </p>
+                    {selectedService.latitude && selectedService.longitude && (
+                      <div className="flex justify-between py-1 border-b border-emerald-100/60">
+                        <span className="text-gray-600">Tọa độ GPS:</span>
+                        <a
+                          href={`https://www.google.com/maps?q=${selectedService.latitude},${selectedService.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 font-mono hover:underline inline-flex items-center gap-1"
+                        >
+                          <Compass className="w-3 h-3 text-blue-500" />
+                          {selectedService.latitude.toFixed(4)}, {selectedService.longitude.toFixed(4)}
+                        </a>
+                      </div>
                     )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">
-                    Thông tin bổ sung
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    {selectedService.stars && (
-                      <p>
-                        <strong>Hạng sao:</strong>{" "}
-                        {selectedService.stars} ⭐
-                      </p>
-                    )}
-                    {selectedService.subCategory && selectedService.category === "fnb" && (
-                      <p>
-                        <strong>Loại hình:</strong>{" "}
-                        {selectedService.subCategory === "restaurant" ? "Quán ăn" : "Cà phê"}
-                      </p>
-                    )}
-                    {selectedService.checkInTime && (
-                      <p>
-                        <strong>Giờ check-in:</strong>{" "}
-                        {selectedService.checkInTime}
-                      </p>
-                    )}
-                    {selectedService.checkOutTime && (
-                      <p>
-                        <strong>Giờ check-out:</strong>{" "}
-                        {selectedService.checkOutTime}
-                      </p>
-                    )}
-                    {selectedService.cuisine && (
-                      <p>
-                        <strong>Ẩm thực:</strong>{" "}
-                        {selectedService.cuisine}
-                      </p>
-                    )}
-                    {selectedService.openingHours && (
-                      <p>
-                        <strong>Giờ mở cửa:</strong>{" "}
-                        {selectedService.openingHours}
-                      </p>
-                    )}
-                    {selectedService.priceRange && (
-                      <p>
-                        <strong>Khoảng giá:</strong>{" "}
-                        {selectedService.priceRange}
-                      </p>
-                    )}
-                    {selectedService.duration && (
-                      <p>
-                        <strong>Thời lượng:</strong>{" "}
-                        {selectedService.duration}
-                      </p>
-                    )}
-                    {selectedService.difficulty && (
-                      <p>
-                        <strong>Độ khó:</strong>{" "}
-                        {selectedService.difficulty}
-                      </p>
-                    )}
-                    {selectedService.ageRestriction && (
-                      <p>
-                        <strong>Giới hạn độ tuổi:</strong>{" "}
-                        {selectedService.ageRestriction}
-                      </p>
-                    )}
-                    {selectedService.vehicleType && (
-                      <p>
-                        <strong>Loại xe:</strong>{" "}
-                        {selectedService.vehicleType}
-                      </p>
-                    )}
-                    {selectedService.seats && (
-                      <p>
-                        <strong>Số chỗ:</strong>{" "}
-                        {selectedService.seats}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">
-                    Thông tin hệ thống
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <strong>Ngày tạo:</strong>{" "}
-                      {new Date(
-                        selectedService.createdAt,
-                      ).toLocaleDateString("vi-VN")}
-                    </p>
-                    <p>
-                      <strong>Trạng thái:</strong>{" "}
-                      {selectedService.status}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {selectedService.amenities &&
-                selectedService.amenities.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold mb-2">
-                      Tiện nghi
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedService.amenities.map(
-                        (amenity, idx) => (
-                          <Badge key={idx} variant="secondary">
-                            {amenity}
-                          </Badge>
-                        ),
-                      )}
+                    <div className="pt-1 text-gray-600 italic">
+                      {formatAddress(selectedService)}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
+
+              {/* Category-Specific Specifications */}
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+                <h4 className="font-bold text-sm text-gray-900">
+                  Thông số chi tiết loại dịch vụ
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  {selectedService.category === "hotel" && (
+                    <>
+                      {selectedService.subCategory && (
+                        <div>
+                          <span className="text-gray-500 block">Loại hình:</span>
+                          <strong>{selectedService.subCategory}</strong>
+                        </div>
+                      )}
+                      {selectedService.stars && (
+                        <div>
+                          <span className="text-gray-500 block">Hạng sao:</span>
+                          <strong className="text-amber-600 font-semibold">
+                            {selectedService.stars} Sao ⭐
+                          </strong>
+                        </div>
+                      )}
+                      {(selectedService.totalRooms || selectedService.capacity) && (
+                        <div>
+                          <span className="text-gray-500 block">Tổng số phòng:</span>
+                          <strong>{selectedService.totalRooms || selectedService.capacity} phòng</strong>
+                        </div>
+                      )}
+                      {selectedService.policies && (
+                        <div className="sm:col-span-3">
+                          <span className="text-gray-500 block">Chính sách đi kèm:</span>
+                          <strong className="font-normal text-gray-700 leading-relaxed whitespace-pre-line">
+                            {selectedService.policies}
+                          </strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {(selectedService.category === "fnb" || selectedService.category === "restaurant") && (
+                    <>
+                      {selectedService.subCategory && (
+                        <div>
+                          <span className="text-gray-500 block">Loại ẩm thực:</span>
+                          <strong className="capitalize">{selectedService.subCategory}</strong>
+                        </div>
+                      )}
+                      {selectedService.cuisineType && (
+                        <div>
+                          <span className="text-gray-500 block">Phong cách món:</span>
+                          <strong>{selectedService.cuisineType}</strong>
+                        </div>
+                      )}
+                      {selectedService.openingHours && (
+                        <div>
+                          <span className="text-gray-500 block">Giờ mở cửa:</span>
+                          <strong>{selectedService.openingHours}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {selectedService.category === "attraction" && (
+                    <>
+                      {selectedService.openingHours && (
+                        <div>
+                          <span className="text-gray-500 block">Giờ đón khách:</span>
+                          <strong>{selectedService.openingHours}</strong>
+                        </div>
+                      )}
+                      {selectedService.ticketIncludes && (
+                        <div className="col-span-2">
+                          <span className="text-gray-500 block">Vé bao gồm:</span>
+                          <strong>{selectedService.ticketIncludes}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {selectedService.category === "activity" && (
+                    <>
+                      {selectedService.duration && (
+                        <div>
+                          <span className="text-gray-500 block">Thời lượng:</span>
+                          <strong>{selectedService.duration}</strong>
+                        </div>
+                      )}
+                      {selectedService.difficultyLevel && (
+                        <div>
+                          <span className="text-gray-500 block">Độ khó:</span>
+                          <strong>{selectedService.difficultyLevel}</strong>
+                        </div>
+                      )}
+                      {selectedService.ageRestriction && (
+                        <div>
+                          <span className="text-gray-500 block">Độ tuổi:</span>
+                          <strong>{selectedService.ageRestriction}</strong>
+                        </div>
+                      )}
+                      {selectedService.safetyGear && (
+                        <div className="col-span-2">
+                          <span className="text-gray-500 block">Bảo hộ an toàn:</span>
+                          <strong>{selectedService.safetyGear}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {selectedService.category === "transportation" && (
+                    <>
+                      {selectedService.vehicleType && (
+                        <div>
+                          <span className="text-gray-500 block">Loại xe:</span>
+                          <strong>{selectedService.vehicleType}</strong>
+                        </div>
+                      )}
+                      {selectedService.seats && (
+                        <div>
+                          <span className="text-gray-500 block">Số chỗ ngồi:</span>
+                          <strong>{selectedService.seats} chỗ</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Amenities / Features */}
+              {selectedService.amenities && selectedService.amenities.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 mb-2">
+                    Tiện nghi & Dịch vụ đi kèm
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedService.amenities.map((amenity, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg border border-gray-200 font-medium"
+                      >
+                        ✓ {amenity}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions Footer inside modal */}
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedService(null)}
+                >
+                  Đóng
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                  onClick={() => {
+                    const svc = selectedService;
+                    setSelectedService(null);
+                    setImageManagementService(svc);
+                  }}
+                >
+                  <ImageIcon className="w-4 h-4 mr-1.5" />
+                  Quản lý ảnh
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => {
+                    const svc = selectedService;
+                    setSelectedService(null);
+                    onEditService(svc);
+                  }}
+                >
+                  <Edit className="w-4 h-4 mr-1.5" />
+                  Chỉnh sửa
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -657,7 +973,6 @@ export function ServicePostManagement({
           isOpen={!!imageManagementService}
           onClose={() => setImageManagementService(null)}
           onSave={(images, thumbnailIndex) => {
-            // Update the service with new images
             const updatedService = {
               ...imageManagementService,
               images: images,

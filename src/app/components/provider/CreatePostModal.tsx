@@ -1,15 +1,15 @@
 import { useState } from "react";
 import {
   X,
-  Upload,
   Hotel,
   Utensils,
-  Coffee,
   Car,
   Activity,
+  Compass,
   CheckCircle,
-  Image as ImageIcon,
+  Plus,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { Service, ProviderType } from "@/app/types";
 
@@ -25,61 +25,72 @@ interface CreatePostModalProps {
   onClose: () => void;
 }
 
-type ServiceCategory =
+export type ServiceCategory =
   | "hotel"
   | "fnb"
-  | "transportation"
-  | "activity";
-
-// Ánh xạ từ ProviderType sang các ServiceCategory được phép
-const providerCategoryMap: Record<
-  ProviderType,
-  ServiceCategory[]
-> = {
-  accommodation: ["hotel"],
-  fnb: ["fnb"],
-  attraction: ["activity"],
-  adventure: ["activity"],
-  support: ["transportation"],
-  guide: ["transportation"],
-};
+  | "attraction"
+  | "activity"
+  | "transportation";
 
 const categoryOptions = [
   {
-    value: "hotel",
-    label: "Khách sạn",
+    value: "hotel" as ServiceCategory,
+    label: "Lưu trú & Khách sạn",
+    description: "Khách sạn, Resort, Homestay, Villa nguyên căn",
     icon: Hotel,
-    color: "blue",
+    color: "from-blue-500 to-indigo-600",
+    bgHover: "hover:border-blue-500 hover:bg-blue-50/60",
   },
   {
-    value: "fnb",
-    label: "Ẩm thực",
+    value: "fnb" as ServiceCategory,
+    label: "Ẩm thực & Nhà hàng",
+    description: "Nhà hàng, Quán ăn đặc sản, Tiệc nướng, Quán Cafe",
     icon: Utensils,
-    color: "purple",
+    color: "from-amber-500 to-orange-600",
+    bgHover: "hover:border-amber-500 hover:bg-amber-50/60",
   },
   {
-    value: "transportation",
-    label: "Lữ hành",
+    value: "attraction" as ServiceCategory,
+    label: "Điểm tham quan & Vé",
+    description: "Danh lam thắng cảnh, Di tích lịch sử, Khu sinh thái",
+    icon: Compass,
+    color: "from-teal-500 to-emerald-600",
+    bgHover: "hover:border-teal-500 hover:bg-teal-50/60",
+  },
+  {
+    value: "activity" as ServiceCategory,
+    label: "Hoạt động & Trải nghiệm",
+    description: "Tour trải nghiệm, Chèo Sup, Trekking, Thể thao mạo hiểm",
+    icon: Sparkles,
+    color: "from-purple-500 to-pink-600",
+    bgHover: "hover:border-purple-500 hover:bg-purple-50/60",
+  },
+  {
+    value: "transportation" as ServiceCategory,
+    label: "Phương tiện & Vận chuyển",
+    description: "Xe du lịch 4-45 chỗ, Limousine, Tàu cano, Thuê xe máy",
     icon: Car,
-    color: "green",
-  },
-  {
-    value: "activity",
-    label: "Khu vui chơi",
-    icon: Activity,
-    color: "pink",
+    color: "from-cyan-500 to-blue-600",
+    bgHover: "hover:border-cyan-500 hover:bg-cyan-50/60",
   },
 ];
 
-// Danh sách tỉnh/thành phố Việt Nam (mẫu - có thể mở rộng)
 const vietnamProvinces = [
+  "Lâm Đồng",
+  "Khánh Hòa",
+  "Kiên Giang",
+  "Đà Nẵng",
+  "Quảng Nam",
   "Hà Nội",
   "Hồ Chí Minh",
-  "Đà Nẵng",
+  "Thừa Thiên Huế",
+  "Bình Thuận",
+  "Bà Rịa - Vũng Tàu",
+  "Quảng Ninh",
+  "Ninh Bình",
   "Hải Phòng",
   "Cần Thơ",
   "An Giang",
-  "Bà Rịa - Vũng Tàu",
   "Bắc Giang",
   "Bắc Kạn",
   "Bạc Liêu",
@@ -88,7 +99,6 @@ const vietnamProvinces = [
   "Bình Định",
   "Bình Dương",
   "Bình Phước",
-  "Bình Thuận",
   "Cà Mau",
   "Cao Bằng",
   "Đắk Lắk",
@@ -104,24 +114,18 @@ const vietnamProvinces = [
   "Hậu Giang",
   "Hòa Bình",
   "Hưng Yên",
-  "Khánh Hòa",
-  "Kiên Giang",
   "Kon Tum",
   "Lai Châu",
-  "Lâm Đồng",
   "Lạng Sơn",
   "Lào Cai",
   "Long An",
   "Nam Định",
   "Nghệ An",
-  "Ninh Bình",
   "Ninh Thuận",
   "Phú Thọ",
   "Phú Yên",
   "Quảng Bình",
-  "Quảng Nam",
   "Quảng Ngãi",
-  "Quảng Ninh",
   "Quảng Trị",
   "Sóc Trăng",
   "Sơn La",
@@ -129,7 +133,6 @@ const vietnamProvinces = [
   "Thái Bình",
   "Thái Nguyên",
   "Thanh Hóa",
-  "Thừa Thiên Huế",
   "Tiền Giang",
   "Trà Vinh",
   "Tuyên Quang",
@@ -143,11 +146,8 @@ export function CreatePostModal({
   handleSubmitService,
   onClose,
 }: CreatePostModalProps) {
-  const [step, setStep] = useState<"category" | "form">(
-    "category",
-  );
-  const [category, setCategory] =
-    useState<ServiceCategory | null>(null);
+  const [step, setStep] = useState<"category" | "form">("category");
+  const [category, setCategory] = useState<ServiceCategory | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Common fields
@@ -156,69 +156,107 @@ export function CreatePostModal({
   const [price, setPrice] = useState("");
   const [pricePerPerson, setPricePerPerson] = useState("");
   const [capacity, setCapacity] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
 
-  // Địa chỉ chi tiết
-  const [province, setProvince] = useState("");
+  // Detailed Address fields
+  const [province, setProvince] = useState("Lâm Đồng");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
   const [street, setStreet] = useState("");
 
   // Hotel fields
-  const [stars, setStars] = useState("3");
-  const [amenities, setAmenities] = useState<string[]>([]);
+  const [roomType, setRoomType] = useState("Phòng Deluxe Hướng Phố");
+  const [stars, setStars] = useState("4");
+  const [amenities, setAmenities] = useState<string[]>([
+    "Wifi miễn phí",
+    "Điều hòa nhiệt độ",
+    "Phòng tắm riêng",
+    "Tivi truyền hình cáp",
+  ]);
   const [checkInTime, setCheckInTime] = useState("14:00");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [amenityInput, setAmenityInput] = useState("");
 
   // FnB fields
-  const [subCategory, setSubCategory] = useState("");
-  const [openingHours, setOpeningHours] = useState("");
+  const [subCategory, setSubCategory] = useState("restaurant");
+  const [cuisineType, setCuisineType] = useState("Món ăn đặc sản địa phương");
+  const [openingHours, setOpeningHours] = useState("07:00 - 22:00");
+  const [dietaryOptions, setDietaryOptions] = useState<string[]>([
+    "Có món chay",
+    "Hải sản tươi sống",
+  ]);
+  const [dietaryInput, setDietaryInput] = useState("");
+
+  // Attraction fields
+  const [childPrice, setChildPrice] = useState("");
+  const [ticketIncludes, setTicketIncludes] = useState(
+    "Vé vào cổng tham quan, xe điện nội khu, hướng dẫn viên giới thiệu",
+  );
 
   // Transportation fields
-  const [vehicleType, setVehicleType] = useState("");
-  const [seats, setSeats] = useState("");
+  const [vehicleType, setVehicleType] = useState("Xe 16 chỗ Limousine");
+  const [seats, setSeats] = useState("16");
 
   // Activity fields
-  const [duration, setDuration] = useState("");
-  const [ageRestriction, setAgeRestriction] = useState("");
+  const [duration, setDuration] = useState("3 - 4 giờ");
+  const [difficultyLevel, setDifficultyLevel] = useState("Trung bình");
+  const [ageRestriction, setAgeRestriction] = useState("Từ 6 tuổi trở lên");
+  const [safetyGear, setSafetyGear] = useState("Áo phao, mũ bảo hiểm, dây bảo hiểm chuyên dụng");
 
-  const handleCategorySelect = (
-    selectedCategory: ServiceCategory,
-  ) => {
+  const handleCategorySelect = (selectedCategory: ServiceCategory) => {
     setCategory(selectedCategory);
     setStep("form");
   };
 
   const handleAddAmenity = () => {
     if (amenityInput.trim()) {
-      // Split by comma and add all non-empty amenities
-      const newAmenities = amenityInput
+      const items = amenityInput
         .split(",")
         .map((a) => a.trim())
         .filter((a) => a && !amenities.includes(a));
-      
-      if (newAmenities.length > 0) {
-        setAmenities([...amenities, ...newAmenities]);
+      if (items.length > 0) {
+        setAmenities([...amenities, ...items]);
         setAmenityInput("");
       }
     }
   };
 
-  const handleRemoveAmenity = (amenity: string) => {
-    setAmenities(amenities.filter((a) => a !== amenity));
+  const handleRemoveAmenity = (item: string) => {
+    setAmenities(amenities.filter((a) => a !== item));
+  };
+
+  const handleAddDietary = () => {
+    if (dietaryInput.trim() && !dietaryOptions.includes(dietaryInput.trim())) {
+      setDietaryOptions([...dietaryOptions, dietaryInput.trim()]);
+      setDietaryInput("");
+    }
+  };
+
+  const handleRemoveDietary = (item: string) => {
+    setDietaryOptions(dietaryOptions.filter((d) => d !== item));
+  };
+
+  const getDefaultCoverImage = (cat: ServiceCategory) => {
+    switch (cat) {
+      case "hotel":
+        return "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800";
+      case "fnb":
+        return "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800";
+      case "attraction":
+        return "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800";
+      case "activity":
+        return "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800";
+      case "transportation":
+        return "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800";
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Tạo location string từ các phần địa chỉ
-    const locationParts = [
-      street,
-      ward,
-      district,
-      province,
-    ].filter(Boolean);
+    const locationParts = [street, ward, district, province].filter(Boolean);
     const fullLocation = locationParts.join(", ");
+    const finalImage = imageUrl.trim() || getDefaultCoverImage(category!);
 
     const baseService = {
       providerId: currentProvider.id,
@@ -226,17 +264,16 @@ export function CreatePostModal({
       name,
       category: category!,
       description,
-      price: parseFloat(price),
-      pricePerPerson: pricePerPerson
-        ? parseFloat(pricePerPerson)
-        : undefined,
+      price: parseFloat(price) || 0,
+      pricePerPerson: pricePerPerson ? parseFloat(pricePerPerson) : undefined,
       location: fullLocation,
       province,
       district,
       ward,
       street,
-      image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
-      rating: 0,
+      image: finalImage,
+      images: [finalImage],
+      rating: 5.0,
       capacity: capacity ? parseInt(capacity) : undefined,
       status: "pending" as const,
       createdAt: new Date().toISOString(),
@@ -248,7 +285,8 @@ export function CreatePostModal({
       case "hotel":
         serviceData = {
           ...baseService,
-          stars: parseInt(stars),
+          stars: parseInt(stars) || 3,
+          roomType,
           amenities,
           checkInTime,
           checkOutTime,
@@ -258,21 +296,34 @@ export function CreatePostModal({
         serviceData = {
           ...baseService,
           subCategory,
+          cuisineType,
           openingHours,
+          dietaryOptions,
         };
         break;
-      case "transportation":
+      case "attraction":
         serviceData = {
           ...baseService,
-          vehicleType,
-          seats: parseInt(seats),
+          childPrice: childPrice ? parseFloat(childPrice) : undefined,
+          ticketIncludes,
+          openingHours,
         };
         break;
       case "activity":
         serviceData = {
           ...baseService,
           duration,
+          difficultyLevel,
           ageRestriction,
+          safetyGear,
+        };
+        break;
+      case "transportation":
+        serviceData = {
+          ...baseService,
+          vehicleType,
+          seats: parseInt(seats) || 4,
+          amenities,
         };
         break;
       default:
@@ -284,242 +335,242 @@ export function CreatePostModal({
     setTimeout(() => {
       setShowSuccess(false);
       onClose();
-    }, 2000);
+    }, 1500);
   };
 
-  const getCategoryIcon = (cat: ServiceCategory) => {
-    const option = categoryOptions.find((o) => o.value === cat);
-    return option?.icon || Hotel;
-  };
-
-  const getCategoryLabel = (cat: ServiceCategory) => {
-    const option = categoryOptions.find((o) => o.value === cat);
-    return option?.label || "";
-  };
-
-  // Lọc các danh mục dựa trên providerType
-  const allowedCategories = currentProvider.providerType
-    ? providerCategoryMap[currentProvider.providerType] || []
-    : Object.values(providerCategoryMap).flat();
-
-  const availableCategoryOptions = categoryOptions.filter(
-    (option) =>
-      allowedCategories.includes(
-        option.value as ServiceCategory,
-      ),
-  );
+  const selectedCategoryMeta = categoryOptions.find((o) => o.value === category);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-4xl my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-4xl my-8 shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-gray-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Tạo bài đăng mới
+              Đăng Dịch Vụ Mới
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-500 mt-0.5">
               {step === "category"
-                ? "Chọn loại dịch vụ bạn muốn đăng"
-                : `Loại: ${getCategoryLabel(category!)}`}
+                ? "Bước 1: Chọn loại hình dịch vụ bạn muốn đăng (không giới hạn loại tài khoản)"
+                : `Bước 2: Điền thông tin chuẩn hóa cho [${selectedCategoryMeta?.label}]`}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500 hover:text-gray-700"
           >
-            <X className="w-6 h-6 text-gray-600" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          {/* Step 1: Category Selection */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {/* STEP 1: CATEGORY SELECTION */}
           {step === "category" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableCategoryOptions.map((option) => {
-                const Icon = option.icon;
-                return (
-                  <button
-                    key={option.value}
-                    onClick={() =>
-                      handleCategorySelect(
-                        option.value as ServiceCategory,
-                      )
-                    }
-                    className="p-6 rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
-                  >
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {option.label}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {option.value === "hotel" &&
-                        "Đăng khách sạn, resort, homestay"}
-                      {option.value === "fnb" &&
-                        "Đăng nhà hàng, quán ăn"}
-                      {option.value === "transportation" &&
-                        "Đăng dịch vụ vận chuyển"}
-                      {option.value === "activity" &&
-                        "Đăng khu vui chơi, giải trí"}
-                    </p>
-                  </button>
-                );
-              })}
+            <div className="space-y-4">
+              <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 text-xs text-blue-800">
+                💡 <strong>Hệ thống mở:</strong> Bất kỳ Nhà cung cấp nào cũng có thể đăng nhiều loại dịch vụ khác nhau (Khách sạn, Nhà hàng ẩm thực, Điểm tham quan, Tour trải nghiệm, Vận chuyển) để kết nối trực tiếp với các đơn vị tổ chức Tour.
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                {categoryOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => handleCategorySelect(option.value)}
+                      className={`p-5 rounded-2xl border-2 border-gray-200 ${option.bgHover} transition-all text-left group flex flex-col justify-between h-52`}
+                    >
+                      <div>
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-br ${option.color} rounded-xl flex items-center justify-center mb-4 text-white shadow-md group-hover:scale-110 transition-transform`}
+                        >
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 mb-1">
+                          {option.label}
+                        </h3>
+                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                          {option.description}
+                        </p>
+                      </div>
+                      <span className="text-xs font-semibold text-blue-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        Chọn loại này →
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Step 2: Service Form */}
+          {/* STEP 2: DYNAMIC FORM */}
           {step === "form" && category && !showSuccess && (
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Common Fields */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
-                  Thông tin cơ bản
+              {/* Category Indicator Banner */}
+              <div className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${selectedCategoryMeta?.color} text-white`}>
+                    {selectedCategoryMeta && <selectedCategoryMeta.icon className="w-4 h-4" />}
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium">Đang đăng loại hình</div>
+                    <div className="text-sm font-bold text-gray-900">{selectedCategoryMeta?.label}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep("category")}
+                  className="text-xs text-blue-600 hover:underline font-semibold"
+                >
+                  Đổi loại hình khác
+                </button>
+              </div>
+
+              {/* 1. Basic Common Fields */}
+              <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-blue-700 flex items-center gap-2">
+                  <span>1. Thông tin giới thiệu chung</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Tên dịch vụ *
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Tên dịch vụ / Cơ sở *
                     </label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      placeholder={`Nhập tên ${getCategoryLabel(category).toLowerCase()}`}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder={`Ví dụ: ${
+                        category === "hotel"
+                          ? "Khách sạn Sunrise Beach Resort & Spa"
+                          : category === "fnb"
+                          ? "Nhà hàng Hải Sản Gió Biển"
+                          : category === "attraction"
+                          ? "Vé tham quan Thung lũng Tình Yêu"
+                          : category === "activity"
+                          ? "Trải nghiệm Chèo Sup & Ngắm Bình Minh Hồ Tuyền Lâm"
+                          : "Xe Limousine 16 chỗ đưa đón sân bay"
+                      }`}
                       required
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Mô tả *
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Mô tả chi tiết dịch vụ *
                     </label>
                     <textarea
                       value={description}
-                      onChange={(e) =>
-                        setDescription(e.target.value)
-                      }
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none resize-none"
-                      rows={4}
-                      placeholder="Mô tả chi tiết về dịch vụ của bạn"
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={3}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                      placeholder="Mô tả các điểm nổi bật, chất lượng phục vụ, không gian..."
                       required
                     />
                   </div>
 
                   {/* Giá cơ bản */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                       {category === "hotel"
-                        ? "Giá phòng/đêm (VNĐ) *"
-                        : category === "fnb"
-                        ? "Giá (VNĐ) *"
-                        : category === "activity"
-                        ? "Giá (VNĐ) *"
-                        : "Giá cơ bản (VNĐ) *"}
+                        ? "Giá niêm yết (VNĐ/đêm) *"
+                        : category === "attraction"
+                        ? "Giá vé người lớn (VNĐ/vé) *"
+                        : category === "transportation"
+                        ? "Giá thuê (VNĐ/ngày hoặc chuyến) *"
+                        : "Giá niêm yết (VNĐ) *"}
                     </label>
                     <input
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      placeholder={
-                        category === "hotel"
-                          ? "Giá phòng cho 1 đêm"
-                          : "0"
-                      }
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="0"
                       required
                       min="0"
                     />
                   </div>
 
-                  {category !== "hotel" && category !== "fnb" && (
+                  {/* Giá theo người (nếu có) */}
+                  {category !== "hotel" && (
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        {category === "activity" 
-                          ? "Giá TB/người (VNĐ)"
-                          : "Giá/người (VNĐ)"}
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        {category === "attraction"
+                          ? "Giá vé trẻ em (VNĐ/vé)"
+                          : "Giá tính theo người (VNĐ/người)"}
                       </label>
                       <input
                         type="number"
-                        value={pricePerPerson}
+                        value={category === "attraction" ? childPrice : pricePerPerson}
                         onChange={(e) =>
-                          setPricePerPerson(e.target.value)
+                          category === "attraction"
+                            ? setChildPrice(e.target.value)
+                            : setPricePerPerson(e.target.value)
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="Giá cho 1 người"
-                        min="0"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Để trống nếu không áp dụng
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Sức chứa - Ẩn với restaurant/eatery/activity */}
-                  {category !== "fnb" && category !== "activity" && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Sức chứa/Số lượng
-                      </label>
-                      <input
-                        type="number"
-                        value={capacity}
-                        onChange={(e) =>
-                          setCapacity(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="Số người tối đa"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Để trống nếu không áp dụng"
                         min="0"
                       />
                     </div>
                   )}
 
-                  {/* Loại hình - Chỉ cho FnB */}
-                  {category === "fnb" && (
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Loại hình *
-                      </label>
-                      <select
-                        value={subCategory}
-                        onChange={(e) => setSubCategory(e.target.value)}
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        required
-                      >
-                        <option value="">-- Chọn loại hình --</option>
-                        <option value="restaurant">Quán ăn</option>
-                        <option value="cafe">Cà phê</option>
-                      </select>
-                    </div>
-                  )}
+                  {/* Sức chứa */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      {category === "hotel"
+                        ? "Sức chứa tối đa (Khách/phòng)"
+                        : category === "transportation"
+                        ? "Số lượng chỗ ngồi (Ghế) *"
+                        : "Sức chứa tối đa / Lượt đón (Người)"}
+                    </label>
+                    <input
+                      type="number"
+                      value={category === "transportation" ? seats : capacity}
+                      onChange={(e) =>
+                        category === "transportation"
+                          ? setSeats(e.target.value)
+                          : setCapacity(e.target.value)
+                      }
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Ví dụ: 2, 4, 16, 50..."
+                      min="1"
+                    />
+                  </div>
+
+                  {/* Ảnh đại diện URL */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Link ảnh đại diện (URL)
+                    </label>
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="https://images.unsplash.com/... (để trống sẽ dùng ảnh mẫu)"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Địa chỉ chi tiết */}
-              <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6 border-2 border-green-200">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
-                  Địa chỉ chi tiết
+              {/* 2. Detailed Address */}
+              <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-emerald-700 flex items-center gap-2">
+                  <span>2. Địa chỉ & Khu vực hoạt động</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Tỉnh/Thành phố *
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Tỉnh / Thành phố *
                     </label>
                     <select
                       value={province}
-                      onChange={(e) =>
-                        setProvince(e.target.value)
-                      }
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                      onChange={(e) => setProvince(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       required
                     >
-                      <option value="">
-                        -- Chọn tỉnh/thành phố --
-                      </option>
                       {vietnamProvinces.map((p) => (
                         <option key={p} value={p}>
                           {p}
@@ -529,286 +580,384 @@ export function CreatePostModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Quận/Huyện *
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Quận / Huyện *
                     </label>
                     <input
                       type="text"
                       value={district}
-                      onChange={(e) =>
-                        setDistrict(e.target.value)
-                      }
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      placeholder="Nhập quận/huyện"
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Ví dụ: TP. Đà Lạt, Quận 1, Huyện Phú Quốc..."
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phường/Xã *
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Phường / Xã
                     </label>
                     <input
                       type="text"
                       value={ward}
                       onChange={(e) => setWard(e.target.value)}
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      placeholder="Nhập phường/xã"
-                      required
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Ví dụ: Phường 1, Xã Gành Dầu..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Số nhà, Đường
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      Số nhà, Tên đường / Địa danh
                     </label>
                     <input
                       type="text"
                       value={street}
-                      onChange={(e) =>
-                        setStreet(e.target.value)
-                      }
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      placeholder="Số nhà, tên đường"
+                      onChange={(e) => setStreet(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Ví dụ: 12 Trần Phú, Bãi Dài..."
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Hotel Specific Fields */}
-              {category === "hotel" && (
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 border-2 border-indigo-200">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Thông tin khách sạn
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Xếp hạng sao
-                      </label>
-                      <select
-                        value={stars}
-                        onChange={(e) =>
-                          setStars(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      >
-                        <option value="1">1 sao</option>
-                        <option value="2">2 sao</option>
-                        <option value="3">3 sao</option>
-                        <option value="4">4 sao</option>
-                        <option value="5">5 sao</option>
-                      </select>
+              {/* 3. CATEGORY SPECIFIC FIELDS */}
+              <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-purple-700 flex items-center gap-2">
+                  <span>3. Thông số chuyên ngành [{selectedCategoryMeta?.label}]</span>
+                </h3>
+
+                {/* HOTEL */}
+                {category === "hotel" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Hạng sao khách sạn
+                        </label>
+                        <select
+                          value={stars}
+                          onChange={(e) => setStars(e.target.value)}
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        >
+                          <option value="1">1 Sao ⭐</option>
+                          <option value="2">2 Sao ⭐⭐</option>
+                          <option value="3">3 Sao ⭐⭐⭐</option>
+                          <option value="4">4 Sao ⭐⭐⭐⭐</option>
+                          <option value="5">5 Sao ⭐⭐⭐⭐⭐</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Tên hạng phòng
+                        </label>
+                        <input
+                          type="text"
+                          value={roomType}
+                          onChange={(e) => setRoomType(e.target.value)}
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Deluxe, Superior, Suite..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Giờ nhận / trả phòng
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={checkInTime}
+                            onChange={(e) => setCheckInTime(e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg"
+                          />
+                          <span className="text-gray-400">-</span>
+                          <input
+                            type="time"
+                            value={checkOutTime}
+                            onChange={(e) => setCheckOutTime(e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg"
+                          />
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Amenities tag manager */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Giờ check-in
-                      </label>
-                      <input
-                        type="time"
-                        value={checkInTime}
-                        onChange={(e) =>
-                          setCheckInTime(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Giờ check-out
-                      </label>
-                      <input
-                        type="time"
-                        value={checkOutTime}
-                        onChange={(e) =>
-                          setCheckOutTime(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Tiện nghi
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Tiện nghi phòng & khách sạn
                       </label>
                       <div className="flex gap-2 mb-2">
                         <input
                           type="text"
                           value={amenityInput}
-                          onChange={(e) =>
-                            setAmenityInput(e.target.value)
-                          }
-                          onKeyPress={(e) =>
-                            e.key === "Enter" &&
-                            (e.preventDefault(),
-                            handleAddAmenity())
-                          }
-                          className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                          placeholder="Nhập tiện nghi (VD: Wifi, Bể bơi, Gym)"
+                          onChange={(e) => setAmenityInput(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAmenity())}
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Nhập tiện nghi (VD: Bể bơi vô cực, Buffet sáng, Gym...) rồi bấm Thêm"
                         />
                         <button
                           type="button"
                           onClick={handleAddAmenity}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
                         >
                           Thêm
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {amenities.map((amenity) => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {amenities.map((item) => (
                           <span
-                            key={amenity}
-                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-2"
+                            key={item}
+                            className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs flex items-center gap-1.5 border border-blue-200"
                           >
-                            {amenity}
+                            {item}
                             <button
                               type="button"
-                              onClick={() =>
-                                handleRemoveAmenity(amenity)
-                              }
-                              className="hover:text-blue-900"
+                              onClick={() => handleRemoveAmenity(item)}
+                              className="text-blue-500 hover:text-blue-800"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-3 h-3" />
                             </button>
                           </span>
                         ))}
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* FnB Specific Fields */}
-              {category === "fnb" && (
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-6 border-2 border-orange-200">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Thông tin ẩm thực
-                  </h3>
+                {/* FNB */}
+                {category === "fnb" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Phân loại hình ẩm thực
+                        </label>
+                        <select
+                          value={subCategory}
+                          onChange={(e) => setSubCategory(e.target.value)}
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        >
+                          <option value="restaurant">Nhà hàng ăn uống</option>
+                          <option value="cafe">Quán Cà phê & Trà</option>
+                          <option value="streetfood">Ẩm thực địa phương / Đường phố</option>
+                          <option value="buffet">Nhà hàng Buffet</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Phong cách ẩm thực
+                        </label>
+                        <input
+                          type="text"
+                          value={cuisineType}
+                          onChange={(e) => setCuisineType(e.target.value)}
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Món Việt, Hải sản tươi sống, Món Á/Âu..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                          Khung giờ phục vụ / mở cửa
+                        </label>
+                        <input
+                          type="text"
+                          value={openingHours}
+                          onChange={(e) => setOpeningHours(e.target.value)}
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Ví dụ: 06:30 - 22:30"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Dietary options */}
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Tùy chọn thực đơn ăn kiêng / đặc thù
+                      </label>
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={dietaryInput}
+                          onChange={(e) => setDietaryInput(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddDietary())}
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Ví dụ: Có món chay, Thực đơn Halal, Set ăn gia đình..."
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddDietary}
+                          className="px-4 py-2 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700"
+                        >
+                          Thêm
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {dietaryOptions.map((item) => (
+                          <span
+                            key={item}
+                            className="px-2.5 py-1 bg-amber-50 text-amber-800 rounded-lg text-xs flex items-center gap-1.5 border border-amber-200"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDietary(item)}
+                              className="text-amber-500 hover:text-amber-800"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ATTRACTION */}
+                {category === "attraction" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Giờ mở cửa
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Giờ đón khách / Mở cửa
                       </label>
                       <input
                         type="text"
                         value={openingHours}
-                        onChange={(e) =>
-                          setOpeningHours(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="VD: 8:00 - 22:00"
+                        onChange={(e) => setOpeningHours(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Ví dụ: 07:30 - 17:30 hàng ngày"
                       />
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Transportation Specific Fields */}
-              {category === "transportation" && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Thông tin phương tiện
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Loại phương tiện
-                      </label>
-                      <select
-                        value={vehicleType}
-                        onChange={(e) =>
-                          setVehicleType(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                      >
-                        <option value="">
-                          -- Chọn loại --
-                        </option>
-                        <option value="car">Ô tô</option>
-                        <option value="bus">Xe buýt</option>
-                        <option value="van">Xe Van</option>
-                        <option value="minibus">
-                          Xe 16 chỗ
-                        </option>
-                        <option value="motorcycle">
-                          Xe máy
-                        </option>
-                      </select>
-                    </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Số chỗ ngồi
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Vé bao gồm những quyền lợi gì?
                       </label>
                       <input
-                        type="number"
-                        value={seats}
-                        onChange={(e) =>
-                          setSeats(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="Số chỗ"
-                        min="1"
+                        type="text"
+                        value={ticketIncludes}
+                        onChange={(e) => setTicketIncludes(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Vé vào cổng, xe điện, quà lưu niệm..."
                       />
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Activity Specific Fields */}
-              {category === "activity" && (
-                <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-6 border-2 border-pink-200">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Thông tin hoạt động
-                  </h3>
+                {/* ACTIVITY */}
+                {category === "activity" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Thời gian
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Thời lượng hoạt động
                       </label>
                       <input
                         type="text"
                         value={duration}
-                        onChange={(e) =>
-                          setDuration(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="VD: 2 giờ, Cả ngày"
+                        onChange={(e) => setDuration(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Ví dụ: 2 giờ, Nửa ngày, 1 ngày..."
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Mức độ thể lực / Độ khó
+                      </label>
+                      <select
+                        value={difficultyLevel}
+                        onChange={(e) => setDifficultyLevel(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      >
+                        <option value="Dễ dàng">Dễ dàng (Thích hợp mọi lứa tuổi)</option>
+                        <option value="Trung bình">Trung bình (Cần thể lực cơ bản)</option>
+                        <option value="Thử thách">Thử thách (Đòi hỏi rèn luyện)</option>
+                        <option value="Mạo hiểm cao">Mạo hiểm cao (Chuyên nghiệp)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Giới hạn độ tuổi
                       </label>
                       <input
                         type="text"
                         value={ageRestriction}
-                        onChange={(e) =>
-                          setAgeRestriction(e.target.value)
-                        }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        placeholder="VD: 6+, 18+, Không giới hạn"
+                        onChange={(e) => setAgeRestriction(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Ví dụ: Từ 6 tuổi trở lên, Không dành cho trẻ dưới 10 tuổi..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Trang thiết bị an toàn đi kèm
+                      </label>
+                      <input
+                        type="text"
+                        value={safetyGear}
+                        onChange={(e) => setSafetyGear(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Áo phao, mũ bảo hiểm, dây bảo hiểm..."
                       />
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* TRANSPORTATION */}
+                {category === "transportation" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Dòng phương tiện vận chuyển
+                      </label>
+                      <select
+                        value={vehicleType}
+                        onChange={(e) => setVehicleType(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      >
+                        <option value="Xe ô tô 4-7 chỗ">Xe ô tô 4 - 7 chỗ</option>
+                        <option value="Xe 16 chỗ Limousine">Xe 16 chỗ Limousine VIP</option>
+                        <option value="Xe du lịch 29-35 chỗ">Xe du lịch 29 - 35 chỗ</option>
+                        <option value="Xe du lịch 45 chỗ">Xe du lịch Universe 45 chỗ</option>
+                        <option value="Cano cao tốc">Cano cao tốc / Tàu du lịch</option>
+                        <option value="Xe máy tay ga / số">Thuê xe máy tự lái</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        Tiện ích trên xe
+                      </label>
+                      <input
+                        type="text"
+                        value={amenities.join(", ")}
+                        onChange={(e) =>
+                          setAmenities(e.target.value.split(",").map((s) => s.trim()))
+                        }
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Ghế bọc da, máy lạnh, wifi, nước suối, cổng sạc..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Submit Buttons */}
-              <div className="flex gap-3 pt-6 border-t-2 border-gray-200">
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setStep("category")}
-                  className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
+                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors text-sm font-semibold"
                 >
-                  Quay lại
+                  ← Quay lại chọn loại
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold"
+                  className="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all text-sm font-semibold shadow-md hover:shadow-lg"
                 >
                   Gửi bài đăng để kiểm duyệt
                 </button>
@@ -819,15 +968,14 @@ export function CreatePostModal({
           {/* Success Message */}
           {showSuccess && (
             <div className="text-center py-12">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <CheckCircle className="w-10 h-10 text-emerald-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Tạo bài đăng thành công!
+              <h3 className="text-xl font-bold text-gray-900 mb-1.5">
+                Đăng bài dịch vụ thành công!
               </h3>
-              <p className="text-gray-600">
-                Bài đăng của bạn đã được gửi và đang chờ admin
-                kiểm duyệt.
+              <p className="text-sm text-gray-600 max-w-md mx-auto">
+                Dịch vụ của bạn đã được đưa vào danh sách kiểm duyệt. Admin sẽ phê duyệt trong vòng 24 giờ.
               </p>
             </div>
           )}
