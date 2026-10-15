@@ -9,6 +9,8 @@ import {
   TourHotel,
   TourAlternativeHotel,
   Location,
+  TourVersion,
+  CustomTourRequest,
 } from "@/app/types";
 import {
   Plus,
@@ -41,6 +43,7 @@ import {
   ArrowDown,
   ArrowLeft,
   Sun,
+  History,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -52,6 +55,7 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
+import { TourVersionHistoryModal } from "@/app/components/company/TourVersionHistoryModal";
 
 interface CompanyTourManagementProps {
   tours: Tour[];
@@ -59,6 +63,7 @@ interface CompanyTourManagementProps {
   onCreateTour: (tour: Omit<Tour, "id">) => void;
   onEditTour: (tourId: string, tour: Partial<Tour>) => void;
   onDeleteTour: (tourId: string) => void;
+  onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
 }
 
 export function CompanyTourManagement({
@@ -67,13 +72,25 @@ export function CompanyTourManagement({
   onCreateTour,
   onEditTour,
   onDeleteTour,
+  onRestoreTourVersion,
 }: CompanyTourManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [copiedNotice, setCopiedNotice] = useState<string | null>(null);
+  const [versionHistoryTour, setVersionHistoryTour] = useState<Tour | null>(null);
+  const [tourTypeFilter, setTourTypeFilter] = useState<"all" | "public" | "custom">("all");
 
   const isApproved = company.status === "approved";
+
+  const publicCount = tours.filter((t) => t.tourType !== "custom_request").length;
+  const customCount = tours.filter((t) => t.tourType === "custom_request").length;
+
+  const filteredTours = tours.filter((t) => {
+    if (tourTypeFilter === "public") return t.tourType !== "custom_request";
+    if (tourTypeFilter === "custom") return t.tourType === "custom_request";
+    return true;
+  });
 
   // Duplicate Tour Action
   const handleDuplicateTour = (sourceTour: Tour) => {
@@ -99,6 +116,7 @@ export function CompanyTourManagement({
       <TourFormPage
         tour={editingTour}
         company={company}
+        isCustomTour={editingTour?.tourType === "custom_request"}
         onBack={() => {
           setShowCreateModal(false);
           setEditingTour(null);
@@ -118,11 +136,11 @@ export function CompanyTourManagement({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Quản lý Tour</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {tours.length} tour đang hoạt động
+            {tours.length} tour tổng cộng · {publicCount} tour công khai · {customCount} tour thiết kế riêng
           </p>
         </div>
         <Button
@@ -133,6 +151,40 @@ export function CompanyTourManagement({
           <Plus className="w-4 h-4 mr-2" />
           Tạo Tour mới
         </Button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <button
+          onClick={() => setTourTypeFilter("all")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            tourTypeFilter === "all"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          Tất cả ({tours.length})
+        </button>
+        <button
+          onClick={() => setTourTypeFilter("public")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            tourTypeFilter === "public"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          Tour công khai ({publicCount})
+        </button>
+        <button
+          onClick={() => setTourTypeFilter("custom")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+            tourTypeFilter === "custom"
+              ? "bg-purple-600 text-white shadow-xs"
+              : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+          }`}
+        >
+          <span>✨ Tour thiết kế theo yêu cầu ({customCount})</span>
+        </button>
       </div>
 
       {copiedNotice && (
@@ -156,11 +208,17 @@ export function CompanyTourManagement({
         </div>
       )}
 
-      {tours.length === 0 ? (
+      {filteredTours.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
           <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Chưa có tour nào</p>
-          {isApproved && (
+          <p className="text-gray-500">
+            {tourTypeFilter === "custom"
+              ? "Chưa có tour thiết kế riêng nào"
+              : tourTypeFilter === "public"
+              ? "Chưa có tour công khai nào"
+              : "Chưa có tour nào"}
+          </p>
+          {isApproved && tourTypeFilter !== "custom" && (
             <Button className="mt-4" onClick={() => setShowCreateModal(true)}>
               Tạo tour đầu tiên
             </Button>
@@ -168,103 +226,154 @@ export function CompanyTourManagement({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {tours.map((tour) => (
-            <div
-              key={tour.id}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between"
-            >
-              <div>
-                <div className="relative h-44">
-                  <img
-                    src={tour.image || (tour.images && tour.images[0]) || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800"}
-                    alt={tour.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
-                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-semibold">{tour.rating}</span>
-                  </div>
-                  <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-                    {tour.tourCode}
-                  </div>
-                  {tour.images && tour.images.length > 1 && (
-                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded font-medium">
-                      +{tour.images.length} ảnh
+          {filteredTours.map((tour) => {
+            const isCustom = tour.tourType === "custom_request";
+            return (
+              <div
+                key={tour.id}
+                className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between ${
+                  isCustom ? "border-purple-300 ring-1 ring-purple-100" : "border-gray-200"
+                }`}
+              >
+                <div>
+                  <div className="relative h-44">
+                    <img
+                      src={tour.image || (tour.images && tour.images[0]) || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800"}
+                      alt={tour.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+                      <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      <span className="text-xs font-semibold">{tour.rating}</span>
                     </div>
-                  )}
-                  {tour.operationPeriod && (
-                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded">
-                      {tour.operationPeriod}
-                    </div>
-                  )}
-                </div>
 
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">
-                    {tour.name}
-                  </h3>
+                    {isCustom ? (
+                      <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                        <span>🔒 Theo yêu cầu (v{tour.version || 1})</span>
+                      </div>
+                    ) : (
+                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                        {tour.tourCode}
+                      </div>
+                    )}
 
-                  <div className="space-y-1.5 text-xs text-gray-500 mb-3">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-blue-500" />
-                      <span>{tour.destination}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-blue-500" />
-                      <span>{tour.duration} ({tour.itinerary?.length ?? tour.numberOfDays ?? 0} ngày lịch trình)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-blue-500" />
-                      <span>{tour.minGuests} – {tour.maxGuests} khách</span>
-                    </div>
-                    {tour.highlights && tour.highlights.length > 0 && (
-                      <p className="text-[11px] text-gray-400 line-clamp-1 italic">
-                        ★ {tour.highlights.slice(0, 2).join(" • ")}
-                      </p>
+                    {tour.images && tour.images.length > 1 && (
+                      <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded font-medium">
+                        +{tour.images.length} ảnh
+                      </div>
+                    )}
+                    {tour.operationPeriod && (
+                      <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded">
+                        {tour.operationPeriod}
+                      </div>
                     )}
                   </div>
-                </div>
-              </div>
 
-              <div className="px-4 pb-4">
-                <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                  <div>
-                    <p className="text-[11px] text-gray-400">Giá cơ bản từ</p>
-                    <p className="text-base font-extrabold text-blue-600">
-                      {tour.price.toLocaleString("vi-VN")}đ
-                    </p>
+                  <div className="p-4">
+                    {isCustom && tour.targetCustomerName && (
+                      <div className="mb-2 bg-purple-50 text-purple-800 text-[11px] font-semibold px-2 py-1 rounded-md flex items-center justify-between border border-purple-200">
+                        <span>Khách: {tour.targetCustomerName}</span>
+                        {tour.targetCustomerPhone && <span className="text-purple-600">{tour.targetCustomerPhone}</span>}
+                      </div>
+                    )}
+
+                    <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">
+                      {tour.name}
+                    </h3>
+
+                    {isCustom && tour.changeNote && (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 rounded px-2 py-1 mb-2 line-clamp-2 border border-amber-200 italic">
+                        📝 v{tour.version || 1}: {tour.changeNote}
+                      </p>
+                    )}
+
+                    <div className="space-y-1.5 text-xs text-gray-500 mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{tour.destination}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{tour.duration} ({tour.itinerary?.length ?? tour.numberOfDays ?? 0} ngày lịch trình)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{tour.minGuests} – {tour.maxGuests} khách</span>
+                      </div>
+                      {tour.highlights && tour.highlights.length > 0 && (
+                        <p className="text-[11px] text-gray-400 line-clamp-1 italic">
+                          ★ {tour.highlights.slice(0, 2).join(" • ")}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      title="Nhân bản tour (Duplicate)"
-                      onClick={() => handleDuplicateTour(tour)}
-                      className="p-2 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      title="Chỉnh sửa chi tiết tour"
-                      onClick={() => setEditingTour(tour)}
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      title="Xóa tour"
-                      onClick={() => setConfirmDeleteId(tour.id)}
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                </div>
+
+                <div className="px-4 pb-4">
+                  <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                    <div>
+                      <p className="text-[11px] text-gray-400">Giá cơ bản từ</p>
+                      <p className="text-base font-extrabold text-blue-600">
+                        {tour.price.toLocaleString("vi-VN")}đ
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {isCustom && (
+                        <button
+                          type="button"
+                          title="Lịch sử phiên bản & Phục hồi (Version Backup/Restore)"
+                          onClick={() => setVersionHistoryTour(tour)}
+                          className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors"
+                        >
+                          <History className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        title="Nhân bản tour (Duplicate)"
+                        onClick={() => handleDuplicateTour(tour)}
+                        className="p-2 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Chỉnh sửa chi tiết tour"
+                        onClick={() => setEditingTour(tour)}
+                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Xóa tour"
+                        onClick={() => setConfirmDeleteId(tour.id)}
+                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+      )}
+
+      {/* Version History Modal */}
+      {versionHistoryTour && (
+        <TourVersionHistoryModal
+          isOpen={!!versionHistoryTour}
+          onClose={() => setVersionHistoryTour(null)}
+          tour={versionHistoryTour}
+          onRestoreVersion={(verNum) => {
+            if (onRestoreTourVersion) {
+              onRestoreTourVersion(versionHistoryTour.id, verNum);
+            }
+            setVersionHistoryTour(null);
+          }}
+        />
       )}
 
 
@@ -311,6 +420,8 @@ export interface TourFormPageProps {
   company: TourCompany;
   onBack: () => void;
   onSubmit: (data: Partial<Tour>) => void;
+  customRequest?: CustomTourRequest | null;
+  isCustomTour?: boolean;
 }
 
 type TabType = "general" | "itinerary" | "pricing" | "regulations" | "preview";
@@ -431,17 +542,33 @@ export function TourFormPage({
   company,
   onBack,
   onSubmit,
+  customRequest,
+  isCustomTour,
 }: TourFormPageProps) {
+  const isCustom = isCustomTour || !!customRequest || tour?.tourType === "custom_request";
+  const [changeNote, setChangeNote] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Tab 1: General Info
-  const [name, setName] = useState(tour?.name ?? "");
-  const [destination, setDestination] = useState(tour?.destination ?? "");
-  const [duration, setDuration] = useState(tour?.duration ?? "3 ngày 2 đêm");
-  const [numberOfDays, setNumberOfDays] = useState(tour?.numberOfDays ?? 3);
-  const [numberOfNights, setNumberOfNights] = useState(tour?.numberOfNights ?? 2);
-  const [price, setPrice] = useState(tour?.price ?? 3500000);
+  const [name, setName] = useState(
+    tour?.name ?? (customRequest ? `Tour riêng: ${customRequest.destination} - Khách đoàn ${customRequest.customerName}` : "")
+  );
+  const [destination, setDestination] = useState(
+    tour?.destination ?? (customRequest?.destination ?? "")
+  );
+  const [duration, setDuration] = useState(
+    tour?.duration ?? (customRequest ? `${customRequest.numberOfDays} ngày ${Math.max(1, customRequest.numberOfDays - 1)} đêm` : "3 ngày 2 đêm")
+  );
+  const [numberOfDays, setNumberOfDays] = useState(
+    tour?.numberOfDays ?? (customRequest?.numberOfDays ?? 3)
+  );
+  const [numberOfNights, setNumberOfNights] = useState(
+    tour?.numberOfNights ?? (customRequest ? Math.max(1, customRequest.numberOfDays - 1) : 2)
+  );
+  const [price, setPrice] = useState(
+    tour?.price ?? (customRequest?.estimatedBudget ? Math.round(customRequest.estimatedBudget / (customRequest.numberOfGuests || 1)) : 3500000)
+  );
 
   // Photos & Thumbnail
   const initialImages: string[] = tour?.images && tour.images.length > 0
@@ -458,11 +585,17 @@ export function TourFormPage({
 
   // Operation period
   const [operationPeriod, setOperationPeriod] = useState(
-    tour?.operationPeriod ?? "Quanh năm (Tháng 1 – Tháng 12)"
+    tour?.operationPeriod ?? "Khởi hành theo thỏa thuận với khách"
   );
-  const [minGuests, setMinGuests] = useState(tour?.minGuests ?? 2);
-  const [maxGuests, setMaxGuests] = useState(tour?.maxGuests ?? 20);
-  const [description, setDescription] = useState(tour?.description ?? "");
+  const [minGuests, setMinGuests] = useState(
+    tour?.minGuests ?? (customRequest?.numberOfGuests ?? 2)
+  );
+  const [maxGuests, setMaxGuests] = useState(
+    tour?.maxGuests ?? (customRequest ? customRequest.numberOfGuests + 2 : 20)
+  );
+  const [description, setDescription] = useState(
+    tour?.description ?? (customRequest?.specialRequests ? `Tour thiết kế riêng theo yêu cầu của ${customRequest.customerName}.\nYêu cầu đặc biệt: ${customRequest.specialRequests}` : "")
+  );
   const [highlights, setHighlights] = useState<string[]>(
     tour?.highlights && tour.highlights.length > 0
       ? tour.highlights
@@ -965,8 +1098,27 @@ export function TourFormPage({
   };
 
   const handleSubmit = () => {
-    const tourCode = tour?.tourCode ?? `T${Date.now().toString().slice(-4)}`;
+    const tourCode = tour?.tourCode ?? (isCustom ? `TC-${Date.now().toString().slice(-4)}` : `T${Date.now().toString().slice(-4)}`);
     const chosenThumbnail = images[thumbnailIndex] || images[0] || "";
+
+    let nextVersion = tour?.version || 1;
+    let nextVersionHistory = tour?.versionHistory ? [...tour.versionHistory] : [];
+
+    if (isCustom) {
+      if (tour) {
+        const snapshot: TourVersion = {
+          version: tour.version || 1,
+          createdAt: new Date().toISOString(),
+          createdByName: company.name,
+          changeNote: changeNote.trim() || `Cập nhật phiên bản v${tour.version || 1}`,
+          tourSnapshot: JSON.parse(JSON.stringify(tour)),
+        };
+        nextVersionHistory = [snapshot, ...nextVersionHistory];
+        nextVersion = (tour.version || 1) + 1;
+      } else {
+        nextVersion = 1;
+      }
+    }
 
     const tourData: Partial<Tour> = {
       tourCode,
@@ -994,6 +1146,17 @@ export function TourFormPage({
       companyId: company.id,
       companyName: company.name,
       companyLogo: company.logo,
+      tourType: isCustom ? "custom_request" : (tour?.tourType || "public"),
+      customRequestId: customRequest?.id || tour?.customRequestId,
+      targetUserId: customRequest?.userId || tour?.targetUserId,
+      targetCustomerName: customRequest?.customerName || tour?.targetCustomerName,
+      targetCustomerPhone: customRequest?.customerPhone || tour?.targetCustomerPhone,
+      targetCustomerEmail: customRequest?.customerEmail || tour?.targetCustomerEmail,
+      version: isCustom ? nextVersion : tour?.version,
+      changeNote: isCustom
+        ? (changeNote.trim() || (tour ? `Cập nhật phiên bản v${nextVersion}` : "Phiên bản thiết kế đầu tiên theo yêu cầu"))
+        : tour?.changeNote,
+      versionHistory: isCustom ? nextVersionHistory : tour?.versionHistory,
     };
 
     onSubmit(tourData);
@@ -1020,11 +1183,15 @@ export function TourFormPage({
           <div className="h-5 w-px bg-gray-200" />
           <div>
             <h1 className="text-base sm:text-lg font-bold text-gray-900 leading-tight flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-600" />
-              {tour ? `Chỉnh sửa Tour: ${tour.name}` : "Thiết kế & Tạo Tour Du lịch Mới"}
+              <Package className={`w-5 h-5 ${isCustom ? "text-purple-600" : "text-blue-600"}`} />
+              {isCustom
+                ? (tour ? `Chỉnh sửa Tour Theo Yêu Cầu: ${tour.name} (v${tour.version || 1})` : "Thiết Kế Tour Riêng Theo Yêu Cầu Của Khách")
+                : (tour ? `Chỉnh sửa Tour: ${tour.name}` : "Thiết kế & Tạo Tour Du lịch Mới")}
             </h1>
             <p className="text-xs text-gray-500">
-              {tour ? `Mã tour: ${tour?.tourCode || "T-NEW"} · Cập nhật thông tin chi tiết` : "Cấu hình đầy đủ thông tin, hình ảnh, chỗ ở, chỗ ăn, lộ trình chi tiết và bảng giá"}
+              {isCustom
+                ? `Mã tour: ${tour?.tourCode || "TC-NEW"} · Khách hàng: ${customRequest?.customerName || tour?.targetCustomerName || "Khách đặt riêng"}`
+                : (tour ? `Mã tour: ${tour?.tourCode || "T-NEW"} · Cập nhật thông tin chi tiết` : "Cấu hình đầy đủ thông tin, hình ảnh, chỗ ở, chỗ ăn, lộ trình chi tiết và bảng giá")}
             </p>
           </div>
         </div>
@@ -1042,13 +1209,49 @@ export function TourFormPage({
             type="button"
             disabled={!name.trim() || !destination.trim()}
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs"
+            className={`${
+              isCustom
+                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            } font-semibold shadow-xs`}
           >
             <Check className="w-4 h-4 mr-1.5" />
-            {tour ? "Lưu thay đổi Tour" : "Hoàn tất & Đăng Tour"}
+            {isCustom
+              ? (tour ? `Lưu phiên bản mới (v${(tour.version || 1) + 1})` : "Hoàn tất & Lưu Tour Thiết Kế")
+              : (tour ? "Lưu thay đổi Tour" : "Hoàn tất & Đăng Tour")}
           </Button>
         </div>
       </div>
+
+      {/* Custom Tour Banner & Change Note Input */}
+      {isCustom && (
+        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-md border-b border-purple-700">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="bg-purple-500/30 text-purple-200 border border-purple-400/50 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+              <span>🔒</span> TOUR THIẾT KẾ RIÊNG
+            </span>
+            <span className="text-sm font-semibold">
+              Khách hàng: <span className="text-purple-200">{customRequest?.customerName || tour?.targetCustomerName || "Yêu cầu từ khách"}</span>
+              {(customRequest?.customerPhone || tour?.targetCustomerPhone) && (
+                <span className="text-purple-300 ml-1">({customRequest?.customerPhone || tour?.targetCustomerPhone})</span>
+              )}
+            </span>
+            <span className="bg-purple-800 text-purple-200 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold border border-purple-600">
+              {tour ? `Phiên bản hiện tại: v${tour.version || 1} ➔ Dự kiến lưu: v${(tour.version || 1) + 1}` : "Phiên bản đầu tiên: v1"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <span className="text-xs text-purple-200 font-medium whitespace-nowrap">Ghi chú thay đổi (Change Note):</span>
+            <input
+              type="text"
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
+              placeholder={tour ? `Ghi chú cho v${(tour.version || 1) + 1} (VD: Đổi khách sạn sang TTC Premium...)` : "Ghi chú ban đầu..."}
+              className="text-xs bg-purple-950/80 text-white placeholder-purple-400 border border-purple-500/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 md:w-80"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Sticky Tabs Bar */}
       <div className="bg-white border-y border-gray-200 px-6 shadow-2xs sticky top-[57px] z-20">

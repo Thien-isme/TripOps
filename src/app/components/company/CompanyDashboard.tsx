@@ -35,6 +35,8 @@ interface CompanyDashboardProps {
   onMarkFullyPaid?: (bookingId: string) => void;
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
+  onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
+  onViewTour?: (tour: Tour) => void;
   onLogout?: () => void;
 }
 
@@ -57,6 +59,8 @@ export function CompanyDashboard({
   onMarkFullyPaid,
   onUpdateBookingPrice,
   onUpdateCustomRequest,
+  onRestoreTourVersion,
+  onViewTour,
   onLogout,
 }: CompanyDashboardProps) {
   const [activeSection, setActiveSection] = useState("overview");
@@ -106,6 +110,7 @@ export function CompanyDashboard({
             onCreateTour={onCreateTour}
             onEditTour={onEditTour}
             onDeleteTour={onDeleteTour}
+            onRestoreTourVersion={onRestoreTourVersion}
           />
         );
       case "bookings":
@@ -153,7 +158,13 @@ export function CompanyDashboard({
         return (
           <CompanyCustomRequests
             requests={companyCustomRequests}
+            company={company}
+            tours={companyTours}
             onUpdateRequest={(id, update) => onUpdateCustomRequest?.(id, update)}
+            onCreateTour={onCreateTour}
+            onEditTour={onEditTour}
+            onRestoreTourVersion={onRestoreTourVersion}
+            onViewTour={onViewTour}
           />
         );
       default:

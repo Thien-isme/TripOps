@@ -56,7 +56,7 @@ export function UserDashboard({
   const tabs = [
     { id: "explore", label: "Khám phá Tour", icon: Compass },
     { id: "mybookings", label: "Tour của tôi", icon: Calendar },
-    { id: "custom-requests", label: "Yêu cầu thiết kế", icon: PenSquare, badge: customTourRequests.filter((r) => r.status === "quoted").length },
+    { id: "custom-requests", label: "Yêu cầu thiết kế", icon: PenSquare, badge: customTourRequests.filter((r) => r.status === "quoted" || r.status === "designed").length },
   ];
 
   return (
@@ -78,7 +78,7 @@ export function UserDashboard({
                 <Icon className="w-4 h-4" />
                 {tab.label}
                 {"badge" in tab && (tab.badge ?? 0) > 0 && (
-                  <span className="bg-emerald-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <span className="bg-purple-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {tab.badge}
                   </span>
                 )}
@@ -90,7 +90,7 @@ export function UserDashboard({
 
       {activeTab === "explore" && (
         <TourList
-          tours={tours}
+          tours={tours.filter((t) => t.tourType !== "custom_request")}
           onBookTour={(tour) => setSelectedTour(tour)}
           onViewTour={onViewTour}
         />
@@ -111,8 +111,11 @@ export function UserDashboard({
       {activeTab === "custom-requests" && (
         <UserCustomRequests
           requests={customTourRequests}
+          tours={tours}
           onCancel={(id) => onCancelCustomRequest?.(id)}
           onNavigateToForm={() => onNavigateToCustomTourForm?.()}
+          onViewTour={onViewTour}
+          onBookTour={(tour) => setSelectedTour(tour)}
         />
       )}
 

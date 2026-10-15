@@ -1549,6 +1549,10 @@ export function TourDetailPage({
   onBookNow,
   onShowLogin,
 }: TourDetailPageProps) {
+  const isCustomTour = tour.tourType === "custom_request";
+  const visibleTabs = isCustomTour
+    ? TABS.filter((t) => t.id !== "custom" && t.id !== "reviews")
+    : TABS;
   const basePrice = tour.priceTable?.find((r) => r.ageGroup === "adult")?.price ?? tour.price;
   const [activeTab, setActiveTab] = useState<TabId>("program");
   const [liked, setLiked] = useState(false);
@@ -1677,10 +1681,37 @@ export function TourDetailPage({
               )}
             </div>
 
+            {/* Custom Tour Banner */}
+            {isCustomTour && (
+              <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white rounded-2xl p-4.5 shadow-md space-y-2 border border-purple-700">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-purple-500/40 text-purple-200 border border-purple-400/50 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🔒</span> TOUR THIẾT KẾ RIÊNG THEO YÊU CẦU
+                  </span>
+                  <span className="bg-purple-800 text-purple-200 text-xs px-2.5 py-0.5 rounded font-mono font-bold">
+                    Phiên bản: v{tour.version || 1}
+                  </span>
+                  {tour.targetCustomerName && (
+                    <span className="text-xs text-purple-200 font-semibold">
+                      Dành riêng cho: {tour.targetCustomerName}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-purple-200 leading-relaxed">
+                  Chương trình tour này đã được thiết kế riêng theo mong muốn của quý khách. Lịch trình, khách sạn và các dịch vụ cố định không chỉnh sửa trực tiếp trên hệ thống. Nếu quý khách muốn thay đổi bất kỳ nội dung nào, vui lòng liên hệ công ty du lịch để thống nhất và tạo phiên bản mới.
+                </p>
+                {tour.changeNote && (
+                  <div className="bg-black/30 rounded-lg p-2.5 text-xs text-amber-300 italic border border-white/10">
+                    Ghi chú phiên bản v{tour.version || 1}: "{tour.changeNote}"
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Tabs */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="flex overflow-x-auto border-b border-gray-200">
-                {TABS.map((tab) => (
+                {visibleTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -1698,7 +1729,7 @@ export function TourDetailPage({
                 {activeTab === "program" && <ProgramTab tour={tour} />}
                 {activeTab === "regulations" && <RegulationsTab tour={tour} />}
                 {activeTab === "pricing" && <PricingTab tour={tour} />}
-                {activeTab === "custom" && (
+                {activeTab === "custom" && !isCustomTour && (
                   <CustomTab
                     tour={tour}
                     basePrice={basePrice}
@@ -1709,7 +1740,7 @@ export function TourDetailPage({
                     }}
                   />
                 )}
-                {activeTab === "reviews" && <ReviewsTab tour={tour} />}
+                {activeTab === "reviews" && !isCustomTour && <ReviewsTab tour={tour} />}
               </div>
             </div>
           </div>
@@ -1727,6 +1758,17 @@ export function TourDetailPage({
                   </p>
                 )}
               </div>
+
+              {isCustomTour && (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-xs text-purple-900 space-y-1">
+                  <p className="font-bold flex items-center gap-1 text-purple-950">
+                    <span>🔒</span> Tour thiết kế riêng độc quyền
+                  </p>
+                  <p className="text-[11px] text-purple-700 leading-relaxed">
+                    Giá và dịch vụ đã chốt theo yêu cầu riêng. Quý khách bấm đặt tour bên dưới để hoàn tất giữ chỗ.
+                  </p>
+                </div>
+              )}
 
               {tour.operationPeriod && (
                 <div className="bg-blue-50 rounded-xl p-3 text-sm">
@@ -1752,9 +1794,13 @@ export function TourDetailPage({
 
               <Button
                 onClick={handleBook}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 text-base rounded-xl"
+                className={`w-full ${
+                  isCustomTour
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    : "bg-red-600 hover:bg-red-700 text-white"
+                } font-semibold py-3 text-base rounded-xl`}
               >
-                {currentUser ? "Đặt tour ngay" : "Đăng nhập để đặt"}
+                {currentUser ? (isCustomTour ? "Đặt Tour Thiết Kế Này Ngay" : "Đặt tour ngay") : "Đăng nhập để đặt"}
               </Button>
 
               {!currentUser && (

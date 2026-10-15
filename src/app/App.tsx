@@ -42,6 +42,7 @@ import {
   CustomMealChange,
   CustomLocationChange,
   SystemBankAccount,
+  TourVersion,
 } from "@/app/types";
 import {
   mockTours,
@@ -739,11 +740,11 @@ function App() {
 
   // Company admin - tour CRUD
   const handleCompanyCreateTour = (
-    tourData: Omit<Tour, "id">,
+    tourData: Omit<Tour, "id"> & { id?: string },
   ) => {
     const newTour: Tour = {
       ...tourData,
-      id: `tour-${Date.now()}`,
+      id: tourData.id || `tour-${Date.now()}`,
       bookings: 0,
     };
     setTours([...tours, newTour]);
@@ -762,6 +763,52 @@ function App() {
 
   const handleCompanyDeleteTour = (tourId: string) => {
     setTours(tours.filter((t) => t.id !== tourId));
+  };
+
+  const handleRestoreTourVersion = (tourId: string, versionNumber: number) => {
+    const currentTour = tours.find((t) => t.id === tourId);
+    if (!currentTour) return;
+
+    const targetVersion = currentTour.versionHistory?.find(
+      (v) => v.version === versionNumber
+    );
+    if (!targetVersion) {
+      alert(`Không tìm thấy phiên bản v${versionNumber} trong lịch sử lưu trữ.`);
+      return;
+    }
+
+    const currentBackup: TourVersion = {
+      version: currentTour.version || 1,
+      createdAt: new Date().toISOString(),
+      createdByName: currentTour.companyName || "Hệ thống",
+      changeNote: `Bản sao lưu trước khi khôi phục về phiên bản v${versionNumber}`,
+      tourSnapshot: JSON.parse(JSON.stringify(currentTour)),
+    };
+
+    const nextVer = (currentTour.version || 1) + 1;
+    const restoredSnapshot = JSON.parse(JSON.stringify(targetVersion.tourSnapshot));
+
+    const restoredTour: Tour = {
+      ...restoredSnapshot,
+      id: currentTour.id,
+      version: nextVer,
+      changeNote: `Khôi phục từ dữ liệu phiên bản v${versionNumber} (${new Date(targetVersion.createdAt).toLocaleDateString("vi-VN")})`,
+      versionHistory: [currentBackup, ...(currentTour.versionHistory || [])],
+    };
+
+    setTours((prev) => prev.map((t) => (t.id === tourId ? restoredTour : t)));
+
+    if (currentTour.customRequestId) {
+      setCustomTourRequests((prev) =>
+        prev.map((r) =>
+          r.id === currentTour.customRequestId
+            ? { ...r, currentVersion: nextVer, companyNote: restoredTour.changeNote }
+            : r
+        )
+      );
+    }
+
+    alert(`Đã khôi phục thành công tour về phiên bản v${versionNumber}! Phiên bản hiện tại là v${nextVer}.`);
   };
 
   // Show register screen
@@ -860,6 +907,8 @@ function App() {
             onMarkFullyPaid={handleMarkFullyPaid}
             onUpdateBookingPrice={handleUpdateBookingPrice}
             onUpdateCustomRequest={handleUpdateCustomTourRequest}
+            onRestoreTourVersion={handleRestoreTourVersion}
+            onViewTour={handleViewTour}
             onLogout={handleLogout}
           />
         );
@@ -1022,13 +1071,13 @@ function App() {
           // Not logged in, show public home page
           <HomePage
             onShowLogin={() => setShowLogin(true)}
-            popularTours={tours}
+            popularTours={tours.filter((t) => t.tourType !== "custom_request")}
             onNavigate={handleNavigate}
             onViewTour={handleViewTour}
           />
         ) : currentPage === "book-tours" ? (
           <BookToursPage
-            tours={tours}
+            tours={tours.filter((t) => t.tourType !== "custom_request")}
             currentUser={currentUser}
             onShowLogin={() => setShowLogin(true)}
             onBookTour={(tourId) => {

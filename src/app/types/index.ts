@@ -262,6 +262,24 @@ export interface Tour {
   createdByEmail?: string;
   createdAt?: string;
   bookings?: number;
+  // Custom tour design fields (Thiết kế tour riêng theo yêu cầu)
+  tourType?: "public" | "custom_request";
+  customRequestId?: string; // ID của CustomTourRequest
+  targetUserId?: string; // ID khách hàng yêu cầu
+  targetCustomerName?: string;
+  targetCustomerPhone?: string;
+  targetCustomerEmail?: string;
+  version?: number; // Phiên bản hiện tại, e.g. 1, 2, 3
+  changeNote?: string; // Ghi chú thay đổi của phiên bản hiện tại
+  versionHistory?: TourVersion[]; // Lịch sử các version để backup / restore
+}
+
+export interface TourVersion {
+  version: number;
+  createdAt: string;
+  createdByName?: string;
+  changeNote?: string;
+  tourSnapshot: Tour; // Toàn bộ dữ liệu snapshot của version này
 }
 
 export interface Booking {
@@ -430,10 +448,12 @@ export interface CustomTourRequest {
   targetCompanyId: string;
   targetCompanyName: string;
   // Lifecycle
-  status: "pending" | "reviewing" | "quoted" | "accepted" | "rejected" | "cancelled";
+  status: "pending" | "reviewing" | "designed" | "quoted" | "accepted" | "rejected" | "cancelled";
   createdAt: string;
-  // Company response
+  // Company response & Designed tour
   companyNote?: string;
   quotedPricePerPerson?: number;
   responseAt?: string;
+  designedTourId?: string; // ID của Tour được thiết kế riêng cho yêu cầu này
+  currentVersion?: number; // Phiên bản tour hiện tại
 }

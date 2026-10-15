@@ -781,6 +781,224 @@ export const mockTours: Tour[] = [
     ],
     itinerary: [],
   },
+  {
+    id: "tour-custom-1",
+    tourCode: "TC-9901",
+    name: "Tour riêng Đà Lạt – Nha Trang (Đoàn Công ty ABC)",
+    destination: "Đà Lạt – Nha Trang",
+    duration: "4 ngày 3 đêm",
+    numberOfDays: 4,
+    numberOfNights: 3,
+    price: 4850000,
+    description:
+      "Chương trình tour độc quyền thiết kế riêng theo yêu cầu của đoàn Công ty ABC (Nguyễn Văn An). Bao gồm xe Limousine đưa đón riêng, lưu trú khách sạn/resort 4 sao và tiệc Gala Dinner riêng biệt.",
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800",
+      "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800",
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",
+    ],
+    rating: 5.0,
+    minGuests: 20,
+    maxGuests: 30,
+    companyId: "company-1",
+    companyName: "Viettravel",
+    companyLogo:
+      "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
+    operationPeriod: "15/11/2026 – 20/11/2026",
+    departureCity: "TP. Hồ Chí Minh",
+    createdBy: "company-admin-1",
+    createdByName: "Viettravel",
+    createdAt: "10/10/2026",
+    highlights: [
+      "Xe Universe Limousine riêng suốt tuyến đưa đón đoàn",
+      "Nghỉ dưỡng tại Resort 4 sao Terracotta ven hồ Tuyền Lâm",
+      "Tiệc Gala Dinner riêng biệt tại nhà hàng cao cấp Đà Lạt",
+      "Team building gắn kết tại Thung lũng Tình Yêu",
+    ],
+    hotels: [
+      {
+        id: "h-custom-1",
+        name: "Terracotta Hotel & Resort Dalat",
+        stars: 4,
+        pricePerNight: 2200000,
+        nights: 3,
+        description: "Resort bán đảo hồ Tuyền Lâm đẳng cấp 4 sao",
+      },
+    ],
+    itinerary: [
+      {
+        id: "it-c1",
+        day: 1,
+        title: "TP.HCM – Đà Lạt – Nhận phòng Terracotta Resort",
+        destinationCity: "Đà Lạt",
+        description:
+          "Xe riêng đón đoàn tại trụ sở Công ty ABC khởi hành đi Đà Lạt. Ăn trưa tại Bảo Lộc. Chiều nhận phòng Terracotta Resort 4 sao, ngắm hoàng hôn hồ Tuyền Lâm.",
+        locations: [
+          {
+            id: "loc-c1-1",
+            name: "Hồ Tuyền Lâm",
+            address: "Khu du lịch hồ Tuyền Lâm, Đà Lạt",
+            time: "14:30",
+          },
+        ],
+        hotel: {
+          name: "Terracotta Hotel & Resort Dalat",
+          stars: 4,
+          pricePerNight: 2200000,
+        },
+        meals: [
+          {
+            type: "lunch",
+            serviceName: "Nhà hàng Tâm Châu Bảo Lộc",
+            pricePerPerson: 180000,
+          },
+          {
+            type: "dinner",
+            serviceName: "Buffet tối tại Terracotta Resort",
+            pricePerPerson: 350000,
+          },
+        ],
+      },
+      {
+        id: "it-c2",
+        day: 2,
+        title: "Team Building Thung Lũng Tình Yêu & Gala Dinner VIP",
+        destinationCity: "Đà Lạt",
+        description:
+          "Sáng tổ chức hoạt động Team Building gắn kết tại Thung Lũng Tình Yêu. Tối tổ chức đêm tiệc Gala Dinner riêng biệt cho 25 thành viên công ty với âm thanh ánh sáng và MC chuyên nghiệp.",
+        locations: [
+          {
+            id: "loc-c2-1",
+            name: "Thung Lũng Tình Yêu",
+            address: "Mai Anh Đào, Phường 8, Đà Lạt",
+            time: "08:30",
+          },
+        ],
+        hotel: {
+          name: "Terracotta Hotel & Resort Dalat",
+          stars: 4,
+          pricePerNight: 2200000,
+        },
+        meals: [
+          {
+            type: "breakfast",
+            serviceName: "Buffet sáng tại resort",
+            pricePerPerson: 0,
+          },
+          {
+            type: "lunch",
+            serviceName: "Nhà hàng Thung Lũng",
+            pricePerPerson: 200000,
+          },
+          {
+            type: "dinner",
+            serviceName: "Gala Dinner Private - Nhà hàng Hoàng Gia",
+            pricePerPerson: 550000,
+          },
+        ],
+      },
+    ],
+    priceTable: [
+      {
+        ageGroup: "adult",
+        ageGroupLabel: "Người lớn",
+        ageRange: "Từ 11 tuổi trở lên",
+        price: 4850000,
+      },
+    ],
+    inclusions: [
+      "Xe du lịch Universe đời mới đưa đón riêng suốt chương trình",
+      "3 đêm nghỉ tại Terracotta Resort 4 sao (tiêu chuẩn 2 khách/phòng)",
+      "Các bữa ăn theo chương trình gồm 01 đêm tiệc Gala Dinner VIP",
+      "Bảo hiểm du lịch mức 100.000.000đ/vụ",
+      "Hướng dẫn viên chuyên nghiệp và MC Gala Dinner",
+    ],
+    exclusions: [
+      "Chi phí cá nhân ngoài chương trình",
+      "Thuế VAT 8%",
+    ],
+    regulations: [
+      "Tour được thiết kế riêng theo thỏa thuận giữa Viettravel và Công ty ABC.",
+      "Lịch trình và dịch vụ cố định theo chương trình đã chốt giữa hai bên.",
+    ],
+    tourType: "custom_request",
+    customRequestId: "ctr-1",
+    targetUserId: "user-1",
+    targetCustomerName: "Nguyễn Văn An",
+    targetCustomerPhone: "0901 234 567",
+    targetCustomerEmail: "an.nguyen@abc.vn",
+    version: 2,
+    changeNote:
+      "Nâng cấp lên Terracotta Resort 4 sao và bổ sung Gala Dinner VIP theo trao đổi qua Zalo ngày 12/10",
+    versionHistory: [
+      {
+        version: 1,
+        createdAt: "2026-10-11T10:00:00Z",
+        createdByName: "Viettravel",
+        changeNote:
+          "Phiên bản thiết kế sơ bộ ban đầu (Khách sạn TTC Ngọc Lan 3 sao, chưa có Gala Dinner)",
+        tourSnapshot: {
+          id: "tour-custom-1",
+          tourCode: "TC-9901",
+          name: "Tour riêng Đà Lạt – Nha Trang (Đoàn Công ty ABC) - v1",
+          destination: "Đà Lạt – Nha Trang",
+          duration: "4 ngày 3 đêm",
+          numberOfDays: 4,
+          numberOfNights: 3,
+          price: 4200000,
+          description: "Bản thảo ban đầu với khách sạn 3 sao",
+          image:
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800",
+          rating: 4.8,
+          minGuests: 20,
+          maxGuests: 30,
+          companyId: "company-1",
+          companyName: "Viettravel",
+          operationPeriod: "15/11/2026 – 20/11/2026",
+          tourType: "custom_request",
+          customRequestId: "ctr-1",
+          targetUserId: "user-1",
+          targetCustomerName: "Nguyễn Văn An",
+          version: 1,
+          highlights: [
+            "Xe Universe đời mới đưa đón đoàn",
+            "Nghỉ tại Khách sạn TTC Ngọc Lan 3 sao trung tâm",
+          ],
+          hotels: [
+            {
+              id: "h-custom-v1",
+              name: "TTC Hotel Premium Ngọc Lan",
+              stars: 3,
+              pricePerNight: 1200000,
+              nights: 3,
+            },
+          ],
+          itinerary: [
+            {
+              id: "it-v1-1",
+              day: 1,
+              title: "TP.HCM – Đà Lạt – Nhận phòng khách sạn TTC",
+              destinationCity: "Đà Lạt",
+              description: "Xe đưa đoàn lên Đà Lạt, nhận phòng nghỉ ngơi.",
+              locations: [],
+              meals: [],
+            },
+          ],
+          priceTable: [
+            {
+              ageGroup: "adult",
+              ageGroupLabel: "Người lớn",
+              ageRange: "Từ 11 tuổi trở lên",
+              price: 4200000,
+            },
+          ],
+          inclusions: ["Xe đưa đón", "Khách sạn 3 sao"],
+          exclusions: ["VAT", "Gala Dinner"],
+        } as any,
+      },
+    ],
+  },
 ];
 
 export const mockBookings: Booking[] = [
@@ -1212,21 +1430,23 @@ export const mockGuideSchedules: GuideSchedule[] = [
 ];
 
 // Add some demo check-in data
-mockBookings[0].tour.itinerary[0].locations[0].checkedIn = true;
-mockBookings[0].tour.itinerary[0].locations[0].checkInTime =
-  "09:05";
-mockBookings[0].tour.itinerary[0].locations[0].checkInImage =
-  "https://images.unsplash.com/photo-1542044896530-05d85be9b11a?w=400";
-mockBookings[0].tour.itinerary[0].locations[0].checkInNote =
-  "Đã đến đúng giờ, khách rất hài lòng với cảnh đẹp buổi sáng.";
+if (mockBookings[0]?.tour?.itinerary?.[0]?.locations?.[0]) {
+  mockBookings[0].tour.itinerary[0].locations[0].checkedIn = true;
+  mockBookings[0].tour.itinerary[0].locations[0].checkInTime = "09:05";
+  mockBookings[0].tour.itinerary[0].locations[0].checkInImage =
+    "https://images.unsplash.com/photo-1542044896530-05d85be9b11a?w=400";
+  mockBookings[0].tour.itinerary[0].locations[0].checkInNote =
+    "Đã đến đúng giờ, khách rất hài lòng với cảnh đẹp buổi sáng.";
+}
 
-mockBookings[0].tour.itinerary[0].locations[1].checkedIn = true;
-mockBookings[0].tour.itinerary[0].locations[1].checkInTime =
-  "11:10";
-mockBookings[0].tour.itinerary[0].locations[1].checkInImage =
-  "https://images.unsplash.com/photo-1520454125516-134a66d9bf78?w=400";
-mockBookings[0].tour.itinerary[0].locations[1].checkInNote =
-  "Tới trễ 10p do kẹt xe nhẹ gần trung tâm.";
+if (mockBookings[0]?.tour?.itinerary?.[0]?.locations?.[1]) {
+  mockBookings[0].tour.itinerary[0].locations[1].checkedIn = true;
+  mockBookings[0].tour.itinerary[0].locations[1].checkInTime = "11:10";
+  mockBookings[0].tour.itinerary[0].locations[1].checkInImage =
+    "https://images.unsplash.com/photo-1520454125516-134a66d9bf78?w=400";
+  mockBookings[0].tour.itinerary[0].locations[1].checkInNote =
+    "Tới trễ 10p do kẹt xe nhẹ gần trung tâm.";
+}
 
 export const mockServices: Service[] = [
   {
@@ -1781,11 +2001,14 @@ export const mockCustomTourRequests: CustomTourRequest[] = [
     hotelStars: "4",
     additionalInfo: "Nhóm doanh nghiệp team building, cần xe riêng, bữa gala dinner 1 đêm.",
     targetCompanyId: "company-1",
-    targetCompanyName: "Công ty Du lịch Việt Nam Travel",
-    status: "reviewing",
+    targetCompanyName: "Viettravel",
+    status: "designed",
     createdAt: "2026-10-10T09:00:00Z",
-    companyNote: "Đã nhận yêu cầu, đang xem xét lịch trình và báo giá.",
-    responseAt: "2026-10-11T10:30:00Z",
+    designedTourId: "tour-custom-1",
+    currentVersion: 2,
+    quotedPricePerPerson: 4850000,
+    companyNote: "Đã thiết kế xong bản v2: Đổi sang Terracotta Resort 4 sao và bổ sung Gala Dinner theo trao đổi qua Zalo.",
+    responseAt: "2026-10-12T15:30:00Z",
   },
   {
     id: "ctr-2",
@@ -1801,7 +2024,7 @@ export const mockCustomTourRequests: CustomTourRequest[] = [
     hotelStars: "3",
     additionalInfo: "Gia đình, có trẻ nhỏ, cần phòng gia đình.",
     targetCompanyId: "company-1",
-    targetCompanyName: "Công ty Du lịch Việt Nam Travel",
+    targetCompanyName: "Viettravel",
     status: "pending",
     createdAt: "2026-10-13T14:00:00Z",
   },
