@@ -32,6 +32,7 @@ import {
   Landmark,
   CheckCircle2,
   ShieldCheck,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -67,6 +68,32 @@ const paymentStatusMap: Record<string, { label: string; color: string }> = {
 
 function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
+}
+
+function calculateAge(dobStr?: string, refDateStr?: string): number | null {
+  if (!dobStr) return null;
+  const parts = dobStr.includes("-") ? dobStr.split("-") : dobStr.split("/");
+  let birthDate: Date;
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      birthDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+      birthDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    }
+  } else {
+    birthDate = new Date(dobStr);
+  }
+  if (isNaN(birthDate.getTime())) return null;
+
+  const targetDate = refDateStr ? new Date(refDateStr) : new Date();
+  if (isNaN(targetDate.getTime())) return null;
+
+  let age = targetDate.getFullYear() - birthDate.getFullYear();
+  const m = targetDate.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && targetDate.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : 0;
 }
 
 export function UserBookingDetailPage({
@@ -112,6 +139,16 @@ export function UserBookingDetailPage({
   const contractNo = `HD-${booking.id.replace("booking-", "").toUpperCase()}`;
   const today = new Date().toLocaleDateString("vi-VN");
   const canCancel = booking.status === "pending" || booking.status === "confirmed";
+
+  // Multi-company co-hosting logic
+  const isCoHosted = Boolean(booking.isCoHosted || booking.tour?.isCoHosted);
+  const coHosts = (booking.coHosts && booking.coHosts.length > 0)
+    ? booking.coHosts
+    : (booking.tour?.coHosts && booking.tour.coHosts.length > 0)
+    ? booking.tour.coHosts
+    : [];
+  const leadCoHost = coHosts.find((c) => c.role === "lead");
+  const partnerCoHosts = coHosts.filter((c) => c.role !== "lead");
 
   return (
     <div className="min-h-screen bg-gray-50/70 py-6 sm:py-8">
@@ -210,12 +247,17 @@ export function UserBookingDetailPage({
                     <span className="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">
                       {booking.tour.tourCode}
                     </span>
-                    {booking.tour.companyName && (
+                    {isCoHosted ? (
+                      <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <Handshake className="w-3.5 h-3.5 text-amber-700" />
+                        🤝 Tour Liên Minh Đồng Dẫn ({coHosts.map((c) => c.companyName).join(" & ") || "2 Công Ty Phối Hợp"})
+                      </span>
+                    ) : booking.tour.companyName ? (
                       <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5 text-gray-400" />
                         {booking.tour.companyName}
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-snug">
@@ -239,6 +281,135 @@ export function UserBookingDetailPage({
                 </div>
               </div>
             </div>
+
+            {/* CO-HOSTING ALLIANCE BREAKDOWN CARD FOR CUSTOMER */}
+            {isCoHosted && coHosts.length > 0 && (
+              <div className="bg-gradient-to-br from-amber-50/80 via-purple-50/50 to-blue-50/50 rounded-2xl border-2 border-amber-300 p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/80 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0 shadow-2xs">
+                      <Handshake className="w-5 h-5 text-amber-700" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-amber-950 flex items-center gap-2 flex-wrap">
+                        🤝 Tour Liên Minh Đồng Dẫn – 2 Công Ty Lữ Hành Cùng Phục Vụ
+                        <span className="text-[11px] font-bold bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">
+                          Đã thống nhất phân công
+                        </span>
+                      </h3>
+                      <p className="text-xs text-amber-800 mt-0.5">
+                        Chuyến đi của quý khách được đồng phối hợp thực hiện bởi 2 công ty du lịch uy tín nhằm đảm bảo chất lượng phục vụ chuyên sâu và trải nghiệm địa phương xuất sắc nhất.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2 Companies Participation Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {coHosts.map((ch) => {
+                    const isLead = ch.role === "lead";
+                    return (
+                      <div
+                        key={ch.id}
+                        className={`rounded-xl p-4 border transition-all ${
+                          isLead
+                            ? "bg-white border-blue-200 shadow-xs"
+                            : "bg-white border-purple-200 shadow-xs"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span
+                            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider ${
+                              isLead
+                                ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                : "bg-purple-100 text-purple-800 border border-purple-200"
+                            }`}
+                          >
+                            {isLead ? "🏢 Đơn vị Chủ trì (Điều hành chính)" : "🤝 Đối tác Địa phương (Chuyên tuyến)"}
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            ✓ Đã xác nhận đồng hành
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3 mb-2.5">
+                          {ch.companyLogo ? (
+                            <img
+                              src={ch.companyLogo}
+                              alt={ch.companyName}
+                              className="w-10 h-10 rounded-xl object-cover border border-gray-200 flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm">
+                              {ch.companyName.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-gray-900 text-sm truncate">{ch.companyName}</h4>
+                            <p className="text-xs text-gray-500 line-clamp-1">
+                              {isLead
+                                ? "Chịu trách nhiệm hợp đồng, bảo hiểm & xe đưa đón"
+                                : "Chịu trách nhiệm HDV bản địa & dịch vụ tại chỗ"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                          <div>
+                            <span className="text-gray-400 block text-[10px] font-semibold uppercase">
+                              Phần chặng / Dịch vụ phụ trách:
+                            </span>
+                            <span className="font-bold text-gray-800">
+                              {ch.assignedSegments || (isLead ? "Chặng khởi hành & Quản lý chung" : "Chặng trải nghiệm địa phương")}
+                            </span>
+                          </div>
+
+                          {ch.notes && (
+                            <p className="text-gray-600 italic text-[11px] pt-1 border-t border-gray-200">
+                              "{ch.notes}"
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Direct Contact info for customer */}
+                        <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600 flex-wrap gap-2">
+                          {ch.companyPhone ? (
+                            <a
+                              href={`tel:${ch.companyPhone.replace(/\s+/g, "")}`}
+                              className="flex items-center gap-1 font-semibold text-teal-700 hover:text-teal-800"
+                            >
+                              <Phone className="w-3 h-3 text-teal-600" />
+                              Hotline: {ch.companyPhone}
+                            </a>
+                          ) : (
+                            <span className="text-[11px] text-gray-400">Hotline: Cập nhật sau</span>
+                          )}
+                          {ch.companyEmail && (
+                            <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                              <Mail className="w-3 h-3 text-gray-400" />
+                              {ch.companyEmail}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Escrow Guarantee Box */}
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-emerald-900">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-emerald-950">
+                      Bảo chứng an toàn thanh toán Ký quỹ (Escrow Protection):
+                    </span>
+                    <p className="text-emerald-800 mt-0.5 leading-relaxed text-[11px]">
+                      Quý khách thanh toán 100% vào tài khoản trung gian của Sàn Du Lịch. Cả 2 công ty liên minh đều chịu sự giám sát chất lượng từ Sàn. Sàn chỉ quyết toán tiền cho các công ty sau khi tour hoàn thành tốt đẹp theo đúng cam kết lịch trình.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* CUSTOM REQUESTS SUMMARY (IF ANY) */}
             {((booking.customHotelChanges && booking.customHotelChanges.length > 0) ||
@@ -364,7 +535,17 @@ export function UserBookingDetailPage({
                         <tr key={p.id} className="hover:bg-gray-50">
                           <td className="px-3 py-2.5 text-gray-400 font-mono">{idx + 1}</td>
                           <td className="px-3 py-2.5 font-bold text-gray-900">{p.fullName}</td>
-                          <td className="px-3 py-2.5 text-gray-600">{p.dateOfBirth}</td>
+                          <td className="px-3 py-2.5 text-gray-600">
+                            <span>{p.dateOfBirth || "—"}</span>
+                            {(() => {
+                              const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                              return age !== null ? (
+                                <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                  {age} tuổi
+                                </span>
+                              ) : null;
+                            })()}
+                          </td>
                           <td className="px-3 py-2.5 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
                           <td className="px-3 py-2.5">
                             <span className={`px-2 py-0.5 rounded-full font-medium text-[11px] ${
@@ -929,6 +1110,66 @@ export function UserBookingDetailPage({
                 )}
               </div>
             </div>
+
+            {/* DEDICATED SUPPORT HOTLINES CARD */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                <Phone className="w-4 h-4 text-teal-600" />
+                Đường dây nóng hỗ trợ đoàn
+              </h3>
+
+              <div className="space-y-2.5 text-xs">
+                {isCoHosted && coHosts.length > 0 ? (
+                  coHosts.map((ch) => (
+                    <div
+                      key={ch.id}
+                      className="p-2.5 rounded-xl border border-gray-200 bg-gray-50/70 flex items-center justify-between"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <p className="font-bold text-gray-900 text-xs truncate">{ch.companyName}</p>
+                        <p className="text-[10px] text-gray-500">
+                          {ch.role === "lead" ? "Đơn vị chủ trì" : "Đối tác địa phương"}
+                        </p>
+                      </div>
+                      <a
+                        href={`tel:${(ch.companyPhone || "19001234").replace(/\s+/g, "")}`}
+                        className="font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 hover:bg-teal-100 flex items-center gap-1 text-xs flex-shrink-0"
+                      >
+                        <Phone className="w-3 h-3 text-teal-600" />
+                        {ch.companyPhone || "1900 1234"}
+                      </a>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-2.5 rounded-xl border border-gray-200 bg-gray-50/70 flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-gray-900 text-xs">
+                        {booking.tour.companyName || "Công ty lữ hành"}
+                      </p>
+                      <p className="text-[10px] text-gray-500">Đơn vị tổ chức tour</p>
+                    </div>
+                    <span className="font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 flex items-center gap-1 text-xs">
+                      <Phone className="w-3 h-3 text-teal-600" />
+                      1900 1234
+                    </span>
+                  </div>
+                )}
+
+                <div className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/60 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-blue-950 text-xs">Sàn Du Lịch Việt Nam</p>
+                    <p className="text-[10px] text-blue-700">Tổng đài bảo vệ & Ký quỹ 24/7</p>
+                  </div>
+                  <a
+                    href="tel:19006868"
+                    className="font-bold text-blue-800 bg-blue-100/80 px-2.5 py-1 rounded-lg border border-blue-300 hover:bg-blue-200 flex items-center gap-1 text-xs flex-shrink-0"
+                  >
+                    <Phone className="w-3 h-3 text-blue-600" />
+                    1900 6868
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -958,8 +1199,14 @@ export function UserBookingDetailPage({
 
           <div className="space-y-4 text-xs text-gray-700 pt-2">
             <div className="text-center border-b pb-3">
-              <p className="font-bold text-sm text-gray-900 uppercase">{booking.companyName || booking.tour.companyName || "CÔNG TY DU LỊCH"}</p>
-              <p className="text-xs text-gray-500">Giấy phép kinh doanh lữ hành</p>
+              <p className="font-bold text-sm text-gray-900 uppercase">
+                {isCoHosted && leadCoHost
+                  ? `${leadCoHost.companyName} & ${partnerCoHosts.map((c) => c.companyName).join(", ")}`
+                  : booking.companyName || booking.tour.companyName || "CÔNG TY DU LỊCH"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {isCoHosted ? "Liên minh Doanh nghiệp Lữ hành & Đối tác Chuyên tuyến" : "Giấy phép kinh doanh lữ hành"}
+              </p>
               <p className="text-base font-bold mt-2 text-blue-800">HỢP ĐỒNG DỊCH VỤ LỮ HÀNH</p>
               <p className="text-[11px] text-gray-400">Số: {contractNo} – Ngày lập: {today}</p>
             </div>
@@ -967,7 +1214,12 @@ export function UserBookingDetailPage({
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 p-2.5 rounded-lg border">
                 <p className="font-bold text-gray-900 mb-1">BÊN A (CÔNG TY LỮ HÀNH):</p>
-                <p>Tên: <strong>{booking.companyName || booking.tour.companyName || "Đơn vị tổ chức tour"}</strong></p>
+                <p>Đơn vị chủ trì: <strong>{leadCoHost?.companyName || booking.companyName || booking.tour.companyName || "Đơn vị tổ chức tour"}</strong></p>
+                {isCoHosted && partnerCoHosts.length > 0 && (
+                  <p className="mt-1 text-purple-800">
+                    Đồng tổ chức liên minh: <strong>{partnerCoHosts.map((c) => c.companyName).join(", ")}</strong>
+                  </p>
+                )}
               </div>
               <div className="bg-gray-50 p-2.5 rounded-lg border">
                 <p className="font-bold text-gray-900 mb-1">BÊN B (KHÁCH HÀNG):</p>
@@ -989,6 +1241,15 @@ export function UserBookingDetailPage({
               <p>Đã đặt cọc: <strong>{formatVND(booking.depositAmount ?? Math.ceil(booking.totalPrice * 0.5))}</strong> ({booking.depositPaid ? "Đã thu" : "Chưa thu"})</p>
               <p>Số tiền còn lại: <strong>{formatVND(booking.remainingAmount ?? (booking.depositPaid ? booking.totalPrice - (booking.depositAmount ?? 0) : booking.totalPrice))}</strong></p>
             </div>
+
+            {isCoHosted && (
+              <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                <p className="font-bold text-amber-900 mb-1">ĐIỀU KHOẢN LIÊN MINH &amp; BẢO CHỨNG KÝ QUỸ (ESCROW):</p>
+                <p className="leading-relaxed">
+                  Tour được thực hiện theo cơ chế liên minh giữa <strong>{leadCoHost?.companyName || booking.companyName}</strong> và <strong>{partnerCoHosts.map((c) => c.companyName).join(", ")}</strong>. Tiền tour của Bên B được ký quỹ an toàn tại Tài khoản trung gian của Sàn Du Lịch ({systemBank.bankName} – STK: {systemBank.accountNumber}), và chỉ được giải ngân cho các đơn vị sau khi hoàn thành toàn bộ chương trình tour.
+                </p>
+              </div>
+            )}
 
             {booking.hasLocationCustomization && (
               <div className="bg-purple-50 p-2.5 rounded-lg border border-purple-200">

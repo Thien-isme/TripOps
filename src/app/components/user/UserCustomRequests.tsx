@@ -15,6 +15,8 @@ import {
   Info,
   Phone,
   ShieldAlert,
+  Handshake,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
@@ -248,6 +250,66 @@ export function UserCustomRequests({
                           {req.targetCompanyName} đã tiếp nhận yêu cầu và đang xây dựng lịch trình chi tiết. Tour thiết kế sẽ xuất hiện tại đây ngay khi hoàn tất.
                         </p>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Co-Hosting Alliance Information for Customer */}
+                {(matchingTour?.isCoHosted || req.isCoHosted) && (
+                  <div className="bg-gradient-to-r from-purple-50 via-indigo-50/60 to-blue-50 border border-purple-200 rounded-xl p-4.5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-purple-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                        <Handshake className="w-3.5 h-3.5 text-amber-300" />
+                        Tour Liên Minh Hợp Tác Chuyên Nghiệp
+                      </span>
+                      <span className="text-xs text-purple-900 font-semibold">
+                        2 công ty lữ hành cùng phối hợp dẫn tour
+                      </span>
+                    </div>
+
+                    <p className="text-gray-700 text-xs leading-relaxed">
+                      Để mang đến trải nghiệm tuyệt vời nhất cho đoàn, chuyến đi được hợp tác điều phối giữa <strong>Đơn vị chủ trì</strong> (chịu trách nhiệm ký kết hợp đồng, bảo hiểm và xe vận chuyển chính) cùng <strong>Công ty bản địa chuyên tuyến</strong> (cung cấp HDV am hiểu phong tục và dịch vụ chuyên sâu tại chỗ).
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {(matchingTour?.coHosts || req.coHosts)?.map((ch) => (
+                        <div
+                          key={ch.id}
+                          className="bg-white rounded-lg p-3 border border-purple-100 shadow-2xs space-y-1"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-gray-900 flex items-center gap-1.5">
+                              {ch.companyLogo && (
+                                <img
+                                  src={ch.companyLogo}
+                                  alt=""
+                                  className="w-5 h-5 rounded object-cover"
+                                />
+                              )}
+                              {ch.companyName}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                ch.role === "lead"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-purple-100 text-purple-800"
+                              }`}
+                            >
+                              {ch.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Bản địa"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-600">
+                            <strong>Phụ trách:</strong> {ch.assignedSegments || "Điều phối lịch trình"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 flex items-center gap-2 text-emerald-900 text-[11px]">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>
+                        <strong>Bảo chứng thanh toán Ký quỹ (Escrow):</strong> Tiền tour được giữ an toàn tại Tài khoản trung gian của Sàn Du Lịch cho đến khi quý khách hoàn thành chuyến đi.
+                      </span>
                     </div>
                   </div>
                 )}

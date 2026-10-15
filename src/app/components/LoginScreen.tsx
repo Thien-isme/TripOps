@@ -227,47 +227,100 @@ export function LoginScreen({
           )}
 
           {/* Demo Info */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs text-gray-700 font-semibold mb-2">
-              Demo - Tài khoản mẫu (mật khẩu: 1):
-            </p>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p>
-                Khách hàng:{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  customer@demo.com
-                </code>
+          <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl space-y-2.5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-blue-950 font-bold flex items-center gap-1.5">
+                <span>🔑</span> Tài khoản mẫu thử nghiệm (Mật khẩu: <code>1</code>):
               </p>
-              <p>
-                HDV (Viettravel):{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  guide@demo.com
-                </code>
-              </p>
-              <p>
-                Platform Admin:{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  admin@demo.com
-                </code>
-              </p>
-              <p>
-                Công ty Viettravel:{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  company1@demo.com
-                </code>
-              </p>
-              <p>
-                Công ty Saigon Tourist:{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  company2@demo.com
-                </code>
-              </p>
-              <p>
-                Nhà cung cấp (Provider):{" "}
-                <code className="bg-white px-1.5 py-0.5 rounded">
-                  provider@demo.com
-                </code>
-              </p>
+              <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">
+                Bấm để điền nhanh
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              {/* Lead Company */}
+              <div
+                onClick={() => {
+                  setEmail("viettravel.tour@gmail.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="font-bold text-gray-900 group-hover:text-blue-700 block">
+                    🏢 Viettravel (Đơn vị Chủ trì):
+                  </span>
+                  <code className="text-[11px] text-blue-600 font-mono">
+                    viettravel.tour@gmail.com
+                  </code>
+                </div>
+                <span className="text-[10px] text-gray-400 group-hover:text-blue-600 font-medium">
+                  Chọn ➔
+                </span>
+              </div>
+
+              {/* Partner Company */}
+              <div
+                onClick={() => {
+                  setEmail("hagiang.discovery@gmail.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border-2 border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+              >
+                <div>
+                  <span className="font-bold text-emerald-950 group-hover:text-emerald-700 block">
+                    🏔️ Hà Giang Discovery (Đối tác Liên minh):
+                  </span>
+                  <code className="text-[11px] text-emerald-700 font-mono font-bold">
+                    hagiang.discovery@gmail.com
+                  </code>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                  Test Báo giá &amp; Chặng
+                </span>
+              </div>
+
+              {/* Customer */}
+              <div
+                onClick={() => {
+                  setEmail("khachhang.fpt@gmail.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border border-purple-200 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="font-bold text-gray-900 group-hover:text-purple-700 block">
+                    👤 Khách hàng (Tập đoàn FPT):
+                  </span>
+                  <code className="text-[11px] text-purple-600 font-mono">
+                    khachhang.fpt@gmail.com
+                  </code>
+                </div>
+                <span className="text-[10px] text-gray-400 group-hover:text-purple-600 font-medium">
+                  Xem Tour ➔
+                </span>
+              </div>
+
+              {/* Admin */}
+              <div
+                onClick={() => {
+                  setEmail("admin.platform@gmail.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="font-bold text-gray-900 group-hover:text-amber-800 block">
+                    🛡️ Admin Sàn (Quyết toán Ký quỹ Escrow):
+                  </span>
+                  <code className="text-[11px] text-amber-700 font-mono">
+                    admin.platform@gmail.com
+                  </code>
+                </div>
+                <span className="text-[10px] text-gray-400 group-hover:text-amber-700 font-medium">
+                  Chia tiền ➔
+                </span>
+              </div>
             </div>
           </div>
         </div>

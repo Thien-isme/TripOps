@@ -81,20 +81,143 @@ function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
 }
 
-function getPriceForAgeGroup(tour: Tour, ageGroup: BookingPassenger["ageGroup"]): number {
-  if (!tour.priceTable) return tour.price;
-  const row = tour.priceTable.find((r) => r.ageGroup === ageGroup);
-  return row?.price ?? tour.price;
+/**
+ * Parse various date formats: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, or Excel date number
+ */
+export function parseDateString(dateStr: string): string | null {
+  if (!dateStr) return null;
+  const trimmed = String(dateStr).trim();
+  if (!trimmed) return null;
+
+  // Excel serial number (e.g. 33009, 44520)
+  if (!isNaN(Number(trimmed)) && Number(trimmed) > 1000 && Number(trimmed) < 100000) {
+    const d = new Date(Math.round((Number(trimmed) - 25569) * 86400 * 1000));
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split("T")[0];
+    }
+  }
+
+  // DD/MM/YYYY or D/M/YYYY
+  if (trimmed.includes("/")) {
+    const parts = trimmed.split("/");
+    if (parts.length === 3) {
+      const d = parts[0].padStart(2, "0");
+      const m = parts[1].padStart(2, "0");
+      const y = parts[2];
+      if (y.length === 4) return `${y}-${m}-${d}`;
+    }
+  }
+
+  // DD-MM-YYYY
+  if (trimmed.includes("-")) {
+    const parts = trimmed.split("-");
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        // YYYY-MM-DD
+        return trimmed;
+      }
+      if (parts[2].length === 4) {
+        // DD-MM-YYYY
+        const d = parts[0].padStart(2, "0");
+        const m = parts[1].padStart(2, "0");
+        const y = parts[2];
+        return `${y}-${m}-${d}`;
+      }
+    }
+  }
+
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split("T")[0];
+  }
+  return null;
 }
 
-function newPassenger(id: string, tour: Tour): BookingPassenger {
+/**
+ * Calculate age on reference date (tourStartDate or today)
+ */
+export function calculateAge(dateOfBirth: string, refDateStr?: string): number | null {
+  const normalizedDob = parseDateString(dateOfBirth);
+  if (!normalizedDob) return null;
+
+  const birthDate = new Date(normalizedDob);
+  if (isNaN(birthDate.getTime())) return null;
+
+  const refDate = refDateStr ? new Date(refDateStr) : new Date();
+  if (isNaN(refDate.getTime())) return null;
+
+  let age = refDate.getFullYear() - birthDate.getFullYear();
+  const m = refDate.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && refDate.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return Math.max(0, age);
+}
+
+/**
+ * Determine ageGroup from dateOfBirth and reference date
+ */
+export function determineAgeGroup(dateOfBirth: string, refDateStr?: string): BookingPassenger["ageGroup"] {
+  const age = calculateAge(dateOfBirth, refDateStr);
+  if (age === null) return "adult";
+  if (age < 2) return "child_under_2";
+  if (age <= 11) return "child_2_11";
+  return "adult";
+}
+
+/**
+ * Match price from tour's priceTable or fallback standard %
+ */
+export function getPassengerPrice(tour: Tour, ageGroup: BookingPassenger["ageGroup"], age?: number | null): number {
+  if (tour.priceTable && tour.priceTable.length > 0) {
+    // 1. If age is known, check if custom priceTable row matches
+    if (typeof age === "number") {
+      const matchByAge = tour.priceTable.find((r) => {
+        const range = (r.ageRange || "").toLowerCase();
+        const label = (r.ageGroupLabel || "").toLowerCase();
+        if (age < 2 && (range.includes("dưới 2") || range.includes("< 2") || range.includes("<2") || label.includes("em bé") || r.ageGroup === "child_under_2")) return true;
+        if (age >= 2 && age <= 11 && (range.includes("2") || range.includes("11") || label.includes("trẻ em") || r.ageGroup === "child_2_11")) return true;
+        if (age >= 12 && (range.includes("11") || range.includes("12") || label.includes("người lớn") || r.ageGroup === "adult")) return true;
+        return false;
+      });
+      if (matchByAge) return matchByAge.price;
+    }
+
+    // 2. Match by ageGroup key
+    const matchByGroup = tour.priceTable.find((r) => r.ageGroup === ageGroup);
+    if (matchByGroup) return matchByGroup.price;
+
+    // 3. Fallback matching by label keyword in priceTable
+    if (ageGroup === "child_under_2") {
+      const row = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("em bé") || (r.ageGroupLabel || "").toLowerCase().includes("sơ sinh"));
+      if (row) return row.price;
+      return 0;
+    }
+    if (ageGroup === "child_2_11") {
+      const row = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("trẻ em"));
+      if (row) return row.price;
+      return Math.round(tour.price * 0.7);
+    }
+    const adultRow = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("người lớn"));
+    if (adultRow) return adultRow.price;
+  }
+
+  // Fallback if tour has no priceTable:
+  if (ageGroup === "child_under_2") return 0;
+  if (ageGroup === "child_2_11") return Math.round(tour.price * 0.7);
+  return tour.price;
+}
+
+function newPassenger(id: string, tour: Tour, defaultDob = ""): BookingPassenger {
+  const age = calculateAge(defaultDob);
+  const ageGroup = determineAgeGroup(defaultDob);
   return {
     id,
     fullName: "",
-    dateOfBirth: "",
+    dateOfBirth: defaultDob,
     gender: "male",
-    ageGroup: "adult",
-    price: getPriceForAgeGroup(tour, "adult"),
+    ageGroup,
+    price: getPassengerPrice(tour, ageGroup, age),
   };
 }
 
@@ -148,16 +271,45 @@ export function BookingFormPage({
     setPassengers(passengers.filter((p) => p.id !== id));
   };
 
+  const handleStartDateChange = (newDate: string) => {
+    setTourStartDate(newDate);
+    // Recalculate age & price for all passengers with the new tour departure date
+    setPassengers((prev) =>
+      prev.map((p) => {
+        if (!p.dateOfBirth) return p;
+        const age = calculateAge(p.dateOfBirth, newDate);
+        if (age === null) return p;
+        const autoGroup = determineAgeGroup(p.dateOfBirth, newDate);
+        return {
+          ...p,
+          ageGroup: autoGroup,
+          price: getPassengerPrice(tour, autoGroup, age),
+        };
+      })
+    );
+  };
+
   const updatePassenger = (id: string, update: Partial<BookingPassenger>) => {
-    setPassengers(
-      passengers.map((p) => {
+    setPassengers((prev) =>
+      prev.map((p) => {
         if (p.id !== id) return p;
         const updated = { ...p, ...update };
-        if (update.ageGroup) {
-          updated.price = getPriceForAgeGroup(tour, updated.ageGroup);
+
+        // If dateOfBirth is entered or changed, automatically detect age, group & update price!
+        if (update.dateOfBirth !== undefined) {
+          const age = calculateAge(update.dateOfBirth, tourStartDate);
+          if (age !== null) {
+            updated.ageGroup = determineAgeGroup(update.dateOfBirth, tourStartDate);
+            updated.price = getPassengerPrice(tour, updated.ageGroup, age);
+          }
+        } else if (update.ageGroup !== undefined) {
+          // If user manually altered the age group dropdown
+          const age = calculateAge(updated.dateOfBirth, tourStartDate);
+          updated.price = getPassengerPrice(tour, update.ageGroup, age);
         }
+
         return updated;
-      }),
+      })
     );
   };
 
@@ -259,22 +411,8 @@ export function BookingFormPage({
           const fullName = findVal(["họ và tên", "họ tên", "tên", "fullname", "name"]);
           if (!fullName) return;
 
-          let dateOfBirth = findVal(["ngày sinh", "ngaysinh", "dob", "birth"]);
-          if (/^\d{5}$/.test(dateOfBirth)) {
-            const d = new Date(Math.round((parseInt(dateOfBirth) - 25569) * 86400 * 1000));
-            dateOfBirth = d.toISOString().split("T")[0];
-          } else if (dateOfBirth.includes("/")) {
-            const parts = dateOfBirth.split("/");
-            if (parts.length === 3) {
-              const day = parts[0].padStart(2, "0");
-              const month = parts[1].padStart(2, "0");
-              const year = parts[2];
-              if (year.length === 4) {
-                dateOfBirth = `${year}-${month}-${day}`;
-              }
-            }
-          }
-
+          const rawDob = findVal(["ngày sinh", "ngaysinh", "dob", "birth"]);
+          let dateOfBirth = parseDateString(rawDob) || rawDob;
           if (!dateOfBirth) {
             dateOfBirth = "1995-01-01";
           }
@@ -283,32 +421,34 @@ export function BookingFormPage({
           const gender: "male" | "female" =
             rawGender.includes("nữ") || rawGender.includes("female") ? "female" : "male";
 
-          const rawAge = findVal(["loại khách", "loaikhach", "nhóm tuổi", "age"]).toLowerCase();
+          // Calculate passenger age relative to tourStartDate
+          const calculatedAge = calculateAge(dateOfBirth, tourStartDate);
           let ageGroup: BookingPassenger["ageGroup"] = "adult";
-          if (
-            rawAge.includes("dưới 2") ||
-            rawAge.includes("<2") ||
-            rawAge.includes("em bé") ||
-            rawAge.includes("infant")
-          ) {
-            ageGroup = "child_under_2";
-          } else if (
-            rawAge.includes("trẻ em") ||
-            rawAge.includes("2-11") ||
-            rawAge.includes("2–11") ||
-            rawAge.includes("child")
-          ) {
-            ageGroup = "child_2_11";
+
+          if (calculatedAge !== null) {
+            // Priority 1: Accurate age group directly from date of birth
+            ageGroup = determineAgeGroup(dateOfBirth, tourStartDate);
           } else {
-            const birthYear = parseInt(dateOfBirth.split("-")[0]);
-            if (!isNaN(birthYear)) {
-              const curYear = new Date().getFullYear();
-              const age = curYear - birthYear;
-              if (age < 2) ageGroup = "child_under_2";
-              else if (age <= 11) ageGroup = "child_2_11";
-              else ageGroup = "adult";
+            // Priority 2: Fallback to text matching if date of birth was empty
+            const rawAge = findVal(["loại khách", "loaikhach", "nhóm tuổi", "age"]).toLowerCase();
+            if (
+              rawAge.includes("dưới 2") ||
+              rawAge.includes("<2") ||
+              rawAge.includes("em bé") ||
+              rawAge.includes("infant")
+            ) {
+              ageGroup = "child_under_2";
+            } else if (
+              rawAge.includes("trẻ em") ||
+              rawAge.includes("2-11") ||
+              rawAge.includes("2–11") ||
+              rawAge.includes("child")
+            ) {
+              ageGroup = "child_2_11";
             }
           }
+
+          const price = getPassengerPrice(tour, ageGroup, calculatedAge);
 
           parsed.push({
             id: `p_excel_${Date.now()}_${i}`,
@@ -316,7 +456,7 @@ export function BookingFormPage({
             dateOfBirth,
             gender,
             ageGroup,
-            price: getPriceForAgeGroup(tour, ageGroup),
+            price,
           });
         });
 
@@ -448,7 +588,7 @@ export function BookingFormPage({
                         type="date"
                         value={tourStartDate}
                         min={new Date().toISOString().split("T")[0]}
-                        onChange={(e) => setTourStartDate(e.target.value)}
+                        onChange={(e) => handleStartDateChange(e.target.value)}
                         className="bg-white border-teal-300 focus:ring-teal-500 max-w-sm font-medium text-gray-900"
                       />
                     </div>
@@ -732,12 +872,32 @@ export function BookingFormPage({
                         </select>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2 text-sm">
-                      <span className="text-gray-600">Giá vé</span>
-                      <span className="font-bold text-blue-700">
-                        {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
-                      </span>
-                    </div>
+                    {(() => {
+                      const age = calculateAge(p.dateOfBirth, tourStartDate);
+                      const grp = AGE_GROUPS.find((g) => g.value === p.ageGroup);
+                      return (
+                        <div className="flex flex-wrap items-center justify-between bg-blue-50/80 border border-blue-100 rounded-lg px-3 py-2 text-sm gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {age !== null ? (
+                              <span className="inline-flex items-center gap-1 text-xs bg-white text-teal-700 font-semibold px-2 py-0.5 rounded border border-teal-200 shadow-2xs">
+                                🎂 {age} tuổi (tính đến ngày đi tour)
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-500 italic">
+                                Nhập ngày sinh để hệ thống tự động nhận diện độ tuổi &amp; giá vé
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-600 font-medium">• {grp?.label ?? p.ageGroup}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            <span className="text-xs text-gray-500">Giá vé:</span>
+                            <span className="font-bold text-blue-700">
+                              {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -830,7 +990,17 @@ export function BookingFormPage({
                           <tr key={p.id}>
                             <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
                             <td className="px-3 py-2 font-medium text-gray-900">{p.fullName}</td>
-                            <td className="px-3 py-2 text-gray-600">{p.dateOfBirth}</td>
+                            <td className="px-3 py-2 text-gray-600">
+                              <span>{p.dateOfBirth || "—"}</span>
+                              {(() => {
+                                const age = calculateAge(p.dateOfBirth, tourStartDate);
+                                return age !== null ? (
+                                  <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                    {age} tuổi
+                                  </span>
+                                ) : null;
+                              })()}
+                            </td>
                             <td className="px-3 py-2 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
                             <td className="px-3 py-2 text-gray-600">{grp?.label ?? p.ageGroup}</td>
                             <td className="px-3 py-2 text-right font-semibold text-blue-700">

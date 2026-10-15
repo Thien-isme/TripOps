@@ -36,6 +36,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   phone?: string;
+  aliasEmails?: string[]; // Danh sách email đăng nhập tương đương (Gmail, domain company, etc.)
   // Company admin / guide specific fields
   companyId?: string; // Belongs to which tour company
   companyName?: string;
@@ -67,6 +68,8 @@ export interface Location {
   checkInTime?: string;
   checkInImage?: string;
   checkInNote?: string;
+  createdByCompanyId?: string; // ID công ty khởi tạo điểm tham quan này
+  createdByCompanyName?: string; // Tên công ty khởi tạo điểm tham quan này
 }
 
 export interface TourAlternativeMeal {
@@ -86,6 +89,8 @@ export interface TourMeal {
   pricePerPerson?: number;
   allowCustomMealRequest?: boolean; // Cho phép khách tự đề xuất nhà hàng ngoài danh sách
   alternativeMeals?: TourAlternativeMeal[]; // Danh sách nhà hàng đổi món/nâng cấp cho khách chọn
+  createdByCompanyId?: string; // ID công ty thiết lập bữa ăn này
+  createdByCompanyName?: string; // Tên công ty thiết lập bữa ăn này
 }
 
 export interface TourAlternativeHotel {
@@ -110,6 +115,8 @@ export interface TourHotel {
   image?: string;
   allowCustomHotelRequest?: boolean; // Cho phép khách tự đề xuất khách sạn ngoài danh sách
   alternativeHotels?: TourAlternativeHotel[]; // Danh sách khách sạn nâng cấp/đổi hạng cho khách hàng chọn kèm giá chênh lệch
+  createdByCompanyId?: string; // ID công ty thiết lập khách sạn này
+  createdByCompanyName?: string; // Tên công ty thiết lập khách sạn này
 }
 
 export interface DailyItinerary {
@@ -123,6 +130,15 @@ export interface DailyItinerary {
   // Hotel & meals for this day (set by company)
   hotel?: TourHotel;
   meals?: TourMeal[];
+  createdByCompanyId?: string; // Công ty khởi tạo/phụ trách chính ngày này
+  createdByCompanyName?: string;
+  // Handover support for transit/transfer days (e.g. Nha Trang -> Da Lat)
+  isHandoverDay?: boolean; // Đánh dấu ngày chuyển giao giữa 2 công ty
+  handoverInfo?: {
+    time?: string; // Giờ chuyển giao đoàn, VD: "12:30"
+    location?: string; // Điểm hẹn bàn giao đoàn, VD: "Trạm dừng chân Đèo Khánh Lê"
+    note?: string; // Ghi chú bàn giao HDV & hành khách
+  };
 }
 
 export interface TourDepartureDate {
@@ -272,6 +288,38 @@ export interface Tour {
   version?: number; // Phiên bản hiện tại, e.g. 1, 2, 3
   changeNote?: string; // Ghi chú thay đổi của phiên bản hiện tại
   versionHistory?: TourVersion[]; // Lịch sử các version để backup / restore
+  // Multi-company co-hosting / B2B partnership (Phối hợp nhiều công ty cùng dẫn tour)
+  isCoHosted?: boolean;
+  coHosts?: TourCoHost[];
+  platformFeeRate?: number; // Tỷ lệ phí sàn ký quỹ Escrow (mặc định 8%)
+  pricingStatus?: "draft" | "pending_partner_quote" | "quoted" | "approved_by_customer";
+}
+
+export interface TourCoHost {
+  id?: string;
+  companyId: string;
+  companyName: string;
+  companyLogo?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  role: "lead" | "partner"; // 'lead': Công ty chủ trì, 'partner': Công ty đối tác
+  status: "pending" | "accepted" | "rejected"; // Trạng thái lời mời
+  rejectionReason?: string;
+  assignedDays?: number[]; // Ngày phụ trách trong lịch trình (tự động nhận diện từ các ngày có đóng góp)
+  assignedSegments?: string; // Tên chặng (ví dụ: "Chặng Đà Lạt - Nha Trang")
+  // Cơ chế Báo giá chi phí chặng (Cost per segment / Net Price):
+  estimatedBudgetPerGuest?: number; // Ngân sách dự kiến/khách trao đổi ban đầu (VNĐ)
+  quotePerGuest?: number; // Báo giá chi phí thực tế phần công ty phụ trách (VNĐ/khách)
+  quoteStatus?: "draft" | "submitted"; // Trạng thái báo giá
+  quoteNote?: string; // Diễn giải các dịch vụ bao gồm trong báo giá
+  quotedAt?: string; // Thời điểm xác nhận báo giá
+  revenueSharePercentage?: number; // % chia sẻ doanh thu (tự động tính từ tỷ lệ báo giá thực tế)
+  fixedPayoutAmount?: number; // Hoặc số tiền khoán chặng
+  notes?: string; // Thỏa thuận/lời nhắn hợp tác
+  invitedAt?: string;
+  respondedAt?: string;
+  settlementStatus?: "pending" | "settled"; // Trạng thái quyết toán từ Sàn
+  settledAmount?: number;
 }
 
 export interface TourVersion {
@@ -339,6 +387,9 @@ export interface Booking {
   rejectedGuideName?: string;
   rejectedGuideReason?: string;
   rejectedGuideAvatar?: string;
+  // Multi-company co-hosting / B2B partnership
+  isCoHosted?: boolean;
+  coHosts?: TourCoHost[];
 }
 
 export interface GuideSchedule {
@@ -456,4 +507,7 @@ export interface CustomTourRequest {
   responseAt?: string;
   designedTourId?: string; // ID của Tour được thiết kế riêng cho yêu cầu này
   currentVersion?: number; // Phiên bản tour hiện tại
+  // Multi-company co-hosting / B2B partnership
+  isCoHosted?: boolean;
+  coHosts?: TourCoHost[];
 }

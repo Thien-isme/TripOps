@@ -29,6 +29,8 @@ import {
   Share2,
   Heart,
   Sparkles,
+  Handshake,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
@@ -136,9 +138,60 @@ function ProgramTab({ tour }: { tour: Tour }) {
                     {day.day}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">
-                      NGÀY {day.day}: {day.title.toUpperCase()}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-gray-900">
+                        NGÀY {day.day}: {day.title.toUpperCase()}
+                      </p>
+                      {tour.isCoHosted && tour.coHosts && (() => {
+                        const dayCompanies = new Map<string, string>();
+                        if (day.createdByCompanyId) {
+                          dayCompanies.set(day.createdByCompanyId, day.createdByCompanyName || "Công ty điều phối");
+                        }
+                        if (day.hotel?.createdByCompanyId) {
+                          dayCompanies.set(day.hotel.createdByCompanyId, day.hotel.createdByCompanyName || "Công ty lưu trú");
+                        }
+                        day.meals?.forEach((m) => {
+                          if (m.createdByCompanyId) {
+                            dayCompanies.set(m.createdByCompanyId, m.createdByCompanyName || "Công ty ẩm thực");
+                          }
+                        });
+                        day.locations?.forEach((loc) => {
+                          if (loc.createdByCompanyId) {
+                            dayCompanies.set(loc.createdByCompanyId, loc.createdByCompanyName || "Công ty tham quan");
+                          }
+                        });
+
+                        if (dayCompanies.size === 0) {
+                          tour.coHosts.forEach((ch) => {
+                            if (ch.assignedDays?.includes(day.day)) {
+                              dayCompanies.set(ch.companyId, ch.companyName);
+                            }
+                          });
+                        }
+
+                        const list = Array.from(dayCompanies.entries());
+                        if (list.length > 1) {
+                          return (
+                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                              <Handshake className="w-3 h-3 text-amber-700" />
+                              🤝 Đồng phụ trách ({list.map(([_, n]) => n).join(" & ")})
+                            </span>
+                          );
+                        }
+
+                        if (list.length === 1) {
+                          const [_, cName] = list[0];
+                          return (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1 shadow-2xs">
+                              <Handshake className="w-3 h-3" />
+                              Phụ trách: {cName}
+                            </span>
+                          );
+                        }
+
+                        return null;
+                      })()}
+                    </div>
                   </div>
                   {day.meals && day.meals.length > 0 && (
                     <div className="flex gap-1 flex-shrink-0">
@@ -165,9 +218,16 @@ function ProgramTab({ tour }: { tour: Tour }) {
                     {day.locations.length > 0 && (
                       <div className="space-y-1.5">
                         {day.locations.map((loc) => (
-                          <div key={loc.id} className="flex items-center gap-2 text-sm text-gray-700">
-                            <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                            <span className="font-medium text-gray-900">{loc.name}</span>
+                          <div key={loc.id} className="flex items-center justify-between text-sm text-gray-700">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                              <span className="font-medium text-gray-900">{loc.name}</span>
+                            </div>
+                            {loc.createdByCompanyName && (
+                              <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded font-normal">
+                                Tạo bởi: {loc.createdByCompanyName}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -209,7 +269,14 @@ function ProgramTab({ tour }: { tour: Tour }) {
                                   {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-xs font-bold text-gray-900">{label}</p>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <p className="text-xs font-bold text-gray-900">{label}</p>
+                                    {meal.createdByCompanyName && (
+                                      <span className="text-[10px] text-emerald-700 bg-white border border-emerald-200 px-1 py-0.2 rounded font-normal">
+                                        Tạo bởi: {meal.createdByCompanyName}
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-gray-800 font-semibold truncate">
                                     {meal.serviceName || "Nhà hàng theo chương trình"}
                                   </p>
@@ -225,6 +292,8 @@ function ProgramTab({ tour }: { tour: Tour }) {
                         </div>
                       </div>
                     )}
+
+
                   </div>
                 )}
               </div>
@@ -1705,6 +1774,66 @@ export function TourDetailPage({
                     Ghi chú phiên bản v{tour.version || 1}: "{tour.changeNote}"
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Co-Hosting Alliance Banner */}
+            {tour.isCoHosted && tour.coHosts && tour.coHosts.length > 0 && (
+              <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-blue-50 border border-purple-300 rounded-2xl p-4.5 space-y-3 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <span className="bg-purple-700 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                    <Handshake className="w-4 h-4 text-amber-300" />
+                    TOUR LIÊN MINH ĐỐI TÁC CHUYÊN NGHIỆP
+                  </span>
+                  <span className="text-xs text-purple-900 font-semibold">
+                    Đồng tổ chức bởi 2 thương hiệu uy tín
+                  </span>
+                </div>
+
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  Để đảm bảo chất lượng phục vụ vượt trội tại từng điểm đến, tour này được liên kết điều hành giữa <strong>đơn vị điều hành chính</strong> và <strong>công ty lữ hành bản địa chuyên tuyến</strong>.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {tour.coHosts.map((ch) => (
+                    <div
+                      key={ch.id}
+                      className="bg-white rounded-xl p-3 border border-purple-100 shadow-2xs space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-gray-900 flex items-center gap-2">
+                          {ch.companyLogo && (
+                            <img
+                              src={ch.companyLogo}
+                              alt=""
+                              className="w-6 h-6 rounded-md object-cover"
+                            />
+                          )}
+                          {ch.companyName}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                            ch.role === "lead"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-purple-100 text-purple-800"
+                          }`}
+                        >
+                          {ch.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Bản địa"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-600">
+                        <strong>Phụ trách:</strong> {ch.assignedSegments}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2 text-emerald-900 text-xs">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>
+                    <strong>Bảo chứng thanh toán Ký quỹ (Escrow):</strong> 100% tiền tour được bảo lưu an toàn tại Tài khoản ký quỹ của Sàn cho tới khi quý khách hoàn thành hành trình.
+                  </span>
+                </div>
               </div>
             )}
 

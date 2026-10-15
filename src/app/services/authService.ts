@@ -36,9 +36,14 @@ export const login = async (
   credentials: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> => {
   try {
-    // Tìm user theo email (trong production sẽ gọi API)
+    // Tìm user theo email hoặc alias emails (trong production sẽ gọi API)
     const user = mockUsers.find(
-      (u) => u.email === credentials.email,
+      (u) =>
+        u.email.toLowerCase() === credentials.email.trim().toLowerCase() ||
+        (u.aliasEmails &&
+          u.aliasEmails.some(
+            (alias) => alias.toLowerCase() === credentials.email.trim().toLowerCase()
+          ))
     );
 
     if (!user) {

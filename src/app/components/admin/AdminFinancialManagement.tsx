@@ -16,6 +16,7 @@ import {
   Clock,
   Sparkles,
   Info,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -498,10 +499,33 @@ export function AdminFinancialManagement({
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="font-bold text-gray-800 flex items-center gap-1">
-                          <Building2 className="w-3.5 h-3.5 text-gray-400" />
-                          {b.companyName || b.tour.companyName || "Viettravel"}
-                        </span>
+                        {b.isCoHosted || b.tour?.isCoHosted ? (
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">
+                              <Handshake className="w-3 h-3 text-purple-600" />
+                              Tour Liên Minh (2 Cty)
+                            </span>
+                            <div className="space-y-0.5 text-[11px]">
+                              <p className="font-bold text-gray-900 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 flex-shrink-0"></span>
+                                <span className="truncate">
+                                  {b.coHosts?.find((c) => c.role === "lead")?.companyName || b.companyName} ({b.coHosts?.find((c) => c.role === "lead")?.revenueSharePercentage ?? 40}%)
+                                </span>
+                              </p>
+                              <p className="font-bold text-purple-900 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 flex-shrink-0"></span>
+                                <span className="truncate">
+                                  {b.coHosts?.find((c) => c.role === "partner")?.companyName || "Đối tác"} ({b.coHosts?.find((c) => c.role === "partner")?.revenueSharePercentage ?? 60}%)
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="font-bold text-gray-800 flex items-center gap-1">
+                            <Building2 className="w-3.5 h-3.5 text-gray-400" />
+                            {b.companyName || b.tour.companyName || "Viettravel"}
+                          </span>
+                        )}
                       </td>
 
                       <td className="py-3 px-4 text-right font-medium text-gray-700">
@@ -606,12 +630,25 @@ export function AdminFinancialManagement({
             const platformFee = Math.round((paid * feeRate) / 100);
             const finalSettledAmount = paid - platformFee;
 
+            const isCoHosted = Boolean(b.isCoHosted || b.tour?.isCoHosted);
+            const coHosts = b.coHosts || b.tour?.coHosts || [];
+            const leadHost = coHosts.find((c) => c.role === "lead");
+            const partnerHost = coHosts.find((c) => c.role === "partner");
+
+            const leadPercent = leadHost?.revenueSharePercentage ?? 40;
+            const partnerPercent = partnerHost?.revenueSharePercentage ?? 60;
+
+            const leadPayout = Math.round((finalSettledAmount * leadPercent) / 100);
+            const partnerPayout = finalSettledAmount - leadPayout;
+
             return (
               <div className="space-y-4 text-xs">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
                     <Landmark className="w-5 h-5 text-emerald-600" />
-                    Quyết toán Tiền Tour cho Công ty Du lịch
+                    {isCoHosted
+                      ? "Quyết toán Tiền Tour Liên Minh Đối Tác (Escrow Split)"
+                      : "Quyết toán Tiền Tour cho Công ty Du lịch"}
                   </DialogTitle>
                 </DialogHeader>
 
@@ -625,7 +662,14 @@ export function AdminFinancialManagement({
                     <span>Khách: <strong>{b.userName}</strong></span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Công ty thụ hưởng: <strong className="text-blue-700">{b.companyName || b.tour.companyName}</strong></span>
+                    <span>
+                      Công ty thụ hưởng:{" "}
+                      <strong className="text-blue-700">
+                        {isCoHosted
+                          ? `${leadHost?.companyName || "Chủ trì"} + ${partnerHost?.companyName || "Đối tác"}`
+                          : b.companyName || b.tour.companyName}
+                      </strong>
+                    </span>
                     <span>Số khách: <strong>{b.numberOfGuests}</strong></span>
                   </div>
                 </div>
@@ -633,7 +677,7 @@ export function AdminFinancialManagement({
                 {/* Calculation breakdown */}
                 <div className="bg-blue-50/60 rounded-xl p-4 border border-blue-200 space-y-2.5">
                   <h4 className="font-bold text-blue-900 text-xs uppercase tracking-wide">
-                    Bảng Kê Chi Tiết Quyết Toán:
+                    Bảng Kê Chi Tiết Dòng Tiền Escrow Sàn:
                   </h4>
                   <div className="space-y-1.5 text-gray-700">
                     <div className="flex justify-between items-center">
@@ -646,7 +690,7 @@ export function AdminFinancialManagement({
                     </div>
                     <div className="border-t border-blue-200 pt-2 flex justify-between items-center text-sm">
                       <span className="font-bold text-gray-900">
-                        3. Số tiền thực chuyển lại cho Công ty lữ hành:
+                        3. Tổng tiền chuyển cho các đơn vị tổ chức:
                       </span>
                       <span className="text-base font-extrabold text-emerald-700">
                         {formatVND(finalSettledAmount)}
@@ -654,6 +698,59 @@ export function AdminFinancialManagement({
                     </div>
                   </div>
                 </div>
+
+                {/* CO-HOSTED SPLIT BREAKDOWN */}
+                {isCoHosted && leadHost && partnerHost && (
+                  <div className="bg-purple-50/80 rounded-xl p-3.5 border border-purple-200 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-purple-950 text-xs flex items-center gap-1.5 uppercase">
+                        <Handshake className="w-4 h-4 text-purple-600" />
+                        Phân Chia Quyết Toán Cho 2 Công Ty Liên Minh:
+                      </span>
+                      <span className="text-[10px] font-bold bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
+                        Tỷ lệ: {leadPercent}% - {partnerPercent}%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {/* Lead */}
+                      <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-900 text-xs truncate">
+                            {leadHost.companyName}
+                          </span>
+                          <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded">
+                            Chủ trì ({leadPercent}%)
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 line-clamp-1">
+                          {leadHost.assignedSegments || "Điều phối chính"}
+                        </p>
+                        <p className="text-sm font-extrabold text-blue-700 pt-1">
+                          {formatVND(leadPayout)}
+                        </p>
+                      </div>
+
+                      {/* Partner */}
+                      <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-900 text-xs truncate">
+                            {partnerHost.companyName}
+                          </span>
+                          <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded">
+                            Đối tác ({partnerPercent}%)
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-600 line-clamp-1">
+                          {partnerHost.assignedSegments || "Đối tác bản địa"}
+                        </p>
+                        <p className="text-sm font-extrabold text-purple-700 pt-1">
+                          {formatVND(partnerPayout)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Transaction details inputs */}
                 <div className="space-y-3 pt-1">
@@ -699,7 +796,9 @@ export function AdminFinancialManagement({
                     }}
                   >
                     <Check className="w-4 h-4" />
-                    Xác nhận đã chuyển {formatVND(finalSettledAmount)} cho Cty
+                    {isCoHosted && leadHost && partnerHost
+                      ? `Xác nhận chuyển ${formatVND(leadPayout)} (${leadHost.companyName}) & ${formatVND(partnerPayout)} (${partnerHost.companyName})`
+                      : `Xác nhận đã chuyển ${formatVND(finalSettledAmount)} cho Cty`}
                   </Button>
                 </div>
               </div>

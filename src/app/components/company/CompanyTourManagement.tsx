@@ -44,6 +44,7 @@ import {
   ArrowLeft,
   Sun,
   History,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -430,113 +431,6 @@ function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
 }
 
-export const SYSTEM_CATALOG_HOTELS = [
-  { name: "Dalat Edensee Lake Resort & Spa", stars: 5, priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
-  { name: "Ana Mandara Villas Dalat Resort", stars: 5, priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
-  { name: "MerPerle Dalat Hotel", stars: 5, priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
-  { name: "Tuyền Lâm Lake View Resort", stars: 4, priceDifference: 1800000, description: "Khu nghỉ dưỡng cao cấp hòa quyện thiên nhiên hồ Tuyền Lâm" },
-  { name: "Terracotta Hotel & Resort Dalat", stars: 4, priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
-  { name: "TTC Hotel Premium Ngọc Lan", stars: 4, priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
-  { name: "Khách sạn Sammy Đà Lạt", stars: 4, priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
-  { name: "Khách sạn Golf 3 Đà Lạt", stars: 3, priceDifference: -800000, description: "Khách sạn ngay phố đi bộ, thuận tiện mua sắm và ẩm thực" },
-];
-
-export const SYSTEM_CATALOG_RESTAURANTS = [
-  // Bữa sáng (Breakfast)
-  {
-    restaurantName: "Buffet sáng tiêu chuẩn tại Khách sạn",
-    mealType: "breakfast" as const,
-    priceDifference: 0,
-    description: "Buffet sáng phong phú nhiều món Á - Âu kèm trà, cà phê tại khách sạn",
-  },
-  {
-    restaurantName: "Bánh căn Lệ Đà Lạt",
-    mealType: "breakfast" as const,
-    priceDifference: 20000,
-    description: "Bánh căn giòn rụm xíu mại trứng cút, nước mắm hành mỡ cay nồng",
-  },
-  {
-    restaurantName: "Bánh mì xíu mại Hoàng Diệu",
-    mealType: "breakfast" as const,
-    priceDifference: 15000,
-    description: "Bánh mì giòn chấm chén xíu mại nóng hổi béo ngậy đặc sản Đà Lạt",
-  },
-  {
-    restaurantName: "Phở thố đá Chu Gia Đà Lạt",
-    mealType: "breakfast" as const,
-    priceDifference: 35000,
-    description: "Phở bò thố đá sôi sục giữ trọn hương vị tươi ngọt đậm đà",
-  },
-  {
-    restaurantName: "Bún bò Huế ấp Ánh Sáng",
-    mealType: "breakfast" as const,
-    priceDifference: 25000,
-    description: "Tô bún bò đậm đà thơm mùi sả ruốc hương vị cố đô giữa lòng phố núi",
-  },
-  // Bữa trưa (Lunch)
-  {
-    restaurantName: "Nhà hàng Trúc Lâm Viên",
-    mealType: "lunch" as const,
-    priceDifference: 30000,
-    description: "Cơm niêu gia đình, cá kho tộ, canh atiso sườn non",
-  },
-  {
-    restaurantName: "Nhà hàng Leguda Buffet Rau Cáp Treo",
-    mealType: "lunch" as const,
-    priceDifference: 40000,
-    description: "Buffet rau sạch không giới hạn đồi Robin view cáp treo",
-  },
-  {
-    restaurantName: "Nhà hàng Làng Nướng Đà Lạt",
-    mealType: "lunch" as const,
-    priceDifference: 50000,
-    description: "Thịt rừng nướng ngói, rau rừng xào tỏi thơm lừng",
-  },
-  {
-    restaurantName: "Nhà hàng Song May Đà Lạt",
-    mealType: "lunch" as const,
-    priceDifference: 70000,
-    description: "Ẩm thực truyền thống Việt Nam trong không gian nhà gỗ cổ kính",
-  },
-  {
-    restaurantName: "Cơm lam Gà nướng Tam Nguyên",
-    mealType: "lunch" as const,
-    priceDifference: -20000,
-    description: "Đặc sản dân dã gà đồi nướng than hoa, cơm lam ống tre",
-  },
-  // Bữa tối (Dinner)
-  {
-    restaurantName: "Nhà hàng Lẩu Gà Lá É Tao Ngộ",
-    mealType: "dinner" as const,
-    priceDifference: 40000,
-    description: "Đặc sản lẩu gà lá é trứ danh thơm cay ấm cúng giữa đêm sương",
-  },
-  {
-    restaurantName: "Nhà hàng Quán Nướng Chu",
-    mealType: "dinner" as const,
-    priceDifference: 60000,
-    description: "Món nướng đá ngói, bò tơ nướng sa tế đậm đà nức tiếng",
-  },
-  {
-    restaurantName: "Nhà hàng Dalat Palace Ristorante",
-    mealType: "dinner" as const,
-    priceDifference: 200000,
-    description: "Ẩm thực Fine Dining Âu - Á cao cấp sang trọng chuẩn 5 sao",
-  },
-  {
-    restaurantName: "Nhà hàng La Viet Fine Dining",
-    mealType: "dinner" as const,
-    priceDifference: 130000,
-    description: "Trải nghiệm ẩm thực phong cách đương đại kết hợp cà phê bản địa",
-  },
-  {
-    restaurantName: "Lẩu bò Ba Toa Quán Gỗ",
-    mealType: "dinner" as const,
-    priceDifference: -15000,
-    description: "Lẩu bò đậm đà phong vị Đà Lạt truyền thống nổi tiếng",
-  },
-];
-
 export function TourFormPage({
   tour,
   company,
@@ -607,6 +501,41 @@ export function TourFormPage({
   );
   const [newHighlight, setNewHighlight] = useState("");
 
+  // Co-Hosting Alliance & Segment Quotation States
+  const isCoHostedTour = !!(customRequest?.isCoHosted || tour?.isCoHosted);
+  const coHostsList = tour?.coHosts || customRequest?.coHosts || [];
+  const leadHost = coHostsList.find((ch) => ch.role === "lead");
+  const partnerHost = coHostsList.find((ch) => ch.role === "partner");
+  const myHost = coHostsList.find((ch) => ch.companyId === company.id);
+  const otherHost = coHostsList.find((ch) => ch.companyId !== company.id);
+
+  const [myQuotePerGuest, setMyQuotePerGuest] = useState<number>(() => {
+    if (myHost?.quotePerGuest && myHost.quotePerGuest > 0) return myHost.quotePerGuest;
+    if (myHost?.role === "partner") {
+      return myHost?.estimatedBudgetPerGuest || 2200000;
+    }
+    return 2300000;
+  });
+  const [myQuoteStatus, setMyQuoteStatus] = useState<"draft" | "submitted">(
+    myHost?.quoteStatus || "draft"
+  );
+  const [myQuoteNote, setMyQuoteNote] = useState<string>(
+    myHost?.quoteNote || (myHost?.role === "lead"
+      ? "Đã bao gồm xe đưa đón đoàn, phòng khách sạn chặng đầu, ăn uống và vé tham quan."
+      : "Đã bao gồm khách sạn địa phương, ẩm thực đặc sản chặng sau, xe trung chuyển và HDV bản địa.")
+  );
+
+  // Financial calculations for co-hosted tours
+  const partnerQuoteVal = company.id === partnerHost?.companyId ? myQuotePerGuest : (partnerHost?.quotePerGuest || 0);
+  const leadQuoteVal = company.id === leadHost?.companyId ? myQuotePerGuest : (leadHost?.quotePerGuest || 0);
+  const totalNetCost = leadQuoteVal + partnerQuoteVal;
+  const platformFeeRate = tour?.platformFeeRate || 8; // 8%
+  const calculatedPlatformFee = totalNetCost > 0 ? Math.round((totalNetCost * platformFeeRate) / (100 - platformFeeRate)) : 0;
+  const calculatedFinalPrice = totalNetCost > 0 ? totalNetCost + calculatedPlatformFee : price;
+
+  const dynamicLeadPct = totalNetCost > 0 ? Math.round((leadQuoteVal / totalNetCost) * 100) : 50;
+  const dynamicPartnerPct = 100 - dynamicLeadPct;
+
   // Tab 2 - Section 1: Danh sách Khách sạn lưu trú & Cấu hình Đổi hạng khách sạn
   const [hotels, setHotels] = useState<TourHotel[]>(() => {
     if (tour?.hotels && tour.hotels.length > 0) {
@@ -615,11 +544,6 @@ export function TourFormPage({
     const found = tour?.itinerary?.find((d) => d.hotel)?.hotel;
     const defaultAlternatives: TourAlternativeHotel[] = [
       { id: "alt-1", name: "Dalat Edensee Lake Resort & Spa", stars: 5, priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
-      { id: "alt-2", name: "Ana Mandara Villas Dalat Resort", stars: 5, priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
-      { id: "alt-3", name: "MerPerle Dalat Hotel", stars: 5, priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
-      { id: "alt-4", name: "Terracotta Hotel & Resort Dalat", stars: 4, priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
-      { id: "alt-5", name: "TTC Hotel Premium Ngọc Lan", stars: 4, priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
-      { id: "alt-6", name: "Khách sạn Sammy Đà Lạt", stars: 4, priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
     ];
 
     if (found) {
@@ -668,6 +592,8 @@ export function TourFormPage({
       address: "",
       allowCustomHotelRequest: true,
       alternativeHotels: [],
+      createdByCompanyId: company.id,
+      createdByCompanyName: company.name,
     };
     setHotels((prev) => [...prev, newHotel]);
     setExpandedHotelId(newId);
@@ -760,6 +686,8 @@ export function TourFormPage({
         serviceName: newMealRestaurant.trim() || `Nhà hàng đặc sản (${label})`,
         description: newMealDesc.trim() || "Thực đơn tiêu chuẩn theo chương trình tour",
         pricePerPerson: newMealPrice || 120000,
+        createdByCompanyId: company.id,
+        createdByCompanyName: company.name,
       });
       updated[dayIdx].meals = dayMeals;
       setItinerary(updated);
@@ -788,6 +716,8 @@ export function TourFormPage({
       pricePerPerson: defaultPrice,
       allowCustomMealRequest: true,
       alternativeMeals: [],
+      createdByCompanyId: company.id,
+      createdByCompanyName: company.name,
     };
     dayMeals.push(newMeal);
     updated[dayIdx].meals = dayMeals;
@@ -853,7 +783,12 @@ export function TourFormPage({
     const updated = [...itinerary];
     const currentMeals = updated[dayIdx].meals || [];
     if (!currentMeals[mealIdx]) return;
-    currentMeals[mealIdx] = { ...currentMeals[mealIdx], ...updates };
+    currentMeals[mealIdx] = {
+      ...currentMeals[mealIdx],
+      ...updates,
+      createdByCompanyId: company.id,
+      createdByCompanyName: company.name,
+    };
     updated[dayIdx].meals = currentMeals;
     setItinerary(updated);
   };
@@ -934,10 +869,37 @@ export function TourFormPage({
       ? JSON.parse(JSON.stringify(tour.priceTable))
       : [
           { ageGroup: "adult", ageGroupLabel: "Người lớn", ageRange: "Từ 11 tuổi trở lên", price: 3500000 },
-          { ageGroup: "child_2_11", ageGroupLabel: "Trẻ em", ageRange: "Từ 2 đến dưới 11 tuổi", price: 2450000 },
-          { ageGroup: "child_under_2", ageGroupLabel: "Em bé", ageRange: "Dưới 2 tuổi", price: 0 },
+          { ageGroup: "child_2_11", ageGroupLabel: "Trẻ em (2–11 tuổi)", ageRange: "Từ 2 đến dưới 11 tuổi", price: 2450000 },
+          { ageGroup: "child_under_2", ageGroupLabel: "Em bé (dưới 2 tuổi)", ageRange: "Dưới 2 tuổi", price: 0 },
         ]
   );
+
+  const handleAddPriceRow = () => {
+    const newRow: TourPriceRow = {
+      ageGroup: `custom_${Date.now()}`,
+      ageGroupLabel: "Khung giá mới",
+      ageRange: "Theo thỏa thuận",
+      price: Math.round(price * 0.8) || 2000000,
+    };
+    setPriceTable([...priceTable, newRow]);
+  };
+
+  const handleRemovePriceRow = (index: number) => {
+    if (priceTable.length <= 1) {
+      alert("Cần giữ lại ít nhất 1 khung giá vé cho tour!");
+      return;
+    }
+    setPriceTable(priceTable.filter((_, i) => i !== index));
+  };
+
+  const handleResetDefaultPriceRows = () => {
+    const base = price || 3500000;
+    setPriceTable([
+      { ageGroup: "adult", ageGroupLabel: "Người lớn", ageRange: "Từ 11 tuổi trở lên", price: base },
+      { ageGroup: "child_2_11", ageGroupLabel: "Trẻ em (2–11 tuổi)", ageRange: "Từ 2 đến dưới 11 tuổi", price: Math.round(base * 0.7) },
+      { ageGroup: "child_under_2", ageGroupLabel: "Em bé (dưới 2 tuổi)", ageRange: "Dưới 2 tuổi", price: 0 },
+    ]);
+  };
 
   // Tab 4: Quy định & Chính sách
   const [inclusions, setInclusions] = useState<string[]>(
@@ -1046,14 +1008,18 @@ export function TourFormPage({
       title: `Ngày ${nextDayNum}: Tiếp tục hành trình (Ăn trưa, tối)`,
       description: "Đoàn tiếp tục tham quan các điểm du lịch nổi tiếng...",
       destinationCity: destination || "Điểm đến",
+      createdByCompanyId: company.id,
+      createdByCompanyName: company.name,
       hotel: {
         name: itinerary[0]?.hotel?.name || hotels[0]?.name || "Khách sạn lưu trú tiêu chuẩn",
         pricePerNight: itinerary[0]?.hotel?.pricePerNight || hotels[0]?.pricePerNight || 2800000,
         description: "Khách sạn lưu trú tiêu chuẩn",
+        createdByCompanyId: company.id,
+        createdByCompanyName: company.name,
       },
       meals: [
-        { type: "lunch", serviceName: "Nhà hàng Trúc Lâm Viên", description: "Bữa trưa đặc sản", pricePerPerson: 140000 },
-        { type: "dinner", serviceName: "Nhà hàng Làng Nướng Đà Lạt", description: "Bữa tối tiêu chuẩn", pricePerPerson: 160000 },
+        { type: "lunch", serviceName: "Nhà hàng Trúc Lâm Viên", description: "Bữa trưa đặc sản", pricePerPerson: 140000, createdByCompanyId: company.id, createdByCompanyName: company.name },
+        { type: "dinner", serviceName: "Nhà hàng Làng Nướng Đà Lạt", description: "Bữa tối tiêu chuẩn", pricePerPerson: 160000, createdByCompanyId: company.id, createdByCompanyName: company.name },
       ],
       locations: [
         { id: `loc-${Date.now()}-1`, name: "Điểm tham quan mới", address: "", time: "09:00" },
@@ -1087,6 +1053,8 @@ export function TourFormPage({
       name: "Điểm tham quan mới",
       address: "",
       time: "10:00",
+      createdByCompanyId: company.id,
+      createdByCompanyName: company.name,
     });
     setItinerary(updated);
   };
@@ -1120,6 +1088,38 @@ export function TourFormPage({
       }
     }
 
+    // Handle co-hosting quotes and dynamic revenue split calculation
+    let updatedCoHosts = tour?.coHosts || customRequest?.coHosts;
+    if (isCoHostedTour && updatedCoHosts) {
+      updatedCoHosts = updatedCoHosts.map((ch) => {
+        if (ch.companyId === company.id) {
+          return {
+            ...ch,
+            quotePerGuest: myQuotePerGuest,
+            quoteStatus: myQuoteStatus,
+            quoteNote: myQuoteNote,
+            quotedAt: myQuoteStatus === "submitted" ? (ch.quotedAt || new Date().toISOString()) : ch.quotedAt,
+          };
+        }
+        return ch;
+      });
+
+      // Recalculate revenue percentage based on actual quotes
+      const lQuote = updatedCoHosts.find((ch) => ch.role === "lead")?.quotePerGuest || 0;
+      const pQuote = updatedCoHosts.find((ch) => ch.role === "partner")?.quotePerGuest || 0;
+      const totNet = lQuote + pQuote;
+      if (totNet > 0) {
+        const leadPct = Math.round((lQuote / totNet) * 100);
+        const partnerPct = 100 - leadPct;
+        updatedCoHosts = updatedCoHosts.map((ch) => ({
+          ...ch,
+          revenueSharePercentage: ch.role === "lead" ? leadPct : partnerPct,
+        }));
+      }
+    }
+
+    const finalTourPrice = isCoHostedTour && calculatedFinalPrice > 0 ? calculatedFinalPrice : price;
+
     const tourData: Partial<Tour> = {
       tourCode,
       name,
@@ -1127,7 +1127,7 @@ export function TourFormPage({
       duration,
       numberOfDays,
       numberOfNights,
-      price,
+      price: finalTourPrice,
       image: chosenThumbnail,
       images,
       operationPeriod,
@@ -1137,15 +1137,19 @@ export function TourFormPage({
       highlights: highlights.filter((h) => h.trim().length > 0),
       hotels,
       itinerary,
-      priceTable,
+      priceTable: priceTable.map((p) => (p.ageGroup === "adult" ? { ...p, price: finalTourPrice } : p)),
       inclusions: inclusions.filter((i) => i.trim().length > 0),
       exclusions: exclusions.filter((e) => e.trim().length > 0),
       regulations: regulations.filter((r) => r.trim().length > 0),
       companyNote,
       rating: tour?.rating ?? 4.8,
-      companyId: company.id,
-      companyName: company.name,
-      companyLogo: company.logo,
+      companyId: tour?.companyId || company.id,
+      companyName: tour?.companyName || company.name,
+      companyLogo: tour?.companyLogo || company.logo,
+      isCoHosted: isCoHostedTour,
+      coHosts: updatedCoHosts,
+      platformFeeRate: 8,
+      pricingStatus: updatedCoHosts?.every((ch) => ch.quoteStatus === "submitted") ? "quoted" : "pending_partner_quote",
       tourType: isCustom ? "custom_request" : (tour?.tourType || "public"),
       customRequestId: customRequest?.id || tour?.customRequestId,
       targetUserId: customRequest?.userId || tour?.targetUserId,
@@ -1249,6 +1253,33 @@ export function TourFormPage({
               placeholder={tour ? `Ghi chú cho v${(tour.version || 1) + 1} (VD: Đổi khách sạn sang TTC Premium...)` : "Ghi chú ban đầu..."}
               className="text-xs bg-purple-950/80 text-white placeholder-purple-400 border border-purple-500/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 md:w-80"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Co-Hosting Collaboration Header */}
+      {(customRequest?.isCoHosted || tour?.isCoHosted) && (
+        <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-blue-900 text-white px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border-b border-purple-600 shadow-xs">
+          <div className="flex items-center gap-2">
+            <Handshake className="w-4 h-4 text-amber-300 flex-shrink-0" />
+            <span className="font-bold uppercase tracking-wider">ĐỒNG THIẾT KẾ TOUR LIÊN MINH:</span>
+            <span className="text-purple-200 hidden md:inline">
+              Mỗi công ty tự thiết lập khách sạn, nhà hàng và lịch trình tại các dịch vụ phụ trách.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {(tour?.coHosts || customRequest?.coHosts)?.map((ch) => (
+              <span
+                key={ch.id}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                  ch.companyId === company.id
+                    ? "bg-emerald-500 text-white shadow-xs"
+                    : "bg-white/20 text-purple-100"
+                }`}
+              >
+                {ch.companyName} ({ch.role === "lead" ? "Chủ trì" : "Đối tác"})
+              </span>
+            ))}
           </div>
         </div>
       )}
@@ -1706,47 +1737,12 @@ export function TourFormPage({
                                 </button>
                               </div>
 
-                              {/* Gợi ý thêm nhanh từ kho khách sạn hệ thống */}
-                              <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 space-y-2">
-                                <p className="text-[11px] font-semibold text-amber-900 flex items-center gap-1">
-                                  <Building2 className="w-3.5 h-3.5 text-amber-600" />
-                                  Chọn nhanh khách sạn đối tác gợi ý để thêm vào tour:
-                                </p>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {SYSTEM_CATALOG_HOTELS.map((catHotel, cIdx) => {
-                                    const alreadyAdded = (hotel.alternativeHotels || []).some(
-                                      (a) => a.name.toLowerCase() === catHotel.name.toLowerCase()
-                                    );
-                                    return (
-                                      <button
-                                        key={cIdx}
-                                        type="button"
-                                        disabled={alreadyAdded}
-                                        onClick={() => addAlternativeHotel(hotel.id || "", catHotel)}
-                                        className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
-                                          alreadyAdded
-                                            ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                                            : "border-amber-300 bg-white hover:bg-amber-100 text-amber-900 hover:border-amber-400 font-medium"
-                                        }`}
-                                      >
-                                        <Plus className="w-3 h-3 text-amber-600" />
-                                        <span>{catHotel.name}</span>
-                                        <span className="text-amber-600 font-bold">({catHotel.stars}★)</span>
-                                        <span className={`font-bold ${catHotel.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                                          ({catHotel.priceDifference > 0 ? "+" : ""}{formatVND(catHotel.priceDifference)})
-                                        </span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Danh sách các khách sạn đổi hạng đã cấu hình */}
-                              {(hotel.alternativeHotels || []).length === 0 ? (
-                                <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                                  Chưa có khách sạn đổi hạng nào. Bấm nút "+ Thêm khách sạn đổi hạng" hoặc chọn nhanh từ danh mục đối tác ở trên.
-                                </div>
-                              ) : (
+                               {/* Danh sách các khách sạn đổi hạng đã cấu hình */}
+                               {(hotel.alternativeHotels || []).length === 0 ? (
+                                 <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                                   Chưa có khách sạn đổi hạng nào. Bấm nút "+ Thêm khách sạn đổi hạng" để thiết lập các lựa chọn khách sạn khác cho khách.
+                                 </div>
+                               ) : (
                                 <div className="space-y-2.5">
                                   {(hotel.alternativeHotels || []).map((alt, aIdx) => (
                                     <div
@@ -1914,14 +1910,81 @@ export function TourFormPage({
                             {day.day}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900 text-sm">
-                              Ngày {day.day}: {day.title || `Lịch trình ngày ${day.day}`}
-                              {day.meals && day.meals.length > 0 && (
-                                <span className="text-xs text-gray-400 font-normal ml-1.5">
-                                  ({day.meals.map((m) => m.type === "breakfast" ? "Ăn sáng" : m.type === "lunch" ? "trưa" : "tối").join(", ")})
-                                </span>
-                              )}
-                            </p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-gray-900 text-sm">
+                                Ngày {day.day}: {day.title || `Lịch trình ngày ${day.day}`}
+                              </p>
+                              {(() => {
+                                const coHosts = tour?.coHosts || customRequest?.coHosts;
+                                if (!coHosts || coHosts.length === 0) return null;
+
+                                // Scan companies that contributed to this day
+                                const dayCompanies = new Map<string, string>();
+                                if (day.createdByCompanyId) {
+                                  dayCompanies.set(day.createdByCompanyId, day.createdByCompanyName || "Công ty điều phối");
+                                }
+                                if (day.hotel?.createdByCompanyId) {
+                                  dayCompanies.set(day.hotel.createdByCompanyId, day.hotel.createdByCompanyName || "Công ty lưu trú");
+                                }
+                                day.meals?.forEach((m) => {
+                                  if (m.createdByCompanyId) {
+                                    dayCompanies.set(m.createdByCompanyId, m.createdByCompanyName || "Công ty ẩm thực");
+                                  }
+                                });
+                                day.locations?.forEach((loc) => {
+                                  if (loc.createdByCompanyId) {
+                                    dayCompanies.set(loc.createdByCompanyId, loc.createdByCompanyName || "Công ty tham quan");
+                                  }
+                                });
+
+                                // Fallback to assignedDays if not explicitly tagged yet
+                                if (dayCompanies.size === 0) {
+                                  coHosts.forEach((ch) => {
+                                    if (ch.assignedDays?.includes(day.day)) {
+                                      dayCompanies.set(ch.companyId, ch.companyName);
+                                    }
+                                  });
+                                }
+
+                                const companyList = Array.from(dayCompanies.entries());
+                                const isMultiCompany = companyList.length > 1;
+
+                                if (isMultiCompany) {
+                                  return (
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                                        <Handshake className="w-3 h-3 text-amber-700" />
+                                        🤝 Cả 2 công ty cùng phụ trách ({companyList.map(([_, name]) => name).join(" & ")})
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                if (companyList.length === 1) {
+                                  const [cId, cName] = companyList[0];
+                                  const isMyCompany = cId === company.id;
+                                  return (
+                                    <span
+                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs ${
+                                        isMyCompany
+                                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                          : "bg-blue-100 text-blue-800 border border-blue-200"
+                                      }`}
+                                    >
+                                      <Building2 className="w-3 h-3" />
+                                      {isMyCompany ? `Công ty bạn phụ trách (${cName})` : `Phụ trách: ${cName}`}
+                                    </span>
+                                  );
+                                }
+
+                                return null;
+                              })()}
+                            </div>
+                            {day.meals && day.meals.length > 0 && (
+                              <span className="text-xs text-gray-400 font-normal">
+                                ({day.meals.map((m) => (m.type === "breakfast" ? "Ăn sáng" : m.type === "lunch" ? "trưa" : "tối")).join(", ")})
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -1939,6 +2002,7 @@ export function TourFormPage({
 
                       {/* Day content: Edit Title & Description */}
                       <div className="p-4 space-y-3">
+
                         <div>
                           <Label className="text-[11px] text-gray-600">Tiêu đề ngày</Label>
                           <Input
@@ -2043,17 +2107,27 @@ export function TourFormPage({
                                       </div>
 
                                       {/* Location Name Input */}
-                                      <div className="flex items-center gap-2 flex-1">
+                                      <div className="flex items-center gap-2 flex-1 flex-wrap">
                                         <Input
                                           value={loc.name}
                                           onChange={(e) => {
                                             const updated = [...itinerary];
                                             updated[dIdx].locations[lIdx].name = e.target.value;
+                                            if (!updated[dIdx].locations[lIdx].createdByCompanyId) {
+                                              updated[dIdx].locations[lIdx].createdByCompanyId = company.id;
+                                              updated[dIdx].locations[lIdx].createdByCompanyName = company.name;
+                                            }
                                             setItinerary(updated);
                                           }}
                                           placeholder="Tên điểm tham quan (VD: Hồ Xuân Hương)..."
-                                          className="text-xs font-medium text-gray-900 border-none shadow-none focus-visible:ring-1 flex-1 p-0 h-auto"
+                                          className="text-xs font-medium text-gray-900 border-none shadow-none focus-visible:ring-1 flex-1 min-w-[120px] p-0 h-auto"
                                         />
+                                        {loc.createdByCompanyName && (
+                                          <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded font-normal shrink-0 flex items-center gap-1">
+                                            <Building2 className="w-2.5 h-2.5 text-gray-400" />
+                                            {loc.createdByCompanyName}
+                                          </span>
+                                        )}
                                       </div>
 
                                       {/* Actions: Move Up, Move Down, Delete */}
@@ -2171,12 +2245,20 @@ export function TourFormPage({
                                           {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
                                         </div>
                                         <div className="min-w-0">
-                                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                                            {mealLabel}:{" "}
-                                            <span className="font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo tour"}</span>
-                                          </p>
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                                              {mealLabel}:{" "}
+                                              <span className="font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo tour"}</span>
+                                            </p>
+                                            {meal.createdByCompanyName && (
+                                              <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-normal flex items-center gap-1">
+                                                <Building2 className="w-2.5 h-2.5 text-emerald-600" />
+                                                Tạo bởi: {meal.createdByCompanyName}
+                                              </span>
+                                            )}
+                                          </div>
                                           <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                                            Mặc định: {meal.serviceName || "Nhà hàng địa phương"} {meal.pricePerPerson ? `(${formatVND(meal.pricePerPerson)}/người)` : ""}
+                                            Mặc định: {meal.serviceName || "Nhà hàng địa phương"}
                                           </p>
                                         </div>
                                       </div>
@@ -2204,7 +2286,7 @@ export function TourFormPage({
                                       <div className="p-4 bg-white border-t border-gray-100 space-y-4">
                                         {/* Default Restaurant & Description */}
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                                          <div className="sm:col-span-8">
+                                          <div className="sm:col-span-12">
                                             <Label className="text-xs font-semibold text-gray-700">
                                               Tên nhà hàng mặc định ({mealLabel}) <span className="text-red-500">*</span>
                                             </Label>
@@ -2213,19 +2295,6 @@ export function TourFormPage({
                                               onChange={(e) => updateMealField(dIdx, mIdx, { serviceName: e.target.value })}
                                               placeholder="VD: Nhà hàng Hương Rừng Đà Lạt"
                                               className="mt-1 text-xs"
-                                            />
-                                          </div>
-                                          <div className="sm:col-span-4">
-                                            <Label className="text-xs font-semibold text-gray-700">
-                                              Giá tiêu chuẩn / người (VNĐ)
-                                            </Label>
-                                            <Input
-                                              type="number"
-                                              step={10000}
-                                              value={meal.pricePerPerson || 120000}
-                                              onChange={(e) => updateMealField(dIdx, mIdx, { pricePerPerson: parseInt(e.target.value) || 0 })}
-                                              placeholder="VD: 120000"
-                                              className="mt-1 text-xs font-semibold"
                                             />
                                           </div>
                                           <div className="sm:col-span-12">
@@ -2261,44 +2330,12 @@ export function TourFormPage({
                                             </button>
                                           </div>
 
-                                          {/* Quick-add catalog recommendations */}
-                                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5 space-y-1.5">
-                                            <p className="text-[11px] font-semibold text-emerald-900 flex items-center gap-1">
-                                              <Sparkles className="w-3 h-3 text-emerald-600" />
-                                              Chọn nhanh nhà hàng đối tác ({mealLabel.toLowerCase()}):
-                                            </p>
-                                            <div className="flex flex-wrap gap-1.5">
-                                              {SYSTEM_CATALOG_RESTAURANTS.filter((r) => r.mealType === mealType).map((catMeal, cIdx) => {
-                                                const alreadyAdded = (meal.alternativeMeals || []).some(
-                                                  (a) => a.restaurantName.toLowerCase() === catMeal.restaurantName.toLowerCase()
-                                                );
-                                                return (
-                                                  <button
-                                                    key={cIdx}
-                                                    type="button"
-                                                    disabled={alreadyAdded}
-                                                    onClick={() => addAlternativeMeal(dIdx, mIdx, catMeal)}
-                                                    className={`text-[11px] px-2 py-0.5 rounded-lg border transition-all flex items-center gap-1 ${
-                                                      alreadyAdded
-                                                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                        : "border-emerald-300 bg-white hover:bg-emerald-100 text-emerald-900 hover:border-emerald-400 font-medium"
-                                                    }`}
-                                                  >
-                                                    <Plus className="w-2.5 h-2.5 text-emerald-600" />
-                                                    <span>{catMeal.restaurantName}</span>
-                                                    <span className={`font-bold ${catMeal.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                                                      ({catMeal.priceDifference > 0 ? "+" : ""}{formatVND(catMeal.priceDifference)})
-                                                    </span>
-                                                  </button>
-                                                );
-                                              })}
-                                            </div>
-                                          </div>
+                                          
 
                                           {/* List of configured alternative meals */}
                                           {altsCount === 0 ? (
                                             <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-[11px] text-gray-400">
-                                              Chưa có nhà hàng đổi món nào. Bấm nút "+ Thêm nhà hàng đổi món" hoặc chọn nhanh ở trên.
+                                              Chưa có nhà hàng đổi món nào. Bấm nút "+ Thêm nhà hàng đổi món" để thiết lập các lựa chọn nhà hàng khác cho khách.
                                             </div>
                                           ) : (
                                             <div className="space-y-2">
@@ -2423,30 +2460,255 @@ export function TourFormPage({
           {/* TAB 3: BẢNG GIÁ THEO ĐỘ TUỔI */}
           {activeTab === "pricing" && (
             <div className="space-y-6">
+              {/* Co-Hosting Segment Quotation & Cost Aggregation System */}
+              {isCoHostedTour && (
+                <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-blue-50 border-2 border-purple-200 rounded-2xl p-5 space-y-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-purple-200/80">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                          <Handshake className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <h3 className="text-base font-extrabold text-purple-950">
+                            Báo Giá Độc Lập Từng Chặng &amp; Cộng Dồn Chi Phí (Cost Aggregation)
+                          </h3>
+                          <p className="text-xs text-purple-800/80">
+                            Mỗi công ty tự tính toán và nhập báo giá phần dịch vụ của mình. Hệ thống tự động cộng dồn + 8% phí sàn để ra giá bán cuối cho khách.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs ${
+                        myQuoteStatus === "submitted" && otherHost?.quoteStatus === "submitted"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : "bg-amber-100 text-amber-800 border border-amber-300"
+                      }`}>
+                        {myQuoteStatus === "submitted" && otherHost?.quoteStatus === "submitted"
+                          ? "🟢 Cả 2 bên đã chốt báo giá"
+                          : "🟡 Đang trong quá trình hoàn thiện báo giá"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* 1. Công ty của bạn */}
+                    <div className="bg-white border-2 border-purple-300 rounded-xl p-4 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
+                            Chặng của công ty bạn
+                          </span>
+                          <h4 className="font-bold text-gray-900 text-sm mt-1">{company.name}</h4>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          myQuoteStatus === "submitted"
+                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                            : "bg-gray-100 text-gray-600 border border-gray-200"
+                        }`}>
+                          {myQuoteStatus === "submitted" ? "✓ Đã xác nhận gửi báo giá" : "Đang soạn thảo"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-700 flex items-center justify-between">
+                          <span>Báo giá chi phí chặng của bạn (VNĐ / khách):</span>
+                          <span className="text-purple-600 font-extrabold text-sm">{formatVND(myQuotePerGuest)}</span>
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step={50000}
+                            value={myQuotePerGuest}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 0;
+                              setMyQuotePerGuest(val);
+                            }}
+                            className="text-sm font-bold text-purple-900 pr-12"
+                            placeholder="Nhập chi phí đề xuất..."
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">
+                            VNĐ
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400">
+                          Bao gồm chi phí khách sạn, các bữa ăn, vé tham quan và lợi nhuận mong muốn của công ty bạn.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-semibold text-gray-700">
+                          Diễn giải các dịch vụ bao gồm trong mức giá này:
+                        </Label>
+                        <Textarea
+                          value={myQuoteNote}
+                          onChange={(e) => setMyQuoteNote(e.target.value)}
+                          rows={2}
+                          placeholder="VD: Bao gồm KS 4 sao 2 đêm, 4 bữa ăn tiêu chuẩn 150k, vé cano tham quan đảo..."
+                          className="text-xs bg-gray-50/50"
+                        />
+                      </div>
+
+                      <div className="pt-1 flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            const newStatus = myQuoteStatus === "submitted" ? "draft" : "submitted";
+                            setMyQuoteStatus(newStatus);
+                          }}
+                          className={`${
+                            myQuoteStatus === "submitted"
+                              ? "bg-amber-600 hover:bg-amber-700 text-white"
+                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                          } text-xs font-bold shadow-xs`}
+                        >
+                          {myQuoteStatus === "submitted" ? "Chỉnh sửa lại báo giá" : "✓ Xác nhận chốt báo giá chặng này"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* 2. Công ty đối tác */}
+                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                            Chặng đối tác liên minh
+                          </span>
+                          <h4 className="font-bold text-gray-900 text-sm mt-1">
+                            {otherHost?.companyName || "Công ty lữ hành đối tác"}
+                          </h4>
+                        </div>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          otherHost?.quoteStatus === "submitted"
+                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}>
+                          {otherHost?.quoteStatus === "submitted" ? "🟢 Đối tác đã báo giá" : "⏳ Đối tác đang hoàn thiện"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-600 font-medium">Báo giá từ đối tác:</span>
+                          <span className="font-extrabold text-blue-700 text-base">
+                            {otherHost?.quotePerGuest ? formatVND(otherHost.quotePerGuest) : "Chưa cập nhật"}
+                            <span className="text-xs text-gray-400 font-normal"> / khách</span>
+                          </span>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs">
+                          <span className="text-[11px] text-gray-500 block font-medium">Ghi chú dịch vụ từ đối tác:</span>
+                          <p className="text-gray-700 italic mt-0.5">
+                            "{otherHost?.quoteNote || otherHost?.notes || "Đối tác đang chuẩn bị danh mục khách sạn và nhà hàng địa phương..."}"
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 text-[11px] text-blue-900 flex items-center justify-between">
+                        <span>Liên hệ đối tác:</span>
+                        <span className="font-semibold">{otherHost?.companyPhone || "1900 1234"} · {otherHost?.companyEmail || "partner@demo.com"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Bảng Cộng Dồn & Giá Bán Cuối Cùng Cho Khách Hàng */}
+                  <div className="bg-white border-2 border-emerald-300 rounded-xl p-4.5 space-y-3 shadow-sm">
+                    <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider flex items-center gap-1.5 text-emerald-800">
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      Tổng Hợp Chi Phí Trực Tiếp &amp; Giá Bán Cuối Cùng Cho Khách Hàng:
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <span className="text-gray-500 text-[11px] block">Báo giá Cty A ({leadHost?.companyName || "Chủ trì"}):</span>
+                        <p className="text-sm font-bold text-blue-800 mt-0.5">{formatVND(leadQuoteVal)}</p>
+                        <span className="text-[10px] text-gray-400">≈ {dynamicLeadPct}% chi phí tour</span>
+                      </div>
+
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <span className="text-gray-500 text-[11px] block">Báo giá Cty B ({partnerHost?.companyName || "Đối tác"}):</span>
+                        <p className="text-sm font-bold text-purple-800 mt-0.5">{formatVND(partnerQuoteVal)}</p>
+                        <span className="text-[10px] text-gray-400">≈ {dynamicPartnerPct}% chi phí tour</span>
+                      </div>
+
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <span className="text-amber-800 text-[11px] block font-medium">Phí sàn Ký quỹ Escrow (8%):</span>
+                        <p className="text-sm font-bold text-amber-900 mt-0.5">{formatVND(calculatedPlatformFee)}</p>
+                        <span className="text-[10px] text-amber-700">Khấu trừ khi quyết toán</span>
+                      </div>
+
+                      <div className="p-3 bg-emerald-600 text-white rounded-lg shadow-sm">
+                        <span className="text-emerald-100 text-[11px] block font-bold">GIÁ BÁN CUỐI CHO KHÁCH:</span>
+                        <p className="text-lg font-black mt-0.5">{formatVND(calculatedFinalPrice)}</p>
+                        <span className="text-[10px] text-emerald-200">Tự động đồng bộ bảng giá</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3">
-                <div className="border-b border-gray-100 pb-2">
-                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                    <DollarSign className="w-4 h-4 text-emerald-600" />
-                    Bảng giá vé theo phân loại độ tuổi
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Quy định đơn giá áp dụng cho từng đối tượng hành khách. Người dùng khi đặt tour sẽ tự do chọn ngày khởi hành mong muốn.
-                  </p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      Bảng giá vé theo phân loại độ tuổi
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Quy định đơn giá áp dụng cho từng đối tượng hành khách. Bạn có thể thêm, chỉnh sửa hoặc xóa các khung giá vé tùy theo chính sách của tour.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetDefaultPriceRows}
+                      className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-gray-50"
+                      title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 mr-1 text-gray-500" />
+                      Mẫu chuẩn 3 nhóm
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleAddPriceRow}
+                      className="text-xs h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1 shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Thêm khung giá vé
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="overflow-x-auto border border-gray-200 rounded-xl">
+                <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-2xs">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-gray-100 text-gray-700">
-                        <th className="p-3 text-left">Phân loại khách</th>
-                        <th className="p-3 text-left">Độ tuổi áp dụng</th>
+                        <th className="p-3 text-left w-1/4">Phân loại khách</th>
+                        <th className="p-3 text-left w-1/3">Độ tuổi áp dụng</th>
                         <th className="p-3 text-right">Đơn giá vé (VNĐ)</th>
+                        <th className="p-3 text-center w-16">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">
                       {priceTable.map((row, idx) => (
-                        <tr key={idx}>
-                          <td className="p-3 font-bold text-gray-900">{row.ageGroupLabel}</td>
+                        <tr key={idx} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="p-3">
+                            <Input
+                              value={row.ageGroupLabel}
+                              onChange={(e) => {
+                                const updated = [...priceTable];
+                                updated[idx].ageGroupLabel = e.target.value;
+                                setPriceTable(updated);
+                              }}
+                              placeholder="Tên nhóm (VD: Người lớn, Trẻ em...)"
+                              className="text-xs h-8 font-semibold text-gray-900"
+                            />
+                          </td>
                           <td className="p-3">
                             <Input
                               value={row.ageRange ?? ""}
@@ -2455,26 +2717,51 @@ export function TourFormPage({
                                 updated[idx].ageRange = e.target.value;
                                 setPriceTable(updated);
                               }}
-                              className="text-xs h-8 max-w-xs"
+                              placeholder="VD: Từ 11 tuổi trở lên, Từ 2 đến 11 tuổi..."
+                              className="text-xs h-8"
                             />
                           </td>
                           <td className="p-3 text-right">
-                            <Input
-                              type="number"
-                              step={50000}
-                              value={row.price}
-                              onChange={(e) => {
-                                const updated = [...priceTable];
-                                updated[idx].price = parseInt(e.target.value) || 0;
-                                setPriceTable(updated);
-                              }}
-                              className="text-xs h-8 text-right font-bold text-blue-700 max-w-[160px] ml-auto"
-                            />
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Input
+                                type="number"
+                                step={50000}
+                                min={0}
+                                value={row.price}
+                                onChange={(e) => {
+                                  const updated = [...priceTable];
+                                  updated[idx].price = Math.max(0, parseInt(e.target.value) || 0);
+                                  setPriceTable(updated);
+                                }}
+                                className="text-xs h-8 text-right font-bold text-blue-700 max-w-[160px]"
+                              />
+                              <span className="text-[11px] text-gray-500 font-medium">đ</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePriceRow(idx)}
+                              disabled={priceTable.length <= 1}
+                              className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              title={priceTable.length <= 1 ? "Cần giữ tối thiểu 1 khung giá" : "Xóa khung giá này"}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-900">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <span>
+                      Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng trên.
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2938,9 +3225,49 @@ export function TourFormPage({
                                         {d.day}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-gray-900 text-xs sm:text-sm">
-                                          NGÀY {d.day}: {d.title.toUpperCase()}
-                                        </p>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <p className="font-bold text-gray-900 text-xs sm:text-sm">
+                                            NGÀY {d.day}: {d.title.toUpperCase()}
+                                          </p>
+                                          {(() => {
+                                            if (!isCoHostedTour) return null;
+                                            const dayCompanies = new Map<string, string>();
+                                            if (d.createdByCompanyId) dayCompanies.set(d.createdByCompanyId, d.createdByCompanyName || "Công ty điều phối");
+                                            if (d.hotel?.createdByCompanyId) dayCompanies.set(d.hotel.createdByCompanyId, d.hotel.createdByCompanyName || "Công ty lưu trú");
+                                            d.meals?.forEach((m) => {
+                                              if (m.createdByCompanyId) dayCompanies.set(m.createdByCompanyId, m.createdByCompanyName || "Công ty ẩm thực");
+                                            });
+                                            d.locations?.forEach((loc) => {
+                                              if (loc.createdByCompanyId) dayCompanies.set(loc.createdByCompanyId, loc.createdByCompanyName || "Công ty tham quan");
+                                            });
+                                            if (dayCompanies.size === 0) {
+                                              coHosts.forEach((ch) => {
+                                                if (ch.assignedDays?.includes(d.day)) {
+                                                  dayCompanies.set(ch.companyId, ch.companyName);
+                                                }
+                                              });
+                                            }
+                                            const list = Array.from(dayCompanies.entries());
+                                            if (list.length > 1) {
+                                              return (
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                                                  <Handshake className="w-3 h-3 text-amber-700" />
+                                                  🤝 Đồng phụ trách ({list.map(([_, n]) => n).join(" & ")})
+                                                </span>
+                                              );
+                                            }
+                                            if (list.length === 1) {
+                                              const [_, cName] = list[0];
+                                              return (
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1 shadow-2xs">
+                                                  <Building2 className="w-3 h-3" />
+                                                  Phụ trách: {cName}
+                                                </span>
+                                              );
+                                            }
+                                            return null;
+                                          })()}
+                                        </div>
                                       </div>
                                       {d.meals && d.meals.length > 0 && (
                                         <div className="flex gap-1 flex-shrink-0">
@@ -2978,9 +3305,16 @@ export function TourFormPage({
                                         {d.locations.length > 0 && (
                                           <div className="space-y-1.5">
                                             {d.locations.map((loc) => (
-                                              <div key={loc.id} className="flex items-center gap-2 text-xs text-gray-700">
-                                                <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                                                <span className="font-medium text-gray-900">{loc.name}</span>
+                                              <div key={loc.id} className="flex items-center justify-between text-xs text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                  <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                                                  <span className="font-medium text-gray-900">{loc.name}</span>
+                                                </div>
+                                                {loc.createdByCompanyName && (
+                                                  <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.2 rounded">
+                                                    Tạo bởi: {loc.createdByCompanyName}
+                                                  </span>
+                                                )}
                                               </div>
                                             ))}
                                           </div>

@@ -155,6 +155,8 @@ function App() {
       tourStartDate: data.tourStartDate || new Date().toISOString().split("T")[0],
       companyId: tour.companyId,
       companyName: tour.companyName,
+      isCoHosted: tour.isCoHosted,
+      coHosts: tour.coHosts,
       passengers: data.passengers,
       contactName: data.contactName,
       contactAddress: data.contactAddress,
@@ -199,6 +201,8 @@ function App() {
       tourStartDate: startDate,
       companyId: tour.companyId,
       companyName: tour.companyName,
+      isCoHosted: tour.isCoHosted,
+      coHosts: tour.coHosts,
       depositAmount: 0,
       depositPaid: false,
       remainingAmount: tour.price * numberOfGuests,
@@ -885,7 +889,9 @@ function App() {
           (u) => u.role === "guide" && u.companyId === company.id,
         );
         const companyBookings = bookings.filter(
-          (b) => b.companyId === company.id,
+          (b) =>
+            b.companyId === company.id ||
+            b.coHosts?.some((ch) => ch.companyId === company.id),
         );
         return (
           <CompanyDashboard
@@ -896,6 +902,7 @@ function App() {
             guides={companyGuides}
             guideSchedules={guideSchedules}
             customTourRequests={customTourRequests}
+            allCompanies={companies}
             onCreateTour={handleCompanyCreateTour}
             onEditTour={handleCompanyEditTour}
             onDeleteTour={handleCompanyDeleteTour}

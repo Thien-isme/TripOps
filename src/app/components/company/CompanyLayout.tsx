@@ -12,6 +12,7 @@ import {
   Building2,
   Star,
   PenSquare,
+  Handshake,
 } from "lucide-react";
 import { TourCompany, User } from "@/app/types";
 
@@ -21,6 +22,7 @@ interface CompanyLayoutProps {
   onNavigate: (section: string) => void;
   company: TourCompany;
   currentUser: User;
+  coHostingBadgeCount?: number;
   onLogout?: () => void;
 }
 
@@ -30,6 +32,7 @@ export function CompanyLayout({
   onNavigate,
   company,
   currentUser,
+  coHostingBadgeCount,
   onLogout,
 }: CompanyLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -41,6 +44,7 @@ export function CompanyLayout({
     { id: "bookings", label: "Đặt tour", icon: Calendar },
     { id: "guides", label: "Hướng dẫn viên", icon: Users },
     { id: "custom-requests", label: "Yêu cầu thiết kế", icon: PenSquare },
+    { id: "co-hosting", label: "Liên minh đối tác", icon: Handshake, badge: coHostingBadgeCount },
   ];
 
   const SidebarContent = () => (
@@ -110,9 +114,16 @@ export function CompanyLayout({
                 className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-gray-500"}`}
               />
               {!collapsed && (
-                <span className="font-medium text-sm">
-                  {item.label}
-                </span>
+                <div className="flex items-center justify-between flex-1 min-w-0">
+                  <span className="font-medium text-sm truncate">
+                    {item.label}
+                  </span>
+                  {item.badge && item.badge > 0 ? (
+                    <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-1">
+                      {item.badge}
+                    </span>
+                  ) : null}
+                </div>
               )}
             </button>
           );

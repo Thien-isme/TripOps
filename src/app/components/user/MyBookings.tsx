@@ -12,6 +12,7 @@ import {
   Building2,
   Sparkles,
   CheckCircle,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -261,6 +262,12 @@ export function MyBookings({
                                   <span className="text-[10px] text-purple-700 font-bold bg-purple-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                                     <Sparkles className="w-2.5 h-2.5 text-purple-600" />
                                     Tùy chỉnh
+                                  </span>
+                                )}
+                                {(b.isCoHosted || b.tour?.isCoHosted) && (
+                                  <span className="text-[10px] text-amber-900 font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.2 rounded flex items-center gap-1 shadow-2xs">
+                                    <Handshake className="w-2.5 h-2.5 text-amber-700" />
+                                    Liên minh 2 công ty
                                   </span>
                                 )}
                               </div>

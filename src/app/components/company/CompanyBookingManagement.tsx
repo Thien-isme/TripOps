@@ -19,6 +19,7 @@ import {
   Building2,
   AlertCircle,
   Filter,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -352,6 +353,16 @@ export function CompanyBookingManagement({
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
                               <Sparkles className="w-3 h-3 text-purple-600" />
                               Lịch trình có tùy chỉnh
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Co-Hosting Alliance Badge */}
+                        {(booking.isCoHosted || booking.tour?.isCoHosted) && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300 shadow-2xs">
+                              <Handshake className="w-3 h-3 text-amber-700" />
+                              Tour Liên Minh ({booking.coHosts?.map((c) => c.companyName).join(" & ") || booking.tour?.coHosts?.map((c) => c.companyName).join(" & ") || "2 Bên Phối Hợp"})
                             </span>
                           </div>
                         )}

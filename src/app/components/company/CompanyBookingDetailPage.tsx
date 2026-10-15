@@ -29,6 +29,8 @@ import {
   Sun,
   UtensilsCrossed,
   Edit3,
+  Handshake,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -78,6 +80,32 @@ const MEAL_LABELS: Record<string, { label: string; icon: React.ElementType; colo
 
 function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
+}
+
+function calculateAge(dobStr?: string, refDateStr?: string): number | null {
+  if (!dobStr) return null;
+  const parts = dobStr.includes("-") ? dobStr.split("-") : dobStr.split("/");
+  let birthDate: Date;
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      birthDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+      birthDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    }
+  } else {
+    birthDate = new Date(dobStr);
+  }
+  if (isNaN(birthDate.getTime())) return null;
+
+  const targetDate = refDateStr ? new Date(refDateStr) : new Date();
+  if (isNaN(targetDate.getTime())) return null;
+
+  let age = targetDate.getFullYear() - birthDate.getFullYear();
+  const m = targetDate.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && targetDate.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : 0;
 }
 
 export function CompanyBookingDetailPage({
@@ -268,6 +296,100 @@ export function CompanyBookingDetailPage({
               </div>
             </div>
           </div>
+
+          {/* ======================================================== */}
+          {/* CO-HOSTING ALLIANCE BREAKDOWN CARD */}
+          {/* ======================================================== */}
+          {(booking.isCoHosted || booking.tour?.isCoHosted) && (
+            <div className="bg-gradient-to-br from-amber-50/70 via-purple-50/50 to-blue-50/50 rounded-2xl border-2 border-amber-300 p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0 shadow-2xs">
+                    <Handshake className="w-5 h-5 text-amber-700" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-extrabold text-amber-950 flex items-center gap-2 flex-wrap">
+                      Tour Liên Minh Hợp Tác Giữa 2 Công Ty (Co-Hosting)
+                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
+                        Cả 2 bên cùng nhận booking
+                      </span>
+                    </h2>
+                    <p className="text-xs text-amber-800 mt-0.5">
+                      Đơn booking này thuộc tour liên minh đồng phối hợp. Cả đơn vị chủ trì và đối tác chuyên môn đều cùng nhận thông tin đơn để phục vụ khách.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Both Companies Participation */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(booking.coHosts || booking.tour?.coHosts)?.map((ch) => {
+                  const isLead = ch.role === "lead";
+                  return (
+                    <div
+                      key={ch.id || ch.companyId}
+                      className={`p-4 rounded-xl border space-y-2 bg-white ${
+                        isLead ? "border-blue-200 shadow-2xs" : "border-purple-200 shadow-2xs"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {ch.companyLogo ? (
+                            <img src={ch.companyLogo} alt="" className="w-6 h-6 rounded-md object-cover border" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700">
+                              {ch.companyName?.slice(0, 1)}
+                            </div>
+                          )}
+                          <span className="font-bold text-gray-900 text-xs truncate">
+                            {ch.companyName}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            isLead
+                              ? "bg-blue-100 text-blue-800 border border-blue-200"
+                              : "bg-purple-100 text-purple-800 border border-purple-200"
+                          }`}
+                        >
+                          {isLead ? "Đơn vị Chủ trì (Lead)" : "Đối tác Chuyên môn (Partner)"}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-gray-600 space-y-1 pt-1 border-t border-gray-100">
+                        <p>
+                          <strong className="text-gray-700">Phụ trách:</strong> {ch.assignedSegments || (isLead ? "Chặng đón & điều phối tổng thể" : "Chặng trải nghiệm địa phương")}
+                        </p>
+                        {ch.quotePerGuest ? (
+                          <p className="text-emerald-700 font-bold">
+                            Báo giá chặng: {formatVND(ch.quotePerGuest)} / khách × {booking.numberOfGuests} khách ={" "}
+                            <span className="underline">{formatVND(ch.quotePerGuest * booking.numberOfGuests)}</span>
+                          </p>
+                        ) : ch.revenueSharePercentage ? (
+                          <p className="text-purple-700 font-semibold">
+                            Tỷ lệ phân chia: {ch.revenueSharePercentage}% doanh thu
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Escrow Guarantee Policy Note */}
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3.5 flex items-start gap-3 text-xs text-emerald-900">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-emerald-950">
+                    Bảo chứng thanh toán Ký quỹ (Escrow) &amp; Quyết toán độc lập:
+                  </p>
+                  <p className="text-emerald-800 leading-relaxed text-[11px]">
+                    Khoản thanh toán của khách ({formatVND(booking.totalPrice)}) được bảo lưu an toàn tại Tài khoản Trung gian Ký quỹ của Sàn. Sau khi đoàn kết thúc tour an toàn, Sàn sẽ tự động đối soát và giải ngân chính xác phần tiền cho từng công ty theo đúng báo giá đã xác nhận.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ======================================================== */}
           {/* CUSTOMIZATION SECTION: SO SÁNH TRƯỚC VÀ SAU KHI THAY ĐỔI */}
@@ -495,7 +617,17 @@ export function CompanyBookingDetailPage({
                       <tr key={p.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2.5 text-gray-400">{i + 1}</td>
                         <td className="px-3 py-2.5 font-bold text-gray-900">{p.fullName}</td>
-                        <td className="px-3 py-2.5 text-gray-600">{p.dateOfBirth}</td>
+                        <td className="px-3 py-2.5 text-gray-600">
+                          <span>{p.dateOfBirth || "—"}</span>
+                          {(() => {
+                            const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                            return age !== null ? (
+                              <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                {age} tuổi
+                              </span>
+                            ) : null;
+                          })()}
+                        </td>
                         <td className="px-3 py-2.5 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
                         <td className="px-3 py-2.5">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${

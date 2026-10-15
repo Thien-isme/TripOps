@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CustomTourRequest, Tour, TourCompany } from "@/app/types";
+import { CustomTourRequest, Tour, TourCompany, TourCoHost } from "@/app/types";
+import { mockTourCompanies } from "@/app/data/mockData";
 import {
   Clock,
   CheckCircle,
@@ -18,15 +19,18 @@ import {
   Edit,
   ArrowRight,
   ShieldAlert,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TourFormPage } from "@/app/components/company/CompanyTourManagement";
 import { TourVersionHistoryModal } from "@/app/components/company/TourVersionHistoryModal";
+import { CoHostInvitationModal } from "@/app/components/company/CoHostInvitationModal";
 
 interface CompanyCustomRequestsProps {
   requests: CustomTourRequest[];
   company: TourCompany;
   tours: Tour[];
+  allCompanies?: TourCompany[];
   onUpdateRequest: (id: string, update: Partial<CustomTourRequest>) => void;
   onCreateTour: (tour: Omit<Tour, "id"> & { id?: string }) => void;
   onEditTour: (tourId: string, tour: Partial<Tour>) => void;
@@ -57,6 +61,7 @@ export function CompanyCustomRequests({
   requests,
   company,
   tours,
+  allCompanies,
   onUpdateRequest,
   onCreateTour,
   onEditTour,
@@ -77,6 +82,80 @@ export function CompanyCustomRequests({
 
   // State for Tour Version History Modal
   const [versionHistoryTour, setVersionHistoryTour] = useState<Tour | null>(null);
+
+  // State for Co-Host Invitation Modal
+  const [invitingRequest, setInvitingRequest] = useState<CustomTourRequest | null>(null);
+
+  const handleSendCoHostInvitation = (invitation: {
+    partnerCompanyId: string;
+    partnerCompanyName: string;
+    partnerCompanyLogo?: string;
+    partnerCompanyPhone?: string;
+    partnerCompanyEmail?: string;
+    assignedSegments: string;
+    assignedDays?: number[];
+    revenueSharePercentage?: number;
+    notes: string;
+    estimatedBudgetPerGuest?: number;
+    fixedPayoutAmount?: number;
+  }) => {
+    if (!invitingRequest) return;
+    const sharePct = invitation.revenueSharePercentage || 50;
+    const leadShare = 100 - sharePct;
+
+    const leadCoHost: TourCoHost = {
+      id: `cohost-lead-${Date.now()}`,
+      companyId: company.id,
+      companyName: company.name,
+      companyLogo: company.logo,
+      companyPhone: company.phone,
+      companyEmail: company.email,
+      role: "lead",
+      status: "accepted",
+      assignedSegments: `Đón tiếp đoàn & Điều hành tổng thể`,
+      revenueSharePercentage: leadShare,
+      quoteStatus: "draft",
+      invitedAt: new Date().toISOString(),
+      respondedAt: new Date().toISOString(),
+    };
+
+    const partnerCoHost: TourCoHost = {
+      id: `cohost-partner-${Date.now()}`,
+      companyId: invitation.partnerCompanyId,
+      companyName: invitation.partnerCompanyName,
+      companyLogo: invitation.partnerCompanyLogo,
+      companyPhone: invitation.partnerCompanyPhone,
+      companyEmail: invitation.partnerCompanyEmail,
+      role: "partner",
+      status: "pending",
+      assignedSegments: invitation.assignedSegments,
+      estimatedBudgetPerGuest: invitation.estimatedBudgetPerGuest,
+      revenueSharePercentage: sharePct,
+      quoteStatus: "draft",
+      notes: invitation.notes,
+      invitedAt: new Date().toISOString(),
+    };
+
+    const coHosts = [leadCoHost, partnerCoHost];
+
+    onUpdateRequest(invitingRequest.id, {
+      isCoHosted: true,
+      coHosts,
+      companyNote: `Đã gửi lời mời hợp tác cho ${invitation.partnerCompanyName} cùng thiết kế và báo giá chặng: ${invitation.assignedSegments}.`,
+    });
+
+    const matchingTour = tours.find(
+      (t) => t.id === invitingRequest.designedTourId || t.customRequestId === invitingRequest.id
+    );
+    if (matchingTour) {
+      onEditTour(matchingTour.id, {
+        isCoHosted: true,
+        coHosts,
+      });
+    }
+
+    setInvitingRequest(null);
+  };
 
   const openResponse = (req: CustomTourRequest) => {
     setRespondingId(req.id);
@@ -211,6 +290,7 @@ export function CompanyCustomRequests({
           onStartDesignTour={handleStartDesignTour}
           onViewTour={onViewTour}
           onOpenVersionHistory={(tour) => setVersionHistoryTour(tour)}
+          onOpenInviteCoHost={(req) => setInvitingRequest(req)}
         />
       )}
 
@@ -231,6 +311,7 @@ export function CompanyCustomRequests({
           onStartDesignTour={handleStartDesignTour}
           onViewTour={onViewTour}
           onOpenVersionHistory={(tour) => setVersionHistoryTour(tour)}
+          onOpenInviteCoHost={(req) => setInvitingRequest(req)}
         />
       )}
 
@@ -251,6 +332,7 @@ export function CompanyCustomRequests({
           onStartDesignTour={handleStartDesignTour}
           onViewTour={onViewTour}
           onOpenVersionHistory={(tour) => setVersionHistoryTour(tour)}
+          onOpenInviteCoHost={(req) => setInvitingRequest(req)}
         />
       )}
 
@@ -266,6 +348,21 @@ export function CompanyCustomRequests({
             }
             setVersionHistoryTour(null);
           }}
+        />
+      )}
+
+      {/* Co-Host Invitation Modal */}
+      {invitingRequest && (
+        <CoHostInvitationModal
+          open={Boolean(invitingRequest)}
+          onClose={() => setInvitingRequest(null)}
+          customRequest={invitingRequest}
+          tour={tours.find(
+            (t) => t.id === invitingRequest.designedTourId || t.customRequestId === invitingRequest.id
+          )}
+          currentCompany={company}
+          availableCompanies={allCompanies || mockTourCompanies}
+          onSendInvitation={handleSendCoHostInvitation}
         />
       )}
     </div>
@@ -287,6 +384,7 @@ interface GroupProps {
   onStartDesignTour: (req: CustomTourRequest, existingTour?: Tour | null) => void;
   onViewTour?: (tour: Tour) => void;
   onOpenVersionHistory?: (tour: Tour) => void;
+  onOpenInviteCoHost: (req: CustomTourRequest) => void;
 }
 
 function RequestGroup({
@@ -304,6 +402,7 @@ function RequestGroup({
   onStartDesignTour,
   onViewTour,
   onOpenVersionHistory,
+  onOpenInviteCoHost,
 }: GroupProps) {
   return (
     <div>
@@ -353,11 +452,17 @@ function RequestGroup({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-bold text-gray-900 text-sm truncate">{req.destinations}</p>
                     {matchingTour && (
                       <span className="bg-purple-100 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                         <span>v{matchingTour.version || req.currentVersion || 1}</span>
+                      </span>
+                    )}
+                    {req.isCoHosted && (
+                      <span className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 border border-purple-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <Handshake className="w-3 h-3 text-purple-600" />
+                        Liên minh đối tác
                       </span>
                     )}
                   </div>
@@ -496,6 +601,82 @@ function RequestGroup({
                     </div>
                   )}
 
+                  {/* CO-HOSTING DETAILS CARD */}
+                  {req.isCoHosted && req.coHosts && req.coHosts.length > 0 && (
+                    <div className="bg-gradient-to-r from-purple-50 via-indigo-50/40 to-blue-50 border border-purple-200 rounded-xl p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-purple-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 uppercase">
+                            <Handshake className="w-3.5 h-3.5 text-amber-300" />
+                            Liên minh hợp tác dẫn tour (Co-Hosting)
+                          </span>
+                          <span className="text-xs font-bold">
+                            {req.coHosts.find((c) => c.role === "partner")?.status === "accepted" ? (
+                              <span className="text-emerald-700 flex items-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5" /> Đối tác đã nhận lời
+                              </span>
+                            ) : (
+                              <span className="text-amber-700 flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" /> Chờ đối tác phản hồi
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onOpenInviteCoHost(req)}
+                          className="text-purple-700 border-purple-300 hover:bg-purple-100 text-xs h-7 self-start sm:self-auto font-semibold"
+                        >
+                          Cập nhật phân công / Mời lại
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {req.coHosts.map((ch) => (
+                          <div
+                            key={ch.id}
+                            className="bg-white rounded-lg p-3 border border-purple-100 shadow-2xs space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-gray-900 flex items-center gap-1.5">
+                                {ch.companyLogo && (
+                                  <img
+                                    src={ch.companyLogo}
+                                    alt=""
+                                    className="w-5 h-5 rounded object-cover"
+                                  />
+                                )}
+                                {ch.companyName}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                  ch.role === "lead"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-purple-100 text-purple-800"
+                                }`}
+                              >
+                                {ch.role === "lead" ? "Chủ trì" : "Đối tác"} {ch.status === "accepted" ? "· Đã xác nhận" : "· Chờ xác nhận"}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-700">
+                              <strong>Phụ trách:</strong> {ch.assignedSegments || "Điều phối lịch trình"}
+                            </p>
+                            {ch.estimatedBudgetPerGuest && (
+                              <p className="text-[10px] text-emerald-700 font-semibold">
+                                Ngân sách dự kiến: ~{formatVND(ch.estimatedBudgetPerGuest)} / khách
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="text-[11px] text-gray-500 italic">
+                        * Tiền tour được bảo chứng qua Tài khoản Ký quỹ (Escrow) của Hệ thống sàn du lịch, đảm bảo an toàn tuyệt đối cho khách hàng và quyết toán minh bạch cho cả 2 công ty.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Customer specifications info */}
                   <div className="bg-white border border-gray-200 rounded-xl p-4">
                     <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
@@ -606,7 +787,19 @@ function RequestGroup({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-purple-700 border-purple-300 hover:bg-purple-50 gap-1.5 text-xs font-semibold"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenInviteCoHost(req);
+                        }}
+                      >
+                        <Handshake className="w-3.5 h-3.5 text-purple-600" />
+                        {req.isCoHosted ? "Quản lý liên minh" : "Mời đối tác liên kết"}
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
