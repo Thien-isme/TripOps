@@ -56,8 +56,7 @@ const statusMap: Record<string, { label: string; bg: string; text: string; borde
 
 const paymentStatusMap: Record<string, { label: string; color: string; badgeBg: string }> = {
   unpaid: { label: "Chưa thanh toán (Thanh toán sau)", color: "text-amber-800", badgeBg: "bg-amber-50 border-amber-200" },
-  deposit_paid: { label: "Đã đặt cọc", color: "text-blue-700", badgeBg: "bg-blue-50 border-blue-200" },
-  paid: { label: "Đã thanh toán đủ", color: "text-emerald-700", badgeBg: "bg-emerald-50 border-emerald-200" },
+  paid: { label: "Đã thanh toán", color: "text-emerald-700", badgeBg: "bg-emerald-50 border-emerald-200" },
   refunded: { label: "Đã hoàn tiền", color: "text-purple-700", badgeBg: "bg-purple-50 border-purple-200" },
 };
 
@@ -119,7 +118,7 @@ function ContractModal({
               <li>Ngày khởi hành: <strong>{booking.tourStartDate || "Theo thỏa thuận"}</strong></li>
               <li>Số lượng khách: <strong>{booking.numberOfGuests} người</strong></li>
               <li>Tổng giá trị hợp đồng: <strong className="text-blue-700 font-bold">{formatVND(booking.totalPrice)}</strong></li>
-              <li>Đặt cọc (50%): <strong>{formatVND(booking.depositAmount ?? (booking.totalPrice * 0.5))}</strong> ({booking.depositPaid ? "Đã thanh toán" : "Chưa thanh toán"})</li>
+              <li>Phương thức thanh toán: <strong>Thanh toán trực tiếp theo các đợt yêu cầu từ công ty</strong></li>
             </ul>
           </div>
 
@@ -349,11 +348,17 @@ export function CompanyBookingManagement({
 
                         {/* Customization Badge */}
                         {hasCustom && (
-                          <div className="mt-1.5 flex items-center gap-1">
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1">
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
                               <Sparkles className="w-3 h-3 text-purple-600" />
                               Lịch trình có tùy chỉnh
                             </span>
+                            {(booking.customHotelChanges?.some((h) => h.mode === "provider" || h.isProviderService) ||
+                              booking.customMealChanges?.some((m) => m.mode === "provider" || m.isProviderService)) && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
+                                🌟 Đối tác Nền tảng
+                              </span>
+                            )}
                           </div>
                         )}
 
@@ -378,7 +383,7 @@ export function CompanyBookingManagement({
                             {pst.label}
                           </span>
                         </div>
-                        {booking.depositPaid && booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
+                        {booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
                           <div className="text-[11px] text-amber-700 mt-1 font-medium">
                             Còn lại: {formatVND(booking.remainingAmount)}
                           </div>
@@ -572,8 +577,15 @@ export function CompanyBookingManagement({
                 <div className="bg-gray-50 rounded-lg p-3 text-sm">
                   <p className="text-gray-600">Booking: <strong>{b.contactName || b.userName}</strong></p>
                   <p className="text-gray-600">Tổng giá tour: <strong className="text-blue-700">{formatVND(b.totalPrice)}</strong></p>
-                  {b.depositPaid && <p className="text-gray-600">Đã đặt cọc: <strong className="text-amber-600">{formatVND(b.depositAmount ?? 0)}</strong></p>}
-                  {b.remainingAmount && <p className="text-gray-600">Còn lại: <strong className="text-red-600">{formatVND(b.remainingAmount)}</strong></p>}
+                  {(() => {
+                    const totalPaid = (b.paymentRequests ?? [])
+                      .filter((pr) => pr.status === "paid")
+                      .reduce((sum, pr) => sum + pr.amount, 0);
+                    return totalPaid > 0 ? (
+                      <p className="text-gray-600">Khách đã thanh toán: <strong className="text-emerald-600">{formatVND(totalPaid)}</strong></p>
+                    ) : null;
+                  })()}
+                  {b.remainingAmount ? <p className="text-gray-600">Còn lại: <strong className="text-red-600">{formatVND(b.remainingAmount)}</strong></p> : null}
                 </div>
                 <div>
                   <Label className="text-sm">Số tiền yêu cầu (VNĐ) <span className="text-red-500">*</span></Label>

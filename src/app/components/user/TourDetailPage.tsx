@@ -31,8 +31,13 @@ import {
   Sparkles,
   Handshake,
   ShieldCheck,
+  Check,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { mockUsers } from "@/app/data/mockData";
+import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
 
 export interface TourDetailCustomData {
   customHotelChanges?: CustomHotelChange[];
@@ -457,7 +462,7 @@ const SYSTEM_RESTAURANTS: Array<{ name: string; mealType: "breakfast" | "lunch" 
 ];
 
 interface HotelChoice {
-  mode: "system" | "custom";
+  mode: "system" | "custom" | "provider";
   systemName?: string;
   systemStars?: number;
   systemPricePerNight?: number;
@@ -465,15 +470,39 @@ interface HotelChoice {
   customName?: string;
   customAddress?: string;
   customNote?: string;
+  // Platform provider metadata
+  isProviderService?: boolean;
+  serviceId?: string;
+  providerId?: string;
+  providerName?: string;
+  providerPhone?: string;
+  providerEmail?: string;
+  providerAddress?: string;
+  providerRepresentative?: string;
+  serviceImage?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface MealChoice {
   mealType: "breakfast" | "lunch" | "dinner";
-  mode: "system" | "custom";
+  mode: "system" | "custom" | "provider";
   systemName?: string;
   systemPrice?: number;
   priceDifference?: number;
   customName?: string;
+  // Platform provider metadata
+  isProviderService?: boolean;
+  serviceId?: string;
+  providerId?: string;
+  providerName?: string;
+  providerPhone?: string;
+  providerEmail?: string;
+  providerAddress?: string;
+  providerRepresentative?: string;
+  serviceImage?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface LocationChoice {
@@ -547,11 +576,13 @@ function getDestinationGroups(tour: Tour): DestinationHotelState[] {
 
 function CustomTab({
   tour,
+  services = [],
   basePrice,
   onBookCustom,
   onCustomChange,
 }: {
   tour: Tour;
+  services?: Service[];
   basePrice: number;
   onBookCustom?: (customData: TourDetailCustomData) => void;
   onCustomChange?: (customData: TourDetailCustomData, currentPrice: number) => void;
@@ -590,6 +621,16 @@ function CustomTab({
   const [expandedHotelDest, setExpandedHotelDest] = useState<string | null>("Đà Lạt");
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null); // "dayId-mealType"
 
+  // Service Blog Modal state
+  const [modalService, setModalService] = useState<Service | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTarget, setModalTarget] = useState<{
+    type: "hotel" | "meal";
+    destination?: string;
+    dayId?: string;
+    mealType?: "breakfast" | "lunch" | "dinner";
+  } | null>(null);
+
   const updateDestHotel = (dest: string, choice: HotelChoice) =>
     setDestHotels((prev) => ({ ...prev, [dest]: { ...prev[dest], hotelChoice: choice } }));
 
@@ -620,11 +661,71 @@ function CustomTab({
     }));
   };
 
+  const handleSelectProviderHotel = (dest: string, serv: Service) => {
+    const providerUser = mockUsers.find(
+      (u) =>
+        u.id === serv.providerId ||
+        u.email === "provider.heritage@gmail.com" ||
+        u.email === "provider@demo.com" ||
+        u.aliasEmails?.includes("provider.heritage@gmail.com") ||
+        u.aliasEmails?.includes("provider@demo.com")
+    );
+    updateDestHotel(dest, {
+      mode: "provider",
+      systemName: serv.name,
+      systemStars: serv.stars || 4,
+      systemPricePerNight: serv.pricePerPerson || serv.price,
+      customAddress: serv.street ? `${serv.street}, ${serv.ward || ""}, ${serv.province || serv.location}` : serv.location,
+      customNote: `Dịch vụ đối tác nền tảng: ${serv.name} (${serv.providerName})`,
+      isProviderService: true,
+      serviceId: serv.id,
+      providerId: serv.providerId,
+      providerName: serv.providerName,
+      providerPhone: providerUser?.businessPhone || providerUser?.phone || "0263 3825 444",
+      providerEmail: providerUser?.businessEmail || providerUser?.email || "provider.heritage@gmail.com",
+      providerAddress: providerUser?.businessAddress || providerUser?.street || serv.location,
+      providerRepresentative: providerUser?.name || "Nguyễn Thị Mai (Heritage Provider)",
+      serviceImage: serv.image,
+      latitude: serv.latitude,
+      longitude: serv.longitude,
+    });
+  };
+
+  const handleSelectProviderMeal = (dayId: string, mealType: "breakfast" | "lunch" | "dinner", serv: Service) => {
+    const providerUser = mockUsers.find(
+      (u) =>
+        u.id === serv.providerId ||
+        u.email === "provider.heritage@gmail.com" ||
+        u.email === "provider@demo.com" ||
+        u.aliasEmails?.includes("provider.heritage@gmail.com") ||
+        u.aliasEmails?.includes("provider@demo.com")
+    );
+    updateMealChoice(dayId, mealType, {
+      mode: "provider",
+      systemName: serv.name,
+      systemPrice: serv.pricePerPerson || serv.price,
+      customName: serv.name,
+      isProviderService: true,
+      serviceId: serv.id,
+      providerId: serv.providerId,
+      providerName: serv.providerName,
+      providerPhone: providerUser?.businessPhone || providerUser?.phone || "0263 3825 444",
+      providerEmail: providerUser?.businessEmail || providerUser?.email || "provider.heritage@gmail.com",
+      providerAddress: providerUser?.businessAddress || providerUser?.street || serv.location,
+      providerRepresentative: providerUser?.name || "Nguyễn Thị Mai (Heritage Provider)",
+      serviceImage: serv.image,
+      latitude: serv.latitude,
+      longitude: serv.longitude,
+    });
+  };
+
   const hasAnyLocationChange = Object.values(days).some((d) =>
     d.locations.some((l) => l.changed && l.changeRequest.trim()),
   );
 
-  const hasAnyCustomHotel = Object.values(destHotels).some((n) => n.hotelChoice.mode === "custom");
+  const hasAnyCustomHotel = Object.values(destHotels).some(
+    (n) => n.hotelChoice.mode === "custom" || n.hotelChoice.mode === "provider"
+  );
 
   // Tăng giá chênh lệch trực tiếp giữa khách sạn được chọn và khách sạn mặc định, không nhân theo số đêm
   const calcHotelDelta = (): number => {
@@ -647,7 +748,7 @@ function CustomTab({
     tour.itinerary.forEach((day) => {
       const dayState = days[day.id];
       dayState?.mealChoices.forEach((mc) => {
-        if (mc.mode === "custom") return;
+        if (mc.mode === "custom" || mc.mode === "provider") return;
         if (mc.priceDifference !== undefined) {
           delta += mc.priceDifference;
         } else {
@@ -660,7 +761,7 @@ function CustomTab({
   };
 
   const hasAnyCustomMeal = Object.values(days).some((d) =>
-    d.mealChoices.some((m) => m.mode === "custom" && Boolean(m.customName?.trim()))
+    d.mealChoices.some((m) => (m.mode === "custom" && Boolean(m.customName?.trim())) || m.mode === "provider")
   );
   const needsCompanyQuote = hasAnyLocationChange || hasAnyCustomHotel || hasAnyCustomMeal;
   const hotelDelta = calcHotelDelta();
@@ -675,13 +776,14 @@ function CustomTab({
       const choice = g.hotelChoice;
       const def = g.defaultHotel;
       const isCustomMode = choice.mode === "custom" && Boolean(choice.customName?.trim());
+      const isProviderMode = choice.mode === "provider" && Boolean(choice.serviceId);
       const isSystemChanged =
         choice.mode === "system" &&
         Boolean(choice.systemName) &&
         Boolean(def) &&
         choice.systemName !== def?.name;
 
-      if (isCustomMode || isSystemChanged) {
+      if (isCustomMode || isProviderMode || isSystemChanged) {
         customHotelChanges.push({
           destination: g.destination,
           originalHotelName: def ? `${def.name} (${def.stars || 4}★)` : "Khách sạn mặc định của tour",
@@ -689,12 +791,25 @@ function CustomTab({
           newHotelName:
             choice.mode === "custom"
               ? (choice.customName || "Khách sạn tự đề xuất")
+              : choice.mode === "provider"
+              ? `${choice.systemName || "Khách sạn đối tác"}${choice.systemStars ? ` (${choice.systemStars}★)` : ""}`
               : `${choice.systemName} (${choice.systemStars ?? 4}★)`,
           mode: choice.mode,
           stars: choice.systemStars || 4,
           newPricePerNight: choice.systemPricePerNight,
           address: choice.customAddress,
           note: choice.customNote,
+          isProviderService: choice.isProviderService,
+          serviceId: choice.serviceId,
+          providerId: choice.providerId,
+          providerName: choice.providerName,
+          providerPhone: choice.providerPhone,
+          providerEmail: choice.providerEmail,
+          providerAddress: choice.providerAddress,
+          providerRepresentative: choice.providerRepresentative,
+          serviceImage: choice.serviceImage,
+          latitude: choice.latitude,
+          longitude: choice.longitude,
         });
       }
     });
@@ -706,20 +821,35 @@ function CustomTab({
       dayState.mealChoices.forEach((mc) => {
         const defaultMeal = day.meals?.find((m) => m.type === mc.mealType);
         const isCustom = mc.mode === "custom" && Boolean(mc.customName?.trim());
+        const isProvider = mc.mode === "provider" && Boolean(mc.serviceId);
         const isSystemChanged =
           mc.mode === "system" &&
           Boolean(mc.systemName) &&
           Boolean(defaultMeal?.serviceName) &&
           mc.systemName !== defaultMeal?.serviceName;
 
-        if (isCustom || isSystemChanged) {
+        if (isCustom || isProvider || isSystemChanged) {
           customMealChanges.push({
             dayNumber: day.day,
             mealType: mc.mealType,
             originalMealName: defaultMeal?.serviceName || "Nhà hàng theo tour",
-            newMealName: mc.mode === "custom" ? (mc.customName || "Nhà hàng tự chọn") : mc.systemName || "",
+            newMealName:
+              mc.mode === "custom"
+                ? (mc.customName || "Nhà hàng tự chọn")
+                : mc.systemName || "",
             mode: mc.mode,
             pricePerPerson: mc.systemPrice,
+            isProviderService: mc.isProviderService,
+            serviceId: mc.serviceId,
+            providerId: mc.providerId,
+            providerName: mc.providerName,
+            providerPhone: mc.providerPhone,
+            providerEmail: mc.providerEmail,
+            providerAddress: mc.providerAddress,
+            providerRepresentative: mc.providerRepresentative,
+            serviceImage: mc.serviceImage,
+            latitude: mc.latitude,
+            longitude: mc.longitude,
           });
         }
       });
@@ -816,6 +946,8 @@ function CustomTab({
                       {nightCount} đêm •{" "}
                       {choice.mode === "system"
                         ? `${choice.systemName ?? "Chưa chọn"}${choice.systemStars ? ` (${choice.systemStars}★)` : ""}`
+                        : choice.mode === "provider"
+                        ? `🌟 Đối tác: ${choice.systemName || "Khách sạn đối tác"}${choice.systemStars ? ` (${choice.systemStars}★)` : ""}`
                         : choice.customName
                           ? `Tự nhập: ${choice.customName}`
                           : "Tự nhập (chưa điền)"}
@@ -826,6 +958,12 @@ function CustomTab({
                   {choice.mode === "custom" && (
                     <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                       Tự nhập – chờ báo giá
+                    </span>
+                  )}
+                  {choice.mode === "provider" && (
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border border-indigo-200">
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      Đối tác Nền tảng
                     </span>
                   )}
                   {choice.mode === "system" && (choice.priceDifference !== undefined ? choice.priceDifference !== 0 : selectedSystem && priceDiffPerNight !== 0) && (
@@ -839,31 +977,47 @@ function CustomTab({
 
               {isExpanded && (
                 <div className="px-4 py-4 space-y-4">
-                  {/* Mode tabs (Hide custom request if company disabled it) */}
-                  {defHotel?.allowCustomHotelRequest !== false && (
-                    <div className="flex gap-2">
+                  {/* Mode tabs (Tour / Provider / Custom) */}
+                  <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => updateDestHotel(destination, { ...choice, mode: "system" })}
+                      className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                        choice.mode === "system"
+                          ? "bg-white text-blue-700 shadow-xs border border-blue-200"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      Khách sạn theo Tour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateDestHotel(destination, { ...choice, mode: "provider" })}
+                      className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                        choice.mode === "provider"
+                          ? "bg-white text-indigo-700 shadow-xs border border-indigo-300"
+                          : "text-gray-600 hover:text-indigo-700"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      🌟 Đối tác Nền tảng
+                    </button>
+                    {defHotel?.allowCustomHotelRequest !== false && (
                       <button
-                        onClick={() => updateDestHotel(destination, { ...choice, mode: "system" })}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                          choice.mode === "system"
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"
-                        }`}
-                      >
-                        Chọn từ hệ thống
-                      </button>
-                      <button
+                        type="button"
                         onClick={() => updateDestHotel(destination, { ...choice, mode: "custom" })}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                        className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                           choice.mode === "custom"
-                            ? "bg-amber-500 text-white border-amber-500"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
+                            ? "bg-white text-amber-700 shadow-xs border border-amber-300"
+                            : "text-gray-600 hover:text-amber-700"
                         }`}
                       >
-                        Tự nhập khách sạn
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Tự đề xuất
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* System / Configured hotel cards */}
                   {choice.mode === "system" && (
@@ -955,6 +1109,120 @@ function CustomTab({
                             </button>
                           );
                         });
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Provider hotel list */}
+                  {choice.mode === "provider" && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs text-gray-500 bg-indigo-50/70 p-3 rounded-xl border border-indigo-100">
+                        <span className="flex items-center gap-1.5 text-indigo-900 font-semibold">
+                          <Sparkles className="w-4 h-4 text-amber-500" />
+                          Khách sạn &amp; Resort Đối tác Nền tảng tại {destination}
+                        </span>
+                        <span className="text-[11px] text-gray-500 hidden sm:inline">
+                          Xem bài viết blog &amp; toạ độ Google Maps trước khi chọn
+                        </span>
+                      </div>
+
+                      {(() => {
+                        const providerHotels = services.filter((s) => {
+                          if (s.category !== "hotel" || s.status !== "approved") return false;
+                          if (!destination) return true;
+                          const destLower = destination.toLowerCase();
+                          const locLower = (s.location || "").toLowerCase();
+                          const provLower = (s.province || "").toLowerCase();
+                          return locLower.includes(destLower) || provLower.includes(destLower) || destLower.includes(locLower) || destLower.includes(provLower);
+                        });
+                        const displayHotels = providerHotels.length > 0 ? providerHotels : services.filter((s) => s.category === "hotel" && s.status === "approved");
+
+                        if (displayHotels.length === 0) {
+                          return (
+                            <div className="p-6 text-center text-xs text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                              Chưa có khách sạn đối tác nào tại khu vực này. Bạn có thể chọn tab "Tự đề xuất" để nhập khách sạn mong muốn.
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {displayHotels.map((serv) => {
+                              const isSel = choice.mode === "provider" && choice.serviceId === serv.id;
+                              return (
+                                <div
+                                  key={serv.id}
+                                  className={`rounded-xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
+                                    isSel
+                                      ? "border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-300"
+                                      : "border-gray-200 bg-white hover:border-indigo-200 shadow-2xs"
+                                  }`}
+                                >
+                                  <div className="flex gap-3">
+                                    <div className="relative w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
+                                      <img src={serv.image} alt={serv.name} className="w-full h-full object-cover" />
+                                      {serv.stars && (
+                                        <span className="absolute bottom-1 right-1 bg-black/70 backdrop-blur-xs text-amber-400 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                          {serv.stars}★
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="inline-block text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mb-1">
+                                        {serv.providerName}
+                                      </span>
+                                      <h5 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-1 leading-tight">
+                                        {serv.name}
+                                      </h5>
+                                      <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-1 truncate">
+                                        <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
+                                        {serv.location}
+                                      </p>
+                                      <p className="text-xs font-bold text-blue-900 mt-1">
+                                        {formatVND(serv.pricePerPerson || serv.price)}
+                                        <span className="text-[10px] font-normal text-gray-400"> (giá tham khảo)</span>
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setModalService(serv);
+                                        setModalTarget({ type: "hotel", destination });
+                                        setIsModalOpen(true);
+                                      }}
+                                      className="flex-1 py-1.5 px-2.5 rounded-lg border border-gray-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 text-[11px] font-semibold text-gray-700 flex items-center justify-center gap-1 transition-colors"
+                                    >
+                                      <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                                      Xem bài viết &amp; Bản đồ
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSelectProviderHotel(destination, serv)}
+                                      className={`py-1.5 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+                                        isSel
+                                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                          : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                      }`}
+                                    >
+                                      {isSel ? (
+                                        <>
+                                          <Check className="w-3.5 h-3.5" />
+                                          Đã chọn
+                                        </>
+                                      ) : (
+                                        "Chọn khách sạn"
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
                       })()}
                     </div>
                   )}
@@ -1195,6 +1463,8 @@ function CustomTab({
                                     <span className="font-bold text-gray-900">
                                       {mealChoice?.mode === "custom"
                                         ? (mealChoice.customName || "Tự nhập (chưa điền)")
+                                        : mealChoice?.mode === "provider"
+                                        ? `🌟 Đối tác: ${mealChoice.systemName || "Nhà hàng đối tác"}`
                                         : (mealChoice?.systemName || defaultMeal.serviceName || "Nhà hàng theo tour")}
                                     </span>
                                   </p>
@@ -1208,6 +1478,12 @@ function CustomTab({
                                   {isCustom && (
                                     <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium border border-amber-200">
                                       Tự nhập – chờ báo giá
+                                    </span>
+                                  )}
+                                  {mealChoice?.mode === "provider" && (
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold border border-indigo-200 flex items-center gap-1">
+                                      <Sparkles className="w-3 h-3 text-amber-500" />
+                                      Đối tác Nền tảng
                                     </span>
                                   )}
                                   {isSystemChanged && (
@@ -1233,7 +1509,7 @@ function CustomTab({
                                       )}
                                     </div>
                                   )}
-                                  {!isCustom && !isSystemChanged && (
+                                  {!isCustom && !isSystemChanged && mealChoice?.mode !== "provider" && (
                                     <span className="text-[10px] text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200">
                                       Theo tour (0đ)
                                     </span>
@@ -1244,33 +1520,47 @@ function CustomTab({
 
                               {isExpanded && (
                                 <div className="p-3.5 space-y-3 bg-white border-t border-gray-100">
-                                  {/* Mode tabs */}
-                                  {defaultMeal.allowCustomMealRequest !== false && (
-                                    <div className="flex gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => updateMealChoice(day.id, mealType, { mode: "system" })}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                                          mealChoice?.mode === "system"
-                                            ? "bg-emerald-600 text-white border-emerald-600"
-                                            : "bg-white text-gray-600 border-gray-200 hover:border-emerald-300"
-                                        }`}
-                                      >
-                                        Chọn nhà hàng từ hệ thống
-                                      </button>
+                                  {/* Mode tabs (Tour / Provider / Custom) */}
+                                  <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-xl">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateMealChoice(day.id, mealType, { mode: "system" })}
+                                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                                        mealChoice?.mode === "system"
+                                          ? "bg-white text-emerald-700 shadow-xs border border-emerald-200"
+                                          : "text-gray-600 hover:text-gray-900"
+                                      }`}
+                                    >
+                                      <Utensils className="w-3.5 h-3.5" />
+                                      Nhà hàng theo Tour
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateMealChoice(day.id, mealType, { mode: "provider" })}
+                                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                                        mealChoice?.mode === "provider"
+                                          ? "bg-white text-indigo-700 shadow-xs border border-indigo-300"
+                                          : "text-gray-600 hover:text-indigo-700"
+                                      }`}
+                                    >
+                                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                      🌟 Đối tác Nền tảng
+                                    </button>
+                                    {defaultMeal.allowCustomMealRequest !== false && (
                                       <button
                                         type="button"
                                         onClick={() => updateMealChoice(day.id, mealType, { mode: "custom" })}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                        className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                           mealChoice?.mode === "custom"
-                                            ? "bg-amber-500 text-white border-amber-500"
-                                            : "bg-white text-gray-600 border-gray-200 hover:border-amber-300"
+                                            ? "bg-white text-amber-700 shadow-xs border border-amber-300"
+                                            : "text-gray-600 hover:text-amber-700"
                                         }`}
                                       >
-                                        Tự nhập nhà hàng theo ý muốn
+                                        <Edit3 className="w-3.5 h-3.5" />
+                                        Tự đề xuất
                                       </button>
-                                    </div>
-                                  )}
+                                    )}
+                                  </div>
 
                                   {/* System restaurant list */}
                                   {mealChoice?.mode === "system" && (
@@ -1348,6 +1638,115 @@ function CustomTab({
                                             </button>
                                           );
                                         });
+                                      })()}
+                                    </div>
+                                  )}
+
+                                  {/* Provider restaurant list */}
+                                  {mealChoice?.mode === "provider" && (
+                                    <div className="space-y-3">
+                                      <div className="flex items-center justify-between text-xs text-gray-500 bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-100">
+                                        <span className="flex items-center gap-1.5 text-indigo-900 font-semibold">
+                                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                          Nhà hàng &amp; Ẩm thực Đối tác Nền tảng (Ngày {day.day})
+                                        </span>
+                                        <span className="text-[11px] text-gray-500 hidden sm:inline">
+                                          Xem bài viết blog &amp; toạ độ Google Maps trước khi chọn
+                                        </span>
+                                      </div>
+
+                                      {(() => {
+                                        const destCity = day.destinationCity || tour.destination || "";
+                                        const providerMeals = services.filter((s) => {
+                                          if ((s.category !== "fnb" && s.category !== "restaurant") || s.status !== "approved") return false;
+                                          if (!destCity) return true;
+                                          const destLower = destCity.toLowerCase();
+                                          const locLower = (s.location || "").toLowerCase();
+                                          const provLower = (s.province || "").toLowerCase();
+                                          return locLower.includes(destLower) || provLower.includes(destLower) || destLower.includes(locLower) || destLower.includes(provLower);
+                                        });
+                                        const displayMeals = providerMeals.length > 0 ? providerMeals : services.filter((s) => (s.category === "fnb" || s.category === "restaurant") && s.status === "approved");
+
+                                        if (displayMeals.length === 0) {
+                                          return (
+                                            <div className="p-5 text-center text-xs text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                              Chưa có nhà hàng đối tác nào cho khu vực này. Bạn có thể chọn tab "Tự đề xuất" để nhập địa điểm muốn đến.
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            {displayMeals.map((serv) => {
+                                              const isSel = mealChoice?.mode === "provider" && mealChoice.serviceId === serv.id;
+                                              return (
+                                                <div
+                                                  key={serv.id}
+                                                  className={`rounded-xl border-2 transition-all p-3 flex flex-col justify-between gap-2.5 ${
+                                                    isSel
+                                                      ? "border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-300"
+                                                      : "border-gray-200 bg-white hover:border-indigo-200 shadow-2xs"
+                                                  }`}
+                                                >
+                                                  <div className="flex gap-2.5">
+                                                    <div className="relative w-20 h-18 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
+                                                      <img src={serv.image} alt={serv.name} className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                      <span className="inline-block text-[9px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mb-0.5">
+                                                        {serv.providerName}
+                                                      </span>
+                                                      <h6 className="font-bold text-gray-900 text-xs line-clamp-1 leading-snug">
+                                                        {serv.name}
+                                                      </h6>
+                                                      <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
+                                                        {serv.cuisineType || serv.subCategory || "Ẩm thực truyền thống"}
+                                                      </p>
+                                                      <p className="text-xs font-bold text-emerald-700 mt-1">
+                                                        {formatVND(serv.pricePerPerson || serv.price)}
+                                                        <span className="text-[10px] font-normal text-gray-400">/suất (tham khảo)</span>
+                                                      </p>
+                                                    </div>
+                                                  </div>
+
+                                                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        setModalService(serv);
+                                                        setModalTarget({ type: "meal", dayId: day.id, mealType });
+                                                        setIsModalOpen(true);
+                                                      }}
+                                                      className="flex-1 py-1.5 px-2 rounded-lg border border-gray-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 text-[10px] font-semibold text-gray-700 flex items-center justify-center gap-1 transition-colors"
+                                                    >
+                                                      <FileText className="w-3 h-3 text-indigo-600" />
+                                                      Xem bài viết &amp; Bản đồ
+                                                    </button>
+
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => handleSelectProviderMeal(day.id, mealType, serv)}
+                                                      className={`py-1.5 px-2.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
+                                                        isSel
+                                                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                                          : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                      }`}
+                                                    >
+                                                      {isSel ? (
+                                                        <>
+                                                          <Check className="w-3 h-3" />
+                                                          Đã chọn
+                                                        </>
+                                                      ) : (
+                                                        "Chọn nhà hàng"
+                                                      )}
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        );
                                       })()}
                                     </div>
                                   )}
@@ -1439,13 +1838,14 @@ function CustomTab({
               const choice = g.hotelChoice;
               const def = g.defaultHotel;
               const isCustomMode = choice.mode === "custom" && Boolean(choice.customName?.trim());
+              const isProviderMode = choice.mode === "provider" && Boolean(choice.serviceId);
               const isSystemChanged =
                 choice.mode === "system" &&
                 Boolean(choice.systemName) &&
                 Boolean(def) &&
                 choice.systemName !== def?.name;
 
-              if (isCustomMode || isSystemChanged) {
+              if (isCustomMode || isProviderMode || isSystemChanged) {
                 customHotelChanges.push({
                   destination: g.destination,
                   originalHotelName: def ? `${def.name} (${def.stars || 4}★)` : "Khách sạn mặc định của tour",
@@ -1453,12 +1853,25 @@ function CustomTab({
                   newHotelName:
                     choice.mode === "custom"
                       ? (choice.customName || "Khách sạn tự đề xuất")
+                      : choice.mode === "provider"
+                      ? `${choice.systemName || "Khách sạn đối tác"}${choice.systemStars ? ` (${choice.systemStars}★)` : ""}`
                       : `${choice.systemName} (${choice.systemStars ?? 4}★)`,
                   mode: choice.mode,
                   stars: choice.systemStars || 4,
                   newPricePerNight: choice.systemPricePerNight,
                   address: choice.customAddress,
                   note: choice.customNote,
+                  isProviderService: choice.isProviderService,
+                  serviceId: choice.serviceId,
+                  providerId: choice.providerId,
+                  providerName: choice.providerName,
+                  providerPhone: choice.providerPhone,
+                  providerEmail: choice.providerEmail,
+                  providerAddress: choice.providerAddress,
+                  providerRepresentative: choice.providerRepresentative,
+                  serviceImage: choice.serviceImage,
+                  latitude: choice.latitude,
+                  longitude: choice.longitude,
                 });
               }
             });
@@ -1471,20 +1884,35 @@ function CustomTab({
               dayState.mealChoices.forEach((mc) => {
                 const defaultMeal = day.meals?.find((m) => m.type === mc.mealType);
                 const isCustom = mc.mode === "custom" && Boolean(mc.customName?.trim());
+                const isProvider = mc.mode === "provider" && Boolean(mc.serviceId);
                 const isSystemChanged =
                   mc.mode === "system" &&
                   Boolean(mc.systemName) &&
                   Boolean(defaultMeal?.serviceName) &&
                   mc.systemName !== defaultMeal?.serviceName;
 
-                if (isCustom || isSystemChanged) {
+                if (isCustom || isProvider || isSystemChanged) {
                   customMealChanges.push({
                     dayNumber: day.day,
                     mealType: mc.mealType,
                     originalMealName: defaultMeal?.serviceName || "Nhà hàng theo tour",
-                    newMealName: mc.mode === "custom" ? (mc.customName || "Nhà hàng tự chọn") : mc.systemName || "",
+                    newMealName:
+                      mc.mode === "custom"
+                        ? (mc.customName || "Nhà hàng tự chọn")
+                        : mc.systemName || "",
                     mode: mc.mode,
                     pricePerPerson: mc.systemPrice,
+                    isProviderService: mc.isProviderService,
+                    serviceId: mc.serviceId,
+                    providerId: mc.providerId,
+                    providerName: mc.providerName,
+                    providerPhone: mc.providerPhone,
+                    providerEmail: mc.providerEmail,
+                    providerAddress: mc.providerAddress,
+                    providerRepresentative: mc.providerRepresentative,
+                    serviceImage: mc.serviceImage,
+                    latitude: mc.latitude,
+                    longitude: mc.longitude,
                   });
                 }
               });
@@ -1524,6 +1952,33 @@ function CustomTab({
           Đặt tour theo lịch trình này →
         </Button>
       </div>
+
+      {/* Service Blog Detail Modal */}
+      <ServiceBlogDetailModal
+        service={modalService}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalService(null);
+          setModalTarget(null);
+        }}
+        isSelected={
+          modalService
+            ? (modalTarget?.type === "hotel" && modalTarget.destination
+                ? destHotels[modalTarget.destination]?.hotelChoice.serviceId === modalService.id
+                : modalTarget?.type === "meal" && modalTarget.dayId && modalTarget.mealType
+                ? days[modalTarget.dayId]?.mealChoices.find((m) => m.mealType === modalTarget.mealType)?.serviceId === modalService.id
+                : false)
+            : false
+        }
+        onSelect={(serv) => {
+          if (modalTarget?.type === "hotel" && modalTarget.destination) {
+            handleSelectProviderHotel(modalTarget.destination, serv);
+          } else if (modalTarget?.type === "meal" && modalTarget.dayId && modalTarget.mealType) {
+            handleSelectProviderMeal(modalTarget.dayId, modalTarget.mealType, serv);
+          }
+        }}
+      />
     </div>
   );
 }
@@ -1861,6 +2316,7 @@ export function TourDetailPage({
                 {activeTab === "custom" && !isCustomTour && (
                   <CustomTab
                     tour={tour}
+                    services={services}
                     basePrice={basePrice}
                     onBookCustom={handleBookWithCustom}
                     onCustomChange={(cData, price) => {

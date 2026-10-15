@@ -180,11 +180,23 @@ export interface CustomHotelChange {
   originalHotelName?: string;
   originalPricePerNight?: number;
   newHotelName: string;
-  mode: "system" | "custom";
+  mode: "system" | "custom" | "provider";
   newPricePerNight?: number;
   stars?: number;
   address?: string;
   note?: string;
+  // Platform provider service metadata
+  isProviderService?: boolean;
+  serviceId?: string;
+  providerId?: string;
+  providerName?: string;
+  providerPhone?: string;
+  providerEmail?: string;
+  providerAddress?: string;
+  providerRepresentative?: string;
+  serviceImage?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CustomMealChange {
@@ -192,10 +204,22 @@ export interface CustomMealChange {
   mealType: "breakfast" | "lunch" | "dinner";
   originalMealName?: string;
   newMealName: string;
-  mode: "system" | "custom";
+  mode: "system" | "custom" | "provider";
   pricePerPerson?: number;
   priceDifference?: number;
   note?: string;
+  // Platform provider service metadata
+  isProviderService?: boolean;
+  serviceId?: string;
+  providerId?: string;
+  providerName?: string;
+  providerPhone?: string;
+  providerEmail?: string;
+  providerAddress?: string;
+  providerRepresentative?: string;
+  serviceImage?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface PaymentRequest {
@@ -349,7 +373,7 @@ export interface Booking {
   guideAvatar?: string;
   guidePhone?: string;
   // Payment
-  paymentStatus?: "unpaid" | "deposit_paid" | "paid" | "refunded";
+  paymentStatus?: "unpaid" | "paid" | "refunded";
   depositAmount?: number;
   depositPaid?: boolean;
   remainingAmount?: number;

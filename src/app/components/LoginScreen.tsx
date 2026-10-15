@@ -301,6 +301,27 @@ export function LoginScreen({
                 </span>
               </div>
 
+              {/* Service Provider */}
+              <div
+                onClick={() => {
+                  setEmail("provider.heritage@gmail.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border border-teal-200 hover:border-teal-400 hover:bg-teal-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+              >
+                <div>
+                  <span className="font-bold text-gray-900 group-hover:text-teal-700 block">
+                    🏨 Đối tác Cung cấp Dịch vụ (Heritage):
+                  </span>
+                  <code className="text-[11px] text-teal-600 font-mono font-bold">
+                    provider.heritage@gmail.com
+                  </code>
+                </div>
+                <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">
+                  Quản lý DV ➔
+                </span>
+              </div>
+
               {/* Admin */}
               <div
                 onClick={() => {

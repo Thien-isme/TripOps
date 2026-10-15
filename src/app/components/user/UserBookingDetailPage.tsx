@@ -33,6 +33,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Handshake,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -61,8 +62,7 @@ const statusMap: Record<string, { label: string; color: string }> = {
 
 const paymentStatusMap: Record<string, { label: string; color: string }> = {
   unpaid: { label: "Chưa thanh toán (Thanh toán sau)", color: "bg-amber-50 text-amber-800 border-amber-200" },
-  deposit_paid: { label: "Đã đặt cọc 50%", color: "bg-blue-50 text-blue-800 border-blue-200" },
-  paid: { label: "Đã thanh toán đủ 100%", color: "bg-emerald-50 text-emerald-800 border-emerald-200" },
+  paid: { label: "Đã thanh toán", color: "bg-emerald-50 text-emerald-800 border-emerald-200" },
   refunded: { label: "Đã hoàn tiền", color: "bg-purple-50 text-purple-800 border-purple-200" },
 };
 
@@ -444,10 +444,30 @@ export function UserBookingDetailPage({
                                 {hc.stars} ★
                               </span>
                             )}
+                            {hc.isProviderService || hc.mode === "provider" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                Đối tác Nền tảng: {hc.providerName || "Heritage"}
+                              </span>
+                            ) : null}
                           </p>
                           <p className="text-gray-400 line-through">
-                            Gốc: {hc.originalHotelName} • ({hc.mode === "custom" ? "Tự nhập – Chờ công ty chốt giá" : "Từ hệ thống"})
+                            Gốc: {hc.originalHotelName} • ({hc.mode === "custom" ? "Tự nhập – Chờ công ty chốt giá" : hc.mode === "provider" ? "Dịch vụ Đối tác Nền tảng" : "Từ hệ thống"})
                           </p>
+                          {hc.latitude && hc.longitude && (
+                            <div className="pt-0.5">
+                              <a
+                                href={`https://www.google.com/maps?q=${hc.latitude},${hc.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-medium"
+                              >
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                Xem vị trí trên Google Maps
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
                           {hc.note && <p className="text-purple-600 italic">Ghi chú: {hc.note}</p>}
                         </div>
                       ))}
@@ -490,13 +510,35 @@ export function UserBookingDetailPage({
                       </p>
                       {booking.customMealChanges.map((mc, idx) => (
                         <div key={idx} className="pl-5 space-y-0.5">
-                          <p className="font-bold text-gray-900">
-                            Ngày {mc.dayNumber} ({mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):{" "}
+                          <p className="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                            <span>
+                              Ngày {mc.dayNumber} ({mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):
+                            </span>
                             <span className="text-purple-700 font-bold">{mc.newMealName}</span>
+                            {mc.isProviderService || mc.mode === "provider" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                Đối tác Nền tảng: {mc.providerName || "Heritage"}
+                              </span>
+                            ) : null}
                           </p>
                           <p className="text-gray-400 line-through">
                             Gốc: {mc.originalMealName || "Nhà hàng theo tour"}
                           </p>
+                          {mc.latitude && mc.longitude && (
+                            <div className="pt-0.5">
+                              <a
+                                href={`https://www.google.com/maps?q=${mc.latitude},${mc.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 underline font-medium"
+                              >
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                Xem vị trí trên Google Maps
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1238,8 +1280,10 @@ export function UserBookingDetailPage({
             <div>
               <p className="font-bold text-gray-900 mb-1">ĐIỀU 2: GIÁ TRỊ VÀ PHƯƠNG THỨC THANH TOÁN</p>
               <p>Tổng giá trị hợp đồng: <strong className="text-blue-700">{formatVND(booking.totalPrice)}</strong></p>
-              <p>Đã đặt cọc: <strong>{formatVND(booking.depositAmount ?? Math.ceil(booking.totalPrice * 0.5))}</strong> ({booking.depositPaid ? "Đã thu" : "Chưa thu"})</p>
-              <p>Số tiền còn lại: <strong>{formatVND(booking.remainingAmount ?? (booking.depositPaid ? booking.totalPrice - (booking.depositAmount ?? 0) : booking.totalPrice))}</strong></p>
+              <p>Trạng thái thanh toán: <strong>{booking.paymentStatus === "paid" ? "Đã thanh toán" : booking.paymentStatus === "refunded" ? "Đã hoàn tiền" : "Chưa thanh toán"}</strong></p>
+              {booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
+                <p>Số tiền còn lại cần nộp: <strong className="text-amber-700">{formatVND(booking.remainingAmount)}</strong></p>
+              )}
             </div>
 
             {isCoHosted && (

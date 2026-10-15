@@ -31,8 +31,11 @@ import {
   Edit3,
   Handshake,
   ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { mockUsers } from "@/app/data/mockData";
+import { ProviderProfileModal } from "./ProviderProfileModal";
 import {
   Dialog,
   DialogContent,
@@ -67,8 +70,7 @@ const statusMap: Record<string, { label: string; color: string }> = {
 
 const paymentStatusMap: Record<string, { label: string; color: string }> = {
   unpaid: { label: "Chưa thanh toán", color: "bg-red-50 text-red-700 border-red-200" },
-  deposit_paid: { label: "Đã đặt cọc 50%", color: "bg-amber-50 text-amber-700 border-amber-200" },
-  paid: { label: "Đã thanh toán đủ 100%", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  paid: { label: "Đã thanh toán", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   refunded: { label: "Đã hoàn tiền", color: "bg-purple-50 text-purple-700 border-purple-200" },
 };
 
@@ -134,6 +136,53 @@ export function CompanyBookingDetailPage({
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDescription, setPaymentDescription] = useState("");
   const [paymentDueDate, setPaymentDueDate] = useState("");
+
+  // Provider Profile Modal state
+  const [selectedProvider, setSelectedProvider] = useState<User | null>(null);
+  const [providerModalOpen, setProviderModalOpen] = useState(false);
+  const [providerServiceContext, setProviderServiceContext] = useState<{
+    serviceName?: string;
+    category?: "hotel" | "fnb" | "meal" | string;
+    dayNumber?: number;
+    destination?: string;
+  } | undefined>(undefined);
+
+  const handleOpenProviderProfile = (
+    providerId?: string,
+    context?: { serviceName?: string; category?: string; dayNumber?: number; destination?: string }
+  ) => {
+    const foundUser = mockUsers.find(
+      (u) =>
+        u.id === providerId ||
+        u.email === "provider.heritage@gmail.com" ||
+        u.email === "provider@demo.com" ||
+        u.aliasEmails?.includes("provider.heritage@gmail.com") ||
+        u.aliasEmails?.includes("provider@demo.com")
+    );
+    if (foundUser) {
+      setSelectedProvider(foundUser);
+    } else {
+      const defaultProvider: User = {
+        id: providerId || "provider-1",
+        name: "Nguyễn Thị Mai (Heritage Provider)",
+        email: "provider.heritage@gmail.com",
+        aliasEmails: ["provider@demo.com"],
+        role: "provider",
+        businessName: "Tổ hợp Dịch vụ Du lịch Heritage",
+        businessPhone: "0263 3825 444",
+        businessEmail: "provider.heritage@gmail.com",
+        businessAddress: "02 Trần Phú, Phường 3, TP. Đà Lạt, Tỉnh Lâm Đồng",
+        taxCode: "0123456789",
+        latitude: 11.9404,
+        longitude: 108.4583,
+        businessDescription:
+          "Tổ hợp Dịch vụ Du lịch Heritage chuyên cung cấp các dịch vụ lưu trú cao cấp, ẩm thực bản địa trứ danh và các hoạt động trải nghiệm dã ngoại, vận chuyển du khách uy tín trên toàn quốc.",
+      };
+      setSelectedProvider(defaultProvider);
+    }
+    setProviderServiceContext(context);
+    setProviderModalOpen(true);
+  };
 
   const st = statusMap[booking.status] ?? { label: booking.status, color: "bg-gray-100 text-gray-700" };
   const pst = paymentStatusMap[booking.paymentStatus ?? "unpaid"];
@@ -360,14 +409,14 @@ export function CompanyBookingDetailPage({
                         <p>
                           <strong className="text-gray-700">Phụ trách:</strong> {ch.assignedSegments || (isLead ? "Chặng đón & điều phối tổng thể" : "Chặng trải nghiệm địa phương")}
                         </p>
-                        {ch.quotePerGuest ? (
+                        {ch.fixedPayoutAmount ? (
+                          <p className="text-emerald-700 font-bold">
+                            Kinh phí chặng phân bổ: <span className="underline">{formatVND(ch.fixedPayoutAmount)}</span>
+                          </p>
+                        ) : ch.quotePerGuest ? (
                           <p className="text-emerald-700 font-bold">
                             Báo giá chặng: {formatVND(ch.quotePerGuest)} / khách × {booking.numberOfGuests} khách ={" "}
                             <span className="underline">{formatVND(ch.quotePerGuest * booking.numberOfGuests)}</span>
-                          </p>
-                        ) : ch.revenueSharePercentage ? (
-                          <p className="text-purple-700 font-semibold">
-                            Tỷ lệ phân chia: {ch.revenueSharePercentage}% doanh thu
                           </p>
                         ) : null}
                       </div>
@@ -445,7 +494,42 @@ export function CompanyBookingDetailPage({
                                 KHÁCH SẠN MỚI ĐƯỢC YÊU CẦU:
                               </span>
                               <p className="font-bold text-purple-900 text-sm">{hc.newHotelName}</p>
-                              {hc.mode === "system" ? (
+                              {hc.isProviderService || hc.mode === "provider" ? (
+                                <div className="mt-1.5 space-y-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-200">
+                                      <Sparkles className="w-3 h-3 text-amber-500" />
+                                      Dịch vụ Đối tác Nền tảng ({hc.stars || 4}★)
+                                    </span>
+                                    {hc.newPricePerNight && (
+                                      <span className="text-[11px] font-semibold text-gray-600">
+                                        Giá tham khảo: {formatVND(hc.newPricePerNight)}/đêm
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="pt-1.5 border-t border-purple-200/60">
+                                    <span className="text-[11px] text-gray-500 block font-medium">Đối tác cung cấp dịch vụ:</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenProviderProfile(hc.providerId, {
+                                        serviceName: hc.newHotelName,
+                                        category: "hotel",
+                                        destination: hc.destination,
+                                      })}
+                                      className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors mt-0.5 group"
+                                      title="Bấm để xem hồ sơ và thông tin liên hệ B2B"
+                                    >
+                                      <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                      <span className="underline">{hc.providerName || "Tổ hợp Dịch vụ Du lịch Heritage"}</span>
+                                      <ExternalLink className="w-3 h-3 text-blue-500 group-hover:translate-x-0.5 transition-transform" />
+                                    </button>
+                                    <p className="text-[10px] text-amber-700 mt-1 italic">
+                                      * Bấm vào tên Đối tác để mở hồ sơ B2B, số hotline và email liên hệ trực tiếp.
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : hc.mode === "system" ? (
                                 <div className="mt-1 space-y-0.5">
                                   <span className="inline-block bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">
                                     Chọn từ hệ thống ({hc.stars || 4}★)
@@ -567,14 +651,41 @@ export function CompanyBookingDetailPage({
                     </h3>
                     <div className="space-y-2">
                       {booking.customMealChanges.map((mc, idx) => (
-                        <div key={idx} className="bg-white rounded-xl border border-purple-200 p-3 flex items-center justify-between text-xs">
+                        <div key={idx} className="bg-white rounded-xl border border-purple-200 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                           <div>
-                            <span className="font-bold text-purple-900">Ngày {mc.dayNumber} · {mc.mealType === "lunch" ? "Ăn trưa" : "Ăn tối"}</span>
+                            <span className="font-bold text-purple-900">
+                              Ngày {mc.dayNumber} · {mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}
+                            </span>
                             <p className="text-gray-500">Gốc: {mc.originalMealName || "Nhà hàng mặc định"}</p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <p className="font-bold text-purple-900">{mc.newMealName}</p>
-                            <span className="text-[10px] text-purple-700 bg-purple-100 px-2 py-0.5 rounded font-semibold">Đã đổi</span>
+                            {mc.isProviderService || mc.mode === "provider" ? (
+                              <div className="mt-1 flex flex-col sm:items-end gap-1">
+                                <span className="inline-flex items-center gap-1 text-[10px] text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded font-bold border border-indigo-200">
+                                  <Sparkles className="w-3 h-3 text-amber-500" />
+                                  Đối tác Nền tảng
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenProviderProfile(mc.providerId, {
+                                    serviceName: mc.newMealName,
+                                    category: "meal",
+                                    dayNumber: mc.dayNumber,
+                                  })}
+                                  className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 underline mt-0.5 group"
+                                  title="Bấm để xem hồ sơ và thông tin liên hệ B2B"
+                                >
+                                  <Building2 className="w-3 h-3 text-blue-600" />
+                                  <span>{mc.providerName || "Tổ hợp Dịch vụ Du lịch Heritage"}</span>
+                                  <ExternalLink className="w-3 h-3 text-blue-500 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
+                              </div>
+                            ) : mc.mode === "system" ? (
+                              <span className="text-[10px] text-purple-700 bg-purple-100 px-2 py-0.5 rounded font-semibold inline-block mt-1">Đã đổi</span>
+                            ) : (
+                              <span className="text-[10px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded font-semibold inline-block mt-1">Tự nhập (chờ báo giá)</span>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1054,11 +1165,11 @@ export function CompanyBookingDetailPage({
               {/* Payment status row */}
               <div className="flex justify-between items-center py-1 border-b border-gray-100">
                 <span className="text-gray-500">Trạng thái thanh toán:</span>
-                <span className={`font-bold ${booking.paymentStatus === "paid" ? "text-emerald-700" : booking.paymentStatus === "deposit_paid" ? "text-blue-700" : "text-amber-700"}`}>
+                <span className={`font-bold ${booking.paymentStatus === "paid" ? "text-emerald-700" : booking.paymentStatus === "refunded" ? "text-purple-700" : "text-amber-700"}`}>
                   {booking.paymentStatus === "paid"
-                    ? "Đã thanh toán 100%"
-                    : booking.paymentStatus === "deposit_paid"
-                    ? "Đã thanh toán một phần"
+                    ? "Đã thanh toán"
+                    : booking.paymentStatus === "refunded"
+                    ? "Đã hoàn tiền"
                     : "Chưa thanh toán (Thanh toán sau)"}
                 </span>
               </div>
@@ -1098,7 +1209,7 @@ export function CompanyBookingDetailPage({
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                     Admin sàn đã quyết toán tiền tour:
                   </p>
-                  <p>Số tiền đã nhận: <strong className="text-emerald-700 text-xs">{formatVND(booking.settledAmount ?? 0)}</strong> (Đã khấu trừ {booking.platformFeeRate || 8}% phí sàn {formatVND(booking.platformFeeAmount ?? 0)})</p>
+                  <p>Số tiền đã nhận: <strong className="text-emerald-700 text-xs">{formatVND(booking.settledAmount ?? 0)}</strong> {booking.platformFeeRate ? `(Đã khấu trừ ${booking.platformFeeRate}% phí sàn ${formatVND(booking.platformFeeAmount ?? 0)})` : "(Miễn phí sàn 0% - Giải ngân 100%)"}</p>
                   {booking.settledAt && <p className="text-gray-500">Ngày quyết toán: {booking.settledAt}</p>}
                 </div>
               ) : booking.status === "completed" ? (
@@ -1111,7 +1222,7 @@ export function CompanyBookingDetailPage({
                 </div>
               ) : (
                 <div className="bg-blue-50/70 p-2.5 rounded-lg border border-blue-200 text-blue-900 text-[11px] leading-relaxed">
-                  🛡️ <strong>Chính sách Escrow:</strong> Tiền thanh toán của khách sẽ vào Tài khoản Hệ thống. Khi tour kết thúc, Admin sẽ khấu trừ phí sàn và chuyển trả lại cho Quý công ty.
+                  🛡️ <strong>Chính sách Escrow:</strong> Tiền thanh toán của khách sẽ vào Tài khoản Hệ thống. Khi tour kết thúc, Admin sàn sẽ đối soát và giải ngân 100% cho Quý công ty (chính sách miễn phí sàn hiện tại).
                 </div>
               )}
             </div>
@@ -1463,7 +1574,7 @@ export function CompanyBookingDetailPage({
                     Lưu ý về Dòng tiền Thanh toán:
                   </p>
                   <p>
-                    Tiền thanh toán của khách sẽ được chuyển trực tiếp vào <strong>Tài khoản trung gian (Escrow) của Hệ thống</strong>. Khi tour kết thúc tốt đẹp, Admin sàn sẽ quyết toán và chuyển lại cho Quý công ty (sau khi khấu trừ phí sàn).
+                    Tiền thanh toán của khách sẽ được chuyển trực tiếp vào <strong>Tài khoản trung gian (Escrow) của Hệ thống</strong>. Khi tour kết thúc tốt đẹp, Admin sàn sẽ quyết toán và chuyển lại 100% cho Quý công ty (chính sách miễn phí sàn hiện tại).
                   </p>
                 </div>
 
@@ -1618,8 +1729,10 @@ export function CompanyBookingDetailPage({
             <div>
               <p className="font-bold text-gray-900 mb-1">ĐIỀU 2: GIÁ TRỊ VÀ PHƯƠNG THỨC THANH TOÁN</p>
               <p>Tổng giá trị hợp đồng: <strong className="text-blue-700">{formatVND(booking.totalPrice)}</strong></p>
-              <p>Đã đặt cọc: <strong>{formatVND(booking.depositAmount ?? Math.ceil(booking.totalPrice * 0.5))}</strong> ({booking.depositPaid ? "Đã thu" : "Chưa thu"})</p>
-              <p>Số tiền còn lại: <strong>{formatVND(booking.remainingAmount ?? 0)}</strong></p>
+              <p>Trạng thái thanh toán: <strong>{booking.paymentStatus === "paid" ? "Đã thanh toán" : booking.paymentStatus === "refunded" ? "Đã hoàn tiền" : "Chưa thanh toán"}</strong></p>
+              {booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
+                <p>Số tiền còn lại: <strong className="text-amber-700">{formatVND(booking.remainingAmount)}</strong></p>
+              )}
             </div>
 
             {booking.hasLocationCustomization && (
@@ -1639,6 +1752,18 @@ export function CompanyBookingDetailPage({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Provider Profile Modal (B2B contacts & Google Map) */}
+      <ProviderProfileModal
+        provider={selectedProvider}
+        isOpen={providerModalOpen}
+        onClose={() => {
+          setProviderModalOpen(false);
+          setSelectedProvider(null);
+          setProviderServiceContext(undefined);
+        }}
+        serviceContext={providerServiceContext}
+      />
     </div>
   );
 }

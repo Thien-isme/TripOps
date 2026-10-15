@@ -324,7 +324,7 @@ function App() {
           ? {
               ...b,
               depositPaid: true,
-              paymentStatus: (b.remainingAmount === 0 ? "paid" : "deposit_paid") as const,
+              paymentStatus: "paid" as const,
             }
           : b,
       ),
@@ -704,10 +704,8 @@ function App() {
           ...b,
           paymentRequests: updatedPaymentRequests,
           remainingAmount: remaining,
-          paymentStatus: isFullyPaid
+          paymentStatus: (isFullyPaid || totalPaid > 0)
             ? ("paid" as const)
-            : totalPaid > 0
-            ? ("deposit_paid" as const)
             : ("unpaid" as const),
           depositPaid: totalPaid > 0,
           depositAmount: totalPaid,

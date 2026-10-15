@@ -529,9 +529,9 @@ export function TourFormPage({
   const partnerQuoteVal = company.id === partnerHost?.companyId ? myQuotePerGuest : (partnerHost?.quotePerGuest || 0);
   const leadQuoteVal = company.id === leadHost?.companyId ? myQuotePerGuest : (leadHost?.quotePerGuest || 0);
   const totalNetCost = leadQuoteVal + partnerQuoteVal;
-  const platformFeeRate = tour?.platformFeeRate || 8; // 8%
-  const calculatedPlatformFee = totalNetCost > 0 ? Math.round((totalNetCost * platformFeeRate) / (100 - platformFeeRate)) : 0;
-  const calculatedFinalPrice = totalNetCost > 0 ? totalNetCost + calculatedPlatformFee : price;
+  const platformFeeRate = tour?.platformFeeRate ?? 0; // 0% (tạm thời không thu phí sàn)
+  const calculatedPlatformFee = 0;
+  const calculatedFinalPrice = totalNetCost > 0 ? totalNetCost : price;
 
   const dynamicLeadPct = totalNetCost > 0 ? Math.round((leadQuoteVal / totalNetCost) * 100) : 50;
   const dynamicPartnerPct = 100 - dynamicLeadPct;
@@ -1148,7 +1148,7 @@ export function TourFormPage({
       companyLogo: tour?.companyLogo || company.logo,
       isCoHosted: isCoHostedTour,
       coHosts: updatedCoHosts,
-      platformFeeRate: 8,
+      platformFeeRate: 0,
       pricingStatus: updatedCoHosts?.every((ch) => ch.quoteStatus === "submitted") ? "quoted" : "pending_partner_quote",
       tourType: isCustom ? "custom_request" : (tour?.tourType || "public"),
       customRequestId: customRequest?.id || tour?.customRequestId,
@@ -2474,7 +2474,7 @@ export function TourFormPage({
                             Báo Giá Độc Lập Từng Chặng &amp; Cộng Dồn Chi Phí (Cost Aggregation)
                           </h3>
                           <p className="text-xs text-purple-800/80">
-                            Mỗi công ty tự tính toán và nhập báo giá phần dịch vụ của mình. Hệ thống tự động cộng dồn + 8% phí sàn để ra giá bán cuối cho khách.
+                            Mỗi công ty tự tính toán và nhập báo giá phần dịch vụ của mình. Hệ thống tự động tổng hợp chi phí để ra giá tour trọn gói cho khách (Hiện đang áp dụng chính sách Miễn phí sàn 0%).
                           </p>
                         </div>
                       </div>
@@ -2619,29 +2619,21 @@ export function TourFormPage({
                       Tổng Hợp Chi Phí Trực Tiếp &amp; Giá Bán Cuối Cùng Cho Khách Hàng:
                     </h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <span className="text-gray-500 text-[11px] block">Báo giá Cty A ({leadHost?.companyName || "Chủ trì"}):</span>
                         <p className="text-sm font-bold text-blue-800 mt-0.5">{formatVND(leadQuoteVal)}</p>
-                        <span className="text-[10px] text-gray-400">≈ {dynamicLeadPct}% chi phí tour</span>
                       </div>
 
                       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <span className="text-gray-500 text-[11px] block">Báo giá Cty B ({partnerHost?.companyName || "Đối tác"}):</span>
                         <p className="text-sm font-bold text-purple-800 mt-0.5">{formatVND(partnerQuoteVal)}</p>
-                        <span className="text-[10px] text-gray-400">≈ {dynamicPartnerPct}% chi phí tour</span>
-                      </div>
-
-                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                        <span className="text-amber-800 text-[11px] block font-medium">Phí sàn Ký quỹ Escrow (8%):</span>
-                        <p className="text-sm font-bold text-amber-900 mt-0.5">{formatVND(calculatedPlatformFee)}</p>
-                        <span className="text-[10px] text-amber-700">Khấu trừ khi quyết toán</span>
                       </div>
 
                       <div className="p-3 bg-emerald-600 text-white rounded-lg shadow-sm">
                         <span className="text-emerald-100 text-[11px] block font-bold">GIÁ BÁN CUỐI CHO KHÁCH:</span>
                         <p className="text-lg font-black mt-0.5">{formatVND(calculatedFinalPrice)}</p>
-                        <span className="text-[10px] text-emerald-200">Tự động đồng bộ bảng giá</span>
+                        <span className="text-[10px] text-emerald-200">Tự động cộng dồn & đồng bộ bảng giá</span>
                       </div>
                     </div>
                   </div>
@@ -3241,7 +3233,8 @@ export function TourFormPage({
                                               if (loc.createdByCompanyId) dayCompanies.set(loc.createdByCompanyId, loc.createdByCompanyName || "Công ty tham quan");
                                             });
                                             if (dayCompanies.size === 0) {
-                                              coHosts.forEach((ch) => {
+                                              const coHosts = tour?.coHosts || customRequest?.coHosts || coHostsList;
+                                              coHosts?.forEach((ch) => {
                                                 if (ch.assignedDays?.includes(d.day)) {
                                                   dayCompanies.set(ch.companyId, ch.companyName);
                                                 }

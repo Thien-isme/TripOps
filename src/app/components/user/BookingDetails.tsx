@@ -117,14 +117,14 @@ export function BookingDetails({
               <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
                 booking.paymentStatus === "paid"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : booking.paymentStatus === "deposit_paid"
-                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : booking.paymentStatus === "refunded"
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
                   : "bg-amber-50 text-amber-800 border-amber-200"
               }`}>
                 {booking.paymentStatus === "paid"
-                  ? "Đã thanh toán đủ"
-                  : booking.paymentStatus === "deposit_paid"
-                  ? "Đã đặt cọc"
+                  ? "Đã thanh toán"
+                  : booking.paymentStatus === "refunded"
+                  ? "Đã hoàn tiền"
                   : "Chưa thanh toán (Thanh toán sau)"}
               </span>
             </div>

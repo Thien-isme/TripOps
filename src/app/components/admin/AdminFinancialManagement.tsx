@@ -68,7 +68,7 @@ export function AdminFinancialManagement({
   const [accountHolder, setAccountHolder] = useState(systemBank.accountHolder);
   const [branch, setBranch] = useState(systemBank.branch || "");
   const [defaultCommissionRate, setDefaultCommissionRate] = useState(
-    systemBank.defaultCommissionRate || 8,
+    systemBank.defaultCommissionRate ?? 0,
   );
   const [notes, setNotes] = useState(systemBank.notes || "");
   const [bankSavedToast, setBankSavedToast] = useState(false);
@@ -371,7 +371,7 @@ export function AdminFinancialManagement({
                 <strong>Công ty tổ chức tour:</strong> Khách đi tour theo đúng lộ trình đã cam kết.
               </li>
               <li>
-                <strong>Kết thúc tour:</strong> Admin khấu trừ hoa hồng sàn ({defaultCommissionRate}%) và bấm quyết toán chuyển tiền lại cho Công ty lữ hành.
+                <strong>Kết thúc tour:</strong> Admin kiểm tra và bấm quyết toán chuyển tiền lại cho Công ty lữ hành (miễn phí sàn 0%).
               </li>
             </ol>
           </div>
@@ -425,7 +425,7 @@ export function AdminFinancialManagement({
               Danh sách Booking Tạm giữ Tiền &amp; Quyết toán cho Công ty Du lịch
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Sau khi kết thúc tour, Admin thực hiện khấu trừ hoa hồng sàn ({defaultCommissionRate}%) và xác nhận chuyển trả số tiền còn lại cho Công ty lữ hành.
+              Sau khi kết thúc tour, Admin thực hiện kiểm tra và xác nhận chuyển trả tiền cho Công ty lữ hành (áp dụng chính sách miễn phí sàn hiện tại).
             </p>
           </div>
 
@@ -479,7 +479,7 @@ export function AdminFinancialManagement({
                   const paid = getPaidAmount(b);
                   const isSettled = b.settlementStatus === "settled";
                   const isTourCompleted = b.status === "completed";
-                  const feeRate = b.platformFeeRate || defaultCommissionRate;
+                  const feeRate = b.platformFeeRate ?? defaultCommissionRate;
                   const estimatedFee = Math.round((paid * feeRate) / 100);
                   const estimatedSettled = paid - estimatedFee;
 
@@ -635,11 +635,17 @@ export function AdminFinancialManagement({
             const leadHost = coHosts.find((c) => c.role === "lead");
             const partnerHost = coHosts.find((c) => c.role === "partner");
 
-            const leadPercent = leadHost?.revenueSharePercentage ?? 40;
-            const partnerPercent = partnerHost?.revenueSharePercentage ?? 60;
+            const leadPayout = leadHost?.fixedPayoutAmount
+              ? leadHost.fixedPayoutAmount
+              : leadHost?.quotePerGuest
+              ? leadHost.quotePerGuest * b.numberOfGuests
+              : Math.round(finalSettledAmount / 2);
 
-            const leadPayout = Math.round((finalSettledAmount * leadPercent) / 100);
-            const partnerPayout = finalSettledAmount - leadPayout;
+            const partnerPayout = partnerHost?.fixedPayoutAmount
+              ? partnerHost.fixedPayoutAmount
+              : partnerHost?.quotePerGuest
+              ? partnerHost.quotePerGuest * b.numberOfGuests
+              : finalSettledAmount - leadPayout;
 
             return (
               <div className="space-y-4 text-xs">
@@ -686,7 +692,7 @@ export function AdminFinancialManagement({
                     </div>
                     <div className="flex justify-between items-center text-rose-700">
                       <span>2. Khấu trừ Phí hoa hồng sàn ({feeRate}%):</span>
-                      <span className="font-bold">- {formatVND(platformFee)}</span>
+                      <span className="font-bold">{feeRate === 0 ? "0đ (Miễn phí sàn)" : `- ${formatVND(platformFee)}`}</span>
                     </div>
                     <div className="border-t border-blue-200 pt-2 flex justify-between items-center text-sm">
                       <span className="font-bold text-gray-900">
@@ -708,7 +714,7 @@ export function AdminFinancialManagement({
                         Phân Chia Quyết Toán Cho 2 Công Ty Liên Minh:
                       </span>
                       <span className="text-[10px] font-bold bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
-                        Tỷ lệ: {leadPercent}% - {partnerPercent}%
+                        Độc lập theo từng chặng
                       </span>
                     </div>
 
@@ -720,7 +726,7 @@ export function AdminFinancialManagement({
                             {leadHost.companyName}
                           </span>
                           <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded">
-                            Chủ trì ({leadPercent}%)
+                            Chủ trì (Lead)
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-500 line-clamp-1">
@@ -738,7 +744,7 @@ export function AdminFinancialManagement({
                             {partnerHost.companyName}
                           </span>
                           <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded">
-                            Đối tác ({partnerPercent}%)
+                            Đối tác (Partner)
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-600 line-clamp-1">

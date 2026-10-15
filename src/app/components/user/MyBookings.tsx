@@ -114,13 +114,7 @@ export function MyBookings({
       case "paid":
         return (
           <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">
-            Đã thanh toán đủ
-          </span>
-        );
-      case "deposit_paid":
-        return (
-          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-bold">
-            Đã cọc 50%
+            Đã thanh toán
           </span>
         );
       case "refunded":
@@ -262,6 +256,12 @@ export function MyBookings({
                                   <span className="text-[10px] text-purple-700 font-bold bg-purple-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                                     <Sparkles className="w-2.5 h-2.5 text-purple-600" />
                                     Tùy chỉnh
+                                  </span>
+                                )}
+                                {(b.customHotelChanges?.some((h) => h.mode === "provider" || h.isProviderService) ||
+                                  b.customMealChanges?.some((m) => m.mode === "provider" || m.isProviderService)) && (
+                                  <span className="text-[10px] text-indigo-700 font-bold bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                    🌟 Đối tác Nền tảng
                                   </span>
                                 )}
                                 {(b.isCoHosted || b.tour?.isCoHosted) && (

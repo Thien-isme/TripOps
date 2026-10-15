@@ -284,7 +284,7 @@ export function CoHostInvitationModal({
               <div className="bg-white/80 p-2.5 rounded-lg border border-amber-200/60 shadow-2xs">
                 <p className="font-bold text-amber-900 mb-0.5">3. Báo giá &amp; Cộng dồn</p>
                 <p className="text-[10px] text-gray-600 leading-relaxed">
-                  Mỗi bên nhập báo giá thực tế của mình. Hệ thống tự cộng dồn + 8% phí sàn ra giá bán cho khách.
+                  Mỗi bên nhập báo giá thực tế của mình. Hệ thống tự cộng dồn để ra giá bán trọn gói cho khách (Hiện đang miễn phí sàn 0%).
                 </p>
               </div>
             </div>
