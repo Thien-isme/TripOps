@@ -1233,8 +1233,8 @@ export function BookingFormPage({
                                         {day.hotel?.name || tour.hotels?.[0]?.name || "Khách sạn tiêu chuẩn theo tour"}
                                       </p>
                                       {day.hotel?.stars && (
-                                        <p className="text-gray-500 text-[11px]">
-                                          Hạng: {day.hotel.stars}★ tiêu chuẩn
+                                        <p className="text-gray-500 text-[11px] font-semibold text-amber-600">
+                                          {day.hotel.stars}★
                                         </p>
                                       )}
                                     </div>

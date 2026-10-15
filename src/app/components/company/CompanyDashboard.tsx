@@ -33,6 +33,7 @@ interface CompanyDashboardProps {
   onCreatePaymentRequest: (bookingId: string, request: Omit<PaymentRequest, "id" | "bookingId" | "createdAt" | "status">) => void;
   onMarkDepositPaid?: (bookingId: string) => void;
   onMarkFullyPaid?: (bookingId: string) => void;
+  onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
   onLogout?: () => void;
 }
@@ -54,6 +55,7 @@ export function CompanyDashboard({
   onCreatePaymentRequest,
   onMarkDepositPaid,
   onMarkFullyPaid,
+  onUpdateBookingPrice,
   onUpdateCustomRequest,
   onLogout,
 }: CompanyDashboardProps) {
@@ -120,6 +122,7 @@ export function CompanyDashboard({
               onCreatePaymentRequest={onCreatePaymentRequest}
               onMarkDepositPaid={onMarkDepositPaid}
               onMarkFullyPaid={onMarkFullyPaid}
+              onUpdateBookingPrice={onUpdateBookingPrice}
             />
           );
         }

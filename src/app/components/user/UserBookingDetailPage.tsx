@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Booking, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange } from "@/app/types";
+import { Booking, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
+import { defaultSystemBankAccount } from "@/app/data/mockData";
 import {
   ArrowLeft,
   Calendar,
@@ -26,6 +27,11 @@ import {
   ChevronUp,
   Sun,
   UtensilsCrossed,
+  Copy,
+  QrCode,
+  Landmark,
+  CheckCircle2,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -38,8 +44,10 @@ import { CancelTourModal } from "./CancelTourModal";
 
 interface UserBookingDetailPageProps {
   booking: Booking;
+  systemBank?: SystemBankAccount;
   onBack: () => void;
   onCancelBooking: (bookingId: string, reason: string) => void;
+  onPayPaymentRequest?: (bookingId: string, paymentRequestId: string) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -63,11 +71,17 @@ function formatVND(n: number) {
 
 export function UserBookingDetailPage({
   booking,
+  systemBank = defaultSystemBankAccount,
   onBack,
   onCancelBooking,
+  onPayPaymentRequest,
 }: UserBookingDetailPageProps) {
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedPaymentRequest, setSelectedPaymentRequest] = useState<PaymentRequest | null>(null);
+  const [copiedAccount, setCopiedAccount] = useState(false);
+  const [copiedContent, setCopiedContent] = useState(false);
+  const [paymentSuccessToast, setPaymentSuccessToast] = useState(false);
 
   // Collapsible itinerary days (expanded by default)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(
@@ -102,6 +116,27 @@ export function UserBookingDetailPage({
   return (
     <div className="min-h-screen bg-gray-50/70 py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pb-16">
+        {/* PAYMENT SUCCESS TOAST */}
+        {paymentSuccessToast && (
+          <div className="bg-emerald-600 text-white px-5 py-4 rounded-2xl shadow-lg flex items-center justify-between text-sm animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-base">Thanh toán đợt thành công!</p>
+                <p className="text-xs text-emerald-100">
+                  Hệ thống đã nhận được tiền vào Tài khoản an toàn (Escrow) và tự động cập nhật trạng thái đã thanh toán cho Công ty lữ hành.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setPaymentSuccessToast(false)}
+              className="text-white hover:text-emerald-100 text-xs underline ml-4"
+            >
+              Đóng
+            </button>
+          </div>
+        )}
+
         {/* Top Header & Breadcrumb */}
         <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -230,8 +265,14 @@ export function UserBookingDetailPage({
                       </p>
                       {booking.customHotelChanges.map((hc, idx) => (
                         <div key={idx} className="pl-5 space-y-0.5">
-                          <p className="font-bold text-gray-900">
-                            {hc.destination}: <span className="text-purple-700">{hc.newHotelName}</span>
+                          <p className="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                            <span>{hc.destination}:</span>
+                            <span className="text-purple-700">{hc.newHotelName}</span>
+                            {hc.stars && (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                {hc.stars} ★
+                              </span>
+                            )}
                           </p>
                           <p className="text-gray-400 line-through">
                             Gốc: {hc.originalHotelName} • ({hc.mode === "custom" ? "Tự nhập – Chờ công ty chốt giá" : "Từ hệ thống"})
@@ -714,64 +755,109 @@ export function UserBookingDetailPage({
               </div>
 
               <div className="space-y-2.5 text-xs">
-                <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                  <span className="text-gray-500">Tổng giá trị tour ({booking.numberOfGuests} khách):</span>
-                  <span className="font-extrabold text-blue-700 text-base">{formatVND(booking.totalPrice)}</span>
+                {/* Total Price and adjustments */}
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500 font-medium">Tổng giá trị tour ({booking.numberOfGuests} khách):</span>
+                    <span className="font-extrabold text-blue-700 text-base">{formatVND(booking.totalPrice)}</span>
+                  </div>
+
+                  {booking.originalTotalPrice && booking.originalTotalPrice !== booking.totalPrice && (
+                    <div className="flex items-center gap-2 text-[11px] pt-0.5">
+                      <span className="text-gray-400 line-through">Giá ban đầu: {formatVND(booking.originalTotalPrice)}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
+                        Công ty đã điều chỉnh ({booking.totalPrice > booking.originalTotalPrice ? "+" : ""}{formatVND(booking.totalPrice - booking.originalTotalPrice)})
+                      </span>
+                    </div>
+                  )}
+
+                  {booking.priceAdjustmentNote && (
+                    <p className="text-[11px] text-gray-700 bg-white p-2 rounded border border-gray-200 mt-1">
+                      💡 <strong>Ghi chú từ công ty:</strong> {booking.priceAdjustmentNote}
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                  <span className="text-gray-500">Tiền đặt cọc:</span>
-                  <span className={`font-bold ${booking.depositPaid ? "text-emerald-700" : "text-amber-600"}`}>
-                    {booking.depositPaid
-                      ? `Đã cọc ${formatVND(booking.depositAmount ?? Math.ceil(booking.totalPrice * 0.5))}`
-                      : "Chưa nộp tiền cọc"}
-                  </span>
-                </div>
+                {/* Progress breakdown */}
+                {(() => {
+                  const totalPaidIntoSystem = (booking.paymentRequests ?? [])
+                    .filter((pr) => pr.status === "paid")
+                    .reduce((sum, pr) => sum + pr.amount, 0);
+                  const remainingToPay = Math.max(0, booking.totalPrice - totalPaidIntoSystem);
 
-                <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                  <span className="text-gray-500">Số tiền còn lại cần thanh toán:</span>
-                  <span className="font-bold text-red-600 text-sm">
-                    {formatVND(
-                      booking.remainingAmount ??
-                        (booking.depositPaid
-                          ? booking.totalPrice - (booking.depositAmount ?? 0)
-                          : booking.totalPrice),
-                    )}
-                  </span>
-                </div>
+                  return (
+                    <div className="space-y-1.5 py-1">
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-500">Đã thanh toán vào TK Hệ thống:</span>
+                        <span className="font-bold text-emerald-700">{formatVND(totalPaidIntoSystem)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-500">Số tiền còn lại cần thanh toán:</span>
+                        <span className="font-bold text-red-600 text-sm">{formatVND(remainingToPay)}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {booking.paymentStatus === "unpaid" && (
                   <div className="bg-teal-50 p-3 rounded-xl border border-teal-200 text-teal-900 text-xs leading-relaxed">
                     💡 <strong>Chính sách thanh toán sau:</strong> Bạn chưa cần thanh toán ngay lúc này. Công ty lữ hành sẽ liên hệ với các bên dịch vụ bên ngoài để chốt giá chính thức cho đoàn và gửi thông báo thanh toán cho bạn.
                   </div>
                 )}
+
+                <div className="bg-emerald-50/80 p-2.5 rounded-lg border border-emerald-200 text-emerald-900 text-[11px] leading-relaxed flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Bảo chứng thanh toán (Escrow):</strong> Tiền thanh toán của bạn sẽ được giữ an toàn tại Tài khoản Hệ thống và chỉ chuyển giao cho Công ty du lịch sau khi kết thúc tour.
+                  </span>
+                </div>
               </div>
 
               {/* Payment Requests from Tour Company */}
               {booking.paymentRequests && booking.paymentRequests.length > 0 && (
-                <div className="pt-3 border-t border-gray-100 space-y-2">
+                <div className="pt-3 border-t border-gray-100 space-y-2.5">
                   <span className="text-xs font-bold text-gray-800 block">Các đợt thanh toán từ công ty lữ hành:</span>
-                  <div className="space-y-2">
-                    {booking.paymentRequests.map((pr) => (
-                      <div key={pr.id} className="bg-gray-50 rounded-xl p-3 border border-gray-200 text-xs space-y-1">
-                        <div className="flex justify-between items-start">
-                          <p className="font-semibold text-gray-800">{pr.description}</p>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            pr.status === "paid"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : pr.status === "overdue"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}>
-                            {pr.status === "paid" ? "Đã nộp" : pr.status === "overdue" ? "Quá hạn" : "Chờ thanh toán"}
-                          </span>
+                  <div className="space-y-2.5">
+                    {booking.paymentRequests.map((pr) => {
+                      const isPaid = pr.status === "paid";
+                      return (
+                        <div key={pr.id} className="bg-gray-50 rounded-xl p-3.5 border border-gray-200 text-xs space-y-1.5 shadow-2xs">
+                          <div className="flex justify-between items-start gap-2">
+                            <p className="font-bold text-gray-900">{pr.description}</p>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border flex-shrink-0 ${
+                              isPaid
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : pr.status === "overdue"
+                                ? "bg-red-100 text-red-800 border-red-200"
+                                : "bg-amber-100 text-amber-800 border-amber-200"
+                            }`}>
+                              {isPaid ? "Đã nộp vào TK Hệ thống" : pr.status === "overdue" ? "Quá hạn" : "Chờ thanh toán"}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center text-gray-500 pt-0.5">
+                            <span>Hạn chót: <strong>{pr.dueDate}</strong></span>
+                            <span className="font-extrabold text-blue-700 text-sm">{formatVND(pr.amount)}</span>
+                          </div>
+
+                          {isPaid ? (
+                            <p className="text-[10px] text-emerald-700 font-medium flex items-center gap-1 pt-1 border-t border-gray-200/60">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Đã chuyển khoản an toàn vào TK Hệ thống ({pr.paidAt})
+                            </p>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => setSelectedPaymentRequest(pr)}
+                              className="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs h-8 gap-1.5 shadow-xs"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              Thanh toán đợt này ({formatVND(pr.amount)})
+                            </Button>
+                          )}
                         </div>
-                        <div className="flex justify-between items-center text-gray-500 pt-1">
-                          <span>Hạn chót: {pr.dueDate}</span>
-                          <span className="font-bold text-blue-700 text-sm">{formatVND(pr.amount)}</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -919,6 +1005,180 @@ export function UserBookingDetailPage({
               In hợp đồng
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: THANH TOÁN QUA TÀI KHOẢN HỆ THỐNG */}
+      <Dialog
+        open={Boolean(selectedPaymentRequest)}
+        onOpenChange={(open) => !open && setSelectedPaymentRequest(null)}
+      >
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          {selectedPaymentRequest && (
+            <div className="space-y-4 pt-1 text-xs text-gray-700">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
+                  <Landmark className="w-5 h-5 text-blue-600" />
+                  Thanh toán qua Tài khoản Hệ thống
+                </DialogTitle>
+              </DialogHeader>
+
+              {/* Booking & Stage Summary */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-200 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wide block">
+                      Đơn hàng #{booking.id}
+                    </span>
+                    <p className="font-bold text-gray-900 text-sm">{booking.tour.name}</p>
+                  </div>
+                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Hạn: {selectedPaymentRequest.dueDate}
+                  </span>
+                </div>
+
+                <div className="pt-2 border-t border-blue-200/60 flex justify-between items-center">
+                  <span className="font-medium text-gray-700">Mục đích: <strong>{selectedPaymentRequest.description}</strong></span>
+                  <span className="text-base font-extrabold text-blue-700">{formatVND(selectedPaymentRequest.amount)}</span>
+                </div>
+              </div>
+
+              {/* Escrow Guarantee Banner */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 flex items-start gap-2.5 leading-relaxed">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-emerald-900">Cơ chế Bảo chứng Thanh toán (Escrow):</p>
+                  <p className="text-gray-700">
+                    Tiền của bạn được chuyển vào <strong>Tài khoản trung gian của Hệ thống Sàn Du lịch</strong>. Hệ thống chỉ quyết toán chuyển trả cho Công ty Du lịch sau khi bạn đã hoàn thành tour an toàn và hài lòng.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bank Account Info Card */}
+              <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-3 relative overflow-hidden shadow-md">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] text-blue-300 font-bold uppercase tracking-wider block">
+                      Tài khoản thụ hưởng Sàn Du lịch
+                    </span>
+                    <p className="text-xs font-bold text-white mt-0.5">{systemBank.bankName}</p>
+                  </div>
+                  <CreditCard className="w-5 h-5 text-blue-300" />
+                </div>
+
+                <div className="pt-1 flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block">Số tài khoản</span>
+                    <span className="font-mono text-base font-extrabold text-amber-300 tracking-wider">
+                      {systemBank.accountNumber}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(systemBank.accountNumber);
+                      setCopiedAccount(true);
+                      setTimeout(() => setCopiedAccount(false), 2000);
+                    }}
+                    className="flex items-center gap-1 text-[11px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                  >
+                    {copiedAccount ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedAccount ? "Đã chép" : "Sao chép"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block">Chủ tài khoản</span>
+                    <span className="font-bold text-white text-[11px] uppercase truncate block">
+                      {systemBank.accountHolder}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-400 block">Chi nhánh</span>
+                    <span className="text-gray-200 text-[11px] truncate block">{systemBank.branch || "Hội sở"}</span>
+                  </div>
+                </div>
+
+                {/* Transfer Content */}
+                <div className="flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block">Nội dung chuyển khoản chuẩn</span>
+                    <span className="font-mono font-bold text-emerald-400 text-xs">
+                      TT {booking.id} {selectedPaymentRequest.id}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`TT ${booking.id} ${selectedPaymentRequest.id}`);
+                      setCopiedContent(true);
+                      setTimeout(() => setCopiedContent(false), 2000);
+                    }}
+                    className="flex items-center gap-1 text-[11px] bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                  >
+                    {copiedContent ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedContent ? "Đã chép" : "Sao chép"}
+                  </button>
+                </div>
+              </div>
+
+              {/* VietQR Code Display */}
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-center space-y-2">
+                <p className="font-bold text-gray-800 flex items-center justify-center gap-1.5">
+                  <QrCode className="w-4 h-4 text-blue-600" />
+                  Quét mã VietQR chuyển khoản nhanh:
+                </p>
+                <div className="inline-block p-2 bg-white rounded-xl border border-gray-200 shadow-xs">
+                  <img
+                    src={`https://img.vietqr.io/image/VCB-${systemBank.accountNumber}-compact2.png?amount=${selectedPaymentRequest.amount}&addInfo=TT%20${booking.id}%20${selectedPaymentRequest.id}&accountName=${encodeURIComponent(systemBank.accountHolder)}`}
+                    alt="Mã VietQR"
+                    className="w-44 h-44 object-contain mx-auto"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  Mở ứng dụng ngân hàng bất kỳ để quét mã (Số tiền &amp; Nội dung đã được điền sẵn)
+                </p>
+              </div>
+
+              {/* DEMO NOTICE FOR TEACHER */}
+              <div className="bg-amber-50 border border-amber-300 rounded-2xl p-3.5 space-y-2 text-[11px] text-amber-950">
+                <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  Cơ chế Tự động hóa Thực tế vs Nút Demo:
+                </p>
+                <ul className="list-disc pl-4 space-y-1 text-gray-700 leading-relaxed">
+                  <li>
+                    <strong>Trong thực tế triển khai:</strong> Sau khi khách quét mã VietQR và xác nhận chuyển tiền trên App ngân hàng, hệ thống webhook của cổng thanh toán / ngân hàng sẽ tự động gửi thông báo IPN. Máy chủ tự động nhận diện và cập nhật trạng thái đợt này sang <strong>"Đã thanh toán"</strong> cho Công ty du lịch ngay tức thì mà không cần thao tác bấm xác nhận thủ công.
+                  </li>
+                  <li>
+                    <strong>Phiên bản Demo:</strong> Bấm nút xác nhận bên dưới để mô phỏng tín hiệu webhook ngân hàng báo về chuyển khoản thành công.
+                  </li>
+                </ul>
+
+                <Button
+                  onClick={() => {
+                    if (onPayPaymentRequest) {
+                      onPayPaymentRequest(booking.id, selectedPaymentRequest.id);
+                    }
+                    setSelectedPaymentRequest(null);
+                    setPaymentSuccessToast(true);
+                    setTimeout(() => setPaymentSuccessToast(false), 4000);
+                  }}
+                  className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 gap-2 shadow-sm"
+                >
+                  <Check className="w-4 h-4" />
+                  [DEMO] Mô phỏng Khách đã quét QR &amp; Chuyển khoản thành công
+                </Button>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <Button variant="outline" onClick={() => setSelectedPaymentRequest(null)}>
+                  Đóng lại
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

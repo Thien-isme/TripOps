@@ -14,6 +14,7 @@ import {
   FileCheck,
   Building2,
   Users,
+  Landmark,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -45,6 +46,11 @@ export function AdminLayout({
     },
     { id: "active-tours", label: "Tour đang dẫn", icon: Map },
     { id: "bookings", label: "Quản lý Booking", icon: Calendar },
+    {
+      id: "finance",
+      label: "STK Sàn & Quyết toán",
+      icon: Landmark,
+    },
     {
       id: "approve-providers",
       label: "Phê duyệt NCC",

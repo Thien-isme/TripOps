@@ -6,11 +6,13 @@ import {
   User,
   GuideSchedule,
   TourCompany,
+  SystemBankAccount,
 } from "@/app/types";
 import { AdminLayout } from "./AdminLayout";
 import { AdminDashboardOverview } from "./AdminDashboardOverview";
 import { ActiveToursManagement } from "./ActiveToursManagement";
 import { AdminBookingManagement } from "./AdminBookingManagement";
+import { AdminFinancialManagement } from "./AdminFinancialManagement";
 import { ProviderAccountApproval } from "./ProviderAccountApproval";
 import { ServicePostApproval } from "./ServicePostApproval";
 import { ProviderManagement } from "./ProviderManagement";
@@ -40,6 +42,13 @@ interface AdminDashboardProps {
   onUpdateUserStatus: (userId: string, isLocked: boolean) => void;
   onApproveCompany: (companyId: string) => void;
   onRejectCompany: (companyId: string, reason: string) => void;
+  systemBank: SystemBankAccount;
+  onUpdateSystemBank: (bank: SystemBankAccount) => void;
+  onSettleBooking: (
+    bookingId: string,
+    settledAmount: number,
+    platformFee: number,
+  ) => void;
   onSuspendCompany: (companyId: string, reason: string) => void;
   onLogout?: () => void;
 }
@@ -64,6 +73,9 @@ export function AdminDashboard({
   onUpdateUserStatus,
   onApproveCompany,
   onRejectCompany,
+  systemBank,
+  onUpdateSystemBank,
+  onSettleBooking,
   onSuspendCompany,
   onLogout,
 }: AdminDashboardProps) {
@@ -110,6 +122,15 @@ export function AdminDashboard({
             onApproveBooking={onApproveBooking}
             onRejectBooking={onRejectBooking}
             onAssignGuide={onAssignGuide}
+          />
+        );
+      case "finance":
+        return (
+          <AdminFinancialManagement
+            systemBank={systemBank}
+            onUpdateSystemBank={onUpdateSystemBank}
+            bookings={bookings}
+            onSettleBooking={onSettleBooking}
           />
         );
       case "approve-providers":

@@ -320,14 +320,14 @@ function formatVND(n: number) {
 }
 
 export const SYSTEM_CATALOG_HOTELS = [
-  { name: "Dalat Edensee Lake Resort & Spa", priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
-  { name: "Ana Mandara Villas Dalat Resort", priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
-  { name: "MerPerle Dalat Hotel", priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
-  { name: "Tuyền Lâm Lake View Resort", priceDifference: 1800000, description: "Khu nghỉ dưỡng cao cấp hòa quyện thiên nhiên hồ Tuyền Lâm" },
-  { name: "Terracotta Hotel & Resort Dalat", priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
-  { name: "TTC Hotel Premium Ngọc Lan", priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
-  { name: "Khách sạn Sammy Đà Lạt", priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
-  { name: "Khách sạn Golf 3 Đà Lạt", priceDifference: -800000, description: "Khách sạn ngay phố đi bộ, thuận tiện mua sắm và ẩm thực" },
+  { name: "Dalat Edensee Lake Resort & Spa", stars: 5, priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
+  { name: "Ana Mandara Villas Dalat Resort", stars: 5, priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
+  { name: "MerPerle Dalat Hotel", stars: 5, priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
+  { name: "Tuyền Lâm Lake View Resort", stars: 4, priceDifference: 1800000, description: "Khu nghỉ dưỡng cao cấp hòa quyện thiên nhiên hồ Tuyền Lâm" },
+  { name: "Terracotta Hotel & Resort Dalat", stars: 4, priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
+  { name: "TTC Hotel Premium Ngọc Lan", stars: 4, priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
+  { name: "Khách sạn Sammy Đà Lạt", stars: 4, priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
+  { name: "Khách sạn Golf 3 Đà Lạt", stars: 3, priceDifference: -800000, description: "Khách sạn ngay phố đi bộ, thuận tiện mua sắm và ẩm thực" },
 ];
 
 export const SYSTEM_CATALOG_RESTAURANTS = [
@@ -481,12 +481,12 @@ export function TourFormPage({
     }
     const found = tour?.itinerary?.find((d) => d.hotel)?.hotel;
     const defaultAlternatives: TourAlternativeHotel[] = [
-      { id: "alt-1", name: "Dalat Edensee Lake Resort & Spa", priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
-      { id: "alt-2", name: "Ana Mandara Villas Dalat Resort", priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
-      { id: "alt-3", name: "MerPerle Dalat Hotel", priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
-      { id: "alt-4", name: "Terracotta Hotel & Resort Dalat", priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
-      { id: "alt-5", name: "TTC Hotel Premium Ngọc Lan", priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
-      { id: "alt-6", name: "Khách sạn Sammy Đà Lạt", priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
+      { id: "alt-1", name: "Dalat Edensee Lake Resort & Spa", stars: 5, priceDifference: 400000, description: "Resort ven hồ Tuyền Lâm – Không gian nghỉ dưỡng đẳng cấp" },
+      { id: "alt-2", name: "Ana Mandara Villas Dalat Resort", stars: 5, priceDifference: 750000, description: "Khu resort biệt thự Pháp cổ giữa rừng thông bạt ngàn" },
+      { id: "alt-3", name: "MerPerle Dalat Hotel", stars: 5, priceDifference: 1200000, description: "Khách sạn phong cách cổ điển lộng lẫy, dịch vụ chuẩn mực" },
+      { id: "alt-4", name: "Terracotta Hotel & Resort Dalat", stars: 4, priceDifference: 300000, description: "Resort bán đảo hồ Tuyền Lâm với nhiều tiện ích thư giãn" },
+      { id: "alt-5", name: "TTC Hotel Premium Ngọc Lan", stars: 4, priceDifference: -350000, description: "Khách sạn ngay chợ Đà Lạt, view toàn cảnh hồ Xuân Hương" },
+      { id: "alt-6", name: "Khách sạn Sammy Đà Lạt", stars: 4, priceDifference: -600000, description: "Khách sạn phong cách Pháp trung tâm thành phố, tiện nghi" },
     ];
 
     if (found) {
@@ -496,6 +496,7 @@ export function TourFormPage({
           name: found.name,
           destination: tour?.destination || "Đà Lạt",
           nights: tour?.numberOfNights ?? 2,
+          stars: found.stars || 4,
           pricePerNight: found.pricePerNight || 2800000,
           description: found.description || "Khách sạn cao cấp view đẹp",
           address: found.address || "Trung tâm thành phố",
@@ -510,6 +511,7 @@ export function TourFormPage({
         name: "Khách sạn Đà Lạt Palace Heritage",
         destination: tour?.destination || "Đà Lạt",
         nights: tour?.numberOfNights ?? 2,
+        stars: 5,
         pricePerNight: 2800000,
         description: "Khách sạn cổ kính trung tâm thành phố, view hồ Xuân Hương",
         address: "02 Trần Phú, Phường 3, TP. Đà Lạt",
@@ -527,6 +529,7 @@ export function TourFormPage({
       name: "Khách sạn / Resort mới",
       destination: destination || "Điểm đến",
       nights: 1,
+      stars: 4,
       pricePerNight: 1500000,
       description: "",
       address: "",
@@ -552,6 +555,7 @@ export function TourFormPage({
     const newAlt: TourAlternativeHotel = {
       id: `alt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: prefill?.name || "Khách sạn / Resort nâng cấp",
+      stars: prefill?.stars ?? 4,
       priceDifference: prefill?.priceDifference ?? 400000,
       description: prefill?.description || "Không gian nghỉ dưỡng cao cấp, tiện nghi sang trọng",
       address: prefill?.address || "",
@@ -1376,7 +1380,12 @@ export function TourFormPage({
                           <div className="flex items-center gap-3">
                             <Building2 className="w-5 h-5 text-blue-600 flex-shrink-0" />
                             <div>
-                              <p className="text-sm font-bold text-gray-900">{hotel.destination || destination || "Khu vực lưu trú"}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-bold text-gray-900">{hotel.destination || destination || "Khu vực lưu trú"}</p>
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                  {hotel.stars || 4} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                </span>
+                              </div>
                               <p className="text-xs text-gray-500">
                                 {hotel.nights || 1} đêm • {hotel.name || "Chưa nhập tên khách sạn"}
                               </p>
@@ -1438,15 +1447,25 @@ export function TourFormPage({
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs font-semibold text-gray-700">Đơn giá phòng định mức/đêm (VNĐ)</Label>
-                                <Input
-                                  type="number"
-                                  step={50000}
-                                  value={hotel.pricePerNight ?? 1500000}
-                                  onChange={(e) => updateHotel(hotel.id || "", { pricePerNight: parseInt(e.target.value) || 0 })}
-                                  className="mt-1 text-xs"
-                                  placeholder="2800000"
-                                />
+                                <Label className="text-xs font-semibold text-gray-700 flex items-center justify-between">
+                                  <span>Số sao của khách sạn</span>
+                                  <span className="flex items-center gap-0.5 text-amber-500">
+                                    {Array.from({ length: hotel.stars || 4 }).map((_, i) => (
+                                      <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                    ))}
+                                  </span>
+                                </Label>
+                                <select
+                                  value={hotel.stars ?? 4}
+                                  onChange={(e) => updateHotel(hotel.id || "", { stars: parseInt(e.target.value) || 4 })}
+                                  className="mt-1 w-full h-9 px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                  <option value={1}>1 sao ⭐</option>
+                                  <option value={2}>2 sao ⭐⭐</option>
+                                  <option value={3}>3 sao ⭐⭐⭐</option>
+                                  <option value={4}>4 sao ⭐⭐⭐⭐</option>
+                                  <option value={5}>5 sao ⭐⭐⭐⭐⭐</option>
+                                </select>
                               </div>
                             </div>
                             <div>
@@ -1458,8 +1477,8 @@ export function TourFormPage({
                                 className="mt-1 text-xs"
                               />
                             </div>
-                            <p className="text-[11px] text-gray-400">
-                              * Đơn giá phòng định mức làm cơ sở để công ty tính giá gói tour tiêu chuẩn ban đầu (Tiêu chuẩn tour 0đ).
+                            <p className="text-[11px] text-gray-500">
+                              * Số sao khách sạn là tiêu chuẩn dịch vụ lưu trú mặc định của gói tour (Khách hàng có thể đổi sang khách sạn khác ở mục Khách sạn đổi hạng bên dưới).
                             </p>
 
                             {/* DANH SÁCH KHÁCH SẠN NÂNG CẤP / ĐỔI HẠNG CHO KHÁCH CHỌN */}
@@ -1509,6 +1528,7 @@ export function TourFormPage({
                                       >
                                         <Plus className="w-3 h-3 text-amber-600" />
                                         <span>{catHotel.name}</span>
+                                        <span className="text-amber-600 font-bold">({catHotel.stars}★)</span>
                                         <span className={`font-bold ${catHotel.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
                                           ({catHotel.priceDifference > 0 ? "+" : ""}{formatVND(catHotel.priceDifference)})
                                         </span>
@@ -1533,7 +1553,7 @@ export function TourFormPage({
                                       <div className="flex items-center justify-between gap-2">
                                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
                                           {/* Tên khách sạn */}
-                                          <div className="sm:col-span-7">
+                                          <div className="sm:col-span-6">
                                             <Label className="text-[11px] text-gray-500 font-medium">Tên khách sạn đổi hạng / nâng cấp</Label>
                                             <Input
                                               value={alt.name}
@@ -1545,8 +1565,33 @@ export function TourFormPage({
                                             />
                                           </div>
 
+                                          {/* Số sao */}
+                                          <div className="sm:col-span-3">
+                                            <Label className="text-[11px] text-gray-500 font-medium flex items-center justify-between">
+                                              <span>Số sao</span>
+                                              <span className="text-amber-500 text-[10px]">
+                                                {"★".repeat(alt.stars || 4)}
+                                              </span>
+                                            </Label>
+                                            <select
+                                              value={alt.stars ?? 4}
+                                              onChange={(e) =>
+                                                updateAlternativeHotel(hotel.id || "", alt.id, {
+                                                  stars: parseInt(e.target.value) || 4,
+                                                })
+                                              }
+                                              className="text-xs mt-0.5 w-full h-9 px-2 py-1 border border-gray-300 rounded-md bg-white font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            >
+                                              <option value={1}>1 sao ⭐</option>
+                                              <option value={2}>2 sao ⭐⭐</option>
+                                              <option value={3}>3 sao ⭐⭐⭐</option>
+                                              <option value={4}>4 sao ⭐⭐⭐⭐</option>
+                                              <option value={5}>5 sao ⭐⭐⭐⭐⭐</option>
+                                            </select>
+                                          </div>
+
                                           {/* Mức chênh lệch */}
-                                          <div className="sm:col-span-5">
+                                          <div className="sm:col-span-3">
                                             <div className="flex items-center justify-between">
                                               <Label className="text-[11px] text-gray-500 font-medium">
                                                 Giá chênh lệch (VNĐ)
@@ -2516,9 +2561,14 @@ export function TourFormPage({
                                     <div className="flex items-center gap-2.5">
                                       <Building2 className="w-4 h-4 text-blue-600" />
                                       <div>
-                                        <p className="font-bold text-gray-900 text-xs">{h.destination || destination || "Điểm đến"}</p>
+                                        <div className="flex items-center gap-1.5">
+                                          <p className="font-bold text-gray-900 text-xs">{h.destination || destination || "Điểm đến"}</p>
+                                          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                            {h.stars || 4} ★
+                                          </span>
+                                        </div>
                                         <p className="text-[11px] text-gray-500">
-                                          {h.nights || 1} đêm • {h.name || "Khách sạn lưu trú"} (Tiêu chuẩn: 0đ)
+                                          {h.nights || 1} đêm • {h.name || "Khách sạn lưu trú"} • {h.stars || 4} sao (Tiêu chuẩn: 0đ)
                                         </p>
                                       </div>
                                     </div>
@@ -2530,7 +2580,12 @@ export function TourFormPage({
                                     <div className="p-2.5 space-y-1.5 bg-gray-50/50">
                                       {(h.alternativeHotels || []).map((alt, ai) => (
                                         <div key={ai} className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-100 text-[11px]">
-                                          <span className="font-medium text-gray-800">{alt.name}</span>
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="font-medium text-gray-800">{alt.name}</span>
+                                            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                              {alt.stars || 4} ★
+                                            </span>
+                                          </div>
                                           <span className={`font-bold ${alt.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
                                             {alt.priceDifference > 0 ? "+" : ""}{formatVND(alt.priceDifference)}
                                           </span>

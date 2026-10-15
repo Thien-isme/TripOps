@@ -41,6 +41,7 @@ import {
   CustomHotelChange,
   CustomMealChange,
   CustomLocationChange,
+  SystemBankAccount,
 } from "@/app/types";
 import {
   mockTours,
@@ -51,6 +52,7 @@ import {
   mockUsers,
   mockTourCompanies,
   mockCustomTourRequests,
+  defaultSystemBankAccount,
 } from "@/app/data/mockData";
 
 function App() {
@@ -84,6 +86,7 @@ function App() {
     hasLocationCustomization?: boolean;
   } | null>(null);
   const [customTourRequests, setCustomTourRequests] = useState<CustomTourRequest[]>(mockCustomTourRequests);
+  const [systemBankAccount, setSystemBankAccount] = useState<SystemBankAccount>(defaultSystemBankAccount);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -616,6 +619,98 @@ function App() {
     );
   };
 
+  // Admin updates system bank account
+  const handleUpdateSystemBank = (bank: SystemBankAccount) => {
+    setSystemBankAccount(bank);
+  };
+
+  // Admin settles completed tour payment to company
+  const handleSettleBooking = (
+    bookingId: string,
+    settledAmount: number,
+    platformFee: number,
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === bookingId
+          ? {
+              ...b,
+              settlementStatus: "settled" as const,
+              settledAmount,
+              settledAt: new Date().toISOString().split("T")[0],
+              platformFeeAmount: platformFee,
+              platformFeeRate: systemBankAccount.defaultCommissionRate || 8,
+            }
+          : b,
+      ),
+    );
+  };
+
+  // Company adjusts total booking price
+  const handleUpdateBookingPrice = (
+    bookingId: string,
+    newPrice: number,
+    note?: string,
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.id !== bookingId) return b;
+        const originalPrice = b.originalTotalPrice ?? b.totalPrice;
+        const paidAmount = (b.paymentRequests ?? [])
+          .filter((pr) => pr.status === "paid")
+          .reduce((sum, pr) => sum + pr.amount, 0);
+        const remaining = Math.max(0, newPrice - paidAmount);
+        return {
+          ...b,
+          originalTotalPrice: originalPrice,
+          totalPrice: newPrice,
+          priceAdjustmentNote: note,
+          priceAdjustedAt: new Date().toISOString().split("T")[0],
+          remainingAmount: remaining,
+        };
+      }),
+    );
+  };
+
+  // Customer pays a payment request (into System Escrow Account)
+  const handlePayPaymentRequest = (
+    bookingId: string,
+    paymentRequestId: string,
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.id !== bookingId) return b;
+        const updatedPaymentRequests = (b.paymentRequests ?? []).map((pr) =>
+          pr.id === paymentRequestId
+            ? {
+                ...pr,
+                status: "paid" as const,
+                paidAt: new Date().toISOString().split("T")[0],
+              }
+            : pr,
+        );
+        const totalPaid = updatedPaymentRequests
+          .filter((pr) => pr.status === "paid")
+          .reduce((sum, pr) => sum + pr.amount, 0);
+        const remaining = Math.max(0, b.totalPrice - totalPaid);
+        const isFullyPaid = remaining === 0;
+
+        return {
+          ...b,
+          paymentRequests: updatedPaymentRequests,
+          remainingAmount: remaining,
+          paymentStatus: isFullyPaid
+            ? ("paid" as const)
+            : totalPaid > 0
+            ? ("deposit_paid" as const)
+            : ("unpaid" as const),
+          depositPaid: totalPaid > 0,
+          depositAmount: totalPaid,
+        };
+      }),
+    );
+  };
+
   // Custom tour requests
   const handleSubmitCustomTourRequest = (
     data: Omit<CustomTourRequest, "id" | "createdAt" | "status">,
@@ -763,6 +858,7 @@ function App() {
             onCreatePaymentRequest={handleCreatePaymentRequest}
             onMarkDepositPaid={handleMarkDepositPaid}
             onMarkFullyPaid={handleMarkFullyPaid}
+            onUpdateBookingPrice={handleUpdateBookingPrice}
             onUpdateCustomRequest={handleUpdateCustomTourRequest}
             onLogout={handleLogout}
           />
@@ -819,6 +915,9 @@ function App() {
               onUpdateUserStatus={handleUpdateUserStatus}
               onApproveCompany={handleApproveCompany}
               onRejectCompany={handleRejectCompany}
+              systemBank={systemBankAccount}
+              onUpdateSystemBank={handleUpdateSystemBank}
+              onSettleBooking={handleSettleBooking}
               onSuspendCompany={handleSuspendCompany}
               onLogout={handleLogout}
             />
@@ -966,13 +1065,18 @@ function App() {
           />
         ) : currentPage === "user-booking-detail" && selectedUserBooking ? (
           <UserBookingDetailPage
-            booking={selectedUserBooking}
+            booking={
+              bookings.find((b) => b.id === selectedUserBooking.id) ||
+              selectedUserBooking
+            }
+            systemBank={systemBankAccount}
             onBack={() => {
               setSelectedUserBooking(null);
               setCurrentPage("my-bookings");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             onCancelBooking={handleCancelBooking}
+            onPayPaymentRequest={handlePayPaymentRequest}
           />
         ) : currentPage === "user-profile" ? (
           <UserProfile />

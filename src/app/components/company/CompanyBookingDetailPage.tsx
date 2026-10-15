@@ -28,6 +28,7 @@ import {
   ChevronUp,
   Sun,
   UtensilsCrossed,
+  Edit3,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -51,6 +52,7 @@ interface CompanyBookingDetailPageProps {
   onCreatePaymentRequest: (bookingId: string, request: Omit<PaymentRequest, "id" | "bookingId" | "createdAt" | "status">) => void;
   onMarkDepositPaid?: (bookingId: string) => void;
   onMarkFullyPaid?: (bookingId: string) => void;
+  onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -89,13 +91,16 @@ export function CompanyBookingDetailPage({
   onCreatePaymentRequest,
   onMarkDepositPaid,
   onMarkFullyPaid,
+  onUpdateBookingPrice,
 }: CompanyBookingDetailPageProps) {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [contractModalOpen, setContractModalOpen] = useState(false);
-
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [newPriceInput, setNewPriceInput] = useState("");
+  const [priceNoteInput, setPriceNoteInput] = useState("");
 
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -321,7 +326,7 @@ export function CompanyBookingDetailPage({
                               {hc.mode === "system" ? (
                                 <div className="mt-1 space-y-0.5">
                                   <span className="inline-block bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                    Chọn từ hệ thống ({hc.stars}★)
+                                    Chọn từ hệ thống ({hc.stars || 4}★)
                                   </span>
                                 </div>
                               ) : (
@@ -352,7 +357,7 @@ export function CompanyBookingDetailPage({
                             <ArrowRight className="w-3.5 h-3.5" />
                             KHÁCH SẠN MỚI KHÁCH CHỌN:
                           </span>
-                          <p className="font-bold text-purple-900 text-sm">Dalat Edensee Resort (5★ Resort view hồ)</p>
+                          <p className="font-bold text-purple-900 text-sm">Dalat Edensee Resort (5★)</p>
                           <span className="inline-block bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold mt-1">
                             Chọn từ hệ thống (5★)
                           </span>
@@ -872,69 +877,151 @@ export function CompanyBookingDetailPage({
               </span>
             </div>
 
+            {/* Total Price with Adjustment option */}
             <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                <span className="text-gray-500">Tổng giá trị đơn ({booking.numberOfGuests} khách):</span>
-                <span className="font-extrabold text-gray-900 text-base">{formatVND(booking.totalPrice)}</span>
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-medium">Tổng giá trị đơn ({booking.numberOfGuests} khách):</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-blue-700 text-base">{formatVND(booking.totalPrice)}</span>
+                    {onUpdateBookingPrice && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setNewPriceInput(booking.totalPrice.toString());
+                          setPriceNoteInput(booking.priceAdjustmentNote || "");
+                          setPriceModalOpen(true);
+                        }}
+                        className="h-7 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 gap-1 font-semibold"
+                        title="Điều chỉnh giá tiền tour theo thỏa thuận"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Đổi giá
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {booking.originalTotalPrice && booking.originalTotalPrice !== booking.totalPrice && (
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="text-gray-400 line-through">Giá gốc: {formatVND(booking.originalTotalPrice)}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
+                      Đã điều chỉnh ({booking.totalPrice > booking.originalTotalPrice ? "+" : ""}{formatVND(booking.totalPrice - booking.originalTotalPrice)})
+                    </span>
+                  </div>
+                )}
+
+                {booking.priceAdjustmentNote && (
+                  <p className="text-[11px] text-gray-600 italic bg-white p-2 rounded border border-gray-200">
+                    <strong>Ghi chú điều chỉnh giá:</strong> {booking.priceAdjustmentNote}
+                  </p>
+                )}
               </div>
+
+              {/* Payment status row */}
               <div className="flex justify-between items-center py-1 border-b border-gray-100">
                 <span className="text-gray-500">Trạng thái thanh toán:</span>
                 <span className={`font-bold ${booking.paymentStatus === "paid" ? "text-emerald-700" : booking.paymentStatus === "deposit_paid" ? "text-blue-700" : "text-amber-700"}`}>
                   {booking.paymentStatus === "paid"
                     ? "Đã thanh toán 100%"
                     : booking.paymentStatus === "deposit_paid"
-                    ? "Đã thanh toán tiền cọc"
+                    ? "Đã thanh toán một phần"
                     : "Chưa thanh toán (Thanh toán sau)"}
                 </span>
               </div>
-              {booking.paymentStatus === "unpaid" && (
+
+              {/* Progress breakdown */}
+              {(() => {
+                const totalPaidIntoSystem = (booking.paymentRequests ?? [])
+                  .filter((pr) => pr.status === "paid")
+                  .reduce((sum, pr) => sum + pr.amount, 0);
+                const totalRequested = (booking.paymentRequests ?? [])
+                  .filter((pr) => pr.status !== "cancelled")
+                  .reduce((sum, pr) => sum + pr.amount, 0);
+                const remainingToRequest = Math.max(0, booking.totalPrice - totalRequested);
+
+                return (
+                  <div className="space-y-1.5 py-1">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-500">Khách đã nộp vào TK Hệ thống:</span>
+                      <span className="font-bold text-emerald-700">{formatVND(totalPaidIntoSystem)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-500">Tổng tiền đã tạo yêu cầu:</span>
+                      <span className="font-bold text-blue-700">{formatVND(totalRequested)} / {formatVND(booking.totalPrice)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-500">Còn lại có thể yêu cầu thu:</span>
+                      <span className="font-bold text-amber-700">{formatVND(remainingToRequest)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Settlement status banner */}
+              {booking.settlementStatus === "settled" ? (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-900 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5 text-emerald-800">
+                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    Admin sàn đã quyết toán tiền tour:
+                  </p>
+                  <p>Số tiền đã nhận: <strong className="text-emerald-700 text-xs">{formatVND(booking.settledAmount ?? 0)}</strong> (Đã khấu trừ {booking.platformFeeRate || 8}% phí sàn {formatVND(booking.platformFeeAmount ?? 0)})</p>
+                  {booking.settledAt && <p className="text-gray-500">Ngày quyết toán: {booking.settledAt}</p>}
+                </div>
+              ) : booking.status === "completed" ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[11px] text-blue-900 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5 text-blue-800">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    Tour đã hoàn thành:
+                  </p>
+                  <p>Hệ thống đang tạm giữ tiền. Admin sàn sẽ sớm đối soát và giải ngân chi trả cho Quý công ty.</p>
+                </div>
+              ) : (
                 <div className="bg-blue-50/70 p-2.5 rounded-lg border border-blue-200 text-blue-900 text-[11px] leading-relaxed">
-                  💡 <strong>Quy định:</strong> Khách không phải thanh toán liền khi booking. Công ty du lịch sẽ liên hệ với các nhà cung cấp bên ngoài để chốt giá thực tế, sau đó gửi yêu cầu thanh toán cho khách.
+                  🛡️ <strong>Chính sách Escrow:</strong> Tiền thanh toán của khách sẽ vào Tài khoản Hệ thống. Khi tour kết thúc, Admin sẽ khấu trừ phí sàn và chuyển trả lại cho Quý công ty.
                 </div>
               )}
-              {booking.depositPaid && (
-                <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                  <span className="text-gray-500">Đã cọc:</span>
-                  <span className="font-bold text-emerald-700">{formatVND(booking.depositAmount ?? 0)}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                <span className="text-gray-500">Số tiền còn phải thu:</span>
-                <span className="font-bold text-red-600 text-sm">
-                  {formatVND(booking.remainingAmount ?? (booking.depositPaid ? booking.totalPrice - (booking.depositAmount ?? 0) : booking.totalPrice))}
-                </span>
-              </div>
             </div>
 
             {/* Quick Payment Action Buttons */}
-            <div className="space-y-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setPaymentModalOpen(true)}
-                className="w-full text-xs h-9 gap-1.5 border-blue-400 text-blue-700 hover:bg-blue-50 font-bold"
-              >
-                <CreditCard className="w-3.5 h-3.5" />
-                Tạo yêu cầu thanh toán gửi khách
-              </Button>
-              {!booking.depositPaid && onMarkDepositPaid && (
-                <Button
-                  onClick={() => onMarkDepositPaid(booking.id)}
-                  className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs h-9 gap-1.5 font-bold shadow-sm"
-                >
-                  <Check className="w-4 h-4" />
-                  Xác nhận đã thu tiền cọc ({formatVND(booking.depositAmount ?? Math.ceil(booking.totalPrice * 0.5))})
-                </Button>
-              )}
-              {booking.paymentStatus !== "paid" && onMarkFullyPaid && (
-                <Button
-                  onClick={() => onMarkFullyPaid(booking.id)}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-9 gap-1.5 font-bold shadow-sm"
-                >
-                  <Check className="w-4 h-4" />
-                  Xác nhận đã thanh toán đủ 100%
-                </Button>
-              )}
-            </div>
+            {(() => {
+              const totalRequested = (booking.paymentRequests ?? [])
+                .filter((pr) => pr.status !== "cancelled")
+                .reduce((sum, pr) => sum + pr.amount, 0);
+              const remainingToRequest = Math.max(0, booking.totalPrice - totalRequested);
+
+              return (
+                <div className="space-y-2 pt-2">
+                  <Button
+                    variant="outline"
+                    disabled={remainingToRequest <= 0}
+                    onClick={() => {
+                      setPaymentAmount(remainingToRequest.toString());
+                      setPaymentDescription(
+                        totalRequested === 0
+                          ? "Đặt cọc đợt 1 (50%)"
+                          : remainingToRequest === booking.totalPrice - totalRequested
+                          ? "Thanh toán phần còn lại trước khởi hành"
+                          : "Thanh toán đợt tiếp theo"
+                      );
+                      setPaymentDueDate("");
+                      setPaymentModalOpen(true);
+                    }}
+                    className={`w-full text-xs h-9 gap-1.5 font-bold ${
+                      remainingToRequest <= 0
+                        ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                        : "border-blue-500 text-blue-700 hover:bg-blue-50"
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    {remainingToRequest <= 0
+                      ? "Đã tạo đủ yêu cầu cho 100% giá trị tour"
+                      : `Tạo yêu cầu thanh toán (Còn ${formatVND(remainingToRequest)})`}
+                  </Button>
+                </div>
+              );
+            })()}
 
             {/* Existing Payment Requests List */}
             {booking.paymentRequests && booking.paymentRequests.length > 0 && (
@@ -945,16 +1032,23 @@ export function CompanyBookingDetailPage({
                     <div key={pr.id} className="bg-gray-50 rounded-xl p-3 border border-gray-200 text-xs space-y-1">
                       <div className="flex justify-between items-start">
                         <p className="font-semibold text-gray-800">{pr.description}</p>
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          pr.status === "paid" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          pr.status === "paid"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : "bg-amber-100 text-amber-800 border border-amber-200"
                         }`}>
-                          {pr.status === "paid" ? "Đã nộp" : "Chờ nộp"}
+                          {pr.status === "paid" ? "Tiền đã vào TK Hệ thống" : "Chờ khách thanh toán"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-gray-500 pt-1">
                         <span>Hạn: {pr.dueDate}</span>
                         <span className="font-bold text-blue-700 text-sm">{formatVND(pr.amount)}</span>
                       </div>
+                      {pr.paidAt && (
+                        <p className="text-[10px] text-emerald-600 font-medium">
+                          Khách đã nộp ngày: {pr.paidAt}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1096,62 +1190,256 @@ export function CompanyBookingDetailPage({
 
       {/* MODAL: TẠO YÊU CẦU THANH TOÁN */}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="max-w-lg">
+          {(() => {
+            const totalRequested = (booking.paymentRequests ?? [])
+              .filter((pr) => pr.status !== "cancelled")
+              .reduce((sum, pr) => sum + pr.amount, 0);
+            const remainingToRequest = Math.max(0, booking.totalPrice - totalRequested);
+            const requestedAmount = parseInt(paymentAmount) || 0;
+            const isOverLimit = requestedAmount > remainingToRequest;
+
+            return (
+              <div className="space-y-4 pt-1 text-xs">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-base">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                    Tạo Yêu cầu Thanh toán Đợt tiếp theo
+                  </DialogTitle>
+                </DialogHeader>
+
+                {/* Booking & financial balance summary */}
+                <div className="bg-blue-50/70 rounded-xl p-3.5 border border-blue-200 space-y-1.5 text-xs text-blue-950">
+                  <div className="flex justify-between items-center">
+                    <span>Mã Booking: <strong>#{booking.id}</strong></span>
+                    <span>Khách: <strong>{booking.userName}</strong></span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-blue-200/60">
+                    <span>Tổng tiền tour: <strong className="text-gray-900">{formatVND(booking.totalPrice)}</strong></span>
+                    <span>Đã tạo yêu cầu: <strong className="text-blue-700">{formatVND(totalRequested)}</strong></span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-blue-200/60 font-bold">
+                    <span>Số tiền còn lại có thể yêu cầu:</span>
+                    <span className="text-sm text-amber-700">{formatVND(remainingToRequest)}</span>
+                  </div>
+                </div>
+
+                {/* Amount input & Quick select */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-semibold text-gray-700">
+                      Số tiền yêu cầu đợt này (VNĐ) <span className="text-red-500">*</span>
+                    </Label>
+                    <span className="text-[11px] text-gray-400">
+                      Tối đa: {formatVND(remainingToRequest)}
+                    </span>
+                  </div>
+                  <Input
+                    type="number"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    placeholder={remainingToRequest.toString()}
+                    className={`mt-1 text-xs font-bold ${isOverLimit ? "border-red-500 text-red-600 focus:ring-red-500" : ""}`}
+                  />
+                  {isOverLimit && (
+                    <p className="text-[11px] text-red-600 font-medium">
+                      ⚠️ Số tiền không được vượt quá số tiền còn lại chưa tạo yêu cầu ({formatVND(remainingToRequest)})
+                    </p>
+                  )}
+
+                  {/* Quick amount shortcuts */}
+                  {remainingToRequest > 0 && (
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <span className="text-[10px] text-gray-400">Chọn nhanh:</span>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentAmount(remainingToRequest.toString())}
+                        className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-800 hover:bg-blue-200 font-semibold"
+                      >
+                        100% còn lại ({formatVND(remainingToRequest)})
+                      </button>
+                      {remainingToRequest >= 200000 && (
+                        <button
+                          type="button"
+                          onClick={() => setPaymentAmount(Math.round(remainingToRequest / 2).toString())}
+                          className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                        >
+                          50% ({formatVND(Math.round(remainingToRequest / 2))})
+                        </button>
+                      )}
+                      {remainingToRequest >= 1000000 && (
+                        <button
+                          type="button"
+                          onClick={() => setPaymentAmount(Math.round(remainingToRequest * 0.3).toString())}
+                          className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium"
+                        >
+                          30% ({formatVND(Math.round(remainingToRequest * 0.3))})
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Description input & Suggestions */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">
+                    Mục đích / Tên đợt thanh toán <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    value={paymentDescription}
+                    onChange={(e) => setPaymentDescription(e.target.value)}
+                    placeholder="VD: Đặt cọc đợt 1 (50%)"
+                    className="mt-1 text-xs"
+                  />
+                  <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+                    <span className="text-[10px] text-gray-400">Gợi ý:</span>
+                    {[
+                      "Đặt cọc đợt 1 (50%)",
+                      "Thanh toán đợt 2",
+                      "Thanh toán toàn bộ 100%",
+                      "Thanh toán phần còn lại trước khởi hành",
+                    ].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setPaymentDescription(s)}
+                        className="text-[10px] px-2 py-0.5 rounded border border-gray-200 bg-white hover:bg-gray-50 text-gray-700"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Due date */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-gray-700">
+                    Hạn chót thanh toán <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={paymentDueDate}
+                    onChange={(e) => setPaymentDueDate(e.target.value)}
+                    className="mt-1 text-xs"
+                  />
+                </div>
+
+                {/* Escrow Note */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-900 space-y-1 leading-relaxed">
+                  <p className="font-bold flex items-center gap-1.5 text-amber-800">
+                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    Lưu ý về Dòng tiền Thanh toán:
+                  </p>
+                  <p>
+                    Tiền thanh toán của khách sẽ được chuyển trực tiếp vào <strong>Tài khoản trung gian (Escrow) của Hệ thống</strong>. Khi tour kết thúc tốt đẹp, Admin sàn sẽ quyết toán và chuyển lại cho Quý công ty (sau khi khấu trừ phí sàn).
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                  <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button
+                    disabled={
+                      !paymentAmount ||
+                      requestedAmount <= 0 ||
+                      isOverLimit ||
+                      !paymentDescription ||
+                      !paymentDueDate
+                    }
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                    onClick={() => {
+                      onCreatePaymentRequest(booking.id, {
+                        amount: requestedAmount,
+                        description: paymentDescription,
+                        dueDate: paymentDueDate,
+                      });
+                      setPaymentModalOpen(false);
+                      setPaymentAmount("");
+                      setPaymentDescription("");
+                      setPaymentDueDate("");
+                    }}
+                  >
+                    Gửi yêu cầu thanh toán
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: ĐIỀU CHỈNH GIÁ TOUR TỔNG THỂ */}
+      <Dialog open={priceModalOpen} onOpenChange={setPriceModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Tạo Yêu cầu Thanh toán Đợt tiếp theo</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
+              <Edit3 className="w-5 h-5 text-blue-600" />
+              Điều chỉnh Giá Tour Tổng Thể
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 pt-2 text-xs">
-            <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-              <p className="text-gray-600">Đơn hàng: <strong>#{booking.id}</strong></p>
-              <p className="text-gray-600">Tổng tiền tour: <strong className="text-blue-700">{formatVND(booking.totalPrice)}</strong></p>
-              <p className="text-gray-600">Số tiền còn lại phải thu: <strong className="text-red-600">{formatVND(booking.remainingAmount ?? 0)}</strong></p>
+          <div className="space-y-4 pt-1 text-xs">
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1">
+              <p className="text-gray-600">Đơn booking: <strong>#{booking.id}</strong> ({booking.userName})</p>
+              <p className="text-gray-600">Giá hiện tại: <strong className="text-blue-700">{formatVND(booking.totalPrice)}</strong></p>
+              {booking.originalTotalPrice && (
+                <p className="text-gray-400 text-[11px]">Giá gốc ban đầu: {formatVND(booking.originalTotalPrice)}</p>
+              )}
             </div>
-            <div>
-              <Label className="text-xs">Số tiền yêu cầu (VNĐ) *</Label>
+
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-gray-700">
+                Giá tổng thể mới (VNĐ) <span className="text-red-500">*</span>
+              </Label>
               <Input
                 type="number"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder={booking.remainingAmount?.toString() ?? "0"}
+                value={newPriceInput}
+                onChange={(e) => setNewPriceInput(e.target.value)}
+                placeholder={booking.totalPrice.toString()}
+                className="mt-1 text-xs font-bold text-blue-700"
+              />
+              {parseInt(newPriceInput) > 0 && (
+                <p className="text-[11px] text-gray-500 pt-0.5">
+                  Tương đương: <strong>{formatVND(parseInt(newPriceInput))}</strong>
+                  {parseInt(newPriceInput) !== booking.totalPrice && (
+                    <span className="ml-2 font-bold text-amber-700">
+                      ({parseInt(newPriceInput) > booking.totalPrice ? "+" : ""}
+                      {formatVND(parseInt(newPriceInput) - booking.totalPrice)})
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-gray-700">
+                Ghi chú / Lý do điều chỉnh giá
+              </Label>
+              <Textarea
+                value={priceNoteInput}
+                onChange={(e) => setPriceNoteInput(e.target.value)}
+                placeholder="VD: Phụ thu nâng cấp phòng khách sạn view hồ và đổi bữa tối lẩu gà lá é..."
+                rows={3}
                 className="mt-1 text-xs"
               />
             </div>
-            <div>
-              <Label className="text-xs">Nội dung đợt thanh toán *</Label>
-              <Input
-                value={paymentDescription}
-                onChange={(e) => setPaymentDescription(e.target.value)}
-                placeholder="VD: Thanh toán đợt 2 - Số tiền còn lại trước khởi hành"
-                className="mt-1 text-xs"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Hạn chót thanh toán *</Label>
-              <Input
-                type="date"
-                value={paymentDueDate}
-                onChange={(e) => setPaymentDueDate(e.target.value)}
-                className="mt-1 text-xs"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>Hủy</Button>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="outline" onClick={() => setPriceModalOpen(false)}>
+                Hủy bỏ
+              </Button>
               <Button
-                disabled={!paymentAmount || !paymentDescription || !paymentDueDate}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={!newPriceInput || parseInt(newPriceInput) <= 0}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
                 onClick={() => {
-                  onCreatePaymentRequest(booking.id, {
-                    amount: parseInt(paymentAmount),
-                    description: paymentDescription,
-                    dueDate: paymentDueDate,
-                  });
-                  setPaymentModalOpen(false);
-                  setPaymentAmount("");
-                  setPaymentDescription("");
-                  setPaymentDueDate("");
+                  if (onUpdateBookingPrice && newPriceInput) {
+                    onUpdateBookingPrice(booking.id, parseInt(newPriceInput), priceNoteInput);
+                  }
+                  setPriceModalOpen(false);
                 }}
               >
-                Gửi yêu cầu
+                Lưu giá mới
               </Button>
             </div>
           </div>

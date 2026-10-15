@@ -92,6 +92,7 @@ export interface TourAlternativeHotel {
   id: string;
   name: string;
   priceDifference: number; // e.g. +400000 or -350000
+  stars?: number;
   description?: string;
   address?: string;
 }
@@ -192,6 +193,17 @@ export interface PaymentRequest {
   paidAt?: string;
 }
 
+export interface SystemBankAccount {
+  bankName: string;
+  bankCode?: string;
+  accountNumber: string;
+  accountHolder: string;
+  branch: string;
+  defaultCommissionRate: number; // e.g. 8 for 8%
+  notes?: string;
+  qrCodeUrl?: string;
+}
+
 export interface TourContract {
   id: string;
   bookingId: string;
@@ -276,6 +288,16 @@ export interface Booking {
   depositPaid?: boolean;
   remainingAmount?: number;
   paymentRequests?: PaymentRequest[];
+  // Price adjustments by company
+  originalTotalPrice?: number;
+  priceAdjustmentNote?: string;
+  priceAdjustedAt?: string;
+  // Financial settlement with platform admin
+  settlementStatus?: "pending" | "settled";
+  settledAmount?: number;
+  settledAt?: string;
+  platformFeeRate?: number;
+  platformFeeAmount?: number;
   // Passenger list
   passengers?: BookingPassenger[];
   contactName?: string;

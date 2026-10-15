@@ -390,6 +390,7 @@ const SYSTEM_RESTAURANTS: Array<{ name: string; mealType: "breakfast" | "lunch" 
 interface HotelChoice {
   mode: "system" | "custom";
   systemName?: string;
+  systemStars?: number;
   systemPricePerNight?: number;
   priceDifference?: number;
   customName?: string;
@@ -436,6 +437,7 @@ function getDestinationGroups(tour: Tour): DestinationHotelState[] {
       hotelChoice: {
         mode: "system",
         systemName: h.name,
+        systemStars: h.stars || 4,
         systemPricePerNight: h.pricePerNight,
       },
     }));
@@ -466,8 +468,8 @@ function getDestinationGroups(tour: Tour): DestinationHotelState[] {
         nightCount: isLastDay ? 0 : 1,
         defaultHotel: defHotel,
         hotelChoice: defHotel
-          ? { mode: "system", systemName: defHotel.name, systemPricePerNight: defHotel.pricePerNight }
-          : { mode: "system", systemName: SYSTEM_HOTELS[0].name, systemPricePerNight: SYSTEM_HOTELS[0].pricePerNight },
+          ? { mode: "system", systemName: defHotel.name, systemStars: defHotel.stars || 4, systemPricePerNight: defHotel.pricePerNight }
+          : { mode: "system", systemName: SYSTEM_HOTELS[0].name, systemStars: 4, systemPricePerNight: SYSTEM_HOTELS[0].pricePerNight },
       });
     }
   });
@@ -613,10 +615,14 @@ function CustomTab({
       if (isCustomMode || isSystemChanged) {
         customHotelChanges.push({
           destination: g.destination,
-          originalHotelName: def ? def.name : "Khách sạn mặc định của tour",
+          originalHotelName: def ? `${def.name} (${def.stars || 4}★)` : "Khách sạn mặc định của tour",
           originalPricePerNight: def?.pricePerNight ?? 0,
-          newHotelName: choice.mode === "custom" ? (choice.customName || "Khách sạn tự đề xuất") : (choice.systemName || ""),
+          newHotelName:
+            choice.mode === "custom"
+              ? (choice.customName || "Khách sạn tự đề xuất")
+              : `${choice.systemName} (${choice.systemStars ?? 4}★)`,
           mode: choice.mode,
+          stars: choice.systemStars || 4,
           newPricePerNight: choice.systemPricePerNight,
           address: choice.customAddress,
           note: choice.customNote,
@@ -740,7 +746,7 @@ function CustomTab({
                     <p className="text-xs text-gray-500">
                       {nightCount} đêm •{" "}
                       {choice.mode === "system"
-                        ? (choice.systemName ?? "Chưa chọn")
+                        ? `${choice.systemName ?? "Chưa chọn"}${choice.systemStars ? ` (${choice.systemStars}★)` : ""}`
                         : choice.customName
                           ? `Tự nhập: ${choice.customName}`
                           : "Tự nhập (chưa điền)"}
@@ -794,12 +800,13 @@ function CustomTab({
                   {choice.mode === "system" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {(() => {
-                        const options: Array<{ name: string; description?: string; diff: number; pricePerNight?: number }> = [];
+                        const options: Array<{ name: string; stars?: number; description?: string; diff: number; pricePerNight?: number }> = [];
 
                         // 1. Default Tour Hotel (0đ)
                         if (defHotel) {
                           options.push({
                             name: defHotel.name,
+                            stars: defHotel.stars || 4,
                             description: defHotel.description || defHotel.address || "Khách sạn tiêu chuẩn theo tour",
                             diff: 0,
                             pricePerNight: defHotel.pricePerNight,
@@ -811,6 +818,7 @@ function CustomTab({
                           defHotel.alternativeHotels.forEach((alt) => {
                             options.push({
                               name: alt.name,
+                              stars: alt.stars || 4,
                               description: alt.description || alt.address || "",
                               diff: alt.priceDifference,
                               pricePerNight: (defHotel.pricePerNight || 0) + alt.priceDifference,
@@ -823,6 +831,7 @@ function CustomTab({
                               const diff = defHotel ? h.pricePerNight - defHotel.pricePerNight : 0;
                               options.push({
                                 name: h.name,
+                                stars: h.stars || 4,
                                 description: h.description,
                                 diff,
                                 pricePerNight: h.pricePerNight,
@@ -839,6 +848,7 @@ function CustomTab({
                               onClick={() => updateDestHotel(destination, {
                                 mode: "system",
                                 systemName: opt.name,
+                                systemStars: opt.stars,
                                 systemPricePerNight: opt.pricePerNight,
                                 priceDifference: opt.diff,
                               })}
@@ -848,7 +858,14 @@ function CustomTab({
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div>
-                                  <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
+                                    {opt.stars && (
+                                      <span className="inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                        {opt.stars} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                      </span>
+                                    )}
+                                  </div>
                                   {opt.description && <p className="text-xs text-gray-400 mt-1">{opt.description}</p>}
                                 </div>
                                 <div className="text-right flex-shrink-0">
@@ -1362,14 +1379,14 @@ function CustomTab({
               if (isCustomMode || isSystemChanged) {
                 customHotelChanges.push({
                   destination: g.destination,
-                  originalHotelName: def ? `${def.name} (${def.stars}★)` : "Khách sạn mặc định của tour",
+                  originalHotelName: def ? `${def.name} (${def.stars || 4}★)` : "Khách sạn mặc định của tour",
                   originalPricePerNight: def?.pricePerNight ?? 0,
                   newHotelName:
                     choice.mode === "custom"
                       ? (choice.customName || "Khách sạn tự đề xuất")
                       : `${choice.systemName} (${choice.systemStars ?? 4}★)`,
                   mode: choice.mode,
-                  stars: choice.systemStars,
+                  stars: choice.systemStars || 4,
                   newPricePerNight: choice.systemPricePerNight,
                   address: choice.customAddress,
                   note: choice.customNote,
