@@ -55,6 +55,14 @@ export interface User {
   businessDescription?: string;
   accountStatus?: "pending" | "approved" | "rejected";
   rejectionReason?: string;
+  // Guide specific fields
+  licenseNumber?: string;
+  licenseExpiryDate?: string;
+  guideType?: "domestic" | "international";
+  languages?: string[];
+  specialties?: string[];
+  experienceYears?: number;
+  guideStatus?: "active" | "inactive" | "on_tour";
 }
 
 export interface Location {
@@ -163,6 +171,13 @@ export interface BookingPassenger {
   gender: "male" | "female";
   ageGroup: "adult" | "child_2_11" | "child_under_2";
   price: number;
+  phone?: string;
+  email?: string;
+  idNumber?: string; // CCCD / Passport
+  notes?: string;
+  // Roll call status at departure
+  departureAttendance?: "present" | "late" | "absent";
+  departureCheckInTime?: string;
 }
 
 export interface CustomLocationChange {
@@ -317,6 +332,9 @@ export interface Tour {
   coHosts?: TourCoHost[];
   platformFeeRate?: number; // Tỷ lệ phí sàn ký quỹ Escrow (mặc định 8%)
   pricingStatus?: "draft" | "pending_partner_quote" | "quoted" | "approved_by_customer";
+  // Tour publication & moderation status
+  status?: "draft" | "pending_approval" | "published" | "rejected" | "hidden";
+  rejectionReason?: string;
 }
 
 export interface TourCoHost {
@@ -416,11 +434,46 @@ export interface Booking {
   coHosts?: TourCoHost[];
 }
 
+export interface IncidentReport {
+  id: string;
+  bookingId: string;
+  tourId: string;
+  tourName: string;
+  guideId: string;
+  guideName: string;
+  title: string;
+  category: "vehicle" | "weather" | "medical" | "schedule" | "service" | "other";
+  severity: "low" | "medium" | "high" | "critical";
+  description: string;
+  images?: string[];
+  reportedAt: string;
+  location?: string;
+  status: "reported" | "acknowledged" | "resolved";
+  resolvedNote?: string;
+}
+
 export interface GuideSchedule {
   id: string;
   booking: Booking;
   currentDay?: number;
   completedLocations: string[];
+  departureRollCallCompleted?: boolean;
+  departureRollCallTime?: string;
+  wrapUpReport?: {
+    rating?: number;
+    notes?: string;
+    completedAt?: string;
+  };
+  incidents?: IncidentReport[];
+  personalNotes?: string;
+  guideNotesList?: {
+    id: string;
+    title: string;
+    content: string;
+    isCompleted?: boolean;
+    category?: "important" | "transport" | "hotel_food" | "time" | "general";
+    createdAt?: string;
+  }[];
 }
 
 export interface Service {

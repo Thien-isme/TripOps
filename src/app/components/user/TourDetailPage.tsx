@@ -1003,20 +1003,18 @@ function CustomTab({
                       <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                       🌟 Đối tác Nền tảng
                     </button>
-                    {defHotel?.allowCustomHotelRequest !== false && (
-                      <button
-                        type="button"
-                        onClick={() => updateDestHotel(destination, { ...choice, mode: "custom" })}
-                        className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                          choice.mode === "custom"
-                            ? "bg-white text-amber-700 shadow-xs border border-amber-300"
-                            : "text-gray-600 hover:text-amber-700"
-                        }`}
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        Tự đề xuất
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => updateDestHotel(destination, { ...choice, mode: "custom" })}
+                      className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                        choice.mode === "custom"
+                          ? "bg-white text-amber-700 shadow-xs border border-amber-300"
+                          : "text-gray-600 hover:text-amber-700"
+                      }`}
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      Tự đề xuất
+                    </button>
                   </div>
 
                   {/* System / Configured hotel cards */}

@@ -28,10 +28,13 @@ import { TourDetailPage } from "@/app/components/user/TourDetailPage";
 import { BookingFormPage, BookingSubmitData } from "@/app/components/user/BookingFormPage";
 import { CustomTourRequestPage } from "@/app/components/user/CustomTourRequestPage";
 import { UserBookingDetailPage } from "@/app/components/user/UserBookingDetailPage";
+import { AITourRecommenderModal } from "@/app/components/ai/AITourRecommenderModal";
 import {
   User,
   Tour,
   Booking,
+  BookingPassenger,
+  IncidentReport,
   Service,
   GuideSchedule,
   RoomBooking,
@@ -88,6 +91,7 @@ function App() {
   } | null>(null);
   const [customTourRequests, setCustomTourRequests] = useState<CustomTourRequest[]>(mockCustomTourRequests);
   const [systemBankAccount, setSystemBankAccount] = useState<SystemBankAccount>(defaultSystemBankAccount);
+  const [showAIAdvisor, setShowAIAdvisor] = useState(false);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -747,6 +751,7 @@ function App() {
     const newTour: Tour = {
       ...tourData,
       id: tourData.id || `tour-${Date.now()}`,
+      status: tourData.status || "pending_approval",
       bookings: 0,
     };
     setTours([...tours, newTour]);
@@ -765,6 +770,157 @@ function App() {
 
   const handleCompanyDeleteTour = (tourId: string) => {
     setTours(tours.filter((t) => t.id !== tourId));
+  };
+
+  // Company Guide workforce handlers
+  const handleAddGuide = (guideData: Partial<User>) => {
+    const newGuide: User = {
+      id: `guide-${Date.now()}`,
+      name: guideData.name || "Hướng dẫn viên mới",
+      email: guideData.email || `guide-${Date.now()}@tour.com`,
+      phone: guideData.phone,
+      role: "guide",
+      companyId: guideData.companyId,
+      companyName: guideData.companyName,
+      licenseNumber: guideData.licenseNumber,
+      licenseExpiry: guideData.licenseExpiry,
+      languages: guideData.languages || ["Tiếng Việt"],
+      specialties: guideData.specialties || ["Tour văn hóa", "Tour sinh thái"],
+      status: guideData.status || "active",
+      avatar:
+        guideData.avatar ||
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+    };
+    setUsers((prev) => [...prev, newGuide]);
+  };
+
+  const handleUpdateGuide = (guideId: string, updates: Partial<User>) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === guideId ? { ...u, ...updates } : u))
+    );
+  };
+
+  const handleRemoveGuide = (guideId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== guideId));
+  };
+
+  // Tour moderation handlers (Admin)
+  const handleApproveTour = (tourId: string) => {
+    setTours((prev) =>
+      prev.map((t) =>
+        t.id === tourId
+          ? { ...t, status: "published" as const, rejectionReason: undefined }
+          : t
+      )
+    );
+  };
+
+  const handleRejectTour = (tourId: string, reason: string) => {
+    setTours((prev) =>
+      prev.map((t) =>
+        t.id === tourId
+          ? { ...t, status: "rejected" as const, rejectionReason: reason }
+          : t
+      )
+    );
+  };
+
+  // Departure roll call handler (Guide)
+  const handleDepartureRollCall = (
+    scheduleId: string,
+    passengers: BookingPassenger[]
+  ) => {
+    setGuideSchedules((prev) =>
+      prev.map((s) => {
+        if (s.id === scheduleId) {
+          return {
+            ...s,
+            departureRollCallCompleted: true,
+            departureRollCallTime: new Date().toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            booking: {
+              ...s.booking,
+              passengers,
+            },
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  // Report incident handler (Guide)
+  const handleReportIncident = (
+    scheduleId: string,
+    incident: Omit<IncidentReport, "id" | "reportedAt">
+  ) => {
+    setGuideSchedules((prev) =>
+      prev.map((s) => {
+        if (s.id === scheduleId) {
+          const newIncident: IncidentReport = {
+            id: `inc-${Date.now()}`,
+            reportedAt: new Date().toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            ...incident,
+          };
+          return {
+            ...s,
+            incidents: [newIncident, ...(s.incidents || [])],
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  // Wrap up tour handler (Guide)
+  const handleWrapUpTour = (
+    scheduleId: string,
+    wrapUpReport: { rating: number; notes: string }
+  ) => {
+    setGuideSchedules((prev) =>
+      prev.map((s) => {
+        if (s.id === scheduleId) {
+          return {
+            ...s,
+            wrapUpReport: {
+              ...wrapUpReport,
+              completedAt: new Date().toLocaleDateString("vi-VN"),
+            },
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  // Passenger update handler (User / Company)
+  const handleUpdateBookingPassengers = (
+    bookingId: string,
+    updatedPassengers: BookingPassenger[]
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === bookingId
+          ? {
+              ...b,
+              passengers: updatedPassengers,
+              numberOfGuests: updatedPassengers.length,
+            }
+          : b
+      )
+    );
+    if (selectedUserBooking && selectedUserBooking.id === bookingId) {
+      setSelectedUserBooking({
+        ...selectedUserBooking,
+        passengers: updatedPassengers,
+        numberOfGuests: updatedPassengers.length,
+      });
+    }
   };
 
   const handleRestoreTourVersion = (tourId: string, versionNumber: number) => {
@@ -876,6 +1032,8 @@ function App() {
     const userGuideSchedules = guideSchedules.filter(
       (s) => s.booking.guideId === currentUser.id,
     );
+    const displayedGuideSchedules =
+      userGuideSchedules.length > 0 ? userGuideSchedules : guideSchedules;
 
     // Company admin view
     if (currentUser.role === "company_admin") {
@@ -904,6 +1062,9 @@ function App() {
             onCreateTour={handleCompanyCreateTour}
             onEditTour={handleCompanyEditTour}
             onDeleteTour={handleCompanyDeleteTour}
+            onAddGuide={handleAddGuide}
+            onUpdateGuide={handleUpdateGuide}
+            onRemoveGuide={handleRemoveGuide}
             onApproveBooking={handleApproveBooking}
             onRejectBooking={handleRejectBooking}
             onAssignGuide={handleAssignGuide}
@@ -929,6 +1090,7 @@ function App() {
             onLogout={handleLogout}
             onNavigate={handleNavigate}
             currentPage={currentPage}
+            onOpenAIAdvisor={() => setShowAIAdvisor(true)}
           />
         )}
 
@@ -941,8 +1103,20 @@ function App() {
         >
           {currentUser.role === "guide" && (
             <GuideDashboard
-              schedules={userGuideSchedules}
+              schedules={displayedGuideSchedules}
               onCheckIn={handleCheckIn}
+              onDepartureRollCall={handleDepartureRollCall}
+              onReportIncident={handleReportIncident}
+              onWrapUpTour={handleWrapUpTour}
+              onUpdateNotes={(scheduleId, personalNotes, guideNotesList) => {
+                setGuideSchedules((prev) =>
+                  prev.map((s) =>
+                    s.id === scheduleId
+                      ? { ...s, personalNotes, guideNotesList }
+                      : s
+                  )
+                );
+              }}
             />
           )}
 
@@ -959,6 +1133,8 @@ function App() {
               )}
               users={users}
               companies={companies}
+              onApproveTour={handleApproveTour}
+              onRejectTour={handleRejectTour}
               onApproveBooking={handleApproveBooking}
               onRejectBooking={handleRejectBooking}
               onAssignGuide={handleAssignGuide}
@@ -1010,6 +1186,7 @@ function App() {
         onLogout={handleLogout}
         onNavigate={handleNavigate}
         currentPage={currentPage}
+        onOpenAIAdvisor={() => setShowAIAdvisor(true)}
       />
       <div className="pt-16">
         {currentPage === "custom-tour" ? (
@@ -1060,7 +1237,7 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <UserDashboard
-                tours={tours}
+                tours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
                 userBookings={userBookings}
                 customTourRequests={customTourRequests.filter((r) => r.userId === currentUser?.id)}
                 onBookTour={handleBookTour}
@@ -1076,13 +1253,13 @@ function App() {
           // Not logged in, show public home page
           <HomePage
             onShowLogin={() => setShowLogin(true)}
-            popularTours={tours.filter((t) => t.tourType !== "custom_request")}
+            popularTours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
             onNavigate={handleNavigate}
             onViewTour={handleViewTour}
           />
         ) : currentPage === "book-tours" ? (
           <BookToursPage
-            tours={tours.filter((t) => t.tourType !== "custom_request")}
+            tours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
             currentUser={currentUser}
             onShowLogin={() => setShowLogin(true)}
             onBookTour={(tourId) => {
@@ -1131,12 +1308,24 @@ function App() {
             }}
             onCancelBooking={handleCancelBooking}
             onPayPaymentRequest={handlePayPaymentRequest}
+            onUpdateBookingPassengers={handleUpdateBookingPassengers}
           />
         ) : currentPage === "user-profile" ? (
           <UserProfile />
         ) : null}
       </div>
       <PublicFooter />
+
+      {/* AI Tour Recommender Modal for Customers & Businesses */}
+      {showAIAdvisor && (
+        <AITourRecommenderModal
+          isOpen={showAIAdvisor}
+          onClose={() => setShowAIAdvisor(false)}
+          tours={tours}
+          onSelectTour={handleViewTour}
+          onBookTour={handleOpenBookingForm}
+        />
+      )}
     </>
   );
 }

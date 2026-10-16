@@ -57,6 +57,7 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
 import { TourVersionHistoryModal } from "@/app/components/company/TourVersionHistoryModal";
+import { AIItineraryPlannerModal } from "@/app/components/ai/AIItineraryPlannerModal";
 
 interface CompanyTourManagementProps {
   tours: Tour[];
@@ -80,18 +81,36 @@ export function CompanyTourManagement({
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [copiedNotice, setCopiedNotice] = useState<string | null>(null);
   const [versionHistoryTour, setVersionHistoryTour] = useState<Tour | null>(null);
-  const [tourTypeFilter, setTourTypeFilter] = useState<"all" | "public" | "custom">("all");
+  const [viewRejectionTour, setViewRejectionTour] = useState<Tour | null>(null);
+  const [tourTypeFilter, setTourTypeFilter] = useState<"all" | "public" | "custom" | "pending" | "rejected">("all");
 
   const isApproved = company.status === "approved";
 
-  const publicCount = tours.filter((t) => t.tourType !== "custom_request").length;
+  const publicCount = tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status)).length;
   const customCount = tours.filter((t) => t.tourType === "custom_request").length;
+  const pendingCount = tours.filter((t) => t.status === "pending_approval").length;
+  const rejectedCount = tours.filter((t) => t.status === "rejected").length;
 
   const filteredTours = tours.filter((t) => {
-    if (tourTypeFilter === "public") return t.tourType !== "custom_request";
+    if (tourTypeFilter === "public") return t.tourType !== "custom_request" && (t.status === "published" || !t.status);
     if (tourTypeFilter === "custom") return t.tourType === "custom_request";
+    if (tourTypeFilter === "pending") return t.status === "pending_approval";
+    if (tourTypeFilter === "rejected") return t.status === "rejected";
     return true;
   });
+
+  const handleSubmitForApproval = (tour: Tour) => {
+    onEditTour(tour.id, { status: "pending_approval", rejectionReason: undefined });
+    setCopiedNotice(`Đã gửi tour "${tour.name}" lên Sàn chờ Admin phê duyệt!`);
+    setTimeout(() => setCopiedNotice(null), 3500);
+  };
+
+  const handleToggleVisibility = (tour: Tour) => {
+    const newStatus = tour.status === "hidden" ? "published" : "hidden";
+    onEditTour(tour.id, { status: newStatus });
+    setCopiedNotice(newStatus === "hidden" ? `Đã tạm ẩn tour "${tour.name}".` : `Đã mở bán lại tour "${tour.name}".`);
+    setTimeout(() => setCopiedNotice(null), 3500);
+  };
 
   // Duplicate Tour Action
   const handleDuplicateTour = (sourceTour: Tour) => {
@@ -100,6 +119,7 @@ export function CompanyTourManagement({
       ...JSON.parse(JSON.stringify(sourceTour)),
       tourCode: newTourCode,
       name: `${sourceTour.name} (Bản sao)`,
+      status: "draft",
       bookings: 0,
       createdAt: new Date().toLocaleDateString("vi-VN"),
       companyId: company.id,
@@ -155,7 +175,7 @@ export function CompanyTourManagement({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-3">
         <button
           onClick={() => setTourTypeFilter("all")}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
@@ -174,7 +194,29 @@ export function CompanyTourManagement({
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
-          Tour công khai ({publicCount})
+          Đang mở bán ({publicCount})
+        </button>
+        <button
+          onClick={() => setTourTypeFilter("pending")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
+            tourTypeFilter === "pending"
+              ? "bg-amber-500 text-white shadow-xs"
+              : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+          }`}
+        >
+          <Clock className="w-3 h-3" />
+          <span>Chờ duyệt ({pendingCount})</span>
+        </button>
+        <button
+          onClick={() => setTourTypeFilter("rejected")}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
+            tourTypeFilter === "rejected"
+              ? "bg-rose-600 text-white shadow-xs"
+              : "bg-rose-50 text-rose-700 hover:bg-rose-100"
+          }`}
+        >
+          <XCircle className="w-3 h-3" />
+          <span>Bị từ chối ({rejectedCount})</span>
         </button>
         <button
           onClick={() => setTourTypeFilter("custom")}
@@ -248,15 +290,42 @@ export function CompanyTourManagement({
                       <span className="text-xs font-semibold">{tour.rating}</span>
                     </div>
 
-                    {isCustom ? (
-                      <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <span>🔒 Theo yêu cầu (v{tour.version || 1})</span>
-                      </div>
-                    ) : (
-                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-                        {tour.tourCode}
-                      </div>
-                    )}
+                    <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
+                      {isCustom ? (
+                        <div className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <span>🔒 Theo yêu cầu (v{tour.version || 1})</span>
+                        </div>
+                      ) : (
+                        <div className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                          {tour.tourCode}
+                        </div>
+                      )}
+
+                      {tour.status === "pending_approval" && (
+                        <div className="bg-amber-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Chờ duyệt</span>
+                        </div>
+                      )}
+                      {tour.status === "rejected" && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setViewRejectionTour(tour);
+                          }}
+                          className="bg-rose-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 hover:bg-rose-700 transition-colors"
+                        >
+                          <XCircle className="w-3 h-3" />
+                          <span>Bị từ chối</span>
+                        </button>
+                      )}
+                      {tour.status === "hidden" && (
+                        <div className="bg-slate-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                          Tạm ẩn
+                        </div>
+                      )}
+                    </div>
 
                     {tour.images && tour.images.length > 1 && (
                       <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2 py-0.5 rounded font-medium">
@@ -281,6 +350,15 @@ export function CompanyTourManagement({
                     <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">
                       {tour.name}
                     </h3>
+
+                    {tour.status === "rejected" && tour.rejectionReason && (
+                      <div
+                        onClick={() => setViewRejectionTour(tour)}
+                        className="cursor-pointer mb-2 bg-rose-50 border border-rose-200 rounded p-2 text-[11px] text-rose-800 line-clamp-2"
+                      >
+                        <span className="font-bold">Lý do từ chối:</span> {tour.rejectionReason}
+                      </div>
+                    )}
 
                     {isCustom && tour.changeNote && (
                       <p className="text-[11px] text-amber-700 bg-amber-50 rounded px-2 py-1 mb-2 line-clamp-2 border border-amber-200 italic">
@@ -319,6 +397,32 @@ export function CompanyTourManagement({
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
+                      {/* Submit for approval if draft or rejected */}
+                      {(tour.status === "draft" || tour.status === "rejected") && (
+                        <button
+                          type="button"
+                          title="Gửi lên Sàn chờ Admin duyệt"
+                          onClick={() => handleSubmitForApproval(tour)}
+                          className="p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </button>
+                      )}
+                      {/* Visibility toggle if published or hidden */}
+                      {(tour.status === "published" || tour.status === "hidden" || !tour.status) && (
+                        <button
+                          type="button"
+                          title={tour.status === "hidden" ? "Mở bán lại tour" : "Tạm ẩn tour khỏi sàn"}
+                          onClick={() => handleToggleVisibility(tour)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            tour.status === "hidden"
+                              ? "text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
+                              : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                          }`}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
                       {isCustom && (
                         <button
                           type="button"
@@ -377,6 +481,45 @@ export function CompanyTourManagement({
         />
       )}
 
+      {/* Rejection Reason Modal */}
+      <Dialog open={!!viewRejectionTour} onOpenChange={() => setViewRejectionTour(null)}>
+        <DialogContent className="max-w-md p-6 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-rose-700 flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-rose-600" />
+              Lý do từ chối từ Ban Quản Trị Sàn
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-xs font-bold text-gray-800">
+              Tour: <span className="text-blue-600 font-semibold">{viewRejectionTour?.name}</span>
+            </p>
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-900 leading-relaxed">
+              <p className="font-bold mb-1">Ghi chú từ kiểm duyệt viên:</p>
+              <p>{viewRejectionTour?.rejectionReason || "Chưa có phản hồi chi tiết từ kiểm duyệt viên. Vui lòng kiểm tra lại thông tin tour."}</p>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button size="sm" variant="outline" onClick={() => setViewRejectionTour(null)} className="text-xs">
+                Đóng
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (viewRejectionTour) {
+                    const t = viewRejectionTour;
+                    setViewRejectionTour(null);
+                    setEditingTour(t);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1.5"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                Chỉnh sửa tour ngay
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation */}
       <Dialog
@@ -442,7 +585,26 @@ export function TourFormPage({
   const isCustom = isCustomTour || !!customRequest || tour?.tourType === "custom_request";
   const [changeNote, setChangeNote] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("general");
+  const [showAIPlanner, setShowAIPlanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleApplyAIItinerary = (generated: {
+    name: string;
+    destination: string;
+    duration: string;
+    highlights: string[];
+    description: string;
+    itinerary: DailyItinerary[];
+  }) => {
+    setName(generated.name);
+    setDestination(generated.destination);
+    setDuration(generated.duration);
+    setHighlights(generated.highlights);
+    setDescription(generated.description);
+    setItinerary(generated.itinerary);
+    setNumberOfDays(generated.itinerary.length);
+    setNumberOfNights(Math.max(1, generated.itinerary.length - 1));
+  };
 
   // Tab 1: General Info
   const [name, setName] = useState(
@@ -1203,6 +1365,14 @@ export function TourFormPage({
         <div className="flex items-center gap-2.5">
           <Button
             type="button"
+            onClick={() => setShowAIPlanner(true)}
+            className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>✨ AI Lên Lịch Trình</span>
+          </Button>
+          <Button
+            type="button"
             variant="outline"
             onClick={onBack}
             className="text-gray-600"
@@ -1834,40 +2004,25 @@ export function TourFormPage({
                                         </button>
                                       </div>
 
-                                      {/* Mô tả ngắn */}
+                                      {/* Địa chỉ / Ghi chú phòng */}
                                       <div>
+                                        <Label className="text-[11px] text-gray-500 font-medium">Địa chỉ / Ghi chú phòng</Label>
                                         <Input
-                                          value={alt.description ?? ""}
+                                          value={alt.address ?? alt.description ?? ""}
                                           onChange={(e) =>
-                                            updateAlternativeHotel(hotel.id || "", alt.id, { description: e.target.value })
+                                            updateAlternativeHotel(hotel.id || "", alt.id, {
+                                              address: e.target.value,
+                                              description: e.target.value,
+                                            })
                                           }
-                                          placeholder="Mô tả tóm tắt điểm nổi bật (VD: Resort ven hồ Tuyền Lâm, view rừng thông thơ mộng...)"
-                                          className="text-xs bg-white text-gray-600"
+                                          placeholder="VD: 02 Trần Phú, Phường 3, TP. Đà Lạt"
+                                          className="text-xs mt-0.5 bg-white text-gray-600"
                                         />
                                       </div>
                                     </div>
                                   ))}
                                 </div>
                               )}
-
-                              {/* Toggle cho phép khách tự nhập khách sạn */}
-                              <div className="flex items-center gap-2 pt-1 text-xs">
-                                <input
-                                  type="checkbox"
-                                  id={`custom-hotel-req-${hotel.id}`}
-                                  checked={hotel.allowCustomHotelRequest !== false}
-                                  onChange={(e) =>
-                                    updateHotel(hotel.id || "", { allowCustomHotelRequest: e.target.checked })
-                                  }
-                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
-                                />
-                                <label
-                                  htmlFor={`custom-hotel-req-${hotel.id}`}
-                                  className="text-gray-700 cursor-pointer select-none font-medium"
-                                >
-                                  Cho phép khách hàng tự đề xuất khách sạn khác ngoài danh sách (tab "Tự nhập khách sạn" – công ty sẽ báo giá sau khi nhận booking)
-                                </label>
-                              </div>
                             </div>
                           </div>
                         )}
@@ -3525,6 +3680,16 @@ export function TourFormPage({
           </Button>
         </div>
       </div>
+
+      {/* AI Itinerary Planner Modal */}
+      {showAIPlanner && (
+        <AIItineraryPlannerModal
+          isOpen={showAIPlanner}
+          onClose={() => setShowAIPlanner(false)}
+          onApplyItinerary={handleApplyAIItinerary}
+          initialDestination={destination}
+        />
+      )}
     </div>
   );
 }

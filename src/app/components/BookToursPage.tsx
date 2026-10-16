@@ -91,6 +91,9 @@ export function BookToursPage({
 
   // Filter tours for "Available Tours" tab
   const filteredTours = tours.filter((tour) => {
+    if (tour.tourType === "custom_request") return false;
+    if (tour.status && tour.status !== "published") return false;
+
     const matchesSearch =
       tour.name
         .toLowerCase()

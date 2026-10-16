@@ -40,6 +40,9 @@ interface CompanyDashboardProps {
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
   onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
   onViewTour?: (tour: Tour) => void;
+  onAddGuide?: (guideData: Omit<User, "id">) => void;
+  onUpdateGuide?: (guideId: string, update: Partial<User>) => void;
+  onRemoveGuide?: (guideId: string) => void;
   onLogout?: () => void;
 }
 
@@ -65,6 +68,9 @@ export function CompanyDashboard({
   onUpdateCustomRequest,
   onRestoreTourVersion,
   onViewTour,
+  onAddGuide,
+  onUpdateGuide,
+  onRemoveGuide,
   onLogout,
 }: CompanyDashboardProps) {
   const [activeSection, setActiveSection] = useState("overview");
@@ -259,6 +265,11 @@ export function CompanyDashboard({
             guides={companyGuides}
             tours={companyTours}
             guideSchedules={guideSchedules}
+            companyId={company.id}
+            companyName={company.name}
+            onAddGuide={onAddGuide}
+            onUpdateGuide={onUpdateGuide}
+            onRemoveGuide={onRemoveGuide}
           />
         );
       case "custom-requests":

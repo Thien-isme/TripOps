@@ -18,6 +18,7 @@ import { ServicePostApproval } from "./ServicePostApproval";
 import { ProviderManagement } from "./ProviderManagement";
 import { UserManagement } from "./UserManagement";
 import { CompanyManagement } from "./CompanyManagement";
+import { AdminTourModeration } from "./AdminTourModeration";
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -29,6 +30,8 @@ interface AdminDashboardProps {
   users: User[];
   guideSchedules: GuideSchedule[];
   companies: TourCompany[];
+  onApproveTour?: (tourId: string) => void;
+  onRejectTour?: (tourId: string, reason: string) => void;
   onApproveBooking: (bookingId: string) => void;
   onRejectBooking: (bookingId: string, reason?: string) => void;
   onAssignGuide: (bookingId: string, guideId: string) => void;
@@ -63,6 +66,8 @@ export function AdminDashboard({
   users,
   guideSchedules,
   companies,
+  onApproveTour,
+  onRejectTour,
   onApproveBooking,
   onRejectBooking,
   onAssignGuide,
@@ -86,6 +91,10 @@ export function AdminDashboard({
     (u) => u.role === "company_admin",
   );
 
+  const pendingToursCount = tours.filter(
+    (t) => t.status === "pending_approval"
+  ).length;
+
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard":
@@ -106,6 +115,14 @@ export function AdminDashboard({
             onApproveCompany={onApproveCompany}
             onRejectCompany={onRejectCompany}
             onSuspendCompany={onSuspendCompany}
+          />
+        );
+      case "approve-tours":
+        return (
+          <AdminTourModeration
+            tours={tours}
+            onApproveTour={onApproveTour || (() => {})}
+            onRejectTour={onRejectTour || (() => {})}
           />
         );
       case "active-tours":
@@ -175,6 +192,7 @@ export function AdminDashboard({
       activeSection={activeSection}
       onNavigate={setActiveSection}
       onLogout={onLogout}
+      pendingToursCount={pendingToursCount}
     >
       {renderContent()}
     </AdminLayout>

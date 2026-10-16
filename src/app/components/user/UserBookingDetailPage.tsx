@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Booking, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
+import { Booking, BookingPassenger, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
 import { defaultSystemBankAccount } from "@/app/data/mockData";
 import {
   ArrowLeft,
@@ -34,6 +34,9 @@ import {
   ShieldCheck,
   Handshake,
   ExternalLink,
+  Plus,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -50,6 +53,7 @@ interface UserBookingDetailPageProps {
   onBack: () => void;
   onCancelBooking: (bookingId: string, reason: string) => void;
   onPayPaymentRequest?: (bookingId: string, paymentRequestId: string) => void;
+  onUpdateBookingPassengers?: (bookingId: string, passengers: BookingPassenger[]) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -102,6 +106,7 @@ export function UserBookingDetailPage({
   onBack,
   onCancelBooking,
   onPayPaymentRequest,
+  onUpdateBookingPassengers,
 }: UserBookingDetailPageProps) {
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -109,6 +114,95 @@ export function UserBookingDetailPage({
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
   const [paymentSuccessToast, setPaymentSuccessToast] = useState(false);
+
+  // Passenger management state
+  const [passengersList, setPassengersList] = useState<BookingPassenger[]>(
+    booking.passengers && booking.passengers.length > 0 ? booking.passengers : []
+  );
+  const [showPassengerModal, setShowPassengerModal] = useState(false);
+  const [editingPassenger, setEditingPassenger] = useState<BookingPassenger | null>(null);
+  const [pFullName, setPFullName] = useState("");
+  const [pDob, setPDob] = useState("1995-01-01");
+  const [pGender, setPGender] = useState<"male" | "female">("male");
+  const [pAgeGroup, setPAgeGroup] = useState<"adult" | "child_2_11" | "child_under_2">("adult");
+  const [pPhone, setPPhone] = useState("");
+  const [pIdNumber, setPIdNumber] = useState("");
+  const [pNotes, setPNotes] = useState("");
+  const [pPrice, setPPrice] = useState(0);
+
+  const handleOpenAddPassenger = () => {
+    setEditingPassenger(null);
+    setPFullName("");
+    setPDob("1995-01-01");
+    setPGender("male");
+    setPAgeGroup("adult");
+    setPPhone("");
+    setPIdNumber("");
+    setPNotes("");
+    setPPrice(booking.tour.price || 3500000);
+    setShowPassengerModal(true);
+  };
+
+  const handleOpenEditPassenger = (p: BookingPassenger) => {
+    setEditingPassenger(p);
+    setPFullName(p.fullName);
+    setPDob(p.dateOfBirth);
+    setPGender(p.gender);
+    setPAgeGroup(p.ageGroup);
+    setPPhone(p.phone || "");
+    setPIdNumber(p.idNumber || "");
+    setPNotes(p.notes || "");
+    setPPrice(p.price);
+    setShowPassengerModal(true);
+  };
+
+  const handleSavePassenger = () => {
+    if (!pFullName.trim()) return;
+    let updated: BookingPassenger[];
+    if (editingPassenger) {
+      updated = passengersList.map((p) =>
+        p.id === editingPassenger.id
+          ? {
+              ...p,
+              fullName: pFullName.trim(),
+              dateOfBirth: pDob,
+              gender: pGender,
+              ageGroup: pAgeGroup,
+              phone: pPhone.trim(),
+              idNumber: pIdNumber.trim(),
+              notes: pNotes.trim(),
+              price: pPrice,
+            }
+          : p
+      );
+    } else {
+      const newP: BookingPassenger = {
+        id: `p-${Date.now()}`,
+        fullName: pFullName.trim(),
+        dateOfBirth: pDob,
+        gender: pGender,
+        ageGroup: pAgeGroup,
+        phone: pPhone.trim(),
+        idNumber: pIdNumber.trim(),
+        notes: pNotes.trim(),
+        price: pPrice,
+      };
+      updated = [...passengersList, newP];
+    }
+    setPassengersList(updated);
+    if (onUpdateBookingPassengers) {
+      onUpdateBookingPassengers(booking.id, updated);
+    }
+    setShowPassengerModal(false);
+  };
+
+  const handleDeletePassenger = (id: string) => {
+    const updated = passengersList.filter((p) => p.id !== id);
+    setPassengersList(updated);
+    if (onUpdateBookingPassengers) {
+      onUpdateBookingPassengers(booking.id, updated);
+    }
+  };
 
   // Collapsible itinerary days (expanded by default)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(
@@ -549,34 +643,55 @@ export function UserBookingDetailPage({
 
             {/* PASSENGER LIST CARD */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <Users className="w-4 h-4 text-teal-600" />
-                  Danh sách hành khách tham gia ({booking.passengers?.length || booking.numberOfGuests} người)
-                </h3>
-                <span className="text-xs font-semibold text-gray-500">
-                  {booking.numberOfGuests} vé
-                </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                    <Users className="w-4 h-4 text-teal-600" />
+                    Danh sách hành khách tham gia ({passengersList.length} người)
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    Cung cấp đầy đủ thông tin hành khách để làm bảo hiểm du lịch và điểm danh đoàn.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleOpenAddPassenger}
+                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs h-8 px-3 rounded-xl flex items-center gap-1.5 shadow-xs font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Thêm hành khách</span>
+                  </Button>
+                </div>
               </div>
 
-              {booking.passengers && booking.passengers.length > 0 ? (
+              {passengersList.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-gray-100 text-gray-600 font-semibold">
                         <th className="px-3 py-2.5 text-left rounded-l-lg">#</th>
                         <th className="px-3 py-2.5 text-left">Họ &amp; Tên</th>
-                        <th className="px-3 py-2.5 text-left">Ngày sinh</th>
+                        <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
                         <th className="px-3 py-2.5 text-left">Giới tính</th>
                         <th className="px-3 py-2.5 text-left">Loại khách</th>
-                        <th className="px-3 py-2.5 text-right rounded-r-lg">Giá vé</th>
+                        <th className="px-3 py-2.5 text-left">SĐT / CCCD</th>
+                        <th className="px-3 py-2.5 text-right">Giá vé</th>
+                        <th className="px-3 py-2.5 text-center rounded-r-lg">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {booking.passengers.map((p, idx) => (
+                      {passengersList.map((p, idx) => (
                         <tr key={p.id} className="hover:bg-gray-50">
                           <td className="px-3 py-2.5 text-gray-400 font-mono">{idx + 1}</td>
-                          <td className="px-3 py-2.5 font-bold text-gray-900">{p.fullName}</td>
+                          <td className="px-3 py-2.5 font-bold text-gray-900">
+                            {p.fullName}
+                            {p.notes && (
+                              <span className="block text-[10px] text-gray-400 font-normal italic">
+                                Ghi chú: {p.notes}
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-2.5 text-gray-600">
                             <span>{p.dateOfBirth || "—"}</span>
                             {(() => {
@@ -600,27 +715,67 @@ export function UserBookingDetailPage({
                               {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                             </span>
                           </td>
+                          <td className="px-3 py-2.5 text-gray-600">
+                            {p.phone && <span className="block font-semibold text-blue-600">{p.phone}</span>}
+                            {p.idNumber && <span className="block text-[11px] text-gray-400">CCCD: {p.idNumber}</span>}
+                            {!p.phone && !p.idNumber && <span className="text-gray-400">—</span>}
+                          </td>
                           <td className="px-3 py-2.5 text-right font-bold text-blue-700">
                             {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                title="Chỉnh sửa thông tin"
+                                onClick={() => handleOpenEditPassenger(p)}
+                                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Xóa khách khỏi đoàn"
+                                onClick={() => handleDeletePassenger(p.id)}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="bg-gray-50 font-bold border-t-2 border-gray-200">
-                        <td colSpan={5} className="px-3 py-2.5 text-right text-gray-700">
-                          Tổng cộng ({booking.passengers.length} khách):
+                        <td colSpan={6} className="px-3 py-2.5 text-right text-gray-700">
+                          Tổng cộng ({passengersList.length} khách):
                         </td>
                         <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
                           {formatVND(booking.totalPrice)}
                         </td>
+                        <td></td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-600">
-                  Đăng ký <strong>{booking.numberOfGuests} khách</strong> theo đại diện {booking.contactName || booking.userName}.
+                <div className="bg-gray-50 rounded-xl p-6 text-center border border-dashed border-gray-300">
+                  <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-xs font-bold text-gray-700 mb-1">
+                    Chưa có danh sách hành khách chi tiết
+                  </p>
+                  <p className="text-[11px] text-gray-500 mb-3 max-w-sm mx-auto">
+                    Hiện booking đang đăng ký cho {booking.numberOfGuests} khách theo đại diện {booking.contactName || booking.userName}. Vui lòng bổ sung họ tên các thành viên.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={handleOpenAddPassenger}
+                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    Thêm hành khách đầu tiên
+                  </Button>
                 </div>
               )}
             </div>
@@ -1484,6 +1639,151 @@ export function UserBookingDetailPage({
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ADD / EDIT PASSENGER MODAL */}
+      <Dialog open={showPassengerModal} onOpenChange={setShowPassengerModal}>
+        <DialogContent className="max-w-md p-5 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Users className="w-5 h-5 text-teal-600" />
+              {editingPassenger ? "Chỉnh sửa thông tin hành khách" : "Thêm hành khách vào đoàn"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3.5 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Họ và tên hành khách <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={pFullName}
+                onChange={(e) => setPFullName(e.target.value)}
+                placeholder="VD: Nguyễn Văn An"
+                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Ngày sinh <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={pDob}
+                  onChange={(e) => setPDob(e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Giới tính
+                </label>
+                <select
+                  value={pGender}
+                  onChange={(e) => setPGender(e.target.value as "male" | "female")}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="male">Nam</option>
+                  <option value="female">Nữ</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Loại khách
+                </label>
+                <select
+                  value={pAgeGroup}
+                  onChange={(e) => {
+                    const ag = e.target.value as "adult" | "child_2_11" | "child_under_2";
+                    setPAgeGroup(ag);
+                    if (ag === "adult") setPPrice(booking.tour.price || 3500000);
+                    else if (ag === "child_2_11") setPPrice(Math.round((booking.tour.price || 3500000) * 0.75));
+                    else setPPrice(0);
+                  }}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="adult">Người lớn (Từ 12 tuổi)</option>
+                  <option value="child_2_11">Trẻ em (2 - 11 tuổi)</option>
+                  <option value="child_under_2">Em bé (&lt; 2 tuổi)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Giá vé (VNĐ)
+                </label>
+                <input
+                  type="number"
+                  value={pPrice}
+                  onChange={(e) => setPPrice(Number(e.target.value))}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="text"
+                  value={pPhone}
+                  onChange={(e) => setPPhone(e.target.value)}
+                  placeholder="09xx xxx xxx"
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Số CCCD / Hộ chiếu
+                </label>
+                <input
+                  type="text"
+                  value={pIdNumber}
+                  onChange={(e) => setPIdNumber(e.target.value)}
+                  placeholder="079xxxxxxxx"
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Ghi chú riêng (Dị ứng, hỗ trợ xe lăn, v.v.)
+              </label>
+              <input
+                type="text"
+                value={pNotes}
+                onChange={(e) => setPNotes(e.target.value)}
+                placeholder="VD: Ăn chay trường, cần chỗ ngồi gần cửa sổ..."
+                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button size="sm" variant="outline" onClick={() => setShowPassengerModal(false)} className="text-xs">
+                Hủy
+              </Button>
+              <Button
+                size="sm"
+                disabled={!pFullName.trim()}
+                onClick={handleSavePassenger}
+                className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold"
+              >
+                {editingPassenger ? "Lưu thay đổi" : "Thêm hành khách"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

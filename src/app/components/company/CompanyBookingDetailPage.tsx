@@ -727,7 +727,11 @@ export function CompanyBookingDetailPage({
                     {booking.passengers.map((p, i) => (
                       <tr key={p.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2.5 text-gray-400">{i + 1}</td>
-                        <td className="px-3 py-2.5 font-bold text-gray-900">{p.fullName}</td>
+                        <td className="px-3 py-2.5 font-bold text-gray-900">
+                          {p.fullName}
+                          {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
+                          {p.idNumber && <span className="block text-[10px] font-normal text-gray-400">CCCD: {p.idNumber}</span>}
+                        </td>
                         <td className="px-3 py-2.5 text-gray-600">
                           <span>{p.dateOfBirth || "—"}</span>
                           {(() => {

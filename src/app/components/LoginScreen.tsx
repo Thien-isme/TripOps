@@ -342,6 +342,27 @@ export function LoginScreen({
                   Chia tiền ➔
                 </span>
               </div>
+
+              {/* Tour Guide */}
+              <div
+                onClick={() => {
+                  setEmail("guide@demo.com");
+                  setPassword("1");
+                }}
+                className="p-2 bg-white rounded-lg border border-sky-200 hover:border-sky-400 hover:bg-sky-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+              >
+                <div>
+                  <span className="font-bold text-gray-900 group-hover:text-sky-700 block">
+                    🚩 Hướng dẫn viên (Trần Thị Bích - Mobile UI):
+                  </span>
+                  <code className="text-[11px] text-sky-600 font-mono font-bold">
+                    guide@demo.com
+                  </code>
+                </div>
+                <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">
+                  Điểm danh &amp; Tour ➔
+                </span>
+              </div>
             </div>
           </div>
         </div>

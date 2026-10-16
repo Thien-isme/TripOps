@@ -22,6 +22,7 @@ interface AdminLayoutProps {
   activeSection: string;
   onNavigate: (section: string) => void;
   onLogout?: () => void;
+  pendingToursCount?: number;
 }
 
 export function AdminLayout({
@@ -29,6 +30,7 @@ export function AdminLayout({
   activeSection,
   onNavigate,
   onLogout,
+  pendingToursCount = 0,
 }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,6 +45,12 @@ export function AdminLayout({
       id: "companies",
       label: "Công ty Du lịch",
       icon: Building2,
+    },
+    {
+      id: "approve-tours",
+      label: "Phê duyệt Tour",
+      icon: FileCheck,
+      badge: pendingToursCount > 0 ? pendingToursCount : undefined,
     },
     { id: "active-tours", label: "Tour đang dẫn", icon: Map },
     { id: "bookings", label: "Quản lý Booking", icon: Calendar },
@@ -129,9 +137,22 @@ export function AdminLayout({
                 className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-gray-600"}`}
               />
               {!collapsed && (
-                <span className="font-medium">
-                  {item.label}
-                </span>
+                <div className="flex items-center justify-between flex-1">
+                  <span className="font-medium">
+                    {item.label}
+                  </span>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                        isActive
+                          ? "bg-white text-blue-700"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
               )}
             </button>
           );

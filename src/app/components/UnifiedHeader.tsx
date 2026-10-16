@@ -15,6 +15,7 @@ import {
   History,
   MapPinned,
   MessageCircleMore,
+  Sparkles,
 } from "lucide-react";
 import { User as UserType } from "@/app/types";
 
@@ -24,6 +25,7 @@ interface UnifiedHeaderProps {
   onLogout?: () => void;
   onNavigate: (page: string) => void;
   currentPage?: string;
+  onOpenAIAdvisor?: () => void;
 }
 
 export function UnifiedHeader({
@@ -32,6 +34,7 @@ export function UnifiedHeader({
   onLogout,
   onNavigate,
   currentPage = "home",
+  onOpenAIAdvisor,
 }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -140,16 +143,29 @@ export function UnifiedHeader({
             </div>
           )}
 
-          {/* Right side - Login button or User Avatar */}
-          {!currentUser ? (
-            // Not logged in - show login button
-            <button
-              onClick={onShowLogin}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              Đăng nhập
-            </button>
-          ) : currentUser.role === "user" ? (
+          <div className="flex items-center gap-3">
+            {/* AI Advisor Button */}
+            {onOpenAIAdvisor && (
+              <button
+                type="button"
+                onClick={onOpenAIAdvisor}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-full text-xs font-extrabold shadow-sm hover:shadow-md transition-all transform hover:scale-105"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
+                <span>✨ AI Tư vấn Tour</span>
+              </button>
+            )}
+
+            {/* Right side - Login button or User Avatar */}
+            {!currentUser ? (
+              // Not logged in - show login button
+              <button
+                onClick={onShowLogin}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Đăng nhập
+              </button>
+            ) : currentUser.role === "user" ? (
             // Logged in as user - show avatar with dropdown
             <div className="relative" ref={dropdownRef}>
               <button
@@ -455,6 +471,7 @@ export function UnifiedHeader({
               )}
             </div>
           )}
+          </div>
         </div>
       </nav>
     </header>
