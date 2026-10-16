@@ -11,6 +11,7 @@ import {
   Location,
   TourVersion,
   CustomTourRequest,
+  TourCoHost,
 } from "@/app/types";
 import {
   Plus,
@@ -45,7 +46,10 @@ import {
   Sun,
   History,
   Handshake,
+  Lock,
+  UserPlus,
 } from "lucide-react";
+import { mockTourCompanies } from "@/app/data/mockData";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -663,13 +667,25 @@ export function TourFormPage({
   );
   const [newHighlight, setNewHighlight] = useState("");
 
-  // Co-Hosting Alliance & Segment Quotation States
-  const isCoHostedTour = !!(customRequest?.isCoHosted || tour?.isCoHosted);
-  const coHostsList = tour?.coHosts || customRequest?.coHosts || [];
-  const leadHost = coHostsList.find((ch) => ch.role === "lead");
-  const partnerHost = coHostsList.find((ch) => ch.role === "partner");
+  // Co-Hosting Alliance & Segment Quotation States (Hỗ trợ liên minh đa công ty)
+  const [coHostsList, setCoHostsList] = useState<TourCoHost[]>(() => {
+    if (tour?.coHosts && tour.coHosts.length > 0) return JSON.parse(JSON.stringify(tour.coHosts));
+    if (customRequest?.coHosts && customRequest.coHosts.length > 0) return JSON.parse(JSON.stringify(customRequest.coHosts));
+    return [];
+  });
+  const isCoHostedTour = !!(customRequest?.isCoHosted || tour?.isCoHosted || coHostsList.length > 0);
+  const leadHost = coHostsList.find((ch) => ch.role === "lead") || (coHostsList.length > 0 ? coHostsList[0] : undefined);
+  const partnerHosts = coHostsList.filter((ch) => ch.role === "partner");
   const myHost = coHostsList.find((ch) => ch.companyId === company.id);
-  const otherHost = coHostsList.find((ch) => ch.companyId !== company.id);
+  const otherHosts = coHostsList.filter((ch) => ch.companyId !== company.id);
+  const isLeadCompany = !isCoHostedTour || !leadHost || leadHost.companyId === company.id;
+
+  // State modal mời thêm đối tác lữ hành liên minh vào tour
+  const [showAddCoHostModal, setShowAddCoHostModal] = useState(false);
+  const [newPartnerCompanyId, setNewPartnerCompanyId] = useState("");
+  const [newPartnerSegment, setNewPartnerSegment] = useState("");
+  const [newPartnerBudget, setNewPartnerBudget] = useState(2000000);
+  const [newPartnerNotes, setNewPartnerNotes] = useState("");
 
   const [myQuotePerGuest, setMyQuotePerGuest] = useState<number>(() => {
     if (myHost?.quotePerGuest && myHost.quotePerGuest > 0) return myHost.quotePerGuest;
@@ -687,16 +703,94 @@ export function TourFormPage({
       : "Đã bao gồm khách sạn địa phương, ẩm thực đặc sản chặng sau, xe trung chuyển và HDV bản địa.")
   );
 
-  // Financial calculations for co-hosted tours
-  const partnerQuoteVal = company.id === partnerHost?.companyId ? myQuotePerGuest : (partnerHost?.quotePerGuest || 0);
-  const leadQuoteVal = company.id === leadHost?.companyId ? myQuotePerGuest : (leadHost?.quotePerGuest || 0);
-  const totalNetCost = leadQuoteVal + partnerQuoteVal;
+  // Financial calculations for co-hosted tours supporting N companies
+  const totalNetCost = isCoHostedTour && coHostsList.length > 0
+    ? coHostsList.reduce((sum, ch) => {
+        const q = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
+        return sum + q;
+      }, 0)
+    : price;
   const platformFeeRate = tour?.platformFeeRate ?? 0; // 0% (tạm thời không thu phí sàn)
   const calculatedPlatformFee = 0;
-  const calculatedFinalPrice = totalNetCost > 0 ? totalNetCost : price;
+  const calculatedFinalPrice = isCoHostedTour && totalNetCost > 0 ? totalNetCost : price;
 
-  const dynamicLeadPct = totalNetCost > 0 ? Math.round((leadQuoteVal / totalNetCost) * 100) : 50;
-  const dynamicPartnerPct = 100 - dynamicLeadPct;
+  // Thêm một công ty đối tác vào liên minh
+  const handleAddPartnerCoHost = (partnerId: string, segment: string, budget: number, note: string) => {
+    const targetComp = mockTourCompanies.find((c) => c.id === partnerId);
+    if (!targetComp) return;
+
+    let baseList = [...coHostsList];
+    if (!baseList.some((ch) => ch.role === "lead")) {
+      baseList.unshift({
+        id: `cohost-lead-${Date.now()}`,
+        companyId: company.id,
+        companyName: company.name,
+        companyLogo: company.logo,
+        companyPhone: company.phone,
+        companyEmail: company.email,
+        role: "lead",
+        status: "accepted",
+        assignedSegments: "Đón tiếp đoàn & Điều phối chung",
+        quotePerGuest: myQuotePerGuest,
+        quoteStatus: myQuoteStatus,
+        quoteNote: myQuoteNote,
+        quotedAt: new Date().toISOString(),
+      });
+    }
+
+    const newPartner: TourCoHost = {
+      id: `cohost-partner-${Date.now()}`,
+      companyId: targetComp.id,
+      companyName: targetComp.name,
+      companyLogo: targetComp.logo,
+      companyPhone: targetComp.phone,
+      companyEmail: targetComp.email,
+      role: "partner",
+      status: "accepted",
+      assignedSegments: segment.trim() || `Chặng phối hợp tại ${targetComp.name}`,
+      estimatedBudgetPerGuest: Number(budget) || 1800000,
+      quotePerGuest: Number(budget) || 1800000,
+      quoteStatus: "submitted",
+      quoteNote: note.trim() || "Phụ trách các dịch vụ chặng liên minh",
+      notes: note.trim(),
+      invitedAt: new Date().toISOString(),
+      respondedAt: new Date().toISOString(),
+    };
+
+    const nextList = [...baseList, newPartner];
+    const tot = nextList.reduce(
+      (s, c) => s + (c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0)),
+      0
+    );
+    const updated = nextList.map((c) => {
+      const q = c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0);
+      return {
+        ...c,
+        revenueSharePercentage: tot > 0 ? Math.round((q / tot) * 100) : Math.round(100 / nextList.length),
+      };
+    });
+    setCoHostsList(updated);
+    setShowAddCoHostModal(false);
+    setNewPartnerCompanyId("");
+    setNewPartnerSegment("");
+    setNewPartnerNotes("");
+  };
+
+  const handleRemovePartnerCoHost = (coHostId: string) => {
+    const filtered = coHostsList.filter((ch) => ch.id !== coHostId);
+    const tot = filtered.reduce(
+      (s, c) => s + (c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0)),
+      0
+    );
+    const updated = filtered.map((c) => {
+      const q = c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0);
+      return {
+        ...c,
+        revenueSharePercentage: tot > 0 ? Math.round((q / tot) * 100) : Math.round(100 / (filtered.length || 1)),
+      };
+    });
+    setCoHostsList(updated);
+  };
 
   // Tab 2 - Section 1: Danh sách Khách sạn lưu trú & Cấu hình Đổi hạng khách sạn
   const [hotels, setHotels] = useState<TourHotel[]>(() => {
@@ -1210,21 +1304,25 @@ export function TourFormPage({
 
   const addLocationToDay = (dayIdx: number) => {
     const updated = [...itinerary];
-    updated[dayIdx].locations.push({
-      id: `loc-${Date.now()}`,
+    const currentLocs = updated[dayIdx]?.locations ? [...updated[dayIdx].locations] : [];
+    currentLocs.push({
+      id: `loc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name: "Điểm tham quan mới",
       address: "",
       time: "10:00",
       createdByCompanyId: company.id,
       createdByCompanyName: company.name,
     });
+    updated[dayIdx].locations = currentLocs;
     setItinerary(updated);
   };
 
   const removeLocationFromDay = (dayIdx: number, locIdx: number) => {
     const updated = [...itinerary];
-    updated[dayIdx].locations = updated[dayIdx].locations.filter((_, i) => i !== locIdx);
-    setItinerary(updated);
+    if (updated[dayIdx]?.locations) {
+      updated[dayIdx].locations = updated[dayIdx].locations.filter((_, i) => i !== locIdx);
+      setItinerary(updated);
+    }
   };
 
   const handleSubmit = () => {
@@ -1251,9 +1349,15 @@ export function TourFormPage({
     }
 
     // Handle co-hosting quotes and dynamic revenue split calculation
-    let updatedCoHosts = tour?.coHosts || customRequest?.coHosts;
-    if (isCoHostedTour && updatedCoHosts) {
+    let updatedCoHosts = coHostsList;
+    if (isCoHostedTour && updatedCoHosts.length > 0) {
+      const totNet = updatedCoHosts.reduce(
+        (s, c) => s + (c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0)),
+        0
+      );
       updatedCoHosts = updatedCoHosts.map((ch) => {
+        const q = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
+        const pct = totNet > 0 ? Math.round((q / totNet) * 100) : Math.round(100 / updatedCoHosts.length);
         if (ch.companyId === company.id) {
           return {
             ...ch,
@@ -1261,23 +1365,14 @@ export function TourFormPage({
             quoteStatus: myQuoteStatus,
             quoteNote: myQuoteNote,
             quotedAt: myQuoteStatus === "submitted" ? (ch.quotedAt || new Date().toISOString()) : ch.quotedAt,
+            revenueSharePercentage: pct,
           };
         }
-        return ch;
-      });
-
-      // Recalculate revenue percentage based on actual quotes
-      const lQuote = updatedCoHosts.find((ch) => ch.role === "lead")?.quotePerGuest || 0;
-      const pQuote = updatedCoHosts.find((ch) => ch.role === "partner")?.quotePerGuest || 0;
-      const totNet = lQuote + pQuote;
-      if (totNet > 0) {
-        const leadPct = Math.round((lQuote / totNet) * 100);
-        const partnerPct = 100 - leadPct;
-        updatedCoHosts = updatedCoHosts.map((ch) => ({
+        return {
           ...ch,
-          revenueSharePercentage: ch.role === "lead" ? leadPct : partnerPct,
-        }));
-      }
+          revenueSharePercentage: pct,
+        };
+      });
     }
 
     const finalTourPrice = isCoHostedTour && calculatedFinalPrice > 0 ? calculatedFinalPrice : price;
@@ -1427,29 +1522,56 @@ export function TourFormPage({
         </div>
       )}
 
-      {/* Co-Hosting Collaboration Header */}
-      {(customRequest?.isCoHosted || tour?.isCoHosted) && (
-        <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-blue-900 text-white px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs border-b border-purple-600 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Handshake className="w-4 h-4 text-amber-300 flex-shrink-0" />
-            <span className="font-bold uppercase tracking-wider">ĐỒNG THIẾT KẾ TOUR LIÊN MINH:</span>
-            <span className="text-purple-200 hidden md:inline">
-              Mỗi công ty tự thiết lập khách sạn, nhà hàng và lịch trình tại các dịch vụ phụ trách.
-            </span>
+      {/* Co-Hosting Collaboration Header & Multi-Company Alliance Bar */}
+      {isCoHostedTour && (
+        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-blue-950 text-white px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs border-b border-purple-600 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-400 text-purple-950 flex items-center justify-center font-bold shadow-xs flex-shrink-0">
+              <Handshake className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold uppercase tracking-wider text-amber-300">
+                  LIÊN MINH ĐA CÔNG TY ({coHostsList.length} ĐƠN VỊ PHỐI HỢP)
+                </span>
+                <span className="text-[10px] bg-purple-800 text-purple-200 px-2 py-0.5 rounded font-medium border border-purple-600">
+                  {isLeadCompany ? "Bạn là Đơn vị Chủ trì (Lead)" : "Bạn là Đối tác Liên minh (Partner)"}
+                </span>
+              </div>
+              <p className="text-purple-200 text-[11px] mt-0.5">
+                Mỗi công ty tự thiết lập chặng mình phụ trách và <strong>bị vô hiệu hóa</strong> không được chỉnh sửa phần của đối tác khác.
+              </p>
+            </div>
           </div>
+
           <div className="flex items-center gap-2 flex-wrap">
-            {(tour?.coHosts || customRequest?.coHosts)?.map((ch) => (
+            {coHostsList.map((ch) => (
               <span
-                key={ch.id}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                key={ch.id || ch.companyId}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 shadow-2xs ${
                   ch.companyId === company.id
-                    ? "bg-emerald-500 text-white shadow-xs"
-                    : "bg-white/20 text-purple-100"
+                    ? "bg-emerald-500 text-white border border-emerald-400"
+                    : "bg-white/15 text-purple-100 border border-white/20"
                 }`}
               >
-                {ch.companyName} ({ch.role === "lead" ? "Chủ trì" : "Đối tác"})
+                <span>{ch.companyName}</span>
+                <span className="text-[10px] opacity-80">
+                  ({ch.role === "lead" ? "Chủ trì" : "Đối tác"} · {ch.revenueSharePercentage ?? Math.round(100 / coHostsList.length)}%)
+                </span>
               </span>
             ))}
+
+            {isLeadCompany && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setShowAddCoHostModal(true)}
+                className="bg-amber-400 hover:bg-amber-300 text-purple-950 font-bold text-xs h-7 px-2.5 gap-1 shadow-sm"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                Mời thêm đối tác
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -1486,6 +1608,18 @@ export function TourFormPage({
           {/* TAB 1: THÔNG TIN CHUNG, HÌNH ẢNH & ĐIỂM NHẤN */}
           {activeTab === "general" && (
             <div className="space-y-6">
+              {/* Partner Banner in Tab 1 */}
+              {isCoHostedTour && !isLeadCompany && (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5 flex items-center gap-3 text-xs text-purple-900 shadow-2xs">
+                  <Info className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold">Chế độ Đối tác Liên minh (Partner Mode):</p>
+                    <p className="text-purple-700 mt-0.5">
+                      Thông tin chung của tour do Đơn vị Chủ trì (<strong>{leadHost?.companyName || "Đơn vị chủ trì"}</strong>) quản lý. Bạn có thể xem thông tin tại đây, thiết kế các ngày lịch trình do công ty bạn phụ trách tại <strong>Tab 2</strong> và xác nhận báo giá chặng của mình tại <strong>Tab 3</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
               {/* UPLOAD MULTIPLE IMAGES & CHOOSE THUMBNAIL */}
               <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1774,21 +1908,31 @@ export function TourFormPage({
                 <div className="space-y-2.5">
                   {hotels.map((hotel, hIdx) => {
                     const isExpanded = expandedHotelId === hotel.id;
+                    const isHotelLocked = isCoHostedTour && Boolean(hotel.createdByCompanyId && hotel.createdByCompanyId !== company.id);
+                    const hotelOwnerName = hotel.createdByCompanyName || "Công ty đối tác";
+
                     return (
-                      <div key={hotel.id || hIdx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                      <div key={hotel.id || hIdx} className={`border rounded-xl overflow-hidden bg-white shadow-2xs ${isHotelLocked ? "border-amber-200" : "border-gray-200"}`}>
                         <button
                           type="button"
                           onClick={() => setExpandedHotelId(isExpanded ? null : (hotel.id || `h-${hIdx}`))}
-                          className="w-full flex items-center justify-between px-4 py-3 bg-blue-50/80 hover:bg-blue-100/70 transition-colors text-left"
+                          className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
+                            isHotelLocked ? "bg-amber-50/70 hover:bg-amber-100/60" : "bg-blue-50/80 hover:bg-blue-100/70"
+                          }`}
                         >
                           <div className="flex items-center gap-3">
-                            <Building2 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            <Building2 className={`w-5 h-5 flex-shrink-0 ${isHotelLocked ? "text-amber-700" : "text-blue-600"}`} />
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-bold text-gray-900">{hotel.destination || destination || "Khu vực lưu trú"}</p>
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                                   {hotel.stars || 4} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                                 </span>
+                                {isHotelLocked && (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                                    <Lock className="w-3 h-3 text-amber-700" /> Do {hotelOwnerName} thiết lập (Chỉ xem)
+                                  </span>
+                                )}
                               </div>
                               <p className="text-xs text-gray-500">
                                 {hotel.nights || 1} đêm • {hotel.name || "Chưa nhập tên khách sạn"}
@@ -1797,17 +1941,26 @@ export function TourFormPage({
                           </div>
                           <div className="flex items-center gap-2">
                             {hotels.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeHotel(hotel.id || "");
-                                }}
-                                className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
-                                title="Xóa khách sạn này"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              isHotelLocked ? (
+                                <span
+                                  className="p-1.5 text-gray-300 cursor-not-allowed"
+                                  title={`Không thể xóa khách sạn do ${hotelOwnerName} tạo`}
+                                >
+                                  <Lock className="w-4 h-4" />
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeHotel(hotel.id || "");
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                  title="Xóa khách sạn này"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )
                             )}
                             {isExpanded ? (
                               <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -1819,23 +1972,37 @@ export function TourFormPage({
 
                         {isExpanded && (
                           <div className="p-4 bg-white border-t border-gray-100 space-y-3">
+                            {isHotelLocked && (
+                              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 font-medium">
+                                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                                  Khách sạn này do <strong>{hotelOwnerName}</strong> phụ trách. Bạn không có quyền chỉnh sửa.
+                                </span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300">
+                                  Chỉ xem
+                                </span>
+                              </div>
+                            )}
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs font-semibold text-gray-700">Tên khách sạn / Resort mặc định của tour</Label>
                                 <Input
                                   value={hotel.name}
+                                  disabled={isHotelLocked}
                                   onChange={(e) => updateHotel(hotel.id || "", { name: e.target.value })}
                                   placeholder="VD: Khách sạn Đà Lạt Palace Heritage"
-                                  className="mt-1 text-xs"
+                                  className={`mt-1 text-xs ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                 />
                               </div>
                               <div>
                                 <Label className="text-xs font-semibold text-gray-700">Điểm đến / Khu vực lưu trú</Label>
                                 <Input
                                   value={hotel.destination ?? ""}
+                                  disabled={isHotelLocked}
                                   onChange={(e) => updateHotel(hotel.id || "", { destination: e.target.value })}
                                   placeholder="VD: Đà Lạt"
-                                  className="mt-1 text-xs"
+                                  className={`mt-1 text-xs ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                 />
                               </div>
                             </div>
@@ -1846,8 +2013,9 @@ export function TourFormPage({
                                   type="number"
                                   min={1}
                                   value={hotel.nights ?? 1}
+                                  disabled={isHotelLocked}
                                   onChange={(e) => updateHotel(hotel.id || "", { nights: parseInt(e.target.value) || 1 })}
-                                  className="mt-1 text-xs"
+                                  className={`mt-1 text-xs ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                 />
                               </div>
                               <div>
@@ -1861,8 +2029,11 @@ export function TourFormPage({
                                 </Label>
                                 <select
                                   value={hotel.stars ?? 4}
+                                  disabled={isHotelLocked}
                                   onChange={(e) => updateHotel(hotel.id || "", { stars: parseInt(e.target.value) || 4 })}
-                                  className="mt-1 w-full h-9 px-3 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  className={`mt-1 w-full h-9 px-3 py-1.5 text-xs border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                    isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-800"
+                                  }`}
                                 >
                                   <option value={1}>1 sao ⭐</option>
                                   <option value={2}>2 sao ⭐⭐</option>
@@ -1876,9 +2047,10 @@ export function TourFormPage({
                               <Label className="text-xs font-semibold text-gray-700">Địa chỉ / Ghi chú phòng</Label>
                               <Input
                                 value={hotel.address ?? hotel.description ?? ""}
+                                disabled={isHotelLocked}
                                 onChange={(e) => updateHotel(hotel.id || "", { address: e.target.value, description: e.target.value })}
                                 placeholder="VD: 02 Trần Phú, Phường 3, TP. Đà Lạt"
-                                className="mt-1 text-xs"
+                                className={`mt-1 text-xs ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                               />
                             </div>
                             <p className="text-[11px] text-gray-500">
@@ -1897,22 +2069,28 @@ export function TourFormPage({
                                     Khách hàng khi xem tour có thể chọn đổi sang các khách sạn này với mức giá chênh lệch do công ty ấn định (Hiển thị ở tab Lịch trình tùy chỉnh).
                                   </p>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => addAlternativeHotel(hotel.id || "")}
-                                  className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-semibold transition-colors shadow-2xs"
-                                >
-                                  <Plus className="w-3.5 h-3.5 text-amber-700" />
-                                  Thêm khách sạn đổi hạng
-                                </button>
+                                {isHotelLocked ? (
+                                  <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1 cursor-not-allowed">
+                                    <Lock className="w-3.5 h-3.5 text-gray-400" /> Đổi hạng do {hotelOwnerName} thiết lập
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => addAlternativeHotel(hotel.id || "")}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-semibold transition-colors shadow-2xs"
+                                  >
+                                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                                    Thêm khách sạn đổi hạng
+                                  </button>
+                                )}
                               </div>
 
-                               {/* Danh sách các khách sạn đổi hạng đã cấu hình */}
-                               {(hotel.alternativeHotels || []).length === 0 ? (
-                                 <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                                   Chưa có khách sạn đổi hạng nào. Bấm nút "+ Thêm khách sạn đổi hạng" để thiết lập các lựa chọn khách sạn khác cho khách.
-                                 </div>
-                               ) : (
+                              {/* Danh sách các khách sạn đổi hạng đã cấu hình */}
+                              {(hotel.alternativeHotels || []).length === 0 ? (
+                                <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                                  Chưa có khách sạn đổi hạng nào. Bấm nút "+ Thêm khách sạn đổi hạng" để thiết lập các lựa chọn khách sạn khác cho khách.
+                                </div>
+                              ) : (
                                 <div className="space-y-2.5">
                                   {(hotel.alternativeHotels || []).map((alt, aIdx) => (
                                     <div
@@ -1926,11 +2104,12 @@ export function TourFormPage({
                                             <Label className="text-[11px] text-gray-500 font-medium">Tên khách sạn đổi hạng / nâng cấp</Label>
                                             <Input
                                               value={alt.name}
+                                              disabled={isHotelLocked}
                                               onChange={(e) =>
                                                 updateAlternativeHotel(hotel.id || "", alt.id, { name: e.target.value })
                                               }
                                               placeholder="VD: Dalat Edensee Lake Resort & Spa"
-                                              className="text-xs mt-0.5 bg-white font-semibold"
+                                              className={`text-xs mt-0.5 font-semibold ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white"}`}
                                             />
                                           </div>
 
@@ -1944,12 +2123,15 @@ export function TourFormPage({
                                             </Label>
                                             <select
                                               value={alt.stars ?? 4}
+                                              disabled={isHotelLocked}
                                               onChange={(e) =>
                                                 updateAlternativeHotel(hotel.id || "", alt.id, {
                                                   stars: parseInt(e.target.value) || 4,
                                                 })
                                               }
-                                              className="text-xs mt-0.5 w-full h-9 px-2 py-1 border border-gray-300 rounded-md bg-white font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                              className={`text-xs mt-0.5 w-full h-9 px-2 py-1 border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                                isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-800"
+                                              }`}
                                             >
                                               <option value={1}>1 sao ⭐</option>
                                               <option value={2}>2 sao ⭐⭐</option>
@@ -1982,26 +2164,33 @@ export function TourFormPage({
                                               type="number"
                                               step={50000}
                                               value={alt.priceDifference}
+                                              disabled={isHotelLocked}
                                               onChange={(e) =>
                                                 updateAlternativeHotel(hotel.id || "", alt.id, {
                                                   priceDifference: parseInt(e.target.value) || 0,
                                                 })
                                               }
                                               placeholder="VD: 400000 hoặc -350000"
-                                              className="text-xs mt-0.5 bg-white font-bold"
+                                              className={`text-xs mt-0.5 font-bold ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white"}`}
                                             />
                                           </div>
                                         </div>
 
                                         {/* Nút xóa */}
-                                        <button
-                                          type="button"
-                                          onClick={() => removeAlternativeHotel(hotel.id || "", alt.id)}
-                                          className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
-                                          title="Xóa khách sạn này"
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {isHotelLocked ? (
+                                          <span className="p-1.5 text-gray-300 cursor-not-allowed self-end mb-1">
+                                            <Lock className="w-4 h-4" />
+                                          </span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => removeAlternativeHotel(hotel.id || "", alt.id)}
+                                            className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
+                                            title="Xóa khách sạn này"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        )}
                                       </div>
 
                                       {/* Địa chỉ / Ghi chú phòng */}
@@ -2009,6 +2198,7 @@ export function TourFormPage({
                                         <Label className="text-[11px] text-gray-500 font-medium">Địa chỉ / Ghi chú phòng</Label>
                                         <Input
                                           value={alt.address ?? alt.description ?? ""}
+                                          disabled={isHotelLocked}
                                           onChange={(e) =>
                                             updateAlternativeHotel(hotel.id || "", alt.id, {
                                               address: e.target.value,
@@ -2016,7 +2206,7 @@ export function TourFormPage({
                                             })
                                           }
                                           placeholder="VD: 02 Trần Phú, Phường 3, TP. Đà Lạt"
-                                          className="text-xs mt-0.5 bg-white text-gray-600"
+                                          className={`text-xs mt-0.5 ${isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-600"}`}
                                         />
                                       </div>
                                     </div>
@@ -2056,8 +2246,45 @@ export function TourFormPage({
                 </div>
 
                 <div className="space-y-4">
-                  {itinerary.map((day, dIdx) => (
-                    <div key={day.id || dIdx} className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-2xs">
+                  {itinerary.map((day, dIdx) => {
+                    const dayOwnerId = day.createdByCompanyId || (isCoHostedTour && leadHost?.companyId ? leadHost.companyId : company.id);
+                    const dayOwnerName = day.createdByCompanyName || coHostsList.find((c) => c.companyId === dayOwnerId)?.companyName || "Công ty đối tác";
+                    const isDayCreatedByMe = !isCoHostedTour || dayOwnerId === company.id;
+                    const isDayLocked = isCoHostedTour && !isDayCreatedByMe;
+
+                    return (
+                    <div key={day.id || dIdx} className={`rounded-xl border overflow-hidden bg-white shadow-2xs ${isCoHostedTour && !isDayCreatedByMe ? "border-purple-200" : "border-gray-200"}`}>
+                      {/* Banner hiển thị quyền chỉnh sửa khi tour liên minh */}
+                      {isCoHostedTour && (
+                        <div className={`border-b px-4 py-2 flex items-center justify-between text-xs ${
+                          isDayCreatedByMe
+                            ? "bg-emerald-50/95 border-emerald-200 text-emerald-900"
+                            : "bg-purple-50/90 border-purple-200 text-purple-900"
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            {isDayCreatedByMe ? (
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                            ) : (
+                              <Handshake className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                            )}
+                            <span>
+                              {isDayCreatedByMe ? (
+                                <>Lịch trình Ngày {day.day} do công ty bạn (<strong className="font-bold">{company.name}</strong>) khởi tạo &amp; phụ trách.</>
+                              ) : (
+                                <>Lịch trình Ngày {day.day} do <strong className="font-bold text-purple-950">{dayOwnerName}</strong> khởi tạo. Bạn có thể <strong>thêm điểm tham quan và bữa ăn</strong> thuộc trách nhiệm của mình.</>
+                              )}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 border ${
+                            isDayCreatedByMe
+                              ? "bg-emerald-200 text-emerald-900 border-emerald-300"
+                              : "bg-purple-100 text-purple-800 border-purple-300"
+                          }`}>
+                            {isDayCreatedByMe ? "Đơn vị khởi tạo ngày" : "Phối hợp đóng góp"}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Day header identical to thongtintour.png */}
                       <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-gray-100">
                         <div className="flex items-center gap-2.5">
@@ -2070,7 +2297,7 @@ export function TourFormPage({
                                 Ngày {day.day}: {day.title || `Lịch trình ngày ${day.day}`}
                               </p>
                               {(() => {
-                                const coHosts = tour?.coHosts || customRequest?.coHosts;
+                                const coHosts = coHostsList;
                                 if (!coHosts || coHosts.length === 0) return null;
 
                                 // Scan companies that contributed to this day
@@ -2109,7 +2336,7 @@ export function TourFormPage({
                                     <div className="flex items-center gap-1.5 flex-wrap">
                                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
                                         <Handshake className="w-3 h-3 text-amber-700" />
-                                        🤝 Cả 2 công ty cùng phụ trách ({companyList.map(([_, name]) => name).join(" & ")})
+                                        🤝 Các công ty cùng phối hợp ({companyList.map(([_, name]) => name).join(" & ")})
                                       </span>
                                     </div>
                                   );
@@ -2144,14 +2371,23 @@ export function TourFormPage({
                         </div>
 
                         {itinerary.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeDay(dIdx)}
-                            className="text-gray-400 hover:text-red-600 p-1"
-                            title="Xóa ngày này"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          isDayLocked ? (
+                            <span
+                              className="text-gray-300 p-1 flex items-center gap-1 text-[11px] cursor-not-allowed"
+                              title={`Không thể xóa ngày do ${dayOwnerName} tạo`}
+                            >
+                              <Lock className="w-3.5 h-3.5" />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => removeDay(dIdx)}
+                              className="text-gray-400 hover:text-red-600 p-1"
+                              title="Xóa ngày này"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )
                         )}
                       </div>
 
@@ -2162,13 +2398,14 @@ export function TourFormPage({
                           <Label className="text-[11px] text-gray-600">Tiêu đề ngày</Label>
                           <Input
                             value={day.title}
+                            disabled={isDayLocked}
                             onChange={(e) => {
                               const updated = [...itinerary];
                               updated[dIdx].title = e.target.value;
                               setItinerary(updated);
                             }}
                             placeholder="VD: TP.HCM – Đà Lạt (Ăn trưa, tối)"
-                            className="text-xs mt-0.5"
+                            className={`text-xs mt-0.5 ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : ""}`}
                           />
                         </div>
 
@@ -2177,6 +2414,7 @@ export function TourFormPage({
                           <Label className="text-[11px] font-semibold text-gray-600 block mb-1">Mô tả lịch trình trong ngày</Label>
                           <Textarea
                             value={day.description}
+                            disabled={isDayLocked}
                             onChange={(e) => {
                               const updated = [...itinerary];
                               updated[dIdx].description = e.target.value;
@@ -2184,7 +2422,7 @@ export function TourFormPage({
                             }}
                             rows={2}
                             placeholder="Mô tả tóm tắt hoạt động trong ngày..."
-                            className="text-xs bg-white"
+                            className={`text-xs ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white"}`}
                           />
                         </div>
 
@@ -2207,24 +2445,28 @@ export function TourFormPage({
                               {day.locations.map((loc, lIdx) => {
                                 const isBeingDragged = draggedLocation?.dayIdx === dIdx && draggedLocation?.locIdx === lIdx;
                                 const isDropTarget = dragOverLocation?.dayIdx === dIdx && dragOverLocation?.locIdx === lIdx;
+                                const locOwnerId = loc.createdByCompanyId || (isCoHostedTour ? dayOwnerId : company.id);
+                                const isLocLocked = Boolean(isCoHostedTour && locOwnerId && locOwnerId !== company.id);
+                                const locOwnerName = loc.createdByCompanyName || (locOwnerId === company.id ? company.name : dayOwnerName);
 
                                 return (
                                   <div
                                     key={loc.id || lIdx}
-                                    draggable
+                                    draggable={!isLocLocked}
                                     onDragStart={(e) => {
+                                      if (isLocLocked) return;
                                       e.dataTransfer.setData("text/plain", `${dIdx}-${lIdx}`);
                                       setDraggedLocation({ dayIdx: dIdx, locIdx: lIdx });
                                     }}
                                     onDragOver={(e) => {
                                       e.preventDefault();
-                                      if (draggedLocation?.dayIdx === dIdx && dragOverLocation?.locIdx !== lIdx) {
+                                      if (!isLocLocked && draggedLocation?.dayIdx === dIdx && dragOverLocation?.locIdx !== lIdx) {
                                         setDragOverLocation({ dayIdx: dIdx, locIdx: lIdx });
                                       }
                                     }}
                                     onDrop={(e) => {
                                       e.preventDefault();
-                                      if (draggedLocation && draggedLocation.dayIdx === dIdx && draggedLocation.locIdx !== lIdx) {
+                                      if (!isLocLocked && draggedLocation && draggedLocation.dayIdx === dIdx && draggedLocation.locIdx !== lIdx) {
                                         moveLocation(dIdx, draggedLocation.locIdx, lIdx);
                                       }
                                       setDraggedLocation(null);
@@ -2250,13 +2492,15 @@ export function TourFormPage({
                                           ? "border-dashed border-purple-400 bg-purple-50/50 opacity-60"
                                           : isDropTarget
                                           ? "border-purple-500 bg-purple-50 ring-2 ring-purple-300"
+                                          : isLocLocked
+                                          ? "border-gray-200 bg-gray-50/60 shadow-2xs"
                                           : "border-gray-200 hover:border-gray-300 shadow-2xs"
                                       }`}
                                     >
                                       {/* Drag Handle */}
                                       <div
-                                        title="Kéo thả để sắp xếp thứ tự điểm tham quan"
-                                        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-purple-600 mr-2 p-0.5 flex-shrink-0"
+                                        title={isLocLocked ? `Không thể di chuyển điểm do ${locOwnerName} quản lý` : "Kéo thả để sắp xếp thứ tự điểm tham quan"}
+                                        className={`mr-2 p-0.5 flex-shrink-0 ${isLocLocked ? "text-gray-300 cursor-not-allowed" : "cursor-grab active:cursor-grabbing text-gray-400 hover:text-purple-600"}`}
                                       >
                                         <GripVertical className="w-4 h-4" />
                                       </div>
@@ -2265,6 +2509,7 @@ export function TourFormPage({
                                       <div className="flex items-center gap-2 flex-1 flex-wrap">
                                         <Input
                                           value={loc.name}
+                                          disabled={isLocLocked}
                                           onChange={(e) => {
                                             const updated = [...itinerary];
                                             updated[dIdx].locations[lIdx].name = e.target.value;
@@ -2275,12 +2520,16 @@ export function TourFormPage({
                                             setItinerary(updated);
                                           }}
                                           placeholder="Tên điểm tham quan (VD: Hồ Xuân Hương)..."
-                                          className="text-xs font-medium text-gray-900 border-none shadow-none focus-visible:ring-1 flex-1 min-w-[120px] p-0 h-auto"
+                                          className={`text-xs font-medium border-none shadow-none focus-visible:ring-1 flex-1 min-w-[120px] p-0 h-auto ${isLocLocked ? "text-gray-500 cursor-not-allowed bg-transparent" : "text-gray-900"}`}
                                         />
-                                        {loc.createdByCompanyName && (
-                                          <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded font-normal shrink-0 flex items-center gap-1">
-                                            <Building2 className="w-2.5 h-2.5 text-gray-400" />
-                                            {loc.createdByCompanyName}
+                                        {(loc.createdByCompanyName || (isCoHostedTour && locOwnerName)) && (
+                                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 flex items-center gap-1 border ${
+                                            isLocLocked
+                                              ? "bg-amber-50 text-amber-900 border-amber-200"
+                                              : "bg-purple-50 text-purple-700 border-purple-200 font-semibold"
+                                          }`}>
+                                            {isLocLocked ? <Lock className="w-2.5 h-2.5 text-amber-600" /> : <Building2 className="w-2.5 h-2.5 text-purple-600" />}
+                                            {isLocLocked ? locOwnerName : `${loc.createdByCompanyName || company.name} (Bạn)`}
                                           </span>
                                         )}
                                       </div>
@@ -2289,7 +2538,7 @@ export function TourFormPage({
                                       <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                                         <button
                                           type="button"
-                                          disabled={lIdx === 0}
+                                          disabled={isLocLocked || lIdx === 0}
                                           onClick={() => moveLocation(dIdx, lIdx, lIdx - 1)}
                                           className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                           title="Đổi thứ tự lên trên"
@@ -2298,21 +2547,27 @@ export function TourFormPage({
                                         </button>
                                         <button
                                           type="button"
-                                          disabled={lIdx === day.locations.length - 1}
+                                          disabled={isLocLocked || lIdx === day.locations.length - 1}
                                           onClick={() => moveLocation(dIdx, lIdx, lIdx + 1)}
                                           className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                           title="Đổi thứ tự xuống dưới"
                                         >
                                           <ArrowDown className="w-3.5 h-3.5" />
                                         </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeLocationFromDay(dIdx, lIdx)}
-                                          className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors ml-0.5"
-                                          title="Xóa điểm tham quan này"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {isLocLocked ? (
+                                          <span title={`Không thể xóa điểm do ${locOwnerName} tạo`} className="p-1 text-gray-300 cursor-not-allowed">
+                                            <Lock className="w-3.5 h-3.5" />
+                                          </span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => removeLocationFromDay(dIdx, lIdx)}
+                                            className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors ml-0.5"
+                                            title="Xóa điểm tham quan này"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -2338,7 +2593,7 @@ export function TourFormPage({
                               <button
                                 type="button"
                                 onClick={() => addMealToDay(dIdx, "breakfast")}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium transition-colors flex items-center gap-1"
+                                className="px-2.5 py-1 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium transition-colors flex items-center gap-1 shadow-2xs"
                               >
                                 <Plus className="w-3 h-3" />
                                 Thêm bữa sáng
@@ -2346,7 +2601,7 @@ export function TourFormPage({
                               <button
                                 type="button"
                                 onClick={() => addMealToDay(dIdx, "lunch")}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium transition-colors flex items-center gap-1"
+                                className="px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium transition-colors flex items-center gap-1 shadow-2xs"
                               >
                                 <Plus className="w-3 h-3" />
                                 Thêm bữa trưa
@@ -2354,7 +2609,7 @@ export function TourFormPage({
                               <button
                                 type="button"
                                 onClick={() => addMealToDay(dIdx, "dinner")}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium transition-colors flex items-center gap-1"
+                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium transition-colors flex items-center gap-1 shadow-2xs"
                               >
                                 <Plus className="w-3 h-3" />
                                 Thêm bữa tối
@@ -2375,14 +2630,19 @@ export function TourFormPage({
                                 const isExpanded = expandedMealKey === mealKey;
                                 const mealLabel = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
                                 const altsCount = (meal.alternativeMeals || []).length;
+                                const mealOwnerId = meal.createdByCompanyId || (isCoHostedTour ? dayOwnerId : company.id);
+                                const isMealLocked = Boolean(isCoHostedTour && mealOwnerId && mealOwnerId !== company.id);
+                                const mealOwnerName = meal.createdByCompanyName || (mealOwnerId === company.id ? company.name : dayOwnerName);
 
                                 return (
-                                  <div key={mealKey} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                  <div key={mealKey} className={`border rounded-xl overflow-hidden bg-white shadow-2xs ${isMealLocked ? "border-amber-200" : "border-gray-200"}`}>
                                     <button
                                       type="button"
                                       onClick={() => setExpandedMealKey(isExpanded ? null : mealKey)}
                                       className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors text-left ${
-                                        mealType === "breakfast"
+                                        isMealLocked
+                                          ? "bg-amber-50/60 hover:bg-amber-100/50"
+                                          : mealType === "breakfast"
                                           ? "bg-amber-50/50 hover:bg-amber-100/50"
                                           : mealType === "lunch"
                                           ? "bg-emerald-50/50 hover:bg-emerald-100/50"
@@ -2391,7 +2651,9 @@ export function TourFormPage({
                                     >
                                       <div className="flex items-center gap-2.5 min-w-0">
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                          mealType === "breakfast"
+                                          isMealLocked
+                                            ? "bg-amber-100 text-amber-700"
+                                            : mealType === "breakfast"
                                             ? "bg-amber-100 text-amber-700"
                                             : mealType === "lunch"
                                             ? "bg-emerald-100 text-emerald-700"
@@ -2405,10 +2667,14 @@ export function TourFormPage({
                                               {mealLabel}:{" "}
                                               <span className="font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo tour"}</span>
                                             </p>
-                                            {meal.createdByCompanyName && (
-                                              <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-normal flex items-center gap-1">
-                                                <Building2 className="w-2.5 h-2.5 text-emerald-600" />
-                                                Tạo bởi: {meal.createdByCompanyName}
+                                            {(meal.createdByCompanyName || (isCoHostedTour && mealOwnerName)) && (
+                                              <span className={`text-[10px] px-1.5 py-0.2 rounded font-normal flex items-center gap-1 border ${
+                                                isMealLocked
+                                                  ? "bg-amber-100 text-amber-900 border-amber-300 font-semibold"
+                                                  : "text-purple-700 bg-purple-50 border-purple-200 font-semibold"
+                                              }`}>
+                                                {isMealLocked ? <Lock className="w-2.5 h-2.5 text-amber-700" /> : <Building2 className="w-2.5 h-2.5 text-purple-600" />}
+                                                {isMealLocked ? `Khóa: ${mealOwnerName}` : `Tạo bởi: ${meal.createdByCompanyName || company.name} (Bạn)`}
                                               </span>
                                             )}
                                           </div>
@@ -2422,23 +2688,44 @@ export function TourFormPage({
                                         <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
                                           {altsCount > 0 ? `${altsCount} lựa chọn đổi món` : "Theo tour (0đ)"}
                                         </span>
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            removeMeal(dIdx, mIdx);
-                                          }}
-                                          className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
-                                          title="Xóa bữa ăn này"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        {isMealLocked ? (
+                                          <span
+                                            className="p-1 text-gray-300 cursor-not-allowed"
+                                            title={`Không thể xóa bữa ăn do ${mealOwnerName} tạo`}
+                                          >
+                                            <Lock className="w-3.5 h-3.5" />
+                                          </span>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              removeMeal(dIdx, mIdx);
+                                            }}
+                                            className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                            title="Xóa bữa ăn này"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
                                         {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                                       </div>
                                     </button>
 
                                     {isExpanded && (
                                       <div className="p-4 bg-white border-t border-gray-100 space-y-4">
+                                        {isMealLocked && (
+                                          <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+                                            <span className="flex items-center gap-1.5 font-medium">
+                                              <Lock className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                                              Bữa ăn này do <strong>{mealOwnerName}</strong> phụ trách. Bạn không có quyền chỉnh sửa thực đơn.
+                                            </span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300">
+                                              Chỉ xem
+                                            </span>
+                                          </div>
+                                        )}
+
                                         {/* Default Restaurant & Description */}
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                                           <div className="sm:col-span-12">
@@ -2447,18 +2734,20 @@ export function TourFormPage({
                                             </Label>
                                             <Input
                                               value={meal.serviceName || ""}
+                                              disabled={isMealLocked}
                                               onChange={(e) => updateMealField(dIdx, mIdx, { serviceName: e.target.value })}
                                               placeholder="VD: Nhà hàng Hương Rừng Đà Lạt"
-                                              className="mt-1 text-xs"
+                                              className={`mt-1 text-xs ${isMealLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                             />
                                           </div>
                                           <div className="sm:col-span-12">
                                             <Label className="text-xs font-semibold text-gray-700">Mô tả thực đơn tiêu chuẩn</Label>
                                             <Input
                                               value={meal.description ?? ""}
+                                              disabled={isMealLocked}
                                               onChange={(e) => updateMealField(dIdx, mIdx, { description: e.target.value })}
                                               placeholder="VD: Đặc sản gà đồi, cơm lam, rau củ tươi organic"
-                                              className="mt-1 text-xs"
+                                              className={`mt-1 text-xs ${isMealLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                             />
                                           </div>
                                         </div>
@@ -2475,17 +2764,17 @@ export function TourFormPage({
                                                 Khách hàng có thể chọn đổi sang các nhà hàng này với mức giá chênh lệch
                                               </p>
                                             </div>
-                                            <button
-                                              type="button"
-                                              onClick={() => addAlternativeMeal(dIdx, mIdx)}
-                                              className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 font-semibold transition-colors shadow-2xs"
-                                            >
-                                              <Plus className="w-3 h-3 text-emerald-700" />
-                                              Thêm nhà hàng đổi món
-                                            </button>
+                                            {!isMealLocked && (
+                                              <button
+                                                type="button"
+                                                onClick={() => addAlternativeMeal(dIdx, mIdx)}
+                                                className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 font-semibold transition-colors shadow-2xs"
+                                              >
+                                                <Plus className="w-3 h-3 text-emerald-700" />
+                                                Thêm nhà hàng đổi món
+                                              </button>
+                                            )}
                                           </div>
-
-                                          
 
                                           {/* List of configured alternative meals */}
                                           {altsCount === 0 ? (
@@ -2505,11 +2794,12 @@ export function TourFormPage({
                                                         <Label className="text-[10px] text-gray-500 font-medium">Tên nhà hàng đổi món</Label>
                                                         <Input
                                                           value={alt.restaurantName}
+                                                          disabled={isMealLocked}
                                                           onChange={(e) =>
                                                             updateAlternativeMeal(dIdx, mIdx, alt.id, { restaurantName: e.target.value })
                                                           }
                                                           placeholder="VD: Nhà hàng Trúc Lâm Viên"
-                                                          className="text-xs mt-0.5 bg-white font-semibold"
+                                                          className={`text-xs mt-0.5 bg-white font-semibold ${isMealLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                                         />
                                                       </div>
                                                       <div className="sm:col-span-5">
@@ -2533,33 +2823,41 @@ export function TourFormPage({
                                                         <Input
                                                           type="number"
                                                           step={10000}
+                                                          disabled={isMealLocked}
                                                           value={alt.priceDifference}
                                                           onChange={(e) =>
                                                             updateAlternativeMeal(dIdx, mIdx, alt.id, {
                                                               priceDifference: parseInt(e.target.value) || 0,
                                                             })
                                                           }
-                                                          className="text-xs mt-0.5 bg-white font-bold"
+                                                          className={`text-xs mt-0.5 bg-white font-bold ${isMealLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                                         />
                                                       </div>
                                                     </div>
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => removeAlternativeMeal(dIdx, mIdx, alt.id)}
-                                                      className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
-                                                      title="Xóa nhà hàng này"
-                                                    >
-                                                      <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    {!isMealLocked ? (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => removeAlternativeMeal(dIdx, mIdx, alt.id)}
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors self-end mb-1"
+                                                        title="Xóa nhà hàng này"
+                                                      >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                      </button>
+                                                    ) : (
+                                                      <span className="p-1.5 text-gray-300 cursor-not-allowed self-end mb-1">
+                                                        <Lock className="w-3.5 h-3.5" />
+                                                      </span>
+                                                    )}
                                                   </div>
                                                   <div>
                                                     <Input
                                                       value={alt.description ?? ""}
+                                                      disabled={isMealLocked}
                                                       onChange={(e) =>
                                                         updateAlternativeMeal(dIdx, mIdx, alt.id, { description: e.target.value })
                                                       }
                                                       placeholder="Mô tả thực đơn (VD: Cơm niêu gia đình, canh atiso...)"
-                                                      className="text-xs bg-white text-gray-600"
+                                                      className={`text-xs bg-white text-gray-600 ${isMealLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                                     />
                                                   </div>
                                                 </div>
@@ -2572,15 +2870,16 @@ export function TourFormPage({
                                             <input
                                               type="checkbox"
                                               id={`custom-meal-req-${mealKey}`}
+                                              disabled={isMealLocked}
                                               checked={meal.allowCustomMealRequest !== false}
                                               onChange={(e) =>
                                                 updateMealField(dIdx, mIdx, { allowCustomMealRequest: e.target.checked })
                                               }
-                                              className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                                              className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer disabled:cursor-not-allowed"
                                             />
                                             <label
                                               htmlFor={`custom-meal-req-${mealKey}`}
-                                              className="text-gray-700 cursor-pointer select-none font-medium text-[11px]"
+                                              className={`text-gray-700 font-medium text-[11px] ${isMealLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer"}`}
                                             >
                                               Cho phép khách tự đề xuất nhà hàng khác ngoài danh sách (công ty sẽ báo giá sau khi nhận booking)
                                             </label>
@@ -2596,7 +2895,8 @@ export function TourFormPage({
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
 
                   {/* Button to add a new day at bottom of Section 3 */}
                   <button
@@ -2635,15 +2935,22 @@ export function TourFormPage({
                       </div>
                     </div>
                     <div>
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs ${
-                        myQuoteStatus === "submitted" && otherHost?.quoteStatus === "submitted"
-                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                          : "bg-amber-100 text-amber-800 border border-amber-300"
-                      }`}>
-                        {myQuoteStatus === "submitted" && otherHost?.quoteStatus === "submitted"
-                          ? "🟢 Cả 2 bên đã chốt báo giá"
-                          : "🟡 Đang trong quá trình hoàn thiện báo giá"}
-                      </span>
+                      {(() => {
+                        const allSubmitted = coHostsList.length > 0 && coHostsList.every((ch) =>
+                          ch.companyId === company.id ? myQuoteStatus === "submitted" : ch.quoteStatus === "submitted"
+                        );
+                        return (
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs ${
+                            allSubmitted
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : "bg-amber-100 text-amber-800 border border-amber-300"
+                          }`}>
+                            {allSubmitted
+                              ? `🟢 Toàn bộ ${coHostsList.length} công ty đã chốt báo giá`
+                              : `🟡 Đang hoàn thiện báo giá (${coHostsList.filter((ch) => (ch.companyId === company.id ? myQuoteStatus === "submitted" : ch.quoteStatus === "submitted")).length}/${coHostsList.length} đã chốt)`}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -2653,9 +2960,12 @@ export function TourFormPage({
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
-                            Chặng của công ty bạn
+                            Chặng của công ty bạn ({company.name})
                           </span>
                           <h4 className="font-bold text-gray-900 text-sm mt-1">{company.name}</h4>
+                          <span className="text-[11px] text-gray-500 font-medium">
+                            Vai trò: {isLeadCompany ? "Đơn vị Chủ trì (Lead)" : "Đối tác Liên minh (Partner)"}
+                          </span>
                         </div>
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                           myQuoteStatus === "submitted"
@@ -2724,71 +3034,97 @@ export function TourFormPage({
                       </div>
                     </div>
 
-                    {/* 2. Công ty đối tác */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                            Chặng đối tác liên minh
-                          </span>
-                          <h4 className="font-bold text-gray-900 text-sm mt-1">
-                            {otherHost?.companyName || "Công ty lữ hành đối tác"}
-                          </h4>
+                    {/* 2. Danh sách các công ty đối tác liên minh */}
+                    {otherHosts.map((other, idx) => (
+                      <div key={other.id || other.companyId || idx} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                              Đối tác #{idx + 1} ({other.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Liên minh"})
+                            </span>
+                            <h4 className="font-bold text-gray-900 text-sm mt-1">
+                              {other.companyName}
+                            </h4>
+                            {other.assignedSegments && (
+                              <p className="text-[11px] text-gray-500 font-medium">Phụ trách: {other.assignedSegments}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                              other.quoteStatus === "submitted"
+                                ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            }`}>
+                              {other.quoteStatus === "submitted" ? "🟢 Đã báo giá" : "⏳ Đang hoàn thiện"}
+                            </span>
+                            {isLeadCompany && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePartnerCoHost(other.id)}
+                                className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                title="Xóa đối tác này khỏi liên minh"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                          otherHost?.quoteStatus === "submitted"
-                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}>
-                          {otherHost?.quoteStatus === "submitted" ? "🟢 Đối tác đã báo giá" : "⏳ Đối tác đang hoàn thiện"}
-                        </span>
-                      </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-600 font-medium">Báo giá từ đối tác:</span>
-                          <span className="font-extrabold text-blue-700 text-base">
-                            {otherHost?.quotePerGuest ? formatVND(otherHost.quotePerGuest) : "Chưa cập nhật"}
-                            <span className="text-xs text-gray-400 font-normal"> / khách</span>
-                          </span>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-600 font-medium">Báo giá từ đối tác:</span>
+                            <span className="font-extrabold text-blue-700 text-base">
+                              {other.quotePerGuest ? formatVND(other.quotePerGuest) : (other.estimatedBudgetPerGuest ? formatVND(other.estimatedBudgetPerGuest) : "Chưa cập nhật")}
+                              <span className="text-xs text-gray-400 font-normal"> / khách</span>
+                            </span>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs">
+                            <span className="text-[11px] text-gray-500 block font-medium">Ghi chú dịch vụ từ đối tác:</span>
+                            <p className="text-gray-700 italic mt-0.5">
+                              "{other.quoteNote || other.notes || "Đối tác đang chuẩn bị danh mục khách sạn và nhà hàng địa phương..."}"
+                            </p>
+                          </div>
                         </div>
-                        <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs">
-                          <span className="text-[11px] text-gray-500 block font-medium">Ghi chú dịch vụ từ đối tác:</span>
-                          <p className="text-gray-700 italic mt-0.5">
-                            "{otherHost?.quoteNote || otherHost?.notes || "Đối tác đang chuẩn bị danh mục khách sạn và nhà hàng địa phương..."}"
-                          </p>
-                        </div>
-                      </div>
 
-                      <div className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 text-[11px] text-blue-900 flex items-center justify-between">
-                        <span>Liên hệ đối tác:</span>
-                        <span className="font-semibold">{otherHost?.companyPhone || "1900 1234"} · {otherHost?.companyEmail || "partner@demo.com"}</span>
+                        <div className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 text-[11px] text-blue-900 flex items-center justify-between">
+                          <span>Liên hệ đối tác:</span>
+                          <span className="font-semibold">{other.companyPhone || "1900 1234"} · {other.companyEmail || "partner@demo.com"}</span>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
 
                   {/* 3. Bảng Cộng Dồn & Giá Bán Cuối Cùng Cho Khách Hàng */}
                   <div className="bg-white border-2 border-emerald-300 rounded-xl p-4.5 space-y-3 shadow-sm">
                     <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider flex items-center gap-1.5 text-emerald-800">
                       <DollarSign className="w-4 h-4 text-emerald-600" />
-                      Tổng Hợp Chi Phí Trực Tiếp &amp; Giá Bán Cuối Cùng Cho Khách Hàng:
+                      Tổng Hợp Chi Phí Trực Tiếp ({coHostsList.length} Đơn Vị) &amp; Giá Bán Cuối Cùng Cho Khách Hàng:
                     </h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <span className="text-gray-500 text-[11px] block">Báo giá Cty A ({leadHost?.companyName || "Chủ trì"}):</span>
-                        <p className="text-sm font-bold text-blue-800 mt-0.5">{formatVND(leadQuoteVal)}</p>
-                      </div>
-
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <span className="text-gray-500 text-[11px] block">Báo giá Cty B ({partnerHost?.companyName || "Đối tác"}):</span>
-                        <p className="text-sm font-bold text-purple-800 mt-0.5">{formatVND(partnerQuoteVal)}</p>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                      {coHostsList.map((ch, idx) => {
+                        const qVal = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
+                        const isMe = ch.companyId === company.id;
+                        return (
+                          <div key={ch.id || idx} className={`p-3 rounded-lg border ${isMe ? "bg-purple-50/80 border-purple-200" : "bg-gray-50 border-gray-200"}`}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-gray-600 text-[11px] font-bold truncate max-w-[130px]">{ch.companyName}</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white border border-gray-200 text-purple-700">
+                                {ch.revenueSharePercentage ?? Math.round(100 / coHostsList.length)}%
+                              </span>
+                            </div>
+                            <p className="text-sm font-bold text-purple-900">{formatVND(qVal)}</p>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              {ch.role === "lead" ? "Chủ trì" : "Đối tác"} {isMe ? "(Bạn)" : ""}
+                            </span>
+                          </div>
+                        );
+                      })}
 
                       <div className="p-3 bg-emerald-600 text-white rounded-lg shadow-sm">
                         <span className="text-emerald-100 text-[11px] block font-bold">GIÁ BÁN CUỐI CHO KHÁCH:</span>
                         <p className="text-lg font-black mt-0.5">{formatVND(calculatedFinalPrice)}</p>
-                        <span className="text-[10px] text-emerald-200">Tự động cộng dồn & đồng bộ bảng giá</span>
+                        <span className="text-[10px] text-emerald-200">Tự động cộng dồn & đồng bộ</span>
                       </div>
                     </div>
                   </div>
@@ -3689,6 +4025,107 @@ export function TourFormPage({
           onApplyItinerary={handleApplyAIItinerary}
           initialDestination={destination}
         />
+      )}
+
+      {/* Modal Mời Đối Tác Liên Minh Đa Công Ty */}
+      {showAddCoHostModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-gray-100">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shadow-xs">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">Mời Đối Tác Lữ Hành Liên Minh</h3>
+                  <p className="text-xs text-gray-500">Mở rộng tour phối hợp cùng thực hiện dịch vụ ({coHostsList.length} công ty hiện tại)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddCoHostModal(false)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">Chọn Công ty Du lịch đối tác <span className="text-red-500">*</span></Label>
+                <select
+                  value={newPartnerCompanyId}
+                  onChange={(e) => setNewPartnerCompanyId(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                >
+                  <option value="">-- Chọn công ty lữ hành đối tác --</option>
+                  {mockTourCompanies
+                    .filter((c) => c.id !== company.id && !coHostsList.some((ch) => ch.companyId === c.id))
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.address})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">Chặng / Dịch vụ phân công đảm nhiệm <span className="text-red-500">*</span></Label>
+                <Input
+                  value={newPartnerSegment}
+                  onChange={(e) => setNewPartnerSegment(e.target.value)}
+                  placeholder="VD: Phụ trách khách sạn & ẩm thực chặng 2 (Ngày 3–4 tại Đà Lạt/Hà Giang)"
+                  className="mt-1 text-xs"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">Dự trù kinh phí chặng của đối tác (VNĐ / khách)</Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    step={50000}
+                    value={newPartnerBudget}
+                    onChange={(e) => setNewPartnerBudget(Number(e.target.value) || 0)}
+                    className="text-xs pr-12 font-bold"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">VNĐ</span>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold text-gray-700">Ghi chú phối hợp / Lời nhắn mời tham gia</Label>
+                <Textarea
+                  value={newPartnerNotes}
+                  onChange={(e) => setNewPartnerNotes(e.target.value)}
+                  rows={2}
+                  placeholder="VD: Nhờ quý công ty chuẩn bị thực đơn đặc sản địa phương và phòng khách sạn tiêu chuẩn 4 sao..."
+                  className="mt-1 text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddCoHostModal(false)}
+                className="text-xs"
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                type="button"
+                disabled={!newPartnerCompanyId}
+                onClick={() => handleAddPartnerCoHost(newPartnerCompanyId, newPartnerSegment, newPartnerBudget, newPartnerNotes)}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-xs"
+              >
+                <UserPlus className="w-3.5 h-3.5 mr-1" />
+                Xác nhận mời vào liên minh
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

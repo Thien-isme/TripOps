@@ -59,9 +59,10 @@ export function CoHostInvitationModal({
   availableCompanies,
   onSendInvitation,
 }: CoHostInvitationModalProps) {
-  // Filter out current company
+  // Filter out current company and already invited partners
+  const existingCoHosts = customRequest?.coHosts || tour?.coHosts || [];
   const partnerCandidates = availableCompanies.filter(
-    (c) => c.id !== currentCompany.id
+    (c) => c.id !== currentCompany.id && !existingCoHosts.some((ch) => ch.companyId === c.id)
   );
 
   // Form states

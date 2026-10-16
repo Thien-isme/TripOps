@@ -632,20 +632,22 @@ export function AdminFinancialManagement({
 
             const isCoHosted = Boolean(b.isCoHosted || b.tour?.isCoHosted);
             const coHosts = b.coHosts || b.tour?.coHosts || [];
-            const leadHost = coHosts.find((c) => c.role === "lead");
-            const partnerHost = coHosts.find((c) => c.role === "partner");
-
-            const leadPayout = leadHost?.fixedPayoutAmount
-              ? leadHost.fixedPayoutAmount
-              : leadHost?.quotePerGuest
-              ? leadHost.quotePerGuest * b.numberOfGuests
-              : Math.round(finalSettledAmount / 2);
-
-            const partnerPayout = partnerHost?.fixedPayoutAmount
-              ? partnerHost.fixedPayoutAmount
-              : partnerHost?.quotePerGuest
-              ? partnerHost.quotePerGuest * b.numberOfGuests
-              : finalSettledAmount - leadPayout;
+            const hostPayouts = coHosts.map((host) => {
+              let amount = 0;
+              if (host.fixedPayoutAmount) {
+                amount = host.fixedPayoutAmount;
+              } else if (host.quotePerGuest) {
+                amount = host.quotePerGuest * b.numberOfGuests;
+              } else if (host.revenueSharePercentage) {
+                amount = Math.round((finalSettledAmount * host.revenueSharePercentage) / 100);
+              } else {
+                amount = Math.round(finalSettledAmount / (coHosts.length || 1));
+              }
+              return {
+                ...host,
+                calculatedPayout: amount,
+              };
+            });
 
             return (
               <div className="space-y-4 text-xs">
@@ -653,7 +655,7 @@ export function AdminFinancialManagement({
                   <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
                     <Landmark className="w-5 h-5 text-emerald-600" />
                     {isCoHosted
-                      ? "Quyết toán Tiền Tour Liên Minh Đối Tác (Escrow Split)"
+                      ? `Quyết toán Tiền Tour Liên Minh Đối Tác (${coHosts.length} Đơn Vị Phối Hợp)`
                       : "Quyết toán Tiền Tour cho Công ty Du lịch"}
                   </DialogTitle>
                 </DialogHeader>
@@ -671,8 +673,8 @@ export function AdminFinancialManagement({
                     <span>
                       Công ty thụ hưởng:{" "}
                       <strong className="text-blue-700">
-                        {isCoHosted
-                          ? `${leadHost?.companyName || "Chủ trì"} + ${partnerHost?.companyName || "Đối tác"}`
+                        {isCoHosted && coHosts.length > 0
+                          ? coHosts.map((c) => c.companyName).join(" + ")
                           : b.companyName || b.tour.companyName}
                       </strong>
                     </span>
@@ -706,54 +708,40 @@ export function AdminFinancialManagement({
                 </div>
 
                 {/* CO-HOSTED SPLIT BREAKDOWN */}
-                {isCoHosted && leadHost && partnerHost && (
+                {isCoHosted && coHosts.length > 0 && (
                   <div className="bg-purple-50/80 rounded-xl p-3.5 border border-purple-200 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-purple-950 text-xs flex items-center gap-1.5 uppercase">
                         <Handshake className="w-4 h-4 text-purple-600" />
-                        Phân Chia Quyết Toán Cho 2 Công Ty Liên Minh:
+                        Phân Chia Quyết Toán Cho {coHosts.length} Công Ty Liên Minh:
                       </span>
                       <span className="text-[10px] font-bold bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
                         Độc lập theo từng chặng
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      {/* Lead */}
-                      <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-gray-900 text-xs truncate">
-                            {leadHost.companyName}
-                          </span>
-                          <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded">
-                            Chủ trì (Lead)
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-500 line-clamp-1">
-                          {leadHost.assignedSegments || "Điều phối chính"}
-                        </p>
-                        <p className="text-sm font-extrabold text-blue-700 pt-1">
-                          {formatVND(leadPayout)}
-                        </p>
-                      </div>
-
-                      {/* Partner */}
-                      <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-gray-900 text-xs truncate">
-                            {partnerHost.companyName}
-                          </span>
-                          <span className="text-[10px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded">
-                            Đối tác (Partner)
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-600 line-clamp-1">
-                          {partnerHost.assignedSegments || "Đối tác bản địa"}
-                        </p>
-                        <p className="text-sm font-extrabold text-purple-700 pt-1">
-                          {formatVND(partnerPayout)}
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      {hostPayouts.map((host, hIdx) => {
+                        const isLead = host.role === "lead";
+                        return (
+                          <div key={host.id || hIdx} className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-gray-900 text-xs truncate max-w-[150px]">
+                                {host.companyName}
+                              </span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${isLead ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
+                                {isLead ? "Chủ trì (Lead)" : "Đối tác (Partner)"}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 line-clamp-1">
+                              {host.assignedSegments || (isLead ? "Điều phối chính" : "Đối tác bản địa")}
+                            </p>
+                            <p className={`text-sm font-extrabold pt-1 ${isLead ? "text-blue-700" : "text-purple-700"}`}>
+                              {formatVND(host.calculatedPayout)}
+                            </p>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -802,8 +790,8 @@ export function AdminFinancialManagement({
                     }}
                   >
                     <Check className="w-4 h-4" />
-                    {isCoHosted && leadHost && partnerHost
-                      ? `Xác nhận chuyển ${formatVND(leadPayout)} (${leadHost.companyName}) & ${formatVND(partnerPayout)} (${partnerHost.companyName})`
+                    {isCoHosted && coHosts.length > 0
+                      ? `Xác nhận chuyển ${formatVND(finalSettledAmount)} cho ${coHosts.length} đơn vị liên minh`
                       : `Xác nhận đã chuyển ${formatVND(finalSettledAmount)} cho Cty`}
                   </Button>
                 </div>

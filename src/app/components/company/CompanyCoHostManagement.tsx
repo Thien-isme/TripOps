@@ -55,6 +55,7 @@ export function CompanyCoHostManagement({
   onRejectInvitation,
   onOpenInviteModal,
   onViewTour,
+  onEditTourSegment,
 }: CompanyCoHostManagementProps) {
   const [activeTab, setActiveTab] = useState<"incoming" | "active" | "outgoing">(
     "incoming"
@@ -549,65 +550,55 @@ export function CompanyCoHostManagement({
                       </div>
                     </div>
 
-                    {/* Both hosts representation */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      {/* Lead */}
-                      <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {leadHost?.companyLogo && (
-                              <img
-                                src={leadHost.companyLogo}
-                                alt={leadHost.companyName}
-                                className="w-7 h-7 rounded-md object-cover"
-                              />
-                            )}
-                            <div>
-                              <p className="font-bold text-blue-950 text-xs">
-                                {leadHost?.companyName}
-                              </p>
-                              <span className="text-[10px] text-blue-700 font-semibold">
-                                Đơn vị chủ trì (Hợp đồng chính)
+                    {/* All hosts representation */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                      {req.coHosts?.map((host, hIdx) => {
+                        const isLead = host.role === "lead";
+                        const isMe = host.companyId === company.id;
+                        return (
+                          <div
+                            key={host.id || hIdx}
+                            className={`border rounded-xl p-3.5 space-y-2 ${
+                              isLead ? "bg-blue-50/70 border-blue-200" : "bg-purple-50/70 border-purple-200"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {host.companyLogo ? (
+                                  <img
+                                    src={host.companyLogo}
+                                    alt={host.companyName}
+                                    className="w-7 h-7 rounded-md object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-7 h-7 rounded-md bg-white border border-gray-200 flex items-center justify-center font-bold text-xs">
+                                    {host.companyName?.slice(0, 1)}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-bold text-gray-900 text-xs">
+                                    {host.companyName} {isMe ? "(Bạn)" : ""}
+                                  </p>
+                                  <span className={`text-[10px] font-semibold ${isLead ? "text-blue-700" : "text-purple-700"}`}>
+                                    {isLead ? "Đơn vị chủ trì" : "Đối tác liên minh"}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded ${isLead ? "text-blue-800 bg-blue-200/80" : "text-purple-900 bg-purple-200/80"}`}>
+                                {host.revenueSharePercentage}% doanh thu
                               </span>
                             </div>
-                          </div>
-                          <span className="text-xs font-bold text-blue-800 bg-blue-200/80 px-2 py-0.5 rounded">
-                            {leadHost?.revenueSharePercentage}% doanh thu
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-700">
-                          <strong>Phụ trách:</strong> {leadHost?.assignedSegments || "Điều phối tổng thể"}
-                        </p>
-                      </div>
-
-                      {/* Partner */}
-                      <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-3.5 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {partnerHost?.companyLogo && (
-                              <img
-                                src={partnerHost.companyLogo}
-                                alt={partnerHost.companyName}
-                                className="w-7 h-7 rounded-md object-cover"
-                              />
-                            )}
-                            <div>
-                              <p className="font-bold text-purple-950 text-xs">
-                                {partnerHost?.companyName}
+                            <p className="text-[11px] text-gray-700">
+                              <strong>Phụ trách:</strong> {host.assignedSegments || "Dịch vụ chặng đảm nhiệm"}
+                            </p>
+                            {host.quotePerGuest && (
+                              <p className="text-[10px] text-gray-500">
+                                Báo giá: <strong>{formatVND(host.quotePerGuest)}</strong> / khách
                               </p>
-                              <span className="text-[10px] text-purple-700 font-semibold">
-                                Đối tác liên minh địa phương
-                              </span>
-                            </div>
+                            )}
                           </div>
-                          <span className="text-xs font-bold text-purple-900 bg-purple-200/80 px-2 py-0.5 rounded">
-                            {partnerHost?.revenueSharePercentage}% doanh thu
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-700">
-                          <strong>Phụ trách:</strong> {partnerHost?.assignedSegments || "Phụ trách dịch vụ chặng địa phương"}
-                        </p>
-                      </div>
+                        );
+                      })}
                     </div>
 
                     <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-100">
@@ -687,30 +678,36 @@ export function CompanyCoHostManagement({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 space-y-1.5">
-                        <p className="font-bold text-blue-950 text-xs flex items-center justify-between">
-                          <span>{leadHost?.companyName || t.companyName}</span>
-                          <span className="text-blue-700 bg-blue-100 px-2 py-0.5 rounded text-[11px]">
-                            {leadHost?.revenueSharePercentage || 40}% chia
-                          </span>
-                        </p>
-                        <p className="text-[11px] text-gray-600">
-                          {leadHost?.assignedSegments || "Đơn vị điều phối chính"}
-                        </p>
-                      </div>
-
-                      <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-3.5 space-y-1.5">
-                        <p className="font-bold text-purple-950 text-xs flex items-center justify-between">
-                          <span>{partnerHost?.companyName}</span>
-                          <span className="text-purple-700 bg-purple-100 px-2 py-0.5 rounded text-[11px]">
-                            {partnerHost?.revenueSharePercentage || 60}% chia
-                          </span>
-                        </p>
-                        <p className="text-[11px] text-gray-600">
-                          {partnerHost?.assignedSegments || "Đối tác địa phương"}
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                      {t.coHosts?.map((host, hIdx) => {
+                        const isLead = host.role === "lead";
+                        const isMe = host.companyId === company.id;
+                        return (
+                          <div
+                            key={host.id || hIdx}
+                            className={`border rounded-xl p-3.5 space-y-1.5 ${
+                              isLead ? "bg-blue-50/70 border-blue-200" : "bg-purple-50/70 border-purple-200"
+                            }`}
+                          >
+                            <p className="font-bold text-gray-900 text-xs flex items-center justify-between">
+                              <span>
+                                {host.companyName} {isMe ? "(Bạn)" : ""}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${isLead ? "text-blue-700 bg-blue-100" : "text-purple-700 bg-purple-100"}`}>
+                                {host.revenueSharePercentage ?? Math.round(100 / (t.coHosts?.length || 1))}% chia
+                              </span>
+                            </p>
+                            <p className="text-[11px] text-gray-600 line-clamp-1">
+                              <strong>Phụ trách:</strong> {host.assignedSegments || (isLead ? "Đơn vị điều phối chính" : "Đối tác địa phương")}
+                            </p>
+                            {host.quotePerGuest && (
+                              <p className="text-[10px] text-gray-500">
+                                Báo giá: <strong>{formatVND(host.quotePerGuest)}</strong> / khách
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

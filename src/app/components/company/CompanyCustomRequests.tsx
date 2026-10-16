@@ -99,25 +99,24 @@ export function CompanyCustomRequests({
     estimatedBudgetPerGuest?: number;
     fixedPayoutAmount?: number;
   }) => {
-    if (!invitingRequest) return;
-    const sharePct = invitation.revenueSharePercentage || 50;
-    const leadShare = 100 - sharePct;
-
-    const leadCoHost: TourCoHost = {
-      id: `cohost-lead-${Date.now()}`,
-      companyId: company.id,
-      companyName: company.name,
-      companyLogo: company.logo,
-      companyPhone: company.phone,
-      companyEmail: company.email,
-      role: "lead",
-      status: "accepted",
-      assignedSegments: `Đón tiếp đoàn & Điều hành tổng thể`,
-      revenueSharePercentage: leadShare,
-      quoteStatus: "draft",
-      invitedAt: new Date().toISOString(),
-      respondedAt: new Date().toISOString(),
-    };
+    let existingCoHosts = invitingRequest.coHosts && invitingRequest.coHosts.length > 0 ? [...invitingRequest.coHosts] : [];
+    if (!existingCoHosts.some((c) => c.role === "lead")) {
+      const leadCoHost: TourCoHost = {
+        id: `cohost-lead-${Date.now()}`,
+        companyId: company.id,
+        companyName: company.name,
+        companyLogo: company.logo,
+        companyPhone: company.phone,
+        companyEmail: company.email,
+        role: "lead",
+        status: "accepted",
+        assignedSegments: `Đón tiếp đoàn & Điều hành tổng thể`,
+        quoteStatus: "draft",
+        invitedAt: new Date().toISOString(),
+        respondedAt: new Date().toISOString(),
+      };
+      existingCoHosts.unshift(leadCoHost);
+    }
 
     const partnerCoHost: TourCoHost = {
       id: `cohost-partner-${Date.now()}`,
@@ -130,13 +129,17 @@ export function CompanyCustomRequests({
       status: "pending",
       assignedSegments: invitation.assignedSegments,
       estimatedBudgetPerGuest: invitation.estimatedBudgetPerGuest,
-      revenueSharePercentage: sharePct,
       quoteStatus: "draft",
       notes: invitation.notes,
       invitedAt: new Date().toISOString(),
     };
 
-    const coHosts = [leadCoHost, partnerCoHost];
+    const nextList = [...existingCoHosts, partnerCoHost];
+    const equalShare = Math.round(100 / nextList.length);
+    const coHosts = nextList.map((ch, idx) => ({
+      ...ch,
+      revenueSharePercentage: idx === 0 ? 100 - equalShare * (nextList.length - 1) : equalShare,
+    }));
 
     onUpdateRequest(invitingRequest.id, {
       isCoHosted: true,

@@ -11,7 +11,7 @@ import {
 import { mockTourCompanies } from "@/app/data/mockData";
 import { CompanyLayout } from "./CompanyLayout";
 import { CompanyOverview } from "./CompanyOverview";
-import { CompanyTourManagement } from "./CompanyTourManagement";
+import { CompanyTourManagement, TourFormPage } from "./CompanyTourManagement";
 import { CompanyBookingManagement } from "./CompanyBookingManagement";
 import { CompanyGuideManagement } from "./CompanyGuideManagement";
 import { CompanyCustomRequests } from "./CompanyCustomRequests";
@@ -75,6 +75,10 @@ export function CompanyDashboard({
 }: CompanyDashboardProps) {
   const [activeSection, setActiveSection] = useState("overview");
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [editingCoHostItem, setEditingCoHostItem] = useState<{
+    tour?: Tour | null;
+    customRequest?: CustomTourRequest | null;
+  } | null>(null);
 
   const companyTours = tours.filter(
     (t) =>
@@ -119,6 +123,25 @@ export function CompanyDashboard({
   const handleNavigateSection = (section: string) => {
     setActiveSection(section);
     setSelectedBookingId(null);
+    setEditingCoHostItem(null);
+  };
+
+  const handleEditTourSegment = (item: Tour | CustomTourRequest) => {
+    if ("customerName" in item || "contactName" in item) {
+      // It's a CustomTourRequest
+      const req = item as CustomTourRequest;
+      const matchingTour = tours.find(
+        (t) => t.id === req.designedTourId || t.customRequestId === req.id
+      );
+      setEditingCoHostItem({ tour: matchingTour || null, customRequest: req });
+    } else {
+      // It's a Tour
+      const tour = item as Tour;
+      const matchingReq = customTourRequests.find(
+        (r) => r.id === tour.customRequestId || r.designedTourId === tour.id
+      );
+      setEditingCoHostItem({ tour, customRequest: matchingReq || null });
+    }
   };
 
   const handleAcceptCoHostInvitation = (requestIdOrTourId: string, isTour: boolean) => {
@@ -287,6 +310,59 @@ export function CompanyDashboard({
           />
         );
       case "co-hosting":
+        if (editingCoHostItem) {
+          return (
+            <TourFormPage
+              tour={editingCoHostItem.tour || null}
+              company={company}
+              customRequest={editingCoHostItem.customRequest || null}
+              isCustomTour={
+                !!editingCoHostItem.customRequest ||
+                editingCoHostItem.tour?.tourType === "custom_request"
+              }
+              onBack={() => setEditingCoHostItem(null)}
+              onSubmit={(data) => {
+                if (editingCoHostItem.tour) {
+                  onEditTour(editingCoHostItem.tour.id, data);
+                  if (editingCoHostItem.customRequest) {
+                    onUpdateCustomRequest?.(editingCoHostItem.customRequest.id, {
+                      status: "designed",
+                      currentVersion: data.version,
+                      companyNote: data.changeNote,
+                      quotedPricePerPerson: data.price,
+                      responseAt: new Date().toISOString(),
+                    });
+                  }
+                } else if (editingCoHostItem.customRequest) {
+                  const newTourId = `tour-custom-${Date.now().toString().slice(-6)}`;
+                  const newTourPayload: any = {
+                    ...data,
+                    id: newTourId,
+                    tourType: "custom_request",
+                    customRequestId: editingCoHostItem.customRequest.id,
+                    targetUserId: editingCoHostItem.customRequest.userId,
+                    targetCustomerName: editingCoHostItem.customRequest.contactName,
+                    targetCustomerPhone: editingCoHostItem.customRequest.contactPhone,
+                    targetCustomerEmail: editingCoHostItem.customRequest.contactEmail,
+                    version: 1,
+                    changeNote: data.changeNote || "Bản thiết kế ban đầu theo yêu cầu liên minh",
+                    versionHistory: [],
+                  };
+                  onCreateTour(newTourPayload);
+                  onUpdateCustomRequest?.(editingCoHostItem.customRequest.id, {
+                    status: "designed",
+                    designedTourId: newTourId,
+                    currentVersion: 1,
+                    companyNote: data.changeNote || "Bản thiết kế ban đầu theo yêu cầu liên minh",
+                    quotedPricePerPerson: data.price,
+                    responseAt: new Date().toISOString(),
+                  });
+                }
+                setEditingCoHostItem(null);
+              }}
+            />
+          );
+        }
         return (
           <CompanyCoHostManagement
             company={company}
@@ -297,6 +373,7 @@ export function CompanyDashboard({
             onAcceptInvitation={handleAcceptCoHostInvitation}
             onRejectInvitation={handleRejectCoHostInvitation}
             onViewTour={onViewTour}
+            onEditTourSegment={handleEditTourSegment}
           />
         );
       default:
