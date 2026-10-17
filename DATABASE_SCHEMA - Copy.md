@@ -49,7 +49,9 @@ Table tours {
   image_urls text     // hoặc json/text[]
   status varchar(50)
   visibility varchar(50)
-  is_design boolean [default: false]
+  is_request boolean [default: false] // tour thiết kế riêng
+  custom_request_id int [note: 'FK tới tour_custom_requests.id']
+  is_shared_to_customer boolean [default: false, note: 'Chỉ Host bật true khi sẵn sàng cho khách xem']
   is_ai_generated boolean [default: false]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
@@ -79,6 +81,7 @@ Table tourist_attractions {
   id int [pk, increment]
   tour_timeline_id int
   name_location text
+  agency_id varchar(36) [note: 'FK tới users.id - Agency phụ trách điểm đến này']
 }
 
 
@@ -88,9 +91,20 @@ Table tour_meals {
   meal_type varchar(20) // 'breakfast', 'lunch', 'dinner' 
   restaurant_name text
   description text
+  agency_id varchar(36) [note: 'FK tới users.id - Agency phụ trách bữa ăn này']
 }
 
+Table tour_meal_options {
+  id int [pk, increment]
+  tour_meal_id int [not null, note: 'FK tới tour_meals.id']
+  restaurant_name varchar(255) [not null, note: 'Tên nhà hàng đổi món / nâng cấp']
+  price_difference decimal(12, 2) [default: 0, note: 'Giá chênh lệch / người (VNĐ)']
+  description text [note: 'Mô tả thực đơn, không gian,...']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
 
+Ref: tour_meal_options.tour_meal_id > tour_meals.id
 // 1. Chỗ lưu trú mặc định của Tour
 Table tour_accommodations {
   id int [pk, increment]
@@ -100,12 +114,13 @@ Table tour_accommodations {
   nights_count int [default: 1] // Số đêm lưu trú
   star_rating int // Số sao của khách sạn (1 - 5)
   address_notes text // Địa chỉ / Ghi chú phòng
+  agency_id varchar(36) [note: 'FK tới users.id - Agency phụ trách chỗ lưu trú này']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
 // 2. Danh sách khách sạn nâng cấp / đổi hạng cho khách chọn
-Table tour_accommodation_upgrades {
+Table tour_accommodation_options {
   id int [pk, increment]
   tour_accommodation_id int [not null] // FK trỏ tới tour_accommodations.id
   hotel_name varchar(255) [not null] // Tên khách sạn đổi hạng / nâng cấp
@@ -169,7 +184,47 @@ Table tour_custom_request_agencies {
 }
 
 
+Table bookings {
+  id int [pk, increment]
+  booking_code varchar(50) [unique, not null]
+  customer_id varchar(36) // FK tới users.id
+  tour_id int // FK tới tours.id
+  design_request_id int // FK tới tour_custom_requests.id (nếu đặt từ tour thiết kế riêng)
+  departure_date date [not null]
+  contact_full_name varchar(150) [not null]
+  contact_phone varchar(30) [not null]
+  contact_email varchar(191) [not null]
+  contact_note text
+  total_price decimal(12, 2) [not null]
+  status varchar(20) [default: 'pending', note: 'pending, confirmed, completed, cancelled, rejected']
+  cancel_reason text
+  cancelled_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
 
+Table booking_participants {
+  id int [pk, increment]
+  booking_id int [not null] // FK trỏ tới bookings.id
+  full_name varchar(150) [not null]
+  date_of_birth date
+  gender varchar(20) // MALE, FEMALE, OTHER
+  identity_card_number varchar(50) // CCCD / CMND / Hộ chiếu
+  price double 
+  note text // bị dị ứng / ăn chay /
+  attendance_status varchar(50) [default: 'PENDING'] // PENDING, CHECKED_IN, ABSENT
+  checked_by varchar(36) // FK trỏ tới users.id (người thực hiện điểm danh)
+  checked_at timestamp
+}
+
+// Các liên kết khóa ngoại (Refs)
+Ref: booking_participants.booking_id > bookings.id
+Ref: booking_participants.checked_by > users.id
+
+// Các liên kết khóa ngoại (Refs)
+Ref: bookings.customer_id > users.id
+Ref: bookings.tour_id > tours.id
+Ref: bookings.design_request_id > tour_custom_requests.id
 
 
 
@@ -216,7 +271,7 @@ Ref: business_profiles.user_id - users.id
 
 
 Ref: tour_accommodations.tour_id > tours.id
-Ref: tour_accommodation_upgrades.tour_accommodation_id > tour_accommodations.id
+Ref: tour_accommodation_options.tour_accommodation_id > tour_accommodations.id
 
 // 3. Quan hệ (References)
 Ref: tour_custom_requests.user_id > users.id
@@ -225,7 +280,7 @@ Ref: tour_custom_request_agencies.agency_id > users.id
 
 
 
-
+Ref: tours.custom_request_id > tour_custom_requests.id
 
 
 

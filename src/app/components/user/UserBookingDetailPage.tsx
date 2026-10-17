@@ -669,13 +669,14 @@ export function UserBookingDetailPage({
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="bg-gray-100 text-gray-600 font-semibold">
+                      <tr className="bg-gray-100 text-gray-700 font-bold uppercase text-[11px]">
                         <th className="px-3 py-2.5 text-left rounded-l-lg">#</th>
                         <th className="px-3 py-2.5 text-left">Họ &amp; Tên</th>
+                        <th className="px-3 py-2.5 text-left">Số CCCD / Passport / Định danh</th>
                         <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
                         <th className="px-3 py-2.5 text-left">Giới tính</th>
                         <th className="px-3 py-2.5 text-left">Loại khách</th>
-                        <th className="px-3 py-2.5 text-left">SĐT / CCCD</th>
+                        <th className="px-3 py-2.5 text-left">Ghi chú riêng</th>
                         <th className="px-3 py-2.5 text-right">Giá vé</th>
                         <th className="px-3 py-2.5 text-center rounded-r-lg">Thao tác</th>
                       </tr>
@@ -686,10 +687,15 @@ export function UserBookingDetailPage({
                           <td className="px-3 py-2.5 text-gray-400 font-mono">{idx + 1}</td>
                           <td className="px-3 py-2.5 font-bold text-gray-900">
                             {p.fullName}
-                            {p.notes && (
-                              <span className="block text-[10px] text-gray-400 font-normal italic">
-                                Ghi chú: {p.notes}
+                            {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            {p.idNumber ? (
+                              <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                {p.idNumber}
                               </span>
+                            ) : (
+                              <span className="text-gray-400 italic">—</span>
                             )}
                           </td>
                           <td className="px-3 py-2.5 text-gray-600">
@@ -715,10 +721,14 @@ export function UserBookingDetailPage({
                               {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-gray-600">
-                            {p.phone && <span className="block font-semibold text-blue-600">{p.phone}</span>}
-                            {p.idNumber && <span className="block text-[11px] text-gray-400">CCCD: {p.idNumber}</span>}
-                            {!p.phone && !p.idNumber && <span className="text-gray-400">—</span>}
+                          <td className="px-3 py-2.5 max-w-[200px]">
+                            {p.notes ? (
+                              <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
+                                {p.notes}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 italic">—</span>
+                            )}
                           </td>
                           <td className="px-3 py-2.5 text-right font-bold text-blue-700">
                             {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
@@ -748,7 +758,7 @@ export function UserBookingDetailPage({
                     </tbody>
                     <tfoot>
                       <tr className="bg-gray-50 font-bold border-t-2 border-gray-200">
-                        <td colSpan={6} className="px-3 py-2.5 text-right text-gray-700">
+                        <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
                           Tổng cộng ({passengersList.length} khách):
                         </td>
                         <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">

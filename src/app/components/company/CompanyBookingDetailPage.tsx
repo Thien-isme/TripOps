@@ -32,7 +32,9 @@ import {
   Handshake,
   ShieldCheck,
   ExternalLink,
+  Download,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Button } from "@/app/components/ui/button";
 import { mockUsers } from "@/app/data/mockData";
 import { ProviderProfileModal } from "./ProviderProfileModal";
@@ -705,11 +707,62 @@ export function CompanyBookingDetailPage({
           </div>
 
           {/* PASSENGER LIST CARD */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-600" />
-              Danh sách hành khách tham gia ({booking.passengers?.length || booking.numberOfGuests} người)
-            </h2>
+          {/* PASSENGER LIST TABLE (ĐOÀN KHÁCH THAM GIA) */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                Danh sách hành khách tham gia ({booking.passengers?.length || booking.numberOfGuests} người)
+              </h2>
+              {booking.passengers && booking.passengers.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    try {
+                      const rows = (booking.passengers || []).map((p, idx) => {
+                        const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
+                        return {
+                          "STT": idx + 1,
+                          "Họ & Tên": p.fullName,
+                          "Số CCCD / Passport / Định danh": p.idNumber || "",
+                          "Ngày sinh": p.dateOfBirth || "",
+                          "Độ tuổi": age !== null ? `${age} tuổi` : "",
+                          "Giới tính": p.gender === "male" ? "Nam" : "Nữ",
+                          "Phân loại": p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)",
+                          "Số điện thoại": p.phone || "",
+                          "Ghi chú riêng": p.notes || "",
+                          "Giá vé (VNĐ)": p.price,
+                        };
+                      });
+                      const ws = XLSX.utils.json_to_sheet(rows);
+                      ws["!cols"] = [
+                        { wch: 6 },
+                        { wch: 25 },
+                        { wch: 30 },
+                        { wch: 15 },
+                        { wch: 12 },
+                        { wch: 12 },
+                        { wch: 18 },
+                        { wch: 16 },
+                        { wch: 35 },
+                        { wch: 20 },
+                      ];
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach_Doan");
+                      XLSX.writeFile(wb, `Danh_Sach_Hanh_Khach_${booking.id}.xlsx`);
+                    } catch (err: any) {
+                      alert("Không thể xuất file Excel: " + (err?.message || "Lỗi không xác định"));
+                    }
+                  }}
+                  className="text-xs gap-1.5 h-8 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600" />
+                  Xuất file Excel danh sách đoàn
+                </Button>
+              )}
+            </div>
+
             {booking.passengers && booking.passengers.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
@@ -717,9 +770,11 @@ export function CompanyBookingDetailPage({
                     <tr className="bg-gray-100 text-gray-700 font-bold uppercase text-[11px]">
                       <th className="px-3 py-2.5 text-left rounded-l-lg">#</th>
                       <th className="px-3 py-2.5 text-left">Họ & Tên</th>
-                      <th className="px-3 py-2.5 text-left">Ngày sinh</th>
+                      <th className="px-3 py-2.5 text-left">Số CCCD / Passport / Định danh</th>
+                      <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
                       <th className="px-3 py-2.5 text-left">Giới tính</th>
                       <th className="px-3 py-2.5 text-left">Phân loại</th>
+                      <th className="px-3 py-2.5 text-left">Ghi chú riêng</th>
                       <th className="px-3 py-2.5 text-right rounded-r-lg">Giá vé áp dụng</th>
                     </tr>
                   </thead>
@@ -730,7 +785,15 @@ export function CompanyBookingDetailPage({
                         <td className="px-3 py-2.5 font-bold text-gray-900">
                           {p.fullName}
                           {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
-                          {p.idNumber && <span className="block text-[10px] font-normal text-gray-400">CCCD: {p.idNumber}</span>}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {p.idNumber ? (
+                            <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                              {p.idNumber}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 italic">—</span>
+                          )}
                         </td>
                         <td className="px-3 py-2.5 text-gray-600">
                           <span>{p.dateOfBirth || "—"}</span>
@@ -753,6 +816,15 @@ export function CompanyBookingDetailPage({
                             {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                           </span>
                         </td>
+                        <td className="px-3 py-2.5 max-w-[220px]">
+                          {p.notes ? (
+                            <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
+                              {p.notes}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 italic">—</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2.5 text-right font-bold text-blue-700">
                           {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                         </td>
@@ -761,7 +833,7 @@ export function CompanyBookingDetailPage({
                   </tbody>
                   <tfoot>
                     <tr className="bg-gray-50 font-bold border-t border-gray-200">
-                      <td colSpan={5} className="px-3 py-2.5 text-right text-gray-700">Tổng cộng tiền vé ({booking.passengers.length} khách):</td>
+                      <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">Tổng cộng tiền vé ({booking.passengers.length} khách):</td>
                       <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">{formatVND(booking.totalPrice)}</td>
                     </tr>
                   </tfoot>

@@ -218,6 +218,8 @@ function newPassenger(id: string, tour: Tour, defaultDob = ""): BookingPassenger
     gender: "male",
     ageGroup,
     price: getPassengerPrice(tour, ageGroup, age),
+    idNumber: "",
+    notes: "",
   };
 }
 
@@ -324,30 +326,34 @@ export function BookingFormPage({
         {
           "STT": 1,
           "Họ và tên (*)": "Nguyễn Văn An",
+          "Số CCCD / Passport / Định danh": "001090012345",
           "Ngày sinh (YYYY-MM-DD) (*)": "1990-05-15",
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Người lớn",
-          "Ghi chú": "Người đại diện đoàn",
+          "Ghi chú": "Người đại diện đoàn, ăn chay nhẹ",
         },
         {
           "STT": 2,
           "Họ và tên (*)": "Trần Thị Bình",
+          "Số CCCD / Passport / Định danh": "001192005678",
           "Ngày sinh (YYYY-MM-DD) (*)": "1992-08-20",
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Người lớn",
-          "Ghi chú": "Ăn chay nhẹ",
+          "Ghi chú": "Hay say xe ngồi đầu xe",
         },
         {
           "STT": 3,
           "Họ và tên (*)": "Nguyễn Gia Hưng",
+          "Số CCCD / Passport / Định danh": "001218009999",
           "Ngày sinh (YYYY-MM-DD) (*)": "2018-11-10",
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Trẻ em (2–11 tuổi)",
-          "Ghi chú": "",
+          "Ghi chú": "Dị ứng hải sản",
         },
         {
           "STT": 4,
           "Họ và tên (*)": "Nguyễn Bảo Ngọc",
+          "Số CCCD / Passport / Định danh": "",
           "Ngày sinh (YYYY-MM-DD) (*)": "2024-03-25",
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Trẻ em (dưới 2 tuổi)",
@@ -359,10 +365,11 @@ export function BookingFormPage({
       ws["!cols"] = [
         { wch: 6 },
         { wch: 25 },
+        { wch: 30 },
         { wch: 28 },
         { wch: 18 },
         { wch: 26 },
-        { wch: 25 },
+        { wch: 35 },
       ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach_Khach");
@@ -421,6 +428,9 @@ export function BookingFormPage({
           const gender: "male" | "female" =
             rawGender.includes("nữ") || rawGender.includes("female") ? "female" : "male";
 
+          const idNumber = findVal(["cccd", "cmnd", "passport", "hộ chiếu", "định danh", "dinhdanh", "idnumber", "so cccd"]);
+          const notes = findVal(["ghi chú", "ghichu", "note", "yêu cầu", "yeucau"]);
+
           // Calculate passenger age relative to tourStartDate
           const calculatedAge = calculateAge(dateOfBirth, tourStartDate);
           let ageGroup: BookingPassenger["ageGroup"] = "adult";
@@ -457,6 +467,8 @@ export function BookingFormPage({
             gender,
             ageGroup,
             price,
+            idNumber,
+            notes,
           });
         });
 
@@ -659,17 +671,6 @@ export function BookingFormPage({
                     className="mt-1"
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <Label className="text-sm font-medium">
-                    Địa chỉ <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    value={contactAddress}
-                    onChange={(e) => setContactAddress(e.target.value)}
-                    placeholder="Số nhà, đường, quận, thành phố"
-                    className="mt-1"
-                  />
-                </div>
                 <div>
                   <Label className="text-sm font-medium">
                     Điện thoại <span className="text-red-500">*</span>
@@ -824,7 +825,7 @@ export function BookingFormPage({
                       )}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="sm:col-span-2">
+                      <div>
                         <Label className="text-xs text-gray-500">
                           Họ tên <span className="text-red-500">*</span>
                         </Label>
@@ -833,6 +834,17 @@ export function BookingFormPage({
                           onChange={(e) => updatePassenger(p.id, { fullName: e.target.value })}
                           placeholder="Nguyễn Văn A"
                           className="mt-1 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">
+                          Số CCCD / Passport / Định danh
+                        </Label>
+                        <Input
+                          value={p.idNumber ?? ""}
+                          onChange={(e) => updatePassenger(p.id, { idNumber: e.target.value })}
+                          placeholder="VD: 001090012345 hoặc B1234567"
+                          className="mt-1 text-sm font-mono"
                         />
                       </div>
                       <div>
@@ -870,6 +882,15 @@ export function BookingFormPage({
                             </option>
                           ))}
                         </select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Label className="text-xs text-gray-500">Ghi chú riêng cho khách</Label>
+                        <Input
+                          value={p.notes ?? ""}
+                          onChange={(e) => updatePassenger(p.id, { notes: e.target.value })}
+                          placeholder="VD: Ăn chay, say xe ngồi đầu xe, người cao tuổi cần hỗ trợ di chuyển..."
+                          className="mt-1 text-sm"
+                        />
                       </div>
                     </div>
                     {(() => {
@@ -977,9 +998,11 @@ export function BookingFormPage({
                       <tr className="bg-gray-100">
                         <th className="px-3 py-2 text-left font-medium text-gray-600">#</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Họ tên</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-600">CCCD / Passport</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Ngày sinh</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Giới tính</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Loại khách</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-600">Ghi chú</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-600">Giá theo người</th>
                       </tr>
                     </thead>
@@ -990,6 +1013,15 @@ export function BookingFormPage({
                           <tr key={p.id}>
                             <td className="px-3 py-2 text-gray-500">{idx + 1}</td>
                             <td className="px-3 py-2 font-medium text-gray-900">{p.fullName}</td>
+                            <td className="px-3 py-2">
+                              {p.idNumber ? (
+                                <span className="font-mono text-xs text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                  {p.idNumber}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs italic">—</span>
+                              )}
+                            </td>
                             <td className="px-3 py-2 text-gray-600">
                               <span>{p.dateOfBirth || "—"}</span>
                               {(() => {
@@ -1003,6 +1035,15 @@ export function BookingFormPage({
                             </td>
                             <td className="px-3 py-2 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
                             <td className="px-3 py-2 text-gray-600">{grp?.label ?? p.ageGroup}</td>
+                            <td className="px-3 py-2 text-xs max-w-[180px]">
+                              {p.notes ? (
+                                <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block line-clamp-2">
+                                  {p.notes}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
                             <td className="px-3 py-2 text-right font-semibold text-blue-700">
                               {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                             </td>
@@ -1012,7 +1053,7 @@ export function BookingFormPage({
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-gray-200 bg-gray-50">
-                        <td colSpan={5} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
+                        <td colSpan={7} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
                         <td className="px-3 py-2 text-right font-bold text-blue-700 text-base">{formatVND(totalPrice)}</td>
                       </tr>
                     </tfoot>
