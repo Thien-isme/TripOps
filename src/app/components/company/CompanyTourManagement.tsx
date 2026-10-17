@@ -1986,7 +1986,9 @@ export function TourFormPage({
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
-                                <Label className="text-xs font-semibold text-gray-700">Tên khách sạn / Resort mặc định của tour</Label>
+                                <Label className="text-xs font-semibold text-gray-700">
+                                  Lựa chọn 1: Khách sạn / Resort tiêu chuẩn (0đ chênh lệch) <span className="text-red-500">*</span>
+                                </Label>
                                 <Input
                                   value={hotel.name}
                                   disabled={isHotelLocked}
@@ -2020,7 +2022,7 @@ export function TourFormPage({
                               </div>
                               <div>
                                 <Label className="text-xs font-semibold text-gray-700 flex items-center justify-between">
-                                  <span>Số sao của khách sạn</span>
+                                  <span>Số sao của khách sạn tiêu chuẩn</span>
                                   <span className="flex items-center gap-0.5 text-amber-500">
                                     {Array.from({ length: hotel.stars || 4 }).map((_, i) => (
                                       <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-500" />
@@ -2054,24 +2056,24 @@ export function TourFormPage({
                               />
                             </div>
                             <p className="text-[11px] text-gray-500">
-                              * Số sao khách sạn là tiêu chuẩn dịch vụ lưu trú mặc định của gói tour (Khách hàng có thể đổi sang khách sạn khác ở mục Khách sạn đổi hạng bên dưới).
+                              * Đây là phương án lưu trú tiêu chuẩn của tour (giá chênh lệch = 0đ). Nếu muốn cung cấp thêm các phương án khách sạn khác cho khách chọn khi đặt tour, hãy cấu hình ở danh sách các option bên dưới.
                             </p>
 
-                            {/* DANH SÁCH KHÁCH SẠN NÂNG CẤP / ĐỔI HẠNG CHO KHÁCH CHỌN */}
+                            {/* CÁC LỰA CHỌN KHÁCH SẠN / RESORT KHÁC CHO TOUR (OPTIONS) */}
                             <div className="pt-4 border-t border-gray-200 space-y-3.5">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div>
                                   <Label className="text-xs font-bold text-gray-900 flex items-center gap-1.5 uppercase">
                                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                    Danh sách khách sạn nâng cấp / đổi hạng cho khách chọn ({(hotel.alternativeHotels || []).length})
+                                    Các lựa chọn khách sạn / chỗ ở khác cho tour ({(hotel.alternativeHotels || []).length})
                                   </Label>
                                   <p className="text-[11px] text-gray-500 mt-0.5">
-                                    Khách hàng khi xem tour có thể chọn đổi sang các khách sạn này với mức giá chênh lệch do công ty ấn định (Hiển thị ở tab Lịch trình tùy chỉnh).
+                                    Các phương án khách sạn do công ty chuẩn bị sẵn kèm mức giá chênh lệch. Khách hàng chọn các option này khi đặt tour sẽ tự động áp dụng giá mà không tính là thay đổi cần duyệt.
                                   </p>
                                 </div>
                                 {isHotelLocked ? (
                                   <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1 cursor-not-allowed">
-                                    <Lock className="w-3.5 h-3.5 text-gray-400" /> Đổi hạng do {hotelOwnerName} thiết lập
+                                    <Lock className="w-3.5 h-3.5 text-gray-400" /> Lựa chọn do {hotelOwnerName} thiết lập
                                   </span>
                                 ) : (
                                   <button
@@ -2080,15 +2082,15 @@ export function TourFormPage({
                                     className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 font-semibold transition-colors shadow-2xs"
                                   >
                                     <Plus className="w-3.5 h-3.5 text-amber-700" />
-                                    Thêm khách sạn đổi hạng
+                                    Thêm phương án khách sạn khác (Option)
                                   </button>
                                 )}
                               </div>
 
-                              {/* Danh sách các khách sạn đổi hạng đã cấu hình */}
+                              {/* Danh sách các option khách sạn đã cấu hình */}
                               {(hotel.alternativeHotels || []).length === 0 ? (
                                 <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                                  Chưa có khách sạn đổi hạng nào. Bấm nút "+ Thêm khách sạn đổi hạng" để thiết lập các lựa chọn khách sạn khác cho khách.
+                                  Chưa có phương án khách sạn bổ sung. Bấm "+ Thêm phương án khách sạn khác (Option)" nếu muốn cung cấp thêm các lựa chọn lưu trú khác cho khách hàng khi đặt tour.
                                 </div>
                               ) : (
                                 <div className="space-y-2.5">
@@ -2101,7 +2103,7 @@ export function TourFormPage({
                                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
                                           {/* Tên khách sạn */}
                                           <div className="sm:col-span-6">
-                                            <Label className="text-[11px] text-gray-500 font-medium">Tên khách sạn đổi hạng / nâng cấp</Label>
+                                            <Label className="text-[11px] text-gray-500 font-medium">Lựa chọn {aIdx + 2}: Tên khách sạn / Resort</Label>
                                             <Input
                                               value={alt.name}
                                               disabled={isHotelLocked}
@@ -2679,14 +2681,14 @@ export function TourFormPage({
                                             )}
                                           </div>
                                           <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
-                                            Mặc định: {meal.serviceName || "Nhà hàng địa phương"}
+                                            Tiêu chuẩn: {meal.serviceName || "Nhà hàng địa phương"} (0đ chênh lệch)
                                           </p>
                                         </div>
                                       </div>
 
                                       <div className="flex items-center gap-2 flex-shrink-0">
                                         <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
-                                          {altsCount > 0 ? `${altsCount} lựa chọn đổi món` : "Theo tour (0đ)"}
+                                          {altsCount > 0 ? `${altsCount + 1} phương án ẩm thực` : "1 phương án tiêu chuẩn (0đ)"}
                                         </span>
                                         {isMealLocked ? (
                                           <span
@@ -2730,7 +2732,7 @@ export function TourFormPage({
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                                           <div className="sm:col-span-12">
                                             <Label className="text-xs font-semibold text-gray-700">
-                                              Tên nhà hàng mặc định ({mealLabel}) <span className="text-red-500">*</span>
+                                              Lựa chọn 1: Tên nhà hàng / Món ăn tiêu chuẩn ({mealLabel}) <span className="text-red-500">*</span>
                                             </Label>
                                             <Input
                                               value={meal.serviceName || ""}
@@ -2741,7 +2743,7 @@ export function TourFormPage({
                                             />
                                           </div>
                                           <div className="sm:col-span-12">
-                                            <Label className="text-xs font-semibold text-gray-700">Mô tả thực đơn tiêu chuẩn</Label>
+                                            <Label className="text-xs font-semibold text-gray-700">Mô tả thực đơn tiêu chuẩn (Đã bao gồm trong giá tour - 0đ chênh lệch)</Label>
                                             <Input
                                               value={meal.description ?? ""}
                                               disabled={isMealLocked}
@@ -2752,16 +2754,16 @@ export function TourFormPage({
                                           </div>
                                         </div>
 
-                                        {/* Sub-section: Cấu hình nhà hàng đổi món / nâng cấp */}
+                                        {/* Sub-section: Cấu hình các lựa chọn bữa ăn khác */}
                                         <div className="border-t border-emerald-100 pt-3 space-y-3">
                                           <div className="flex items-center justify-between flex-wrap gap-2">
                                             <div>
                                               <h5 className="text-[11px] font-bold text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
                                                 <Utensils className="w-3 h-3 text-emerald-600" />
-                                                CÁC LỰA CHỌN ĐỔI NHÀ HÀNG ({altsCount})
+                                                CÁC LỰA CHỌN ẨM THỰC / NHÀ HÀNG KHÁC CHO BỮA NÀY ({altsCount})
                                               </h5>
                                               <p className="text-[10px] text-gray-500">
-                                                Khách hàng có thể chọn đổi sang các nhà hàng này với mức giá chênh lệch
+                                                Các phương án nhà hàng/thực đơn thay thế do công ty thiết lập sẵn. Khách chọn option này khi đặt tour sẽ tự động áp dụng giá mà không tính là thay đổi cần duyệt.
                                               </p>
                                             </div>
                                             {!isMealLocked && (
@@ -2771,7 +2773,7 @@ export function TourFormPage({
                                                 className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 font-semibold transition-colors shadow-2xs"
                                               >
                                                 <Plus className="w-3 h-3 text-emerald-700" />
-                                                Thêm nhà hàng đổi món
+                                                Thêm phương án bữa ăn khác (Option)
                                               </button>
                                             )}
                                           </div>
@@ -2779,7 +2781,7 @@ export function TourFormPage({
                                           {/* List of configured alternative meals */}
                                           {altsCount === 0 ? (
                                             <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-[11px] text-gray-400">
-                                              Chưa có nhà hàng đổi món nào. Bấm nút "+ Thêm nhà hàng đổi món" để thiết lập các lựa chọn nhà hàng khác cho khách.
+                                              Chưa có phương án ẩm thực bổ sung. Bấm "+ Thêm phương án bữa ăn khác (Option)" để thiết lập thêm các lựa chọn thực đơn cho khách.
                                             </div>
                                           ) : (
                                             <div className="space-y-2">
@@ -2791,7 +2793,7 @@ export function TourFormPage({
                                                   <div className="flex items-center justify-between gap-2">
                                                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
                                                       <div className="sm:col-span-7">
-                                                        <Label className="text-[10px] text-gray-500 font-medium">Tên nhà hàng đổi món</Label>
+                                                        <Label className="text-[10px] text-gray-500 font-medium">Lựa chọn {aIdx + 2}: Tên nhà hàng / Món ăn</Label>
                                                         <Input
                                                           value={alt.restaurantName}
                                                           disabled={isMealLocked}
@@ -2805,7 +2807,7 @@ export function TourFormPage({
                                                       <div className="sm:col-span-5">
                                                         <div className="flex items-center justify-between">
                                                           <Label className="text-[10px] text-gray-500 font-medium">
-                                                            Giá chênh lệch / người
+                                                            Giá chênh lệch / người (VNĐ)
                                                           </Label>
                                                           <span
                                                             className={`text-[10px] font-bold ${
@@ -3546,7 +3548,7 @@ export function TourFormPage({
                                       </div>
                                     </div>
                                     <span className="text-[10px] bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-600 font-medium">
-                                      {(h.alternativeHotels || []).length} lựa chọn đổi hạng
+                                      {(h.alternativeHotels || []).length > 0 ? `${(h.alternativeHotels || []).length + 1} phương án chỗ ở` : "1 phương án chỗ ở tiêu chuẩn"}
                                     </span>
                                   </div>
                                   {(h.alternativeHotels || []).length > 0 && (
@@ -3629,7 +3631,7 @@ export function TourFormPage({
                                                 </span>
                                               </div>
                                               <span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-600 font-medium">
-                                                {(m.alternativeMeals || []).length} lựa chọn đổi món
+                                                {(m.alternativeMeals || []).length > 0 ? `${(m.alternativeMeals || []).length + 1} phương án ẩm thực` : "1 phương án ẩm thực tiêu chuẩn"}
                                               </span>
                                             </div>
                                             {(m.alternativeMeals || []).length > 0 && (

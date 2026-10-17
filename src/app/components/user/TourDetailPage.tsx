@@ -873,11 +873,16 @@ function CustomTab({
       });
     });
 
+    const hasRealCustomization =
+      customHotelChanges.some((h) => h.mode !== "system") ||
+      customMealChanges.some((m) => m.mode !== "system") ||
+      locationChanges.length > 0;
+
     onCustomChange?.({
       customHotelChanges,
       customMealChanges,
       locationChanges,
-      hasLocationCustomization: customHotelChanges.length > 0 || customMealChanges.length > 0 || locationChanges.length > 0,
+      hasLocationCustomization: hasRealCustomization,
       estimatedPrice: estimatedTotal,
     }, estimatedTotal);
   }, [destHotels, days, basePrice, knownDelta]);
@@ -1934,14 +1939,16 @@ function CustomTab({
               });
             });
 
+            const hasRealCustomization =
+              customHotelChanges.some((h) => h.mode !== "system") ||
+              customMealChanges.some((m) => m.mode !== "system") ||
+              locationChanges.length > 0;
+
             onBookCustom?.({
               customHotelChanges,
               customMealChanges,
               locationChanges,
-              hasLocationCustomization:
-                customHotelChanges.length > 0 ||
-                customMealChanges.length > 0 ||
-                locationChanges.length > 0,
+              hasLocationCustomization: hasRealCustomization,
               estimatedPrice: estimatedTotal ?? basePrice,
             });
           }}

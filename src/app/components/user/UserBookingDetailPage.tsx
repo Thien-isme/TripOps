@@ -790,6 +790,161 @@ export function UserBookingDetailPage({
               )}
             </div>
 
+            {/* DEDICATED ACCOMMODATION / HOTEL SECTION (MATCHING TourDetailPage.tsx & BookingFormPage.tsx) */}
+            {(() => {
+              const tour = booking.tour;
+              const customHotelChanges = booking.customHotelChanges;
+
+              let accommodationList: Array<{
+                destination: string;
+                nights: number;
+                hotelName: string;
+                stars?: number;
+                originalHotelName?: string;
+                isChanged: boolean;
+                mode: "system" | "provider" | "custom";
+                note?: string;
+                address?: string;
+                priceDifference?: number;
+              }> = [];
+
+              if (tour.hotels && tour.hotels.length > 0) {
+                accommodationList = tour.hotels.map((h) => {
+                  const dest = h.destination || tour.destination;
+                  const change = customHotelChanges?.find(
+                    (hc) => hc.destination === dest || hc.destination === h.destination || tour.hotels!.length === 1
+                  );
+                  return {
+                    destination: dest,
+                    nights: h.nights || 1,
+                    hotelName: change ? change.newHotelName : h.name,
+                    stars: change?.stars || h.stars || 4,
+                    originalHotelName: change?.originalHotelName || h.name,
+                    isChanged: Boolean(change),
+                    mode: (change?.mode as any) || (change?.isProviderService ? "provider" : "system"),
+                    note: change?.note,
+                    address: change?.address || h.address || h.description,
+                    priceDifference: change?.newPricePerNight !== undefined && h.pricePerNight !== undefined
+                      ? change.newPricePerNight - h.pricePerNight
+                      : undefined,
+                  };
+                });
+              } else {
+                const uniqueDests: string[] = [];
+                tour.itinerary?.forEach((d) => {
+                  const dest = d.destinationCity || tour.destination || "Điểm đến";
+                  if (!uniqueDests.includes(dest)) uniqueDests.push(dest);
+                });
+
+                accommodationList = uniqueDests.map((dest) => {
+                  const change = customHotelChanges?.find((hc) => hc.destination === dest || uniqueDests.length === 1);
+                  const dayWithHotel = tour.itinerary?.find((d) => (d.destinationCity || tour.destination) === dest && d.hotel);
+                  const defaultHotel = dayWithHotel?.hotel || tour.itinerary?.[0]?.hotel;
+                  const nights = tour.itinerary?.filter((d) => (d.destinationCity || tour.destination) === dest).length || 1;
+
+                  return {
+                    destination: dest,
+                    nights: Math.max(1, nights > 1 ? nights - 1 : nights),
+                    hotelName: change ? change.newHotelName : (defaultHotel?.name || "Khách sạn tiêu chuẩn theo tour"),
+                    stars: change?.stars || defaultHotel?.stars || 4,
+                    originalHotelName: change?.originalHotelName || defaultHotel?.name,
+                    isChanged: Boolean(change),
+                    mode: (change?.mode as any) || (change?.isProviderService ? "provider" : "system"),
+                    note: change?.note,
+                    address: change?.address || defaultHotel?.address || defaultHotel?.description,
+                    priceDifference: undefined,
+                  };
+                });
+              }
+
+              if (!accommodationList || accommodationList.length === 0) return null;
+
+              return (
+                <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-3.5">
+                  <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-blue-600" />
+                        Khách sạn lưu trú
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Danh sách khách sạn, khu vực nghỉ dưỡng được bố trí cho chuyến đi của bạn
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {accommodationList.map((acc, aIdx) => (
+                      <div key={aIdx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <div className="px-4 py-3 bg-blue-50/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+                              <Building2 className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{acc.destination}</p>
+                              <p className="text-xs text-gray-500">
+                                {acc.nights} đêm • {acc.hotelName} {acc.stars ? `(${acc.stars}★)` : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {acc.isChanged ? (
+                              acc.mode === "system" ? (
+                                <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                  Option từ tour {acc.priceDifference ? `(+${formatVND(acc.priceDifference)})` : ""}
+                                </span>
+                              ) : acc.mode === "provider" ? (
+                                <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3 text-amber-500" />
+                                  Đối tác Nền tảng
+                                </span>
+                              ) : (
+                                <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  Tự đề xuất
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-blue-700 border border-blue-200">
+                                Theo tour (Tiêu chuẩn 0đ)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 space-y-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Khách sạn được chọn:</span>
+                            <span className="font-bold text-gray-900 text-sm">
+                              {acc.hotelName} {acc.stars ? `(${acc.stars}★)` : ""}
+                            </span>
+                          </div>
+                          {acc.isChanged && acc.originalHotelName && acc.originalHotelName !== acc.hotelName && (
+                            <div className="flex items-center justify-between text-gray-400">
+                              <span>Tiêu chuẩn theo tour:</span>
+                              <span className="line-through">{acc.originalHotelName}</span>
+                            </div>
+                          )}
+                          {acc.address && (
+                            <div className="flex items-start justify-between text-gray-600 pt-1 border-t border-gray-100">
+                              <span className="text-gray-400">Địa chỉ / Ghi chú phòng:</span>
+                              <span className="text-right font-medium text-gray-700">{acc.address}</span>
+                            </div>
+                          )}
+                          {acc.note && (
+                            <div className="flex items-start justify-between text-purple-700 pt-1 border-t border-purple-100 italic">
+                              <span>Yêu cầu riêng của bạn:</span>
+                              <span className="text-right font-medium">{acc.note}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* FULL ITINERARY VERTICAL TIMELINE (MATCHING chitietlichtrinh.png & TourDetailPage) */}
             {booking.tour.itinerary && booking.tour.itinerary.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-4">
@@ -808,15 +963,11 @@ export function UserBookingDetailPage({
                     const dayLocChange = booking.locationChanges?.find(
                       (lc) => lc.dayNumber === day.day || lc.dayId === day.id
                     );
-                    const dayDest = day.destinationCity || booking.tour.destination;
-                    const dayHotelChange = booking.customHotelChanges?.find(
-                      (hc) => hc.destination === dayDest || booking.tour.itinerary.length === 1
-                    );
                     const dayMealChanges = booking.customMealChanges?.filter(
                       (mc) => mc.dayNumber === day.day
                     );
 
-                    const dayHasChanges = Boolean(dayLocChange || dayHotelChange || (dayMealChanges && dayMealChanges.length > 0));
+                    const dayHasChanges = Boolean(dayLocChange || (dayMealChanges && dayMealChanges.length > 0));
 
                     return (
                       <div
@@ -850,11 +1001,6 @@ export function UserBookingDetailPage({
                             {dayLocChange && (
                               <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
                                 Đổi điểm tham quan
-                              </span>
-                            )}
-                            {dayHotelChange && (
-                              <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-medium border border-purple-300">
-                                Đổi khách sạn
                               </span>
                             )}
                             {dayMealChanges && dayMealChanges.length > 0 && (
@@ -1032,45 +1178,6 @@ export function UserBookingDetailPage({
                                     </div>
                                   );
                                 })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Hotel / Accommodation */}
-                          {(day.hotel || dayHotelChange) && (
-                            <div className="pt-3 border-t border-gray-100">
-                              <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl flex items-center justify-between gap-3 text-xs">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
-                                    <Building2 className="w-4 h-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="font-semibold text-gray-900 text-xs sm:text-sm">
-                                      Khách sạn lưu trú:{" "}
-                                      <span className="font-bold text-blue-900">
-                                        {dayHotelChange ? dayHotelChange.newHotelName : day.hotel?.name}
-                                      </span>
-                                      {(dayHotelChange?.stars || day.hotel?.stars) && (
-                                        <span className="text-amber-500 font-bold ml-1">
-                                          {"★".repeat(dayHotelChange?.stars || day.hotel?.stars || 0)}
-                                        </span>
-                                      )}
-                                    </p>
-                                    <p className="text-[11px] text-gray-500">
-                                      {dayHotelChange?.originalHotelName ? `Gốc: ${dayHotelChange.originalHotelName} • ` : ""}
-                                      Khu vực: {day.destinationCity || booking.tour.destination}
-                                    </p>
-                                  </div>
-                                </div>
-                                {dayHotelChange ? (
-                                  <span className="text-[10px] bg-purple-100 text-purple-800 px-2.5 py-1 rounded-lg font-bold border border-purple-200 flex-shrink-0">
-                                    Đã nâng cấp
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] text-gray-500 bg-white px-2.5 py-1 rounded-lg border border-gray-200 flex-shrink-0 font-medium">
-                                    Theo tour
-                                  </span>
-                                )}
                               </div>
                             </div>
                           )}

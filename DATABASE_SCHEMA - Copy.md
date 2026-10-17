@@ -53,6 +53,8 @@ Table tours {
   custom_request_id int [note: 'FK tới tour_custom_requests.id']
   is_shared_to_customer boolean [default: false, note: 'Chỉ Host bật true khi sẵn sàng cho khách xem']
   is_ai_generated boolean [default: false]
+  version int [default: 1, note: 'Số phiên bản hiện tại đang áp dụng (v1, v2, v3...)']
+  change_note text [note: 'Ghi chú tóm tắt lý do hoặc nội dung cập nhật của phiên bản hiện tại']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
@@ -85,51 +87,54 @@ Table tourist_attractions {
 }
 
 
+// 2. Bữa ăn của tour (Gồm tất cả các options món/nhà hàng của bữa đó)
 Table tour_meals {
   id int [pk, increment]
-  tour_timeline_id int
-  meal_type varchar(20) // 'breakfast', 'lunch', 'dinner' 
-  restaurant_name text
+  tour_timeline_id int [not null]
+  meal_type varchar(20) [not null, note: 'breakfast, lunch, dinner']
+  restaurant_name text [not null]
   description text
-  agency_id varchar(36) [note: 'FK tới users.id - Agency phụ trách bữa ăn này']
-}
-
-Table tour_meal_options {
-  id int [pk, increment]
-  tour_meal_id int [not null, note: 'FK tới tour_meals.id']
-  restaurant_name varchar(255) [not null, note: 'Tên nhà hàng đổi món / nâng cấp']
-  price_difference decimal(12, 2) [default: 0, note: 'Giá chênh lệch / người (VNĐ)']
-  description text [note: 'Mô tả thực đơn, không gian,...']
+  is_default boolean [default: false, note: 'true: Phương án chuẩn theo tour gốc']
+  price_difference decimal(12, 2) [default: 0, note: '0đ: Suất chuẩn theo tour | > 0: Option đổi món/nhà hàng']
+  agency_id varchar(36)
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Ref: tour_meal_options.tour_meal_id > tour_meals.id
-// 1. Chỗ lưu trú mặc định của Tour
+// 1. Chỗ ở của tour (Gồm tất cả các options mà công ty cung cấp)
 Table tour_accommodations {
   id int [pk, increment]
-  tour_id int [not null] // FK trỏ tới tours.id
-  hotel_name varchar(255) [not null] // Tên khách sạn / Resort mặc định của tour
-  destination_name varchar(255) // Điểm đến / Khu vực lưu trú
-  nights_count int [default: 1] // Số đêm lưu trú
-  star_rating int // Số sao của khách sạn (1 - 5)
-  address_notes text // Địa chỉ / Ghi chú phòng
-  agency_id varchar(36) [note: 'FK tới users.id - Agency phụ trách chỗ lưu trú này']
+  tour_id int [not null]
+  destination_name varchar(255) [not null]
+  hotel_name varchar(255) [not null]
+  star_rating int [default: 3]
+  nights_count int [default: 1]
+  is_default boolean [default: false, note: 'true: Phương án chuẩn theo tour gốc']
+  price_difference decimal(12, 2) [default: 0, note: '0đ: Phương án chuẩn theo giá tour | > 0: Option phụ thu']
+  address_notes text
+  agency_id varchar(36)
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-// 2. Danh sách khách sạn nâng cấp / đổi hạng cho khách chọn
-Table tour_accommodation_options {
+// ============================================================================
+// LỊCH SỬ PHIÊN BẢN & SAO LƯU TOUR (VERSION CONTROL & ROLLBACK)
+// ============================================================================
+Table tour_versions {
   id int [pk, increment]
-  tour_accommodation_id int [not null] // FK trỏ tới tour_accommodations.id
-  hotel_name varchar(255) [not null] // Tên khách sạn đổi hạng / nâng cấp
-  star_rating int // Số sao (1 - 5)
-  price_difference decimal(12, 2) [default: 0] // Giá chênh lệch (VNĐ)
-  address_notes text // Địa chỉ / Ghi chú phòng
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
+  tour_id int [not null, note: 'FK tới tours.id']
+  version int [not null, note: 'Số thứ tự phiên bản: 1, 2, 3...']
+  change_note text [note: 'Ghi chú lý do thay đổi: VD: Nâng cấp Terracotta 4 sao và bổ sung Gala Dinner VIP...']
+  price decimal(12, 2) [note: 'Giá tour tại thời điểm của phiên bản này']
+  tour_snapshot json [not null, note: 'Bản sao snapshot toàn bộ cấu hình tour (lộ trình, khách sạn, ẩm thực, số khách) để khôi phục (rollback)']
+  created_by varchar(36) [note: 'FK tới users.id - Nhân viên công ty thực hiện cập nhật/lưu bản sao']
+  created_at timestamp [default: `now()`, note: 'Thời điểm tạo bản sao lưu']
+
+  indexes {
+    (tour_id, version) [unique, note: 'Mỗi tour chỉ có 1 bản ghi cho mỗi số version']
+  }
 }
+
 
 Table tour_custom_requests {
   id int [pk, increment]
@@ -195,13 +200,22 @@ Table bookings {
   contact_phone varchar(30) [not null]
   contact_email varchar(191) [not null]
   contact_note text
-  total_price decimal(12, 2) [not null]
+  // --- BỔ SUNG CÁC TRƯỜNG QUẢN LÝ TÙY BIẾN & GIÁ CHỐT ---
+  has_customization boolean [default: false, note: 'true: có tùy biến khách sạn/ăn uống/điểm đến']
+  original_total_price decimal(12, 2) [note: 'Tổng tiền gốc ban đầu trước khi công ty duyệt phụ thu/giảm trừ']
+  total_price decimal(12, 2) [not null, note: 'Tổng tiền thực tế cuối cùng cần thanh toán']
+  price_adjustment_note text [note: 'Ghi chú của công ty: Phụ thu nâng cấp phòng 450k + đổi bữa tối 60k...']
+  price_adjusted_at timestamp [note: 'Thời điểm công ty chốt lại giá']
+
   status varchar(20) [default: 'pending', note: 'pending, confirmed, completed, cancelled, rejected']
   cancel_reason text
   cancelled_at timestamp
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
+
+
+
 
 Table booking_participants {
   id int [pk, increment]
@@ -216,6 +230,88 @@ Table booking_participants {
   checked_by varchar(36) // FK trỏ tới users.id (người thực hiện điểm danh)
   checked_at timestamp
 }
+
+// ============================================================================
+// 1. TỪNG NGÀY LỊCH TRÌNH CỦA ĐƠN BOOKING (Snapshot ngày & tiêu đề)
+// ============================================================================
+Table booking_timelines {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  day_number int [not null, note: 'Ngày 1, Ngày 2...']
+  title varchar(255) [not null, note: 'VD: Ngày 1: Đón đoàn – Check-in Vinpearl Resort...']
+  description text [note: 'VD: Xe đón khách tại sân bay Cam Ranh về bến cảng...']
+  created_at timestamp [default: `now()`]
+}
+
+// ============================================================================
+// 2. ĐIỂM THAM QUAN (Lưu cả điểm gốc & điểm đổi)
+// ============================================================================
+Table booking_timeline_attractions {
+  id int [pk, increment]
+  booking_timeline_id int [not null, note: 'FK tới booking_timelines.id']
+  
+  // ĐIỂM GỐC THEO TOUR BAN ĐẦU
+  original_location_name varchar(255) [not null, note: 'Điểm gốc của tour (VD: Đảo Hòn Mun, Chợ đêm Đà Lạt)']
+  
+  // ĐIỂM MỚI NẾU KHÁCH ĐỀ XUẤT ĐỔI (NULL nếu đi theo tour)
+  customized_location_name varchar(255) [note: 'Điểm mới khách muốn đi (VD: Hòn Tằm & Tắm bùn khoáng)']
+  
+  is_customized boolean [default: false, note: 'false: Đi theo tour mặc định | true: Có đổi điểm']
+  customer_note text [note: 'Lý do hoặc mong muốn của khách khi đổi']
+  price_difference decimal(12, 2) [default: 0, note: 'Phụ thu vé phát sinh (nếu có)']
+  status varchar(30) [default: 'approved', note: 'pending (chờ duyệt), approved (đồng ý), rejected (từ chối)']
+}
+
+// ============================================================================
+// 3. BỮA ĂN (Lưu nhà hàng gốc & nhà hàng mới - Hiển thị chữ "Mặc định")
+// ============================================================================
+Table booking_timeline_meals {
+  id int [pk, increment]
+  booking_timeline_id int [not null, note: 'FK tới booking_timelines.id']
+  meal_type varchar(20) [not null, note: 'breakfast, lunch, dinner']
+  
+  // NHÀ HÀNG GỐC THEO TOUR (Hiện ở dòng "Mặc định: ...")
+  original_restaurant_name varchar(255) [not null, note: 'VD: Nhà hàng Yến Sào Cam Ranh']
+  
+  // NHÀ HÀNG MỚI KHÁCH CHỌN ĐỔI (NULL nếu đi theo tour)
+  customized_restaurant_name varchar(255) [note: 'VD: Nhà hàng Hải Sản Biển Xanh']
+  
+  price_difference decimal(12, 2) [default: 0, note: 'Chênh lệch giá (VD: 0đ nếu theo tour, +60.000đ nếu đổi)']
+  is_customized boolean [default: false, note: 'false: Theo tour (0đ) | true: Đã đổi món/nhà hàng']
+  customer_note text
+  status varchar(30) [default: 'approved', note: 'pending, approved, rejected']
+}
+
+// ============================================================================
+// 4. KHÁCH SẠN LƯU TRÚ (Lưu khách sạn gốc & khách sạn đổi)
+// ============================================================================
+Table booking_accommodations {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  destination varchar(100) [not null, note: 'Khu vực: Nha Trang, Đà Lạt...']
+  
+  // KHÁCH SẠN GỐC THEO TOUR
+  original_hotel_name varchar(255) [not null, note: 'VD: Vinpearl Resort & Spa Nha Trang Bay']
+  original_stars int [default: 5]
+  
+  // KHÁCH SẠN MỚI NẾU ĐỔI HẠNG / NÂNG CẤP (NULL nếu giữ nguyên)
+  customized_hotel_name varchar(255) [note: 'VD: InterContinental Nha Trang']
+  customized_stars int
+  
+  nights_count int [default: 1]
+  price_difference decimal(12, 2) [default: 0, note: 'Chênh lệch (+450.000đ)']
+  is_customized boolean [default: false, note: 'false: Theo tour | true: Đổi khách sạn']
+  customer_note text
+  status varchar(30) [default: 'approved', note: 'pending, approved, rejected']
+}
+
+// ============================================================================
+// CÁC KHÓA NGOẠI REFS
+// ============================================================================
+Ref: booking_timelines.booking_id > bookings.id
+Ref: booking_timeline_attractions.booking_timeline_id > booking_timelines.id
+Ref: booking_timeline_meals.booking_timeline_id > booking_timelines.id
+Ref: booking_accommodations.booking_id > bookings.id
 
 // Các liên kết khóa ngoại (Refs)
 Ref: booking_participants.booking_id > bookings.id
@@ -271,7 +367,6 @@ Ref: business_profiles.user_id - users.id
 
 
 Ref: tour_accommodations.tour_id > tours.id
-Ref: tour_accommodation_options.tour_accommodation_id > tour_accommodations.id
 
 // 3. Quan hệ (References)
 Ref: tour_custom_requests.user_id > users.id
@@ -281,6 +376,9 @@ Ref: tour_custom_request_agencies.agency_id > users.id
 
 
 Ref: tours.custom_request_id > tour_custom_requests.id
+
+Ref: tour_versions.tour_id > tours.id
+Ref: tour_versions.created_by > users.id
 
 
 
