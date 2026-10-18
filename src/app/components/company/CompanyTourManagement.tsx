@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Tour,
   TourCompany,
@@ -48,6 +48,7 @@ import {
   Handshake,
   Lock,
   UserPlus,
+  Tag,
 } from "lucide-react";
 import { mockTourCompanies } from "@/app/data/mockData";
 import { Button } from "@/app/components/ui/button";
@@ -687,13 +688,76 @@ export function TourFormPage({
   const [newPartnerBudget, setNewPartnerBudget] = useState(2000000);
   const [newPartnerNotes, setNewPartnerNotes] = useState("");
 
-  const [myQuotePerGuest, setMyQuotePerGuest] = useState<number>(() => {
+  const [myQuoteAdult, setMyQuoteAdult] = useState<number>(() => {
+    if (myHost?.quoteAdult && myHost.quoteAdult > 0) return myHost.quoteAdult;
     if (myHost?.quotePerGuest && myHost.quotePerGuest > 0) return myHost.quotePerGuest;
     if (myHost?.role === "partner") {
       return myHost?.estimatedBudgetPerGuest || 2200000;
     }
-    return 2300000;
+    return 2100000;
   });
+  const [myQuoteChild, setMyQuoteChild] = useState<number>(() => {
+    if (myHost?.quoteChild !== undefined && myHost.quoteChild > 0) return myHost.quoteChild;
+    return Math.round(myQuoteAdult * 0.7);
+  });
+  const [myQuoteInfant, setMyQuoteInfant] = useState<number>(() => {
+    if (myHost?.quoteInfant !== undefined) return myHost.quoteInfant;
+    return 0;
+  });
+
+  // Custom quotes for dynamic age groups added by the Lead company
+  const [myCustomQuotes, setMyCustomQuotes] = useState<Record<string, number>>({});
+
+  const getMyQuoteForRow = (row: TourPriceRow): number => {
+    if (row.ageGroup === "adult" || row.ageGroupLabel.toLowerCase().includes("người lớn")) {
+      return myQuoteAdult;
+    }
+    if (row.ageGroup === "child_2_11" || row.ageGroupLabel.toLowerCase().includes("trẻ em")) {
+      return myQuoteChild;
+    }
+    if (row.ageGroup === "child_under_2" || row.ageGroupLabel.toLowerCase().includes("em bé")) {
+      return myQuoteInfant;
+    }
+    return myCustomQuotes[row.ageGroup] ?? Math.round(myQuoteAdult * 0.85);
+  };
+
+  const setMyQuoteForRow = (row: TourPriceRow, val: number) => {
+    if (row.ageGroup === "adult" || row.ageGroupLabel.toLowerCase().includes("người lớn")) {
+      setMyQuoteAdult(val);
+    } else if (row.ageGroup === "child_2_11" || row.ageGroupLabel.toLowerCase().includes("trẻ em")) {
+      setMyQuoteChild(val);
+    } else if (row.ageGroup === "child_under_2" || row.ageGroupLabel.toLowerCase().includes("em bé")) {
+      setMyQuoteInfant(val);
+    } else {
+      setMyCustomQuotes((prev) => ({ ...prev, [row.ageGroup]: val }));
+    }
+  };
+
+  const getPartnerQuoteForRow = (ch: TourCoHost, row: TourPriceRow): number => {
+    const isMe = ch.companyId === company.id;
+    if (isMe) return getMyQuoteForRow(row);
+
+    const baseAdult = ch.quoteAdult ?? ch.quotePerGuest ?? ch.estimatedBudgetPerGuest ?? 0;
+    if (row.ageGroup === "adult" || row.ageGroupLabel.toLowerCase().includes("người lớn")) {
+      return baseAdult;
+    }
+    if (row.ageGroup === "child_2_11" || row.ageGroupLabel.toLowerCase().includes("trẻ em")) {
+      return ch.quoteChild ?? Math.round(baseAdult * 0.7);
+    }
+    if (row.ageGroup === "child_under_2" || row.ageGroupLabel.toLowerCase().includes("em bé")) {
+      return ch.quoteInfant ?? 0;
+    }
+    return Math.round(baseAdult * 0.85);
+  };
+
+  const getTotalQuoteForRow = (row: TourPriceRow): number => {
+    if (!isCoHostedTour || coHostsList.length === 0) return row.price;
+    return coHostsList.reduce((sum, ch) => sum + getPartnerQuoteForRow(ch, row), 0);
+  };
+
+  const myQuotePerGuest = myQuoteAdult;
+  const setMyQuotePerGuest = setMyQuoteAdult;
+
   const [myQuoteStatus, setMyQuoteStatus] = useState<"draft" | "submitted">(
     myHost?.quoteStatus || "draft"
   );
@@ -703,13 +767,35 @@ export function TourFormPage({
       : "Đã bao gồm khách sạn địa phương, ẩm thực đặc sản chặng sau, xe trung chuyển và HDV bản địa.")
   );
 
-  // Financial calculations for co-hosted tours supporting N companies
-  const totalNetCost = isCoHostedTour && coHostsList.length > 0
+  // Financial calculations for co-hosted tours supporting N companies & 3 age tiers
+  const totalNetAdult = isCoHostedTour && coHostsList.length > 0
     ? coHostsList.reduce((sum, ch) => {
-        const q = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
+        const q = ch.companyId === company.id
+          ? myQuoteAdult
+          : (ch.quoteAdult ?? ch.quotePerGuest ?? ch.estimatedBudgetPerGuest ?? 0);
         return sum + q;
       }, 0)
     : price;
+
+  const totalNetChild = isCoHostedTour && coHostsList.length > 0
+    ? coHostsList.reduce((sum, ch) => {
+        const q = ch.companyId === company.id
+          ? myQuoteChild
+          : (ch.quoteChild ?? Math.round((ch.quoteAdult ?? ch.quotePerGuest ?? ch.estimatedBudgetPerGuest ?? 0) * 0.7));
+        return sum + q;
+      }, 0)
+    : Math.round(price * 0.7);
+
+  const totalNetInfant = isCoHostedTour && coHostsList.length > 0
+    ? coHostsList.reduce((sum, ch) => {
+        const q = ch.companyId === company.id
+          ? myQuoteInfant
+          : (ch.quoteInfant ?? 0);
+        return sum + q;
+      }, 0)
+    : 0;
+
+  const totalNetCost = totalNetAdult;
   const platformFeeRate = tour?.platformFeeRate ?? 0; // 0% (tạm thời không thu phí sàn)
   const calculatedPlatformFee = 0;
   const calculatedFinalPrice = isCoHostedTour && totalNetCost > 0 ? totalNetCost : price;
@@ -1131,16 +1217,24 @@ export function TourFormPage({
   );
 
   const handleAddPriceRow = () => {
+    if (!isLeadCompany) {
+      alert("Chỉ đơn vị chủ trì (Lead) mới có quyền thêm phân loại giá vé cho tour liên minh!");
+      return;
+    }
     const newRow: TourPriceRow = {
       ageGroup: `custom_${Date.now()}`,
-      ageGroupLabel: "Khung giá mới",
-      ageRange: "Theo thỏa thuận",
+      ageGroupLabel: "Khung giá mới (VD: Người cao tuổi)",
+      ageRange: "Từ 60 tuổi trở lên",
       price: Math.round(price * 0.8) || 2000000,
     };
     setPriceTable([...priceTable, newRow]);
   };
 
   const handleRemovePriceRow = (index: number) => {
+    if (!isLeadCompany) {
+      alert("Chỉ đơn vị chủ trì (Lead) mới có quyền xóa phân loại giá vé!");
+      return;
+    }
     if (priceTable.length <= 1) {
       alert("Cần giữ lại ít nhất 1 khung giá vé cho tour!");
       return;
@@ -1149,6 +1243,10 @@ export function TourFormPage({
   };
 
   const handleResetDefaultPriceRows = () => {
+    if (!isLeadCompany) {
+      alert("Chỉ đơn vị chủ trì (Lead) mới có quyền khôi phục mẫu phân loại chuẩn!");
+      return;
+    }
     const base = price || 3500000;
     setPriceTable([
       { ageGroup: "adult", ageGroupLabel: "Người lớn", ageRange: "Từ 11 tuổi trở lên", price: base },
@@ -1156,6 +1254,18 @@ export function TourFormPage({
       { ageGroup: "child_under_2", ageGroupLabel: "Em bé (dưới 2 tuổi)", ageRange: "Dưới 2 tuổi", price: 0 },
     ]);
   };
+
+  // Tự động đồng bộ Bảng giá vé trọn gói từ Ma Trận Báo Giá Liên Minh khi là tour Liên minh
+  useEffect(() => {
+    if (isCoHostedTour && coHostsList.length > 0) {
+      setPriceTable((prev) => {
+        return prev.map((row) => {
+          const tot = coHostsList.reduce((sum, ch) => sum + getPartnerQuoteForRow(ch, row), 0);
+          return { ...row, price: tot };
+        });
+      });
+    }
+  }, [isCoHostedTour, coHostsList.length, myQuoteAdult, myQuoteChild, myQuoteInfant, myCustomQuotes]);
 
   // Tab 4: Quy định & Chính sách
   const [inclusions, setInclusions] = useState<string[]>(
@@ -1352,16 +1462,19 @@ export function TourFormPage({
     let updatedCoHosts = coHostsList;
     if (isCoHostedTour && updatedCoHosts.length > 0) {
       const totNet = updatedCoHosts.reduce(
-        (s, c) => s + (c.companyId === company.id ? myQuotePerGuest : (c.quotePerGuest || c.estimatedBudgetPerGuest || 0)),
+        (s, c) => s + (c.companyId === company.id ? myQuoteAdult : (c.quoteAdult ?? c.quotePerGuest ?? c.estimatedBudgetPerGuest ?? 0)),
         0
       );
       updatedCoHosts = updatedCoHosts.map((ch) => {
-        const q = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
+        const q = ch.companyId === company.id ? myQuoteAdult : (ch.quoteAdult ?? ch.quotePerGuest ?? ch.estimatedBudgetPerGuest ?? 0);
         const pct = totNet > 0 ? Math.round((q / totNet) * 100) : Math.round(100 / updatedCoHosts.length);
         if (ch.companyId === company.id) {
           return {
             ...ch,
-            quotePerGuest: myQuotePerGuest,
+            quotePerGuest: myQuoteAdult,
+            quoteAdult: myQuoteAdult,
+            quoteChild: myQuoteChild,
+            quoteInfant: myQuoteInfant,
             quoteStatus: myQuoteStatus,
             quoteNote: myQuoteNote,
             quotedAt: myQuoteStatus === "submitted" ? (ch.quotedAt || new Date().toISOString()) : ch.quotedAt,
@@ -1370,6 +1483,9 @@ export function TourFormPage({
         }
         return {
           ...ch,
+          quoteAdult: ch.quoteAdult ?? ch.quotePerGuest ?? ch.estimatedBudgetPerGuest ?? 0,
+          quoteChild: ch.quoteChild ?? Math.round((ch.quoteAdult ?? ch.quotePerGuest ?? 0) * 0.7),
+          quoteInfant: ch.quoteInfant ?? 0,
           revenueSharePercentage: pct,
         };
       });
@@ -2917,338 +3033,527 @@ export function TourFormPage({
           {/* TAB 3: BẢNG GIÁ THEO ĐỘ TUỔI */}
           {activeTab === "pricing" && (
             <div className="space-y-6">
-              {/* Co-Hosting Segment Quotation & Cost Aggregation System */}
-              {isCoHostedTour && (
-                <div className="bg-gradient-to-r from-purple-50 via-indigo-50/50 to-blue-50 border-2 border-purple-200 rounded-2xl p-5 space-y-4 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-purple-200/80">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                          <Handshake className="w-4 h-4" />
-                        </span>
-                        <div>
-                          <h3 className="text-base font-extrabold text-purple-950">
-                            Báo Giá Độc Lập Từng Chặng &amp; Cộng Dồn Chi Phí (Cost Aggregation)
-                          </h3>
-                          <p className="text-xs text-purple-800/80">
-                            Mỗi công ty tự tính toán và nhập báo giá phần dịch vụ của mình. Hệ thống tự động tổng hợp chi phí để ra giá tour trọn gói cho khách (Hiện đang áp dụng chính sách Miễn phí sàn 0%).
-                          </p>
-                        </div>
+              {/* BẢNG GIÁ VÉ THEO PHÂN LOẠI ĐỘ TUỔI & MA TRẬN BÁO GIÁ LIÊN MINH (GỘP 1 BẢNG DUY NHẤT) */}
+              {isCoHostedTour ? (
+                <div className="bg-gradient-to-r from-purple-50 via-indigo-50/40 to-blue-50 border-2 border-purple-200 rounded-2xl p-5 space-y-4 shadow-sm">
+                  {/* Thanh Tiêu đề & Quyền hạn */}
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-purple-200/80">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs flex-shrink-0">
+                        <Handshake className="w-5 h-5" />
+                      </span>
+                      <div>
+                        <h3 className="text-base font-extrabold text-purple-950 flex items-center gap-2">
+                          Bảng Giá Vé Theo Độ Tuổi &amp; Ma Trận Báo Giá Liên Minh ({coHostsList.length} Công Ty)
+                        </h3>
+                        <p className="text-xs text-purple-800/80 mt-0.5">
+                          {isLeadCompany ? (
+                            <span className="text-purple-900 font-medium">
+                              👑 <strong>Bạn là Đơn vị chủ trì (Lead):</strong> Bạn có toàn quyền thêm, sửa, xóa các khung phân loại độ tuổi. Các công ty liên minh tự nhập báo giá chặng của mình.
+                            </span>
+                          ) : (
+                            <span className="text-indigo-900 font-medium">
+                              🤝 <strong>Bạn là Đối tác Liên minh (Partner):</strong> Chỉ Đơn vị chủ trì ({leadHost?.companyName || "Chủ trì"}) mới có quyền thêm/xóa khung độ tuổi. Bạn chỉ được phép nhập báo giá cho chặng của mình.
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      {(() => {
-                        const allSubmitted = coHostsList.length > 0 && coHostsList.every((ch) =>
-                          ch.companyId === company.id ? myQuoteStatus === "submitted" : ch.quoteStatus === "submitted"
-                        );
-                        return (
-                          <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs ${
-                            allSubmitted
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                              : "bg-amber-100 text-amber-800 border border-amber-300"
-                          }`}>
-                            {allSubmitted
-                              ? `🟢 Toàn bộ ${coHostsList.length} công ty đã chốt báo giá`
-                              : `🟡 Đang hoàn thiện báo giá (${coHostsList.filter((ch) => (ch.companyId === company.id ? myQuoteStatus === "submitted" : ch.quoteStatus === "submitted")).length}/${coHostsList.length} đã chốt)`}
-                          </span>
-                        );
-                      })()}
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Huy hiệu vai trò công ty hiện tại */}
+                      <span className="text-xs font-bold text-purple-900 bg-white border border-purple-300 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                        <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                        Đang thao tác: <strong>{company.name}</strong> ({isLeadCompany ? "Đơn vị Chủ trì" : "Đối tác Liên minh"})
+                      </span>
+
+                      {/* Các nút bấm chỉ Đơn vị chủ trì mới có quyền thực hiện */}
+                      {isLeadCompany ? (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleResetDefaultPriceRows}
+                            className="text-xs h-8 px-2.5 text-purple-700 border-purple-300 hover:bg-purple-100/70 font-semibold shadow-2xs"
+                            title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5 mr-1 text-purple-600" />
+                            Mẫu chuẩn 3 nhóm
+                          </Button>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleAddPriceRow}
+                            className="text-xs h-8 px-3 bg-purple-700 hover:bg-purple-800 text-white font-bold gap-1 shadow-2xs cursor-pointer"
+                            title="Thêm một khung giá vé mới vào bảng"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            + Thêm khung giá vé
+                          </Button>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowAddCoHostModal(true)}
+                            className="text-xs h-8 px-3 border-purple-300 text-purple-700 hover:bg-purple-100 font-bold gap-1 shadow-2xs"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            Mời thêm đối tác
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+                          <Lock className="w-3 h-3 text-gray-500" />
+                          Khung độ tuổi do Đơn vị chủ trì thiết lập (Chỉ xem)
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* 1. Công ty của bạn */}
-                    <div className="bg-white border-2 border-purple-300 rounded-xl p-4 space-y-3 shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-extrabold uppercase bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
-                            Chặng của công ty bạn ({company.name})
-                          </span>
-                          <h4 className="font-bold text-gray-900 text-sm mt-1">{company.name}</h4>
-                          <span className="text-[11px] text-gray-500 font-medium">
-                            Vai trò: {isLeadCompany ? "Đơn vị Chủ trì (Lead)" : "Đối tác Liên minh (Partner)"}
-                          </span>
-                        </div>
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                          myQuoteStatus === "submitted"
-                            ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                            : "bg-gray-100 text-gray-600 border border-gray-200"
-                        }`}>
-                          {myQuoteStatus === "submitted" ? "✓ Đã xác nhận gửi báo giá" : "Đang soạn thảo"}
-                        </span>
-                      </div>
+                  {/* BẢNG MA TRẬN DUY NHẤT KẾT HỢP PHÂN LOẠI ĐỘ TUỔI VÀ BÁO GIÁ CÁC CÔNG TY */}
+                  <div className="bg-white border-2 border-purple-300 rounded-xl p-4 space-y-3 shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-2xs">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 text-[11px] uppercase">
+                            <th className="p-3 font-bold border-b border-gray-200 min-w-[210px]">
+                              <div>Phân loại khách &amp; Độ tuổi áp dụng</div>
+                              <span className="text-[10px] text-gray-500 font-normal lowercase">
+                                {isLeadCompany ? "(Chủ trì có quyền thêm/sửa/xóa)" : "(Do chủ trì ban hành)"}
+                              </span>
+                            </th>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-gray-700 flex items-center justify-between">
-                          <span>Báo giá chi phí chặng của bạn (VNĐ / khách):</span>
-                          <span className="text-purple-600 font-extrabold text-sm">{formatVND(myQuotePerGuest)}</span>
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            step={50000}
-                            value={myQuotePerGuest}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              setMyQuotePerGuest(val);
-                            }}
-                            className="text-sm font-bold text-purple-900 pr-12"
-                            placeholder="Nhập chi phí đề xuất..."
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold">
-                            VNĐ
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-gray-400">
-                          Bao gồm chi phí khách sạn, các bữa ăn, vé tham quan và lợi nhuận mong muốn của công ty bạn.
+                            {coHostsList.map((ch, idx) => {
+                              const isMe = ch.companyId === company.id;
+                              return (
+                                <th
+                                  key={ch.id || idx}
+                                  className={`p-3 font-bold border-b border-gray-200 min-w-[220px] transition-colors ${
+                                    isMe
+                                      ? "bg-purple-100/90 text-purple-950 border-x-2 border-t-2 border-purple-400 shadow-xs"
+                                      : "bg-gray-100 text-gray-700"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-1 mb-1">
+                                    <span
+                                      className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded ${
+                                        isMe
+                                          ? "bg-purple-600 text-white shadow-2xs"
+                                          : "bg-gray-200 text-gray-600 border border-gray-300 flex items-center gap-1"
+                                      }`}
+                                    >
+                                      {isMe ? "✏️ Chặng của bạn (Được sửa)" : <><Lock className="w-2.5 h-2.5" /> Đối tác (Chỉ xem)</>}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded font-extrabold bg-white border border-gray-200 text-gray-700">
+                                        {ch.revenueSharePercentage ?? Math.round(100 / coHostsList.length)}%
+                                      </span>
+                                      {!isMe && isLeadCompany && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemovePartnerCoHost(ch.id)}
+                                          className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                                          title="Xóa đối tác này khỏi liên minh"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className={`font-bold text-xs truncate ${isMe ? "text-purple-950 font-extrabold" : "text-gray-900"}`}>
+                                    {ch.companyName} {isMe ? "(Bạn)" : ""}
+                                  </div>
+                                  <div className={`text-[10px] font-normal truncate mt-0.5 ${isMe ? "text-purple-800 font-medium" : "text-gray-500"}`}>
+                                    {ch.assignedSegments || `Chặng ${idx + 1}`}
+                                  </div>
+                                </th>
+                              );
+                            })}
+
+                            <th className="p-3 font-extrabold text-right border-b border-gray-200 bg-emerald-50 text-emerald-900 min-w-[180px]">
+                              <div>ĐƠN GIÁ BÁN TRỌN GÓI</div>
+                              <span className="text-[10px] text-emerald-700 font-medium lowercase">
+                                (Tự động cộng dồn)
+                              </span>
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="divide-y divide-gray-100 bg-white">
+                          {priceTable.map((row, idx) => {
+                            const isChildRow = row.ageGroup === "child_2_11" || row.ageGroupLabel.toLowerCase().includes("trẻ em");
+                            const totalRowPrice = getTotalQuoteForRow(row);
+
+                            return (
+                              <tr key={row.ageGroup || idx} className="hover:bg-purple-50/20 transition-colors">
+                                {/* Cột 1: Tên phân loại & Độ tuổi - CHỈ ĐƠN VỊ CHỦ TRÌ MỚI CÓ THỂ SỬA HOẶC XÓA */}
+                                <td className="p-3 align-top bg-gray-50/40">
+                                  {isLeadCompany ? (
+                                    <div className="flex items-start gap-1.5">
+                                      <div className="space-y-1 flex-1">
+                                        <Input
+                                          value={row.ageGroupLabel}
+                                          onChange={(e) => {
+                                            const updated = [...priceTable];
+                                            updated[idx].ageGroupLabel = e.target.value;
+                                            setPriceTable(updated);
+                                          }}
+                                          placeholder="Tên nhóm (VD: Người lớn, Trẻ em...)"
+                                          className="text-xs h-7.5 font-bold text-gray-900 bg-white border-gray-300"
+                                        />
+                                        <Input
+                                          value={row.ageRange ?? ""}
+                                          onChange={(e) => {
+                                            const updated = [...priceTable];
+                                            updated[idx].ageRange = e.target.value;
+                                            setPriceTable(updated);
+                                          }}
+                                          placeholder="Độ tuổi áp dụng..."
+                                          className="text-[11px] h-6.5 text-gray-600 bg-gray-50/80"
+                                        />
+                                      </div>
+                                      {priceTable.length > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleRemovePriceRow(idx)}
+                                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors mt-0.5"
+                                          title="Xóa khung giá này (Chỉ Đơn vị chủ trì có quyền)"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="py-1">
+                                      <div className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                                        <span>{row.ageGroupLabel}</span>
+                                      </div>
+                                      <div className="text-[11px] text-gray-500 font-medium mt-0.5">
+                                        {row.ageRange || "Theo quy định"}
+                                      </div>
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Các Cột Báo Giá Của Từng Công Ty */}
+                                {coHostsList.map((ch, cIdx) => {
+                                  const isMe = ch.companyId === company.id;
+                                  const quoteVal = getPartnerQuoteForRow(ch, row);
+
+                                  return (
+                                    <td
+                                      key={ch.id || cIdx}
+                                      className={`p-3 align-top ${
+                                        isMe
+                                          ? "bg-purple-50/50 border-x-2 border-purple-300"
+                                          : "bg-gray-50/30 text-gray-700 cursor-not-allowed select-none"
+                                      }`}
+                                    >
+                                      {isMe ? (
+                                        <div className="space-y-1">
+                                          <div className="relative">
+                                            <Input
+                                              type="number"
+                                              step={50000}
+                                              min={0}
+                                              value={getMyQuoteForRow(row)}
+                                              onChange={(e) => setMyQuoteForRow(row, parseInt(e.target.value) || 0)}
+                                              className="text-xs font-bold text-purple-950 bg-white border-2 border-purple-400 focus:border-purple-600 focus:ring-1 focus:ring-purple-400 pr-10 h-8.5 shadow-2xs"
+                                              placeholder="Nhập giá..."
+                                            />
+                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-purple-700 font-extrabold">
+                                              VNĐ
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between text-[10px]">
+                                            {isChildRow ? (
+                                              <button
+                                                type="button"
+                                                onClick={() => setMyQuoteForRow(row, Math.round(myQuoteAdult * 0.7))}
+                                                className="text-purple-700 hover:text-purple-900 underline font-medium cursor-pointer"
+                                                title="Tính nhanh 70% giá người lớn"
+                                              >
+                                                Gợi ý 70% ({formatVND(Math.round(myQuoteAdult * 0.7))})
+                                              </button>
+                                            ) : (
+                                              <span className="text-gray-400 text-[10px]">Quy đổi:</span>
+                                            )}
+                                            <span className="font-bold text-purple-800">
+                                              = {getMyQuoteForRow(row) === 0 ? "0đ (Miễn phí)" : formatVND(getMyQuoteForRow(row))}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-100/70 rounded border border-gray-200 mt-1">
+                                          <span className="font-semibold text-gray-800">
+                                            {quoteVal === 0 ? "0đ (Miễn phí)" : formatVND(quoteVal)}
+                                          </span>
+                                          <span className="text-gray-400 flex items-center gap-1 text-[10px]" title={`Chỉ ${ch.companyName} được sửa cột này`}>
+                                            <Lock className="w-3 h-3 text-gray-400" />
+                                          </span>
+                                        </div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+
+                                {/* Cột Cuối: ĐƠN GIÁ BÁN TRỌN GÓI */}
+                                <td className="p-3 text-right bg-emerald-50/70 font-black text-emerald-800 text-sm align-middle">
+                                  {totalRowPrice === 0 ? "0đ (Miễn phí)" : formatVND(totalRowPrice)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+
+                          {/* Hàng Dịch vụ chặng bao gồm */}
+                          <tr className="hover:bg-purple-50/20 transition-colors">
+                            <td className="p-3 font-bold text-gray-900 align-top bg-gray-50/40">
+                              <div className="text-xs">Dịch vụ chặng bao gồm</div>
+                              <span className="text-[10px] text-gray-500 font-normal">KS, ăn uống, vé, xe...</span>
+                            </td>
+                            {coHostsList.map((ch, idx) => {
+                              const isMe = ch.companyId === company.id;
+
+                              return (
+                                <td
+                                  key={ch.id || idx}
+                                  className={`p-3 align-top ${
+                                    isMe
+                                      ? "bg-purple-50/50 border-x-2 border-purple-300"
+                                      : "bg-gray-50/30 text-gray-700"
+                                  }`}
+                                >
+                                  {isMe ? (
+                                    <Textarea
+                                      value={myQuoteNote}
+                                      onChange={(e) => setMyQuoteNote(e.target.value)}
+                                      rows={2}
+                                      placeholder="Diễn giải dịch vụ bao gồm chặng của công ty bạn..."
+                                      className="text-[11px] bg-white border border-purple-300 rounded-lg p-2 focus:ring-1 focus:ring-purple-400 resize-none leading-relaxed"
+                                    />
+                                  ) : (
+                                    <div className="p-2 rounded bg-gray-100/60 border border-gray-200 text-[11px] text-gray-600 italic line-clamp-3">
+                                      "{ch.quoteNote || ch.notes || "Đối tác đang chuẩn bị chi tiết dịch vụ chặng..."}"
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="p-3 text-center bg-emerald-50/70 text-emerald-900 text-[11px] font-medium align-middle">
+                              Cộng gộp toàn bộ dịch vụ các chặng thành tour hoàn chỉnh
+                            </td>
+                          </tr>
+
+                          {/* Hàng Trạng thái & Thao tác chốt giá */}
+                          <tr className="bg-gray-50/50">
+                            <td className="p-3 font-bold text-gray-900 align-middle bg-gray-50/60">
+                              <div className="text-xs">Trạng thái chốt giá</div>
+                            </td>
+                            {coHostsList.map((ch, idx) => {
+                              const isMe = ch.companyId === company.id;
+
+                              return (
+                                <td
+                                  key={ch.id || idx}
+                                  className={`p-3 align-middle ${
+                                    isMe
+                                      ? "bg-purple-50/50 border-x-2 border-b-2 border-purple-400"
+                                      : "bg-gray-50/30 text-center"
+                                  }`}
+                                >
+                                  {isMe ? (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      onClick={() => {
+                                        const newStatus = myQuoteStatus === "submitted" ? "draft" : "submitted";
+                                        setMyQuoteStatus(newStatus);
+                                      }}
+                                      className={`w-full text-xs font-bold py-1.5 h-8 shadow-xs cursor-pointer ${
+                                        myQuoteStatus === "submitted"
+                                          ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                          : "bg-purple-600 hover:bg-purple-700 text-white"
+                                      }`}
+                                    >
+                                      {myQuoteStatus === "submitted" ? "✓ Đã chốt báo giá" : "Xác nhận chốt giá"}
+                                    </Button>
+                                  ) : (
+                                    <span
+                                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                                        ch.quoteStatus === "submitted"
+                                          ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                                          : "bg-amber-50 text-amber-700 border border-amber-200"
+                                      }`}
+                                    >
+                                      {ch.quoteStatus === "submitted" ? "🟢 Đã chốt báo giá" : "⏳ Đang soạn thảo"}
+                                    </span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="p-3 text-center bg-emerald-50/70 align-middle">
+                              {(() => {
+                                const allSubmitted = coHostsList.length > 0 && coHostsList.every((ch) =>
+                                  ch.companyId === company.id ? myQuoteStatus === "submitted" : ch.quoteStatus === "submitted"
+                                );
+                                return (
+                                  <span
+                                    className={`inline-block text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                                      allSubmitted
+                                        ? "bg-emerald-200 text-emerald-900 border border-emerald-300"
+                                        : "bg-amber-100 text-amber-800 border border-amber-300"
+                                    }`}
+                                  >
+                                    {allSubmitted ? "✓ Đủ báo giá toàn đoàn" : "Chờ đối tác chốt"}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Hộp giải thích nghiệp vụ */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                      <div className="bg-emerald-50/80 p-3 rounded-lg border border-emerald-200 text-xs text-emerald-950 flex items-start gap-2">
+                        <span className="text-sm">💡</span>
+                        <p className="leading-relaxed text-[11px]">
+                          <strong>Cơ chế tính giá &amp; Đón/trả khách linh hoạt theo chặng:</strong> Khi hành khách đặt booking và chỉ chọn tham gia một số chặng (ví dụ: rời đoàn sau Chặng 1 hoặc nhập đoàn tại Chặng 3), hệ thống điều hành booking sẽ tự động tính giá vé từng người bằng tổng đơn giá của các chặng mà khách thực tế tham gia.
                         </p>
                       </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-[11px] font-semibold text-gray-700">
-                          Diễn giải các dịch vụ bao gồm trong mức giá này:
-                        </Label>
-                        <Textarea
-                          value={myQuoteNote}
-                          onChange={(e) => setMyQuoteNote(e.target.value)}
-                          rows={2}
-                          placeholder="VD: Bao gồm KS 4 sao 2 đêm, 4 bữa ăn tiêu chuẩn 150k, vé cano tham quan đảo..."
-                          className="text-xs bg-gray-50/50"
-                        />
-                      </div>
-
-                      <div className="pt-1 flex justify-end">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => {
-                            const newStatus = myQuoteStatus === "submitted" ? "draft" : "submitted";
-                            setMyQuoteStatus(newStatus);
-                          }}
-                          className={`${
-                            myQuoteStatus === "submitted"
-                              ? "bg-amber-600 hover:bg-amber-700 text-white"
-                              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                          } text-xs font-bold shadow-xs`}
-                        >
-                          {myQuoteStatus === "submitted" ? "Chỉnh sửa lại báo giá" : "✓ Xác nhận chốt báo giá chặng này"}
-                        </Button>
+                      <div className="bg-blue-50/80 p-3 rounded-lg border border-blue-200 text-xs text-blue-950 flex items-start gap-2">
+                        <span className="text-sm">ℹ️</span>
+                        <p className="leading-relaxed text-[11px]">
+                          <strong>Tự động nhận diện độ tuổi:</strong> Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng phân loại trên.
+                        </p>
                       </div>
                     </div>
+                  </div>
+                </div>
+              ) : (
+                /* TOUR ĐƠN LẺ KHÔNG LIÊN MINH (1 CÔNG TY) */
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                        <DollarSign className="w-4 h-4 text-emerald-600" />
+                        Bảng giá vé theo phân loại độ tuổi
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Quy định đơn giá áp dụng cho từng đối tượng hành khách. Bạn có thể thêm, chỉnh sửa hoặc xóa các khung giá vé tùy theo chính sách của tour.
+                      </p>
+                    </div>
 
-                    {/* 2. Danh sách các công ty đối tác liên minh */}
-                    {otherHosts.map((other, idx) => (
-                      <div key={other.id || other.companyId || idx} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                              Đối tác #{idx + 1} ({other.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Liên minh"})
-                            </span>
-                            <h4 className="font-bold text-gray-900 text-sm mt-1">
-                              {other.companyName}
-                            </h4>
-                            {other.assignedSegments && (
-                              <p className="text-[11px] text-gray-500 font-medium">Phụ trách: {other.assignedSegments}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                              other.quoteStatus === "submitted"
-                                ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            }`}>
-                              {other.quoteStatus === "submitted" ? "🟢 Đã báo giá" : "⏳ Đang hoàn thiện"}
-                            </span>
-                            {isLeadCompany && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemovePartnerCoHost(other.id)}
-                                className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
-                                title="Xóa đối tác này khỏi liên minh"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-600 font-medium">Báo giá từ đối tác:</span>
-                            <span className="font-extrabold text-blue-700 text-base">
-                              {other.quotePerGuest ? formatVND(other.quotePerGuest) : (other.estimatedBudgetPerGuest ? formatVND(other.estimatedBudgetPerGuest) : "Chưa cập nhật")}
-                              <span className="text-xs text-gray-400 font-normal"> / khách</span>
-                            </span>
-                          </div>
-                          <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 text-xs">
-                            <span className="text-[11px] text-gray-500 block font-medium">Ghi chú dịch vụ từ đối tác:</span>
-                            <p className="text-gray-700 italic mt-0.5">
-                              "{other.quoteNote || other.notes || "Đối tác đang chuẩn bị danh mục khách sạn và nhà hàng địa phương..."}"
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 text-[11px] text-blue-900 flex items-center justify-between">
-                          <span>Liên hệ đối tác:</span>
-                          <span className="font-semibold">{other.companyPhone || "1900 1234"} · {other.companyEmail || "partner@demo.com"}</span>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetDefaultPriceRows}
+                        className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-gray-50"
+                        title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 mr-1 text-gray-500" />
+                        Mẫu chuẩn 3 nhóm
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAddPriceRow}
+                        className="text-xs h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1 shadow-2xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Thêm khung giá vé
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* 3. Bảng Cộng Dồn & Giá Bán Cuối Cùng Cho Khách Hàng */}
-                  <div className="bg-white border-2 border-emerald-300 rounded-xl p-4.5 space-y-3 shadow-sm">
-                    <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider flex items-center gap-1.5 text-emerald-800">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                      Tổng Hợp Chi Phí Trực Tiếp ({coHostsList.length} Đơn Vị) &amp; Giá Bán Cuối Cùng Cho Khách Hàng:
-                    </h4>
+                  <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-2xs">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-gray-100 text-gray-700">
+                          <th className="p-3 text-left w-1/4">Phân loại khách</th>
+                          <th className="p-3 text-left w-1/3">Độ tuổi áp dụng</th>
+                          <th className="p-3 text-right">Đơn giá vé (VNĐ)</th>
+                          <th className="p-3 text-center w-16">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {priceTable.map((row, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50/70 transition-colors">
+                            <td className="p-3">
+                              <Input
+                                value={row.ageGroupLabel}
+                                onChange={(e) => {
+                                  const updated = [...priceTable];
+                                  updated[idx].ageGroupLabel = e.target.value;
+                                  setPriceTable(updated);
+                                }}
+                                placeholder="Tên nhóm (VD: Người lớn, Trẻ em...)"
+                                className="text-xs h-8 font-semibold text-gray-900"
+                              />
+                            </td>
+                            <td className="p-3">
+                              <Input
+                                value={row.ageRange ?? ""}
+                                onChange={(e) => {
+                                  const updated = [...priceTable];
+                                  updated[idx].ageRange = e.target.value;
+                                  setPriceTable(updated);
+                                }}
+                                placeholder="VD: Từ 11 tuổi trở lên, Từ 2 đến 11 tuổi..."
+                                className="text-xs h-8"
+                              />
+                            </td>
+                            <td className="p-3 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Input
+                                  type="number"
+                                  step={50000}
+                                  min={0}
+                                  value={row.price}
+                                  onChange={(e) => {
+                                    const updated = [...priceTable];
+                                    updated[idx].price = Math.max(0, parseInt(e.target.value) || 0);
+                                    setPriceTable(updated);
+                                  }}
+                                  className="text-xs h-8 text-right font-bold text-blue-700 max-w-[160px]"
+                                />
+                                <span className="text-[11px] text-gray-500 font-medium">đ</span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePriceRow(idx)}
+                                disabled={priceTable.length <= 1}
+                                className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title={priceTable.length <= 1 ? "Cần giữ tối thiểu 1 khung giá" : "Xóa khung giá này"}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                      {coHostsList.map((ch, idx) => {
-                        const qVal = ch.companyId === company.id ? myQuotePerGuest : (ch.quotePerGuest || ch.estimatedBudgetPerGuest || 0);
-                        const isMe = ch.companyId === company.id;
-                        return (
-                          <div key={ch.id || idx} className={`p-3 rounded-lg border ${isMe ? "bg-purple-50/80 border-purple-200" : "bg-gray-50 border-gray-200"}`}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-gray-600 text-[11px] font-bold truncate max-w-[130px]">{ch.companyName}</span>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white border border-gray-200 text-purple-700">
-                                {ch.revenueSharePercentage ?? Math.round(100 / coHostsList.length)}%
-                              </span>
-                            </div>
-                            <p className="text-sm font-bold text-purple-900">{formatVND(qVal)}</p>
-                            <span className="text-[10px] text-gray-500 block mt-0.5">
-                              {ch.role === "lead" ? "Chủ trì" : "Đối tác"} {isMe ? "(Bạn)" : ""}
-                            </span>
-                          </div>
-                        );
-                      })}
-
-                      <div className="p-3 bg-emerald-600 text-white rounded-lg shadow-sm">
-                        <span className="text-emerald-100 text-[11px] block font-bold">GIÁ BÁN CUỐI CHO KHÁCH:</span>
-                        <p className="text-lg font-black mt-0.5">{formatVND(calculatedFinalPrice)}</p>
-                        <span className="text-[10px] text-emerald-200">Tự động cộng dồn & đồng bộ</span>
-                      </div>
+                  <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-900">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span>
+                        Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng trên.
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
-
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-2">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                      Bảng giá vé theo phân loại độ tuổi
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Quy định đơn giá áp dụng cho từng đối tượng hành khách. Bạn có thể thêm, chỉnh sửa hoặc xóa các khung giá vé tùy theo chính sách của tour.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResetDefaultPriceRows}
-                      className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-gray-50"
-                      title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5 mr-1 text-gray-500" />
-                      Mẫu chuẩn 3 nhóm
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleAddPriceRow}
-                      className="text-xs h-8 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1 shadow-2xs"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Thêm khung giá vé
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-2xs">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-gray-100 text-gray-700">
-                        <th className="p-3 text-left w-1/4">Phân loại khách</th>
-                        <th className="p-3 text-left w-1/3">Độ tuổi áp dụng</th>
-                        <th className="p-3 text-right">Đơn giá vé (VNĐ)</th>
-                        <th className="p-3 text-center w-16">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
-                      {priceTable.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50/70 transition-colors">
-                          <td className="p-3">
-                            <Input
-                              value={row.ageGroupLabel}
-                              onChange={(e) => {
-                                const updated = [...priceTable];
-                                updated[idx].ageGroupLabel = e.target.value;
-                                setPriceTable(updated);
-                              }}
-                              placeholder="Tên nhóm (VD: Người lớn, Trẻ em...)"
-                              className="text-xs h-8 font-semibold text-gray-900"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <Input
-                              value={row.ageRange ?? ""}
-                              onChange={(e) => {
-                                const updated = [...priceTable];
-                                updated[idx].ageRange = e.target.value;
-                                setPriceTable(updated);
-                              }}
-                              placeholder="VD: Từ 11 tuổi trở lên, Từ 2 đến 11 tuổi..."
-                              className="text-xs h-8"
-                            />
-                          </td>
-                          <td className="p-3 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Input
-                                type="number"
-                                step={50000}
-                                min={0}
-                                value={row.price}
-                                onChange={(e) => {
-                                  const updated = [...priceTable];
-                                  updated[idx].price = Math.max(0, parseInt(e.target.value) || 0);
-                                  setPriceTable(updated);
-                                }}
-                                className="text-xs h-8 text-right font-bold text-blue-700 max-w-[160px]"
-                              />
-                              <span className="text-[11px] text-gray-500 font-medium">đ</span>
-                            </div>
-                          </td>
-                          <td className="p-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePriceRow(idx)}
-                              disabled={priceTable.length <= 1}
-                              className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                              title={priceTable.length <= 1 ? "Cần giữ tối thiểu 1 khung giá" : "Xóa khung giá này"}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-900">
-                  <div className="flex items-center gap-2">
-                    <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                    <span>
-                      Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng trên.
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 

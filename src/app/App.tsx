@@ -46,6 +46,7 @@ import {
   CustomLocationChange,
   SystemBankAccount,
   TourVersion,
+  BookingPriceAdjustment,
 } from "@/app/types";
 import {
   mockTours,
@@ -67,6 +68,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [currentPage, setCurrentPage] =
     useState<string>("home");
+  const [previousPage, setPreviousPage] = useState<string>("home");
   const [tours, setTours] = useState<Tour[]>(mockTours);
   const [bookings, setBookings] =
     useState<Booking[]>(mockBookings);
@@ -120,6 +122,7 @@ function App() {
   };
 
   const handleViewTour = (tour: Tour) => {
+    setPreviousPage(currentPage);
     setSelectedTour(tour);
     setCurrentPage("tour-detail");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -655,11 +658,12 @@ function App() {
     );
   };
 
-  // Company adjusts total booking price
+  // Company adjusts total booking price & logs adjustment history
   const handleUpdateBookingPrice = (
     bookingId: string,
     newPrice: number,
     note?: string,
+    adjustment?: Partial<BookingPriceAdjustment>,
   ) => {
     setBookings((prev) =>
       prev.map((b) => {
@@ -669,13 +673,26 @@ function App() {
           .filter((pr) => pr.status === "paid")
           .reduce((sum, pr) => sum + pr.amount, 0);
         const remaining = Math.max(0, newPrice - paidAmount);
+        const diff = newPrice - b.totalPrice;
+        const newAdj: BookingPriceAdjustment = {
+          id: adjustment?.id || `adj-${Date.now()}`,
+          bookingId: b.id,
+          adjustedBy: adjustment?.adjustedBy || currentUser?.name || "Công ty lữ hành",
+          previousTotalPrice: b.totalPrice,
+          adjustmentAmount: adjustment?.adjustmentAmount ?? diff,
+          newTotalPrice: newPrice,
+          reason: adjustment?.reason || note || (diff > 0 ? `Điều chỉnh tăng giá tour (+${diff.toLocaleString("vi-VN")}đ)` : `Điều chỉnh giảm giá tour (${diff.toLocaleString("vi-VN")}đ)`),
+          createdAt: adjustment?.createdAt || new Date().toISOString().split("T")[0],
+          paymentRequestId: adjustment?.paymentRequestId,
+        };
         return {
           ...b,
           originalTotalPrice: originalPrice,
           totalPrice: newPrice,
-          priceAdjustmentNote: note,
+          priceAdjustmentNote: note || newAdj.reason,
           priceAdjustedAt: new Date().toISOString().split("T")[0],
           remainingAmount: remaining,
+          priceAdjustments: [...(b.priceAdjustments ?? []), newAdj],
         };
       }),
     );
@@ -1072,6 +1089,7 @@ function App() {
             onMarkDepositPaid={handleMarkDepositPaid}
             onMarkFullyPaid={handleMarkFullyPaid}
             onUpdateBookingPrice={handleUpdateBookingPrice}
+            onUpdateBookingPassengers={handleUpdateBookingPassengers}
             onUpdateCustomRequest={handleUpdateCustomTourRequest}
             onRestoreTourVersion={handleRestoreTourVersion}
             onViewTour={handleViewTour}
@@ -1226,7 +1244,7 @@ function App() {
             currentUser={currentUser}
             onBack={() => {
               setSelectedTour(null);
-              setCurrentPage("book-tours");
+              setCurrentPage(previousPage || "home");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             onBookNow={handleOpenBookingForm}
@@ -1237,7 +1255,7 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <UserDashboard
-                tours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
+                tours={tours}
                 userBookings={userBookings}
                 customTourRequests={customTourRequests.filter((r) => r.userId === currentUser?.id)}
                 onBookTour={handleBookTour}

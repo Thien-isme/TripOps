@@ -10,6 +10,7 @@ interface UserDashboardProps {
   tours: Tour[];
   userBookings: Booking[];
   customTourRequests?: CustomTourRequest[];
+  initialTab?: "explore" | "mybookings" | "custom-requests";
   onBookTour: (
     tourId: string,
     numberOfGuests: number,
@@ -26,6 +27,7 @@ export function UserDashboard({
   tours,
   userBookings,
   customTourRequests = [],
+  initialTab,
   onBookTour,
   onCancelBooking,
   onViewTour,
@@ -35,7 +37,7 @@ export function UserDashboard({
 }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "explore" | "mybookings" | "custom-requests"
-  >("explore");
+  >(initialTab || "explore");
   const [selectedTour, setSelectedTour] = useState<Tour | null>(
     null,
   );

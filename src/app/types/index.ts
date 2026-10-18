@@ -178,6 +178,10 @@ export interface BookingPassenger {
   // Roll call status at departure
   departureAttendance?: "present" | "late" | "absent";
   departureCheckInTime?: string;
+  // Stage participation & Stage roll call for Co-hosted tours
+  participatingStages?: number[]; // e.g. [0, 1, 2] for all 3 stages, or [0] for only stage 1, or [2] for stage 3
+  stageAttendance?: Record<number, "pending" | "present" | "late" | "absent">; // stageIndex -> status
+  stageNotes?: Record<number, string>;
 }
 
 export interface CustomLocationChange {
@@ -246,6 +250,18 @@ export interface PaymentRequest {
   status: "pending" | "paid" | "overdue" | "cancelled";
   createdAt: string;
   paidAt?: string;
+}
+
+export interface BookingPriceAdjustment {
+  id: string;
+  bookingId: string;
+  adjustedBy: string; // Tên nhân viên hoặc công ty thực hiện
+  previousTotalPrice: number; // Giá cũ trước khi đổi
+  adjustmentAmount: number; // Chênh lệch (+ tăng, - giảm)
+  newTotalPrice: number; // Giá mới chốt lại
+  reason: string; // Lý do điều chỉnh
+  createdAt: string;
+  paymentRequestId?: string; // Mã đợt thanh toán tương ứng nếu có tạo
 }
 
 export interface SystemBankAccount {
@@ -352,6 +368,9 @@ export interface TourCoHost {
   // Cơ chế Báo giá chi phí chặng (Cost per segment / Net Price):
   estimatedBudgetPerGuest?: number; // Ngân sách dự kiến/khách trao đổi ban đầu (VNĐ)
   quotePerGuest?: number; // Báo giá chi phí thực tế phần công ty phụ trách (VNĐ/khách)
+  quoteAdult?: number; // Báo giá người lớn của chặng
+  quoteChild?: number; // Báo giá trẻ em (2-11 tuổi) của chặng
+  quoteInfant?: number; // Báo giá em bé (<2 tuổi) của chặng
   quoteStatus?: "draft" | "submitted"; // Trạng thái báo giá
   quoteNote?: string; // Diễn giải các dịch vụ bao gồm trong báo giá
   quotedAt?: string; // Thời điểm xác nhận báo giá
@@ -400,6 +419,7 @@ export interface Booking {
   originalTotalPrice?: number;
   priceAdjustmentNote?: string;
   priceAdjustedAt?: string;
+  priceAdjustments?: BookingPriceAdjustment[];
   // Financial settlement with platform admin
   settlementStatus?: "pending" | "settled";
   settledAmount?: number;

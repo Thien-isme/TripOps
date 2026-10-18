@@ -37,6 +37,7 @@ interface CompanyDashboardProps {
   onMarkDepositPaid?: (bookingId: string) => void;
   onMarkFullyPaid?: (bookingId: string) => void;
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
+  onUpdateBookingPassengers?: (bookingId: string, updatedPassengers: any[]) => void;
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
   onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
   onViewTour?: (tour: Tour) => void;
@@ -65,6 +66,7 @@ export function CompanyDashboard({
   onMarkDepositPaid,
   onMarkFullyPaid,
   onUpdateBookingPrice,
+  onUpdateBookingPassengers,
   onUpdateCustomRequest,
   onRestoreTourVersion,
   onViewTour,
@@ -264,6 +266,7 @@ export function CompanyDashboard({
               onMarkDepositPaid={onMarkDepositPaid}
               onMarkFullyPaid={onMarkFullyPaid}
               onUpdateBookingPrice={onUpdateBookingPrice}
+              onUpdateBookingPassengers={onUpdateBookingPassengers}
             />
           );
         }

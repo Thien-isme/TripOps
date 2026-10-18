@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CustomTourRequest, Tour } from "@/app/types";
+import { mockTours } from "@/app/data/mockData";
 import {
   Clock,
   CheckCircle,
@@ -17,6 +18,8 @@ import {
   ShieldAlert,
   Handshake,
   ShieldCheck,
+  Building,
+  Utensils,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 
@@ -59,7 +62,11 @@ export function UserCustomRequests({
   onViewTour,
   onBookTour,
 }: UserCustomRequestsProps) {
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>("ctr-1");
+  const [expandedItinerary, setExpandedItinerary] = useState<Record<string, boolean>>({
+    "ctr-1": true,
+    "ctr-solo-1": true,
+  });
 
   if (requests.length === 0) {
     return (
@@ -95,9 +102,11 @@ export function UserCustomRequests({
         const isExp = expanded === req.id;
 
         // Find matching tour designed for this request
-        const matchingTour = tours.find(
-          (t) => t.id === req.designedTourId || t.customRequestId === req.id
-        );
+        const matchingTour =
+          tours.find((t) => t.id === req.designedTourId || t.customRequestId === req.id) ||
+          mockTours.find((t) => t.id === req.designedTourId || t.customRequestId === req.id);
+
+        const isItineraryOpen = expandedItinerary[req.id] ?? false;
 
         return (
           <div
@@ -128,6 +137,12 @@ export function UserCustomRequests({
                   {matchingTour && (
                     <span className="bg-purple-100 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
                       Phiên bản v{matchingTour.version || req.currentVersion || 1}
+                    </span>
+                  )}
+                  {matchingTour?.isCoHosted && (
+                    <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Handshake className="w-3 h-3 text-indigo-600" />
+                      Liên minh 2 cty
                     </span>
                   )}
                 </div>
@@ -187,7 +202,7 @@ export function UserCustomRequests({
                         </p>
                       </div>
 
-                      <div className="text-left sm:text-right bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-white/10">
+                      <div className="text-left sm:text-right bg-white/10 backdrop-blur-xs p-3 rounded-xl border border-white/10 flex-shrink-0">
                         <p className="text-xs text-purple-200">Đơn giá trọn gói</p>
                         <p className="text-xl font-extrabold text-amber-300">
                           {formatVND(matchingTour.price)}
@@ -196,14 +211,144 @@ export function UserCustomRequests({
                       </div>
                     </div>
 
+                    {/* Operational responsibility banner: Co-hosted alliance vs Single company */}
+                    {matchingTour.isCoHosted && matchingTour.coHosts && matchingTour.coHosts.length > 0 ? (
+                      <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15 space-y-2">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="bg-purple-600/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+                              <Handshake className="w-3.5 h-3.5 text-amber-300" />
+                              Tour Liên Minh Đối Tác
+                            </span>
+                            <span className="text-xs text-purple-200">
+                              Phối hợp thực hiện bởi {matchingTour.coHosts.length} thương hiệu lữ hành uy tín
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-emerald-300 font-semibold flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Ký quỹ bảo chứng Escrow
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                          {matchingTour.coHosts.map((ch) => (
+                            <div key={ch.id} className="bg-purple-950/60 rounded-lg p-2.5 border border-purple-400/20">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-white text-xs">{ch.companyName}</span>
+                                <span
+                                  className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                    ch.role === "lead"
+                                      ? "bg-blue-500/40 text-blue-200 border border-blue-400/40"
+                                      : "bg-purple-500/40 text-purple-200 border border-purple-400/40"
+                                  }`}
+                                >
+                                  {ch.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Bản địa"}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-purple-300 mt-1">{ch.assignedSegments}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15 flex items-center justify-between text-xs flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-600/80 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                            🏢 Đơn vị tổ chức độc lập
+                          </span>
+                          <span className="font-bold text-white text-sm">
+                            {matchingTour.companyName || req.targetCompanyName}
+                          </span>
+                        </div>
+                        <span className="text-xs text-purple-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">
+                          Phụ trách trọn gói 100% lịch trình &amp; dịch vụ chuyên nghiệp
+                        </span>
+                      </div>
+                    )}
+
                     {matchingTour.changeNote && (
                       <div className="bg-black/30 rounded-lg p-3 text-xs text-purple-200 border border-white/10">
                         <p className="font-bold text-white mb-0.5">
                           Ghi chú từ công ty cho phiên bản này (v{matchingTour.version || 1}):
                         </p>
-                        <p className="italic">"{matchingTour.changeNote}"</p>
+                        <p className="italic text-amber-200">"{matchingTour.changeNote}"</p>
                       </div>
                     )}
+
+                    {/* Quick Itinerary Preview Accordion */}
+                    <div className="bg-black/25 rounded-xl border border-white/15 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedItinerary((prev) => ({
+                            ...prev,
+                            [req.id]: !prev[req.id],
+                          }));
+                        }}
+                        className="w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold text-purple-100 hover:bg-white/5 transition-colors"
+                      >
+                        <span className="flex items-center gap-2 font-bold text-white text-sm">
+                          <Calendar className="w-4 h-4 text-amber-300" />
+                          Xem nhanh tóm tắt lịch trình ({matchingTour.itinerary?.length || 0} ngày)
+                        </span>
+                        <span className="text-amber-300 text-xs flex items-center gap-1 font-bold">
+                          {isItineraryOpen ? "Thu gọn lịch trình" : "Xem chi tiết từng ngày"}
+                          {isItineraryOpen ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </span>
+                      </button>
+
+                      {isItineraryOpen && (
+                        <div className="p-3.5 space-y-2.5 border-t border-white/10 bg-black/30">
+                          {matchingTour.itinerary?.map((day) => (
+                            <div
+                              key={day.id || day.day}
+                              className="bg-white/10 hover:bg-white/15 transition-colors rounded-xl p-3 text-xs text-purple-100 border border-white/10 space-y-2"
+                            >
+                              <div className="flex items-start justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="bg-amber-400 text-purple-950 font-extrabold text-[11px] px-2 py-0.5 rounded shadow-xs">
+                                    Ngày {day.day}
+                                  </span>
+                                  <span className="font-bold text-white text-sm">
+                                    {day.title}
+                                  </span>
+                                </div>
+                                {day.createdByCompanyName && (
+                                  <span className="text-[10px] bg-purple-800 border border-purple-400/40 text-purple-200 px-2 py-0.5 rounded-full font-semibold">
+                                    Đơn vị phụ trách: {day.createdByCompanyName}
+                                  </span>
+                                )}
+                              </div>
+
+                              {day.description && (
+                                <p className="text-purple-200 leading-relaxed text-xs">
+                                  {day.description}
+                                </p>
+                              )}
+
+                              <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-purple-300 border-t border-white/10">
+                                {day.hotel && (
+                                  <span className="flex items-center gap-1 text-amber-200">
+                                    <Building className="w-3.5 h-3.5 text-amber-300" />
+                                    {day.hotel.name} {day.hotel.stars ? `(${day.hotel.stars}★)` : ""}
+                                  </span>
+                                )}
+                                {day.meals && day.meals.length > 0 && (
+                                  <span className="flex items-center gap-1 text-purple-200">
+                                    <Utensils className="w-3.5 h-3.5 text-purple-300" />
+                                    {day.meals.map((m) => m.serviceName).join(" · ")}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Important Customer Guideline Box */}
                     <div className="bg-purple-800/60 border border-purple-400/30 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-100">
@@ -211,7 +356,7 @@ export function UserCustomRequests({
                       <div>
                         <p className="font-semibold text-white">Chính sách xem &amp; điều chỉnh Tour thiết kế riêng:</p>
                         <p className="mt-0.5 text-purple-200 leading-relaxed">
-                          Đây là chương trình tour độc quyền thiết kế riêng theo thỏa thuận giữa bạn và <strong>{req.targetCompanyName}</strong>. Bạn chỉ có thể xem toàn bộ lịch trình, chỗ ở, bữa ăn và bấm <strong>"Đặt tour ngay"</strong>. Nếu cần thay đổi bất cứ điều gì, bạn hãy liên hệ với công ty qua hotline hoặc Zalo để công ty điều chỉnh và tạo phiên bản mới cho bạn.
+                          Đây là chương trình tour độc quyền thiết kế riêng theo thỏa thuận giữa bạn và <strong>{req.targetCompanyName}</strong>. Bạn có thể xem toàn bộ lịch trình, chỗ ở, bữa ăn và bấm <strong>"Đặt tour ngay"</strong>. Nếu cần thay đổi bất cứ điều gì, bạn hãy liên hệ với công ty qua hotline hoặc Zalo để công ty điều chỉnh và tạo phiên bản mới cho bạn.
                         </p>
                       </div>
                     </div>
@@ -220,7 +365,10 @@ export function UserCustomRequests({
                     <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
                       {onViewTour && (
                         <Button
-                          onClick={() => onViewTour(matchingTour)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewTour(matchingTour);
+                          }}
                           className="w-full sm:w-auto bg-white hover:bg-gray-100 text-purple-950 font-bold gap-2 text-xs shadow-sm"
                         >
                           <Eye className="w-4 h-4 text-purple-700" />
@@ -229,7 +377,10 @@ export function UserCustomRequests({
                       )}
                       {onBookTour && (
                         <Button
-                          onClick={() => onBookTour(matchingTour)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onBookTour(matchingTour);
+                          }}
                           className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-purple-950 font-extrabold gap-2 text-xs shadow-sm"
                         >
                           <Sparkles className="w-4 h-4 text-purple-900" />
@@ -254,8 +405,8 @@ export function UserCustomRequests({
                   </div>
                 )}
 
-                {/* Co-Hosting Alliance Information for Customer */}
-                {(matchingTour?.isCoHosted || req.isCoHosted) && (
+                {/* Co-Hosting Alliance Information for Customer (when pending / reviewing) */}
+                {!matchingTour && req.isCoHosted && (
                   <div className="bg-gradient-to-r from-purple-50 via-indigo-50/60 to-blue-50 border border-purple-200 rounded-xl p-4.5 space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="bg-purple-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">

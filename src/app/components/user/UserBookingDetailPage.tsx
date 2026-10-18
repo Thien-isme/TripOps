@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Booking, BookingPassenger, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
 import { defaultSystemBankAccount } from "@/app/data/mockData";
 import {
@@ -37,6 +37,8 @@ import {
   Plus,
   Trash2,
   Edit,
+  Flag,
+  History,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -114,11 +116,63 @@ export function UserBookingDetailPage({
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
   const [paymentSuccessToast, setPaymentSuccessToast] = useState(false);
+  const [priceAdjustmentsModalOpen, setPriceAdjustmentsModalOpen] = useState(false);
 
   // Passenger management state
   const [passengersList, setPassengersList] = useState<BookingPassenger[]>(
     booking.passengers && booking.passengers.length > 0 ? booking.passengers : []
   );
+  const stagesList = useMemo(() => {
+    if (booking.coHosts && booking.coHosts.length > 0) return booking.coHosts;
+    if (booking.tour?.coHosts && booking.tour.coHosts.length > 0) return booking.tour.coHosts;
+    return [];
+  }, [booking]);
+
+  const isCoHostedTour = Boolean(booking.isCoHosted || stagesList.length > 1);
+
+  const calculatePassengerPrice = (ageGroup: "adult" | "child_2_11" | "child_under_2"): number => {
+    if (ageGroup === "child_under_2") return 0;
+    if (isCoHostedTour && stagesList.length > 0) {
+      return stagesList.reduce((sum, ch) => {
+        if (!ch) return sum;
+        if (ageGroup === "child_2_11") return sum + (ch.quoteChild ?? Math.round((ch.quoteAdult ?? ch.quotePerGuest ?? 2000000) * 0.7));
+        return sum + (ch.quoteAdult ?? ch.quotePerGuest ?? 2000000);
+      }, 0);
+    }
+
+    // Ưu tiên 1: Giá vé người lớn thực tế đã có trong đoàn
+    const existingAdult = passengersList.find((p) => p.ageGroup === "adult" && p.price && p.price > 0);
+    let baseAdultPrice = 0;
+    if (existingAdult && existingAdult.price) {
+      baseAdultPrice = existingAdult.price;
+    } else if (booking.passengers && booking.passengers.length > 0) {
+      const bAdult = booking.passengers.find((p) => p.ageGroup === "adult" && p.price && p.price > 0);
+      if (bAdult && bAdult.price) {
+        baseAdultPrice = bAdult.price;
+      }
+    }
+
+    // Ưu tiên 2: Chia bình quân từ tổng tiền đơn hàng hiện tại
+    if (!baseAdultPrice && booking.numberOfGuests && booking.numberOfGuests > 0 && booking.totalPrice > 0) {
+      baseAdultPrice = Math.round(booking.totalPrice / booking.numberOfGuests);
+    }
+
+    // Ưu tiên 3: Giá gốc tour
+    if (!baseAdultPrice) {
+      baseAdultPrice = booking.tour?.price || 3500000;
+    }
+
+    if (ageGroup === "child_2_11") {
+      const existingChild = passengersList.find((p) => p.ageGroup === "child_2_11" && p.price && p.price > 0);
+      if (existingChild && existingChild.price) {
+        return existingChild.price;
+      }
+      return Math.round(baseAdultPrice * 0.7);
+    }
+
+    return baseAdultPrice;
+  };
+
   const [showPassengerModal, setShowPassengerModal] = useState(false);
   const [editingPassenger, setEditingPassenger] = useState<BookingPassenger | null>(null);
   const [pFullName, setPFullName] = useState("");
@@ -139,7 +193,7 @@ export function UserBookingDetailPage({
     setPPhone("");
     setPIdNumber("");
     setPNotes("");
-    setPPrice(booking.tour.price || 3500000);
+    setPPrice(calculatePassengerPrice("adult"));
     setShowPassengerModal(true);
   };
 
@@ -159,6 +213,8 @@ export function UserBookingDetailPage({
   const handleSavePassenger = () => {
     if (!pFullName.trim()) return;
     let updated: BookingPassenger[];
+    const computedPrice = pPrice || calculatePassengerPrice(pAgeGroup);
+
     if (editingPassenger) {
       updated = passengersList.map((p) =>
         p.id === editingPassenger.id
@@ -171,7 +227,7 @@ export function UserBookingDetailPage({
               phone: pPhone.trim(),
               idNumber: pIdNumber.trim(),
               notes: pNotes.trim(),
-              price: pPrice,
+              price: computedPrice,
             }
           : p
       );
@@ -185,7 +241,7 @@ export function UserBookingDetailPage({
         phone: pPhone.trim(),
         idNumber: pIdNumber.trim(),
         notes: pNotes.trim(),
-        price: pPrice,
+        price: computedPrice,
       };
       updated = [...passengersList, newP];
     }
@@ -1251,10 +1307,24 @@ export function UserBookingDetailPage({
 
               <div className="space-y-2.5 text-xs">
                 {/* Total Price and adjustments */}
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1">
-                  <div className="flex justify-between items-center">
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1.5">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
                     <span className="text-gray-500 font-medium">Tổng giá trị tour ({booking.numberOfGuests} khách):</span>
-                    <span className="font-extrabold text-blue-700 text-base">{formatVND(booking.totalPrice)}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      <span className="font-extrabold text-blue-700 text-base">{formatVND(booking.totalPrice)}</span>
+                      {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setPriceAdjustmentsModalOpen(true)}
+                          className="h-7 px-2 text-xs text-amber-700 hover:text-amber-900 hover:bg-amber-100 gap-1 font-semibold"
+                          title="Xem lịch sử điều chỉnh giá từ công ty lữ hành"
+                        >
+                          <History className="w-3.5 h-3.5 text-amber-600" />
+                          Nhật ký ({booking.priceAdjustments.length})
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {booking.originalTotalPrice && booking.originalTotalPrice !== booking.totalPrice && (
@@ -1270,6 +1340,23 @@ export function UserBookingDetailPage({
                     <p className="text-[11px] text-gray-700 bg-white p-2 rounded border border-gray-200 mt-1">
                       💡 <strong>Ghi chú từ công ty:</strong> {booking.priceAdjustmentNote}
                     </p>
+                  )}
+
+                  {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
+                    <div className="bg-amber-50/70 p-2 rounded-lg border border-amber-200 text-[11px] text-amber-900 space-y-1">
+                      <div className="flex justify-between items-center font-bold">
+                        <span className="flex items-center gap-1 text-[11px]">
+                          <History className="w-3 h-3 text-amber-600" />
+                          Lần điều chỉnh gần nhất:
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {new Date(booking.priceAdjustments[booking.priceAdjustments.length - 1].createdAt).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-amber-800 line-clamp-1 italic">
+                        "{booking.priceAdjustments[booking.priceAdjustments.length - 1].reason}"
+                      </p>
+                    </div>
                   )}
                 </div>
 
@@ -1821,9 +1908,7 @@ export function UserBookingDetailPage({
                   onChange={(e) => {
                     const ag = e.target.value as "adult" | "child_2_11" | "child_under_2";
                     setPAgeGroup(ag);
-                    if (ag === "adult") setPPrice(booking.tour.price || 3500000);
-                    else if (ag === "child_2_11") setPPrice(Math.round((booking.tour.price || 3500000) * 0.75));
-                    else setPPrice(0);
+                    setPPrice(calculatePassengerPrice(ag));
                   }}
                   className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
                 >
@@ -1841,7 +1926,7 @@ export function UserBookingDetailPage({
                   type="number"
                   value={pPrice}
                   onChange={(e) => setPPrice(Number(e.target.value))}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500 font-bold text-teal-800"
                 />
               </div>
             </div>
@@ -1898,6 +1983,90 @@ export function UserBookingDetailPage({
                 className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold"
               >
                 {editingPassenger ? "Lưu thay đổi" : "Thêm hành khách"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: NHẬT KÝ ĐIỀU CHỈNH GIÁ TỪ CÔNG TY LỮ HÀNH (AUDIT LOG) */}
+      <Dialog open={priceAdjustmentsModalOpen} onOpenChange={setPriceAdjustmentsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+              <History className="w-5 h-5 text-teal-600" />
+              Nhật ký điều chỉnh giá từ công ty lữ hành #{booking.id}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2 text-xs">
+            <div className="p-3 bg-teal-50 rounded-xl border border-teal-200 text-teal-900 space-y-1">
+              <p className="font-bold">Minh bạch điều chỉnh tài chính &amp; số lượng hành khách</p>
+              <p className="text-[11px] text-teal-800 leading-relaxed">
+                Khi có phát sinh bổ sung người tham gia đoàn hoặc thay đổi các dịch vụ theo thỏa thuận ngoài hệ thống, công ty lữ hành sẽ cập nhật giá tour và ghi nhận chi tiết tại đây để bạn tiện theo dõi đối soát.
+              </p>
+            </div>
+
+            {booking.priceAdjustments && booking.priceAdjustments.length > 0 ? (
+              <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200 bg-white shadow-2xs">
+                {booking.priceAdjustments.map((adj, index) => {
+                  const isPositive = adj.adjustmentAmount > 0;
+                  return (
+                    <div key={adj.id || index} className="p-3.5 space-y-2 hover:bg-gray-50/80 transition-colors">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                            isPositive
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                              : "bg-rose-100 text-rose-800 border border-rose-200"
+                          }`}>
+                            {isPositive ? `+${formatVND(adj.adjustmentAmount)}` : `-${formatVND(Math.abs(adj.adjustmentAmount))}`}
+                          </span>
+                          <span className="font-semibold text-gray-900">
+                            {adj.reason}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-gray-400">
+                          {new Date(adj.createdAt).toLocaleString("vi-VN")}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-gray-50/70 p-2 rounded-lg border border-gray-100 text-[11px]">
+                        <div>
+                          <span className="text-gray-400 block">Đơn vị thực hiện:</span>
+                          <span className="font-bold text-gray-800">{adj.adjustedBy || booking.tour.companyName || "Công ty lữ hành"}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block">Biến động giá tour:</span>
+                          <span className="font-medium text-gray-700">
+                            {formatVND(adj.previousTotalPrice)} ➔ <strong className="text-blue-700">{formatVND(adj.newTotalPrice)}</strong>
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block">Trạng thái đợt thu:</span>
+                          <span className="font-medium text-gray-700">
+                            {adj.paymentRequestId ? (
+                              <span className="text-emerald-700 font-bold">Đã tạo đợt thu bổ sung</span>
+                            ) : (
+                              <span className="text-gray-500">Cập nhật vào giá tổng</span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-200 text-gray-500 space-y-1">
+                <History className="w-8 h-8 text-gray-400 mx-auto mb-2 opacity-60" />
+                <p className="font-medium">Chưa có lần điều chỉnh giá nào.</p>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2 border-t">
+              <Button size="sm" variant="outline" onClick={() => setPriceAdjustmentsModalOpen(false)}>
+                Đóng
               </Button>
             </div>
           </div>
