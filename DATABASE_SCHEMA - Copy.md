@@ -27,14 +27,63 @@ Table business_profiles {
   updated_at timestamp [default: `now()`]
 }
 
+// ============================================================================
+// BẢNG DỊCH VỤ CỦA NHÀ CUNG CẤP (SINGLE TABLE CHO HOTEL, FNB, XE, THAM QUAN)
+// ============================================================================
+Table services {
+  id int [pk, increment]
+  provider_id varchar(36) [not null, note: 'FK tới users.id - Nhà cung cấp dịch vụ']
+  
+  // 1. PHÂN LOẠI DỊCH VỤ
+  category varchar(50) [not null, note: 'hotel (Lưu trú), fnb (Ẩm thực), transportation (Vận chuyển), attraction (Tham quan)']
+  sub_category varchar(100) [note: 'Phân loại chi tiết: Resort, Khách sạn, Nhà hàng hải sản, Xe 16 chỗ, Cano...']
+  
+  // 2. THÔNG TIN BÀI ĐĂNG
+  name varchar(255) [not null, note: 'Tên cơ sở / bài đăng dịch vụ (VD: Khách Sạn Heritage Đà Lạt, Xe Limousine VIP...)']
+  description text [note: 'Mô tả chi tiết bài đăng dịch vụ']
+  
+  // 3. GIÁ CẢ (KHOẢNG GIÁ ĐỂ CÔNG TY DU LỊCH THAM KHẢO & THỎA THUẬN)
+  price decimal(12, 2) [not null, default: 0, note: 'Giá chuẩn tham chiếu']
+  price_from decimal(12, 2) [note: 'Khoảng giá từ (VNĐ)']
+  price_to decimal(12, 2) [note: 'Khoảng giá đến (VNĐ)']
+  
+  // 4. QUY MÔ, TIỆN ÍCH & CHÍNH SÁCH ĐẶC THÙ
+  capacity int [default: 0, note: 'Quy mô chung: Hotel (số phòng), FnB (số khách), Xe (số ghế), Điểm đến (sức chứa/ngày)']
+  star_rating int [note: 'Hạng sao (1-5 sao, chủ yếu dùng cho Khách sạn/Resort)']
+  amenities json [note: 'Danh sách tiện ích nổi bật dạng mảng JSON: ["Wifi", "Bãi đỗ xe 45 chỗ", "Bể bơi", "Phòng VIP máy lạnh"...]']
+  policies json [note: 'Danh sách quy định & chính sách dạng mảng JSON: ["Nhận phòng 14:00", "Miễn phí hủy trước 24h"...]']
+  
+  // 5. ĐỊA CHỈ & TỌA ĐỘ GPS GOOGLE MAPS
+  province varchar(100) [not null, note: 'Tỉnh / Thành phố']
+  ward varchar(100) [note: 'Phường / Xã']
+  street varchar(255) [note: 'Số nhà, tên đường']
+  latitude decimal(10, 8) [note: 'Tọa độ GPS vĩ độ để ghim bản đồ']
+  longitude decimal(11, 8) [note: 'Tọa độ GPS kinh độ để ghim bản đồ']
+  
+  // 6. HÌNH ẢNH DỊCH VỤ
+  thumbnail_url text [not null, note: 'Ảnh đại diện chính của bài đăng']
+  images json [note: 'Danh sách các ảnh chi tiết dạng mảng JSON']
+  
+  // 7. ĐÁNH GIÁ & KIỂM DUYỆT (ADMIN DANG XÉT DUYỆT)
+  rating decimal(3, 2) [default: 5.0, note: 'Điểm đánh giá trung bình']
+  status varchar(30) [default: 'PENDING', note: 'PENDING (Chờ duyệt), APPROVED (Đã duyệt mở bán), REJECTED (Bị từ chối), HIDDEN (Tạm ẩn)']
+  rejection_reason text [note: 'Lý do Admin từ chối phê duyệt bài đăng']
+  
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+// MỐI QUAN HỆ KHÓA NGOẠI:
+Ref: services.provider_id > users.id
+
 Table tours {
   id int [pk, increment]
   agency_id int // Khóa ngoại FK liên kết tới bảng agency/business tương ứng
   tour_code varchar(50)
   name varchar(255)
   destination text
-  thoigian1 text
-  thoigianhoatdongcuatour1 text
+  duration_tour text
+  operation_period varchar(255)
   duration_days int
   duration_nights int
   baseprice text
@@ -43,8 +92,8 @@ Table tours {
   diemnoibat text
   inclusions text
   exclusions text
-  dieukienluuy1 text
-  loinhan1 text
+  policies text
+  message text
   thumbnail_urls text // hoặc json/text[] tùy hệ cơ sở dữ liệu
   image_urls text     // hoặc json/text[]
   status varchar(50)
@@ -300,17 +349,18 @@ Table booking_timelines {
 Table booking_timeline_attractions {
   id int [pk, increment]
   booking_timeline_id int [not null, note: 'FK tới booking_timelines.id']
-  
+  agency_id varchar(36)
   // ĐIỂM GỐC THEO TOUR BAN ĐẦU
   original_location_name varchar(255) [not null, note: 'Điểm gốc của tour (VD: Đảo Hòn Mun, Chợ đêm Đà Lạt)']
   
   // ĐIỂM MỚI NẾU KHÁCH ĐỀ XUẤT ĐỔI (NULL nếu đi theo tour)
   customized_location_name varchar(255) [note: 'Điểm mới khách muốn đi (VD: Hòn Tằm & Tắm bùn khoáng)']
-  
+
   is_customized boolean [default: false, note: 'false: Đi theo tour mặc định | true: Có đổi điểm']
   customer_note text [note: 'Lý do hoặc mong muốn của khách khi đổi']
   price_difference decimal(12, 2) [default: 0, note: 'Phụ thu vé phát sinh (nếu có)']
   status varchar(30) [default: 'approved', note: 'pending (chờ duyệt), approved (đồng ý), rejected (từ chối)']
+
 }
 
 // ============================================================================
@@ -324,14 +374,17 @@ Table booking_timeline_meals {
   // NHÀ HÀNG GỐC THEO TOUR (Hiện ở dòng "Mặc định: ...")
   original_restaurant_name varchar(255) [not null, note: 'VD: Nhà hàng Yến Sào Cam Ranh']
   
-  // NHÀ HÀNG MỚI KHÁCH CHỌN ĐỔI (NULL nếu đi theo tour)
+  // NHÀ HÀNG MỚI KHÁCH CHỌN ĐỔI (Snapshot tên tại thời điểm đặt)
   customized_restaurant_name varchar(255) [note: 'VD: Nhà hàng Hải Sản Biển Xanh']
+  provider_id varchar(36) [note: 'FK tới users.id - Đối tác cung cấp để cty du lịch liên hệ đặt bàn (NULL nếu khách tự đề xuất)']
   
   price_difference decimal(12, 2) [default: 0, note: 'Chênh lệch giá (VD: 0đ nếu theo tour, +60.000đ nếu đổi)']
   is_customized boolean [default: false, note: 'false: Theo tour (0đ) | true: Đã đổi món/nhà hàng']
   customer_note text
   status varchar(30) [default: 'approved', note: 'pending, approved, rejected']
 }
+
+Ref: booking_timeline_meals.provider_id > users.id
 
 // ============================================================================
 // 4. KHÁCH SẠN LƯU TRÚ (Lưu khách sạn gốc & khách sạn đổi)
@@ -345,9 +398,10 @@ Table booking_accommodations {
   original_hotel_name varchar(255) [not null, note: 'VD: Vinpearl Resort & Spa Nha Trang Bay']
   original_stars int [default: 5]
   
-  // KHÁCH SẠN MỚI NẾU ĐỔI HẠNG / NÂNG CẤP (NULL nếu giữ nguyên)
-  customized_hotel_name varchar(255) [note: 'VD: InterContinental Nha Trang']
+  // KHÁCH SẠN MỚI NẾU ĐỔI HẠNG / NÂNG CẤP (Snapshot tên tại thời điểm đặt)
+  customized_hotel_name varchar(255) [note: 'VD: Khách Sạn Heritage Đà Lạt']
   customized_stars int
+  provider_id varchar(36) [note: 'FK tới users.id - Đối tác cung cấp để cty du lịch liên hệ đặt phòng (NULL nếu khách tự đề xuất)']
   
   nights_count int [default: 1]
   price_difference decimal(12, 2) [default: 0, note: 'Chênh lệch (+450.000đ)']
@@ -355,6 +409,62 @@ Table booking_accommodations {
   customer_note text
   status varchar(30) [default: 'approved', note: 'pending, approved, rejected']
 }
+
+Ref: booking_accommodations.provider_id > users.id
+
+// ============================================================================
+    // NHẬT KÝ PHÂN CÔNG & CHECK-IN ĐIỂM THAM QUAN CỦA HƯỚNG DẪN VIÊN
+    // ============================================================================
+    Table booking_attraction_checkins {
+      id int [pk, increment]
+      booking_timeline_attraction_id int [not null, note: 'FK tới booking_timeline_attractions.id']
+      guide_id varchar(36) [not null, note: 'FK tới users.id - Hướng dẫn viên phụ trách dẫn điểm/xe này']
+      agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty trực tiếp quản lý HDV này']
+      
+      attendance_status varchar(30) [default: 'PENDING', note: 'PENDING (Chưa đến) - CHECKED_IN (Đã đến điểm) -SKIPPED (Bỏ qua/sự cố)']
+      checked_at timestamp [note: 'Thời điểm check-in hoặc báo skip thực tế']
+      photo_proof_url text [note: 'Ảnh chụp minh chứng đoàn đã tới điểm']
+      notes text [note: 'Ghi chú của HDV: nổ lốp xe, kẹt xe, thời tiết xấu nên đổi điểm...']
+    
+      created_at timestamp [default: `now()`]
+      updated_at timestamp [default: `now()`]
+    
+      indexes {
+        (booking_timeline_attraction_id, guide_id) [unique, note: 'Mỗi HDV chỉ có 1 lượt check-in cho 1 điểm']
+      }
+    }
+    
+    // Khóa ngoại liên kết
+    Ref: booking_attraction_checkins.booking_timeline_attraction_id > booking_timeline_attractions.id
+    Ref: booking_attraction_checkins.guide_id > users.id
+    Ref: booking_attraction_checkins.agency_id > users.id
+
+// ============================================================================
+// BÁO CÁO SỰ CỐ VẬN HÀNH TOUR (TOUR INCIDENTS - NỐI TRỰC TIẾP TỚI BOOKING)
+// ============================================================================
+Table booking_incidents {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id - Nối thẳng tới đơn booking']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty phụ trách xử lý']
+  reported_by varchar(36) [not null, note: 'FK tới users.id - HDV hoặc Điều hành tour báo cáo sự cố']
+  
+  incident_type varchar(50) [default: 'OTHER', note: 'TRAFFIC (Giao thông), WEATHER (Thời tiết), HEALTH (Sức khỏe), ITINERARY (Lộ trình), OTHER']
+  title varchar(255) [not null, note: 'Tiêu đề sự cố: VD: Hỏng xe tại đèo, Sạt lở đường...']
+  description text [not null, note: 'Mô tả chi tiết sự cố và phương án xử lý (VD: bỏ qua 1 số điểm tham quan)']
+  
+  status varchar(30) [default: 'REPORTED', note: 'REPORTED (Đã báo), IN_PROGRESS (Đang xử lý), RESOLVED (Đã khắc phục)']
+  evidence_urls json [note: 'Ảnh chụp hiện trường sự cố / biên bản xác nhận']
+  resolved_at timestamp [note: 'Thời điểm sự cố được khắc phục xong']
+  
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Ref: booking_incidents.booking_id > bookings.id
+Ref: booking_incidents.agency_id > users.id
+Ref: booking_incidents.reported_by > users.id
+
+
 
 // ============================================================================
 // 1. CÁC ĐỢT YÊU CẦU THANH TOÁN (PAYMENT MILESTONES)
@@ -429,6 +539,77 @@ Table booking_agencies {
     (booking_id, agency_id) [unique] // Mỗi công ty chỉ xuất hiện 1 dòng trong 1 đơn booking
   }
 }
+
+// ============================================================================
+// 1. ĐÁNH GIÁ TOUR & DỊCH VỤ (FEEDBACKS)
+// ============================================================================
+Table feedbacks {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  customer_id varchar(36) [not null, note: 'FK tới users.id - Khách hàng đánh giá']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty chủ trì nhận đánh giá']
+
+  // Đánh giá trải nghiệm tour chung
+  overall_rating int [not null, note: 'Điểm số 1 - 5 sao cho toàn bộ chuyến đi']
+  overall_comment text [note: 'Nhận xét về lịch trình, cảnh quan, ẩm thực...']
+
+  // Đánh giá công ty du lịch chủ trì
+  agency_rating int [not null, note: 'Điểm số 1 - 5 sao về chất lượng phục vụ của cty']
+  agency_comment text [note: 'Nhận xét về thái độ phục vụ, điều phối tour']
+
+  images json [note: 'Ảnh chụp thực tế do khách đính kèm review']
+
+  // Phản hồi từ công ty chủ trì
+  agency_reply text [note: 'Lời cảm ơn hoặc phản hồi của cty chủ trì']
+  replied_at timestamp
+
+  status varchar(30) [default: 'VISIBLE', note: 'VISIBLE (Hiển thị công khai), HIDDEN (Vi phạm, bị ẩn), PENDING']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    booking_id [unique, note: 'Mỗi đơn booking khách chỉ được đánh giá 1 lần']
+  }
+}
+
+// ============================================================================
+// 2. KHIẾU NẠI & TRANH CHẤP (COMPLAINTS)
+// ============================================================================
+Table complaints {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  customer_id varchar(36) [not null, note: 'FK tới users.id - Khách hàng khiếu nại']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty chủ trì bị khiếu nại']
+
+  // Thông tin khiếu nại từ khách
+  subject varchar(255) [not null, note: 'Tiêu đề khiếu nại (VD: Sai hạng phòng khách sạn so với cam kết)']
+  description text [not null, note: 'Mô tả chi tiết sự cố phát sinh']
+  evidence_urls json [note: 'Danh sách link ảnh/video/hóa đơn làm bằng chứng']
+
+  // Giải trình từ Công ty chủ trì
+  agency_response text [note: 'Giải trình và phương án hỗ trợ/đền bù của công ty chủ trì']
+  agency_responded_at timestamp
+
+  // Trọng tài Admin xử lý
+  admin_id varchar(36) [note: 'FK tới users.id - Admin sàn giải quyết khiếu nại']
+  admin_notes text [note: 'Kết luận và phán quyết xử lý của Admin']
+  status varchar(30) [default: 'PENDING', note: 'PENDING (Chờ cty giải trình), IN_REVIEW (Admin đang xử lý), RESOLVED (Đã giải quyết), REJECTED (Bác bỏ)']
+  resolved_at timestamp
+
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  deleted_at timestamp [note: 'Soft delete nếu cần']
+}
+
+// KHÓA NGOẠI (REFS)
+Ref: feedbacks.booking_id > bookings.id
+Ref: feedbacks.customer_id > users.id
+Ref: feedbacks.agency_id > users.id
+
+Ref: complaints.booking_id > bookings.id
+Ref: complaints.customer_id > users.id
+Ref: complaints.agency_id > users.id
+Ref: complaints.admin_id > users.id
 
 // Khóa ngoại liên kết
 Ref: booking_agencies.booking_id > bookings.id

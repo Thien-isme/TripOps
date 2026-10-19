@@ -1,5 +1,24 @@
 import { useState, useMemo } from "react";
-import { Booking, User, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, BookingPassenger, TourCoHost, BookingPriceAdjustment, BookingAgencyShare, BookingAssignedGuide } from "@/app/types";
+import {
+  Booking,
+  User,
+  PaymentRequest,
+  TourContract,
+  CustomLocationChange,
+  CustomHotelChange,
+  CustomMealChange,
+  BookingPassenger,
+  TourCoHost,
+  BookingPriceAdjustment,
+  BookingAgencyShare,
+  BookingAssignedGuide,
+  BookingAttractionCheckin,
+  BookingIncident,
+  AttractionAttendanceStatus,
+  IncidentCategory,
+  IncidentStatus,
+  Location,
+} from "@/app/types";
 import {
   ArrowLeft,
   Calendar,
@@ -47,9 +66,19 @@ import {
   X,
   Lock,
   AlertCircle,
+  Camera,
+  Eye,
+  RefreshCw,
+  CheckCheck,
+  Navigation,
+  Image as ImageIcon,
+  Layers,
+  CheckCircle2,
+  SlidersHorizontal,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/app/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/app/components/ui/popover";
 import { mockUsers } from "@/app/data/mockData";
 import { ProviderProfileModal } from "./ProviderProfileModal";
 import {
@@ -78,6 +107,8 @@ interface CompanyBookingDetailPageProps {
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string, adjustment?: Partial<BookingPriceAdjustment>) => void;
   onUpdateBookingPassengers?: (bookingId: string, passengers: BookingPassenger[]) => void;
   onUpdateBookingAgencies?: (bookingId: string, agencies: BookingAgencyShare[]) => void;
+  onUpdateAttractionCheckins?: (bookingId: string, checkins: BookingAttractionCheckin[]) => void;
+  onUpdateIncidents?: (bookingId: string, incidents: BookingIncident[]) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -146,6 +177,8 @@ export function CompanyBookingDetailPage({
   onUpdateBookingPrice,
   onUpdateBookingPassengers,
   onUpdateBookingAgencies,
+  onUpdateAttractionCheckins,
+  onUpdateIncidents,
 }: CompanyBookingDetailPageProps) {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -301,6 +334,420 @@ export function CompanyBookingDetailPage({
   const [passengerToDeactivate, setPassengerToDeactivate] = useState<BookingPassenger | null>(null);
   const [deactivateReason, setDeactivateReason] = useState("");
   const [happyCaseModalOpen, setHappyCaseModalOpen] = useState(false);
+
+  // ----------------------------------------------------
+  // GUIDES BELONGING TO CURRENT AGENCY (for assignment)
+  // ----------------------------------------------------
+  const myAgencyGuides = useMemo(() => {
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+    const myAgencyName = companyName || currentAgency?.agencyName || booking.companyName || "";
+    const fromAssigned = assignedGuides.filter(
+      (ag) => ag.companyId === myAgencyId || (ag.companyName && ag.companyName === myAgencyName)
+    );
+    if (fromAssigned.length > 0) return fromAssigned;
+    return guides.map((g) => ({
+      id: `bag-${g.id}`,
+      guideId: g.id,
+      guideName: g.name,
+      guidePhone: g.phone,
+      guideAvatar: g.avatar,
+      companyId: myAgencyId,
+      companyName: myAgencyName,
+      role: "lead_guide" as const,
+      notes: "HDV Công ty",
+      assignedAt: booking.bookingDate || new Date().toISOString().split("T")[0],
+    }));
+  }, [assignedGuides, guides, companyId, companyName, currentAgency, booking]);
+
+  // ----------------------------------------------------
+  // ALL COMPANY GUIDES FOR QUICK INLINE ATTRACTION ASSIGNMENT
+  // ----------------------------------------------------
+  const companyAllGuides = useMemo(() => {
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+
+    const guideMap = new Map<string, { guideId: string; guideName: string; guidePhone?: string; guideAvatar?: string }>();
+
+    // 1. Guides already assigned to this booking
+    assignedGuides.forEach((ag) => {
+      guideMap.set(ag.guideId, {
+        guideId: ag.guideId,
+        guideName: ag.guideName,
+        guidePhone: ag.guidePhone,
+        guideAvatar: ag.guideAvatar,
+      });
+    });
+
+    // 2. All company guides from `guides` prop
+    guides.forEach((g) => {
+      if (!g.companyId || g.companyId === myAgencyId) {
+        if (!guideMap.has(g.id)) {
+          guideMap.set(g.id, {
+            guideId: g.id,
+            guideName: g.name,
+            guidePhone: g.phone,
+            guideAvatar: g.avatar,
+          });
+        }
+      }
+    });
+
+    // Fallback: if empty, add from mockUsers
+    if (guideMap.size === 0) {
+      mockUsers.filter((u) => u.role === "guide" && (!u.companyId || u.companyId === myAgencyId)).forEach((g) => {
+        guideMap.set(g.id, {
+          guideId: g.id,
+          guideName: g.name,
+          guidePhone: g.phone,
+          guideAvatar: g.avatar,
+        });
+      });
+    }
+
+    return Array.from(guideMap.values());
+  }, [assignedGuides, guides, companyId, currentAgency, booking]);
+
+  // ----------------------------------------------------
+  // INLINE TOGGLE GUIDE ASSIGNMENT FOR SPECIFIC ATTRACTION
+  // ----------------------------------------------------
+  const handleToggleGuideForAttraction = (
+    attractionId: string,
+    attractionName: string,
+    dayNumber: number,
+    guide: { guideId: string; guideName: string; guidePhone?: string; guideAvatar?: string }
+  ) => {
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+    const myAgencyName = companyName || currentAgency?.agencyName || booking.companyName || "Công ty điều phối";
+
+    const existingCheckin = attractionCheckins.find(
+      (c) =>
+        (c.bookingTimelineAttractionId === attractionId || (c.locationName === attractionName && c.dayNumber === dayNumber)) &&
+        c.guideId === guide.guideId
+    );
+
+    let updatedCheckins: BookingAttractionCheckin[];
+
+    if (existingCheckin) {
+      // Remove this guide's checkin for this attraction
+      updatedCheckins = attractionCheckins.filter((c) => c.id !== existingCheckin.id);
+    } else {
+      // Add new checkin record
+      const newCheckin: BookingAttractionCheckin = {
+        id: `bac-${booking.id}-${dayNumber}-${attractionId}-${guide.guideId}-${Date.now()}`,
+        bookingId: booking.id,
+        bookingTimelineAttractionId: attractionId,
+        locationName: attractionName,
+        dayNumber: dayNumber,
+        scheduledTime: "08:30",
+        agencyId: myAgencyId,
+        agencyName: myAgencyName,
+        guideId: guide.guideId,
+        guideName: guide.guideName,
+        guidePhone: guide.guidePhone,
+        guideAvatar: guide.guideAvatar,
+        attendanceStatus: "PENDING",
+        createdAt: new Date().toISOString(),
+      };
+      updatedCheckins = [...attractionCheckins, newCheckin];
+
+      // Ensure guide is registered in assignedGuides
+      if (!assignedGuides.some((ag) => ag.guideId === guide.guideId)) {
+        const newAssignedGuide: BookingAssignedGuide = {
+          id: `bag-${booking.id}-${guide.guideId}`,
+          guideId: guide.guideId,
+          guideName: guide.guideName,
+          guidePhone: guide.guidePhone,
+          guideAvatar: guide.guideAvatar,
+          companyId: myAgencyId,
+          companyName: myAgencyName,
+          role: "stage_guide",
+          notes: `HDV phân công bổ sung tại điểm ${attractionName}`,
+          assignedAt: new Date().toISOString().split("T")[0],
+        };
+        const updatedAssigned = [...assignedGuides, newAssignedGuide];
+        setAssignedGuides(updatedAssigned);
+        if (onUpdateAssignedGuides) {
+          onUpdateAssignedGuides(updatedAssigned);
+        }
+      }
+    }
+
+    setAttractionCheckins(updatedCheckins);
+    if (onUpdateAttractionCheckins) {
+      onUpdateAttractionCheckins(updatedCheckins);
+    }
+  };
+
+  // ----------------------------------------------------
+  // FLAT LIST OF ALL ATTRACTIONS ACROSS DAYS (with agency ownership)
+  // ----------------------------------------------------
+  const allItineraryAttractions = useMemo(() => {
+    const list: Array<{
+      dayNumber: number;
+      dayTitle: string;
+      location: Location;
+      responsibleAgencyId: string;
+      responsibleAgencyName: string;
+      isMyAgencyAttraction: boolean;
+    }> = [];
+
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+
+    booking.tour?.itinerary?.forEach((day) => {
+      day.locations?.forEach((loc) => {
+        const agencyId = loc.createdByCompanyId || day.createdByCompanyId || myAgencyId;
+        const agencyName =
+          loc.createdByCompanyName ||
+          day.createdByCompanyName ||
+          agenciesList.find((a) => a.agencyId === agencyId)?.agencyName ||
+          "Công ty điều phối";
+        const isMine = agencyId === myAgencyId;
+
+        list.push({
+          dayNumber: day.day,
+          dayTitle: day.title,
+          location: loc,
+          responsibleAgencyId: agencyId,
+          responsibleAgencyName: agencyName,
+          isMyAgencyAttraction: isMine,
+        });
+      });
+    });
+
+    return list;
+  }, [booking, companyId, currentAgency, agenciesList]);
+
+  // ----------------------------------------------------
+  // BOOKING ATTRACTION CHECK-INS (booking_attraction_checkins)
+  // ----------------------------------------------------
+  const [attractionCheckins, setAttractionCheckins] = useState<BookingAttractionCheckin[]>(() => {
+    if (booking.attractionCheckins && booking.attractionCheckins.length > 0) {
+      return booking.attractionCheckins;
+    }
+    const generated: BookingAttractionCheckin[] = [];
+    const itinerary = booking.tour?.itinerary || [];
+    const myAgencyId = companyId || booking.companyId || "company-1";
+    const myAgencyName = companyName || booking.companyName || "Công ty điều phối";
+    const initialGuides = assignedGuides.length > 0 ? assignedGuides : [
+      {
+        id: `bag-default`,
+        guideId: booking.guideId || guides[0]?.id || "guide-1",
+        guideName: booking.guideName || guides[0]?.name || "Trần Thị Bích",
+        guidePhone: booking.guidePhone || guides[0]?.phone,
+        guideAvatar: booking.guideAvatar || guides[0]?.avatar,
+        companyId: myAgencyId,
+        companyName: myAgencyName,
+      },
+    ];
+
+    itinerary.forEach((day) => {
+      day.locations?.forEach((loc, idx) => {
+        const locAgencyId = loc.createdByCompanyId || day.createdByCompanyId || myAgencyId;
+        const locAgencyName = loc.createdByCompanyName || day.createdByCompanyName || myAgencyName;
+        const agencyGuides = initialGuides.filter((g) => g.companyId === locAgencyId);
+        const targetGuides = agencyGuides.length > 0 ? agencyGuides : initialGuides.slice(0, 1);
+
+        targetGuides.forEach((g) => {
+          generated.push({
+            id: `bac-${booking.id}-${day.day}-${loc.id || idx}-${g.guideId}`,
+            bookingId: booking.id,
+            bookingTimelineAttractionId: loc.id || `loc-${day.day}-${idx}`,
+            locationName: loc.name,
+            dayNumber: day.day,
+            scheduledTime: loc.time || "08:30",
+            agencyId: locAgencyId,
+            agencyName: locAgencyName,
+            guideId: g.guideId,
+            guideName: g.guideName,
+            guidePhone: g.guidePhone,
+            guideAvatar: g.guideAvatar,
+            attendanceStatus: "PENDING",
+            createdAt: booking.bookingDate || new Date().toISOString(),
+          });
+        });
+      });
+    });
+    return generated;
+  });
+
+  // ----------------------------------------------------
+  // BOOKING INCIDENTS (booking_incidents - no severity field)
+  // ----------------------------------------------------
+  const [incidents, setIncidents] = useState<BookingIncident[]>(() => {
+    return booking.incidents || [];
+  });
+
+  // ----------------------------------------------------
+  // ATTRACTION ASSIGNMENT MODAL STATES
+  // ----------------------------------------------------
+  const [assignAttractionsModalOpen, setAssignAttractionsModalOpen] = useState(false);
+  const [assignPresetMode, setAssignPresetMode] = useState<"single" | "co_guides" | "custom">("single");
+  const [selectedSingleGuideId, setSelectedSingleGuideId] = useState<string>("");
+  const [selectedMultiGuideIds, setSelectedMultiGuideIds] = useState<string[]>([]);
+  const [customAttractionGuideMap, setCustomAttractionGuideMap] = useState<Record<string, string[]>>({});
+
+  // ----------------------------------------------------
+  // ITINERARY SUB-TAB & FILTERS (NO BUS/XE MENTION!)
+  // ----------------------------------------------------
+  const [itinerarySubTab, setItinerarySubTab] = useState<"standard" | "live_checkin">("standard");
+  const [trackerGuideFilter, setTrackerGuideFilter] = useState<string>("all");
+  const [trackerDayFilter, setTrackerDayFilter] = useState<string>("all");
+
+  // ----------------------------------------------------
+  // PROOF IMAGE PREVIEW MODAL
+  // ----------------------------------------------------
+  const [previewProofModalOpen, setPreviewProofModalOpen] = useState(false);
+  const [proofPreviewData, setProofPreviewData] = useState<{
+    title: string;
+    image: string;
+    time?: string;
+    note?: string;
+    guideName?: string;
+  } | null>(null);
+
+  // Open Assignment Modal with prefilled data
+  const handleOpenAssignAttractionsModal = () => {
+    if (myAgencyGuides.length > 0) {
+      setSelectedSingleGuideId(myAgencyGuides[0].guideId);
+      setSelectedMultiGuideIds(myAgencyGuides.map((g) => g.guideId));
+    }
+    const currentMap: Record<string, string[]> = {};
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+    allItineraryAttractions.forEach((item) => {
+      const locId = item.location.id;
+      const assignedForThisLoc = attractionCheckins
+        .filter((c) => c.bookingTimelineAttractionId === locId && c.agencyId === myAgencyId)
+        .map((c) => c.guideId);
+      currentMap[locId] =
+        assignedForThisLoc.length > 0
+          ? assignedForThisLoc
+          : myAgencyGuides[0]
+          ? [myAgencyGuides[0].guideId]
+          : [];
+    });
+    setCustomAttractionGuideMap(currentMap);
+    setAssignAttractionsModalOpen(true);
+  };
+
+  // Save Assignment across attractions with 3 Presets & Alliance Guard
+  const handleSaveAttractionAssignment = () => {
+    const myAgencyId = companyId || currentAgency?.agencyId || booking.companyId || "company-1";
+    const myAgencyName = companyName || currentAgency?.agencyName || booking.companyName || "Công ty điều phối";
+
+    // Keep partner checkins completely intact
+    const partnerCheckins = attractionCheckins.filter((c) => c.agencyId !== myAgencyId);
+    const myAttractions = allItineraryAttractions.filter((a) => a.isMyAgencyAttraction);
+
+    if (myAttractions.length === 0) {
+      alert("Công ty của bạn hiện không phụ trách điểm đến nào trong tour này để phân công.");
+      return;
+    }
+
+    const newMyCheckins: BookingAttractionCheckin[] = [];
+
+    if (assignPresetMode === "single") {
+      const targetGuide = myAgencyGuides.find((g) => g.guideId === selectedSingleGuideId) || myAgencyGuides[0];
+      if (!targetGuide) {
+        alert("Vui lòng chọn 1 Hướng dẫn viên!");
+        return;
+      }
+
+      myAttractions.forEach((att) => {
+        const existing = attractionCheckins.find(
+          (c) => c.bookingTimelineAttractionId === att.location.id && c.guideId === targetGuide.guideId
+        );
+        newMyCheckins.push({
+          id: existing ? existing.id : `bac-${booking.id}-${att.dayNumber}-${att.location.id}-${targetGuide.guideId}`,
+          bookingId: booking.id,
+          bookingTimelineAttractionId: att.location.id,
+          locationName: att.location.name,
+          dayNumber: att.dayNumber,
+          scheduledTime: att.location.time || "08:30",
+          agencyId: myAgencyId,
+          agencyName: myAgencyName,
+          guideId: targetGuide.guideId,
+          guideName: targetGuide.guideName,
+          guidePhone: targetGuide.guidePhone,
+          guideAvatar: targetGuide.guideAvatar,
+          attendanceStatus: existing ? existing.attendanceStatus : "PENDING",
+          checkedAt: existing?.checkedAt,
+          photoProofUrl: existing?.photoProofUrl,
+          notes: existing?.notes,
+          createdAt: existing?.createdAt || new Date().toISOString(),
+        });
+      });
+    } else if (assignPresetMode === "co_guides") {
+      if (selectedMultiGuideIds.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 Hướng dẫn viên!");
+        return;
+      }
+
+      const chosenGuides = myAgencyGuides.filter((g) => selectedMultiGuideIds.includes(g.guideId));
+
+      myAttractions.forEach((att) => {
+        chosenGuides.forEach((g) => {
+          const existing = attractionCheckins.find(
+            (c) => c.bookingTimelineAttractionId === att.location.id && c.guideId === g.guideId
+          );
+          newMyCheckins.push({
+            id: existing ? existing.id : `bac-${booking.id}-${att.dayNumber}-${att.location.id}-${g.guideId}`,
+            bookingId: booking.id,
+            bookingTimelineAttractionId: att.location.id,
+            locationName: att.location.name,
+            dayNumber: att.dayNumber,
+            scheduledTime: att.location.time || "08:30",
+            agencyId: myAgencyId,
+            agencyName: myAgencyName,
+            guideId: g.guideId,
+            guideName: g.guideName,
+            guidePhone: g.guidePhone,
+            guideAvatar: g.guideAvatar,
+            attendanceStatus: existing ? existing.attendanceStatus : "PENDING",
+            checkedAt: existing?.checkedAt,
+            photoProofUrl: existing?.photoProofUrl,
+            notes: existing?.notes,
+            createdAt: existing?.createdAt || new Date().toISOString(),
+          });
+        });
+      });
+    } else {
+      // Custom mode: per-attraction selections
+      myAttractions.forEach((att) => {
+        const assignedGuideIds = customAttractionGuideMap[att.location.id] || [];
+        assignedGuideIds.forEach((gid) => {
+          const g = myAgencyGuides.find((item) => item.guideId === gid);
+          if (!g) return;
+          const existing = attractionCheckins.find(
+            (c) => c.bookingTimelineAttractionId === att.location.id && c.guideId === g.guideId
+          );
+          newMyCheckins.push({
+            id: existing ? existing.id : `bac-${booking.id}-${att.dayNumber}-${att.location.id}-${g.guideId}`,
+            bookingId: booking.id,
+            bookingTimelineAttractionId: att.location.id,
+            locationName: att.location.name,
+            dayNumber: att.dayNumber,
+            scheduledTime: att.location.time || "08:30",
+            agencyId: myAgencyId,
+            agencyName: myAgencyName,
+            guideId: g.guideId,
+            guideName: g.guideName,
+            guidePhone: g.guidePhone,
+            guideAvatar: g.guideAvatar,
+            attendanceStatus: existing ? existing.attendanceStatus : "PENDING",
+            checkedAt: existing?.checkedAt,
+            photoProofUrl: existing?.photoProofUrl,
+            notes: existing?.notes,
+            createdAt: existing?.createdAt || new Date().toISOString(),
+          });
+        });
+      });
+    }
+
+    const updatedCheckins = [...partnerCheckins, ...newMyCheckins];
+    setAttractionCheckins(updatedCheckins);
+    onUpdateAttractionCheckins?.(booking.id, updatedCheckins);
+    setAssignAttractionsModalOpen(false);
+    alert(`🎉 Đã lưu phân công Hướng dẫn viên cho các điểm đến do công ty phụ trách (${newMyCheckins.length} lượt check-in)!`);
+  };
 
   // Passenger list state - default: full tour for all passengers
   const [passengersList, setPassengersList] = useState<BookingPassenger[]>(() => {
@@ -982,6 +1429,16 @@ export function CompanyBookingDetailPage({
             >
               <UserCheck className="w-4 h-4 text-blue-600" />
               Giao HDV ({assignedGuides.length})
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleOpenAssignAttractionsModal}
+              className="border-purple-300 text-purple-700 hover:bg-purple-50 gap-1.5 text-sm font-semibold shadow-2xs"
+              title="Phân công Hướng dẫn viên theo từng Điểm đến và Chặng tham quan (booking_attraction_checkins)"
+            >
+              <Navigation className="w-4 h-4 text-purple-600" />
+              Phân công lộ trình HDV
             </Button>
 
             {/* Chỉ Công ty Chủ trì mới có quyền Tạo yêu cầu thanh toán cho khách hàng */}
@@ -2117,20 +2574,757 @@ export function CompanyBookingDetailPage({
             );
           })()}
 
+          {/* ======================================================== */}
+          {/* 1. BOOKING-LEVEL INCIDENTS CARD (booking_incidents)      */}
+          {/* ======================================================== */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+                <div>
+                  <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                    Nhật ký Sự cố Tour (`booking_incidents`)
+                    <span className="text-xs normal-case px-2.5 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                      {incidents.length} sự cố
+                    </span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Quản lý các sự cố phát sinh của đoàn liên kết trực tiếp vào mã booking #{booking.id}. (Không gắn cố định tại điểm tham quan).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {incidents.length === 0 ? (
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 text-emerald-900 flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div className="text-xs space-y-0.5">
+                  <p className="font-bold">Đoàn đang vận hành an toàn</p>
+                  <p className="text-emerald-700 text-[11px]">
+                    Chưa có sự cố nào được ghi nhận cho đơn tour này. Hướng dẫn viên sẽ báo cáo trực tiếp từ ứng dụng di động nếu phát sinh vấn đề trên đường tour.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {incidents.map((inc) => {
+                  const categoryLabels: Record<IncidentCategory, { label: string; icon: string; style: string }> = {
+                    HEALTH: { label: "Y tế & Sức khỏe", icon: "🏥", style: "bg-rose-50 text-rose-800 border-rose-200" },
+                    VEHICLE: { label: "Phương tiện vận chuyển", icon: "🚗", style: "bg-amber-50 text-amber-800 border-amber-200" },
+                    WEATHER: { label: "Thời tiết & Thiên tai", icon: "⛈️", style: "bg-sky-50 text-sky-800 border-sky-200" },
+                    CUSTOMER: { label: "Khách hàng & Thành viên", icon: "👥", style: "bg-purple-50 text-purple-800 border-purple-200" },
+                    SECURITY: { label: "An ninh & Trật tự", icon: "🛡️", style: "bg-indigo-50 text-indigo-800 border-indigo-200" },
+                    SCHEDULE: { label: "Lịch trình & Thời gian", icon: "⏰", style: "bg-orange-50 text-orange-800 border-orange-200" },
+                    OTHER: { label: "Sự cố khác", icon: "📋", style: "bg-gray-50 text-gray-800 border-gray-200" },
+                  };
+                  const cat = categoryLabels[inc.incidentType] || categoryLabels.OTHER;
+
+                  const statusBadges = {
+                    REPORTED: { label: "Mới báo cáo", color: "bg-amber-100 text-amber-800 border-amber-300" },
+                    IN_PROGRESS: { label: "Đang xử lý", color: "bg-blue-100 text-blue-800 border-blue-300" },
+                    RESOLVED: { label: "Đã giải quyết", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
+                  };
+                  const st = statusBadges[inc.status];
+
+                  return (
+                    <div
+                      key={inc.id}
+                      className={`p-4 rounded-xl border text-xs space-y-3 transition-all ${
+                        inc.status === "RESOLVED"
+                          ? "bg-white border-gray-200"
+                          : inc.status === "IN_PROGRESS"
+                          ? "bg-blue-50/30 border-blue-200 shadow-2xs"
+                          : "bg-amber-50/40 border-amber-300 shadow-2xs"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold border ${cat.style}`}>
+                              {cat.icon} {cat.label}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold border ${st.color}`}>
+                              {st.label}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-gray-900 text-sm mt-1">{inc.title}</h4>
+                        </div>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          {inc.reportedAt}
+                        </span>
+                      </div>
+
+                      <p className="text-gray-700 leading-relaxed bg-white/90 p-3 rounded-lg border border-gray-100 text-xs">
+                        {inc.description}
+                      </p>
+
+                      {/* Evidence Photo Preview */}
+                      {inc.evidenceUrls && inc.evidenceUrls.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
+                            <Camera className="w-3.5 h-3.5 text-blue-600" />
+                            Ảnh minh chứng hiện trường ({inc.evidenceUrls.length}):
+                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {inc.evidenceUrls.map((url, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  setProofPreviewData({
+                                    title: inc.title,
+                                    image: url,
+                                    time: inc.reportedAt,
+                                    note: inc.description,
+                                    guideName: inc.reportedByName,
+                                  });
+                                  setPreviewProofModalOpen(true);
+                                }}
+                                className="relative group w-20 h-16 rounded-lg overflow-hidden border border-gray-200 shadow-2xs"
+                              >
+                                <img src={url} alt="Minh chứng" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                  <Eye className="w-4 h-4 text-white" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Resolution Note if resolved */}
+                      {inc.resolutionNote && (
+                        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-950 space-y-1 text-xs">
+                          <p className="font-bold flex items-center gap-1.5 text-emerald-900">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            Kết quả xử lý &amp; khắc phục:
+                            {inc.resolvedAt && (
+                              <span className="text-[11px] font-normal text-emerald-700 ml-auto">
+                                (Hoàn thành lúc {inc.resolvedAt})
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-emerald-800 leading-relaxed text-[11px]">{inc.resolutionNote}</p>
+                        </div>
+                      )}
+
+                      {/* Footer Info & Quick Status Actions */}
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-[11px]">
+                        <div className="text-gray-500">
+                          Báo cáo bởi: <strong className="text-gray-800">{inc.reportedByName}</strong>
+                          {inc.agencyName && <> • Đơn vị: <strong className="text-purple-700">{inc.agencyName}</strong></>}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          {inc.status === "REPORTED" && (
+                            <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              ⏳ Đang chờ HDV hiện trường cập nhật
+                            </span>
+                          )}
+                          {inc.status === "IN_PROGRESS" && (
+                            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                              ⚙️ Đang xử lý tại hiện trường
+                            </span>
+                          )}
+                          {inc.status === "RESOLVED" && (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-xs bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              <Check className="w-3.5 h-3.5" /> Đã hoàn tất xử lý
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* TOUR FULL ITINERARY (MATCHING chitietlichtrinh.png & TourDetailPage.tsx) */}
           {booking.tour.itinerary && booking.tour.itinerary.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="border-b border-gray-100 pb-3">
-                <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-purple-600" />
-                  Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Lộ trình các điểm tham quan do công ty thiết lập theo thông tin đơn đặt tour của khách hàng.
-                </p>
+              {/* Header with Sub-Tabs */}
+              <div className="border-b border-gray-200 pb-3 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-purple-600" />
+                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                      Tiến độ &amp; Lịch trình Tour
+                    </h2>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Theo dõi check-in thực tế của từng hướng dẫn viên tại các điểm đến và chi tiết lịch trình của đoàn.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setItinerarySubTab("standard")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      itinerarySubTab === "standard"
+                        ? "bg-white text-blue-700 shadow-2xs"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    Lịch trình chi tiết chuẩn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setItinerarySubTab("live_checkin")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      itinerarySubTab === "live_checkin"
+                        ? "bg-white text-purple-700 shadow-2xs"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-purple-600" />
+                    Tiến độ Check-in Trực tiếp
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 text-purple-800">
+                      {attractionCheckins.filter((c) => c.attendanceStatus === "CHECKED_IN").length}/{attractionCheckins.length}
+                    </span>
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-4">
+              {/* VIEW 1: LIVE CHECK-IN TRACKER */}
+              {itinerarySubTab === "live_checkin" && (() => {
+                const totalCheckins = attractionCheckins.length;
+                const checkedInCount = attractionCheckins.filter((c) => c.attendanceStatus === "CHECKED_IN").length;
+                const pendingCount = attractionCheckins.filter((c) => c.attendanceStatus === "PENDING").length;
+                const skippedCount = attractionCheckins.filter((c) => c.attendanceStatus === "SKIPPED").length;
+                const percentDone = totalCheckins > 0 ? Math.round((checkedInCount / totalCheckins) * 100) : 0;
+
+                // Unique guides present in attractionCheckins
+                const uniqueCheckinGuides = Array.from(
+                  new Set(attractionCheckins.map((c) => c.guideId))
+                ).map((gid) => {
+                  const sample = attractionCheckins.find((c) => c.guideId === gid);
+                  return {
+                    guideId: gid,
+                    guideName: sample?.guideName || gid,
+                    count: attractionCheckins.filter((c) => c.guideId === gid).length,
+                  };
+                });
+
+                return (
+                  <div className="space-y-4">
+                    {/* Top Action Bar with Guide Filters & Settings */}
+                    <div className="bg-purple-50/40 border border-purple-200 rounded-xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-xs text-purple-900 font-bold">
+                          <SlidersHorizontal className="w-4 h-4 text-purple-600" />
+                          Bộ lọc theo Dõi Tiến Độ:
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={handleOpenAssignAttractionsModal}
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold gap-1.5 h-8 shadow-2xs ml-auto"
+                        >
+                          <Navigation className="w-3.5 h-3.5" />
+                          Phân công lộ trình HDV (3 Presets)
+                        </Button>
+                      </div>
+
+                      {/* Filter by Tour Guide (STRICTLY NO BUS / XE!) */}
+                      <div className="flex items-center gap-2 flex-wrap text-xs">
+                        <span className="text-gray-500 font-semibold flex items-center gap-1">
+                          <UserCheck className="w-3.5 h-3.5 text-blue-600" />
+                          HDV dẫn đoàn:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTrackerGuideFilter("all")}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                            trackerGuideFilter === "all"
+                              ? "bg-blue-600 text-white shadow-2xs"
+                              : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          Tất cả HDV ({totalCheckins})
+                        </button>
+                        {uniqueCheckinGuides.map((g) => (
+                          <button
+                            key={g.guideId}
+                            type="button"
+                            onClick={() => setTrackerGuideFilter(g.guideId)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                              trackerGuideFilter === g.guideId
+                                ? "bg-purple-600 text-white shadow-2xs"
+                                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            <span>👤 {g.guideName}</span>
+                            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                              trackerGuideFilter === g.guideId ? "bg-purple-700 text-white" : "bg-gray-100 text-gray-600"
+                            }`}>
+                              {g.count}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* KPI Summary Tiles & Progress Bar */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-gray-800 flex items-center gap-1.5">
+                          <CheckCheck className="w-4 h-4 text-purple-600" />
+                          Tiến độ hoàn thành lộ trình:
+                        </span>
+                        <span className="font-extrabold text-purple-700 text-sm">{percentDone}% ({checkedInCount}/{totalCheckins} lượt)</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden flex">
+                        <div
+                          style={{ width: `${percentDone}%` }}
+                          className="bg-emerald-500 h-full transition-all duration-500 rounded-full"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                        <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                          <span className="text-[11px] text-gray-500 block">Tổng lượt check-in</span>
+                          <span className="font-bold text-gray-900 text-base">{totalCheckins}</span>
+                        </div>
+                        <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-center">
+                          <span className="text-[11px] text-emerald-700 block">Đã hoàn thành</span>
+                          <span className="font-bold text-emerald-800 text-base">{checkedInCount}</span>
+                        </div>
+                        <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-center">
+                          <span className="text-[11px] text-amber-700 block">Chờ đến điểm</span>
+                          <span className="font-bold text-amber-800 text-base">{pendingCount}</span>
+                        </div>
+                        <div className="p-2.5 bg-rose-50 rounded-lg border border-rose-200 text-center">
+                          <span className="text-[11px] text-rose-700 block">Đã bỏ qua (Sự cố)</span>
+                          <span className="font-bold text-rose-800 text-base">{skippedCount}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline Days & Attractions List */}
+                    <div className="space-y-4 pt-1">
+                      {booking.tour.itinerary.map((day) => {
+                        const dayAttractions = day.locations || [];
+                        if (dayAttractions.length === 0) return null;
+
+                        // Check which agency is responsible for this day
+                        const dayAgencyId = day.createdByCompanyId || (dayAttractions[0]?.createdByCompanyId) || booking.companyId;
+                        const dayAgencyName = day.createdByCompanyName || (dayAttractions[0]?.createdByCompanyName) || booking.companyName;
+                        const isMyStage = (companyId && dayAgencyId === companyId) || (companyName && dayAgencyName === companyName);
+
+                        return (
+                          <div key={day.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                            {/* Day Header */}
+                            <div className="bg-gray-50/90 px-4 py-3 border-b border-gray-200 flex items-center justify-between gap-2 flex-wrap">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-xs shadow-2xs">
+                                  {day.day}
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-gray-900 text-sm">
+                                    Ngày {day.day}: {day.title}
+                                  </h3>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                  isMyStage
+                                    ? "bg-purple-100 text-purple-800 border-purple-300"
+                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                }`}>
+                                  {isMyStage ? `Chặng của cty bạn: ${dayAgencyName}` : `Chặng đối tác: ${dayAgencyName}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Single-line Vertical Timeline Track */}
+                            <div className="p-5 sm:p-6 bg-white">
+                              <div className="relative pl-6 sm:pl-8 border-l-2 border-slate-200 ml-3 sm:ml-4 space-y-6">
+                                {dayAttractions.map((loc, lIdx) => {
+                                  const locAgencyId = loc.createdByCompanyId || dayAgencyId;
+                                  const locAgencyName = loc.createdByCompanyName || dayAgencyName;
+                                  const isMyLoc = (companyId && locAgencyId === companyId) || (companyName && locAgencyName === companyName);
+
+                                  // Find all checkin records matching this attraction
+                                  const locCheckins = attractionCheckins.filter(
+                                    (c) => c.bookingTimelineAttractionId === loc.id || (c.locationName === loc.name && c.dayNumber === day.day)
+                                  );
+
+                                  // Filter checkins by guide
+                                  const filteredLocCheckins = locCheckins.filter((c) => {
+                                    if (trackerGuideFilter !== "all" && c.guideId !== trackerGuideFilter) return false;
+                                    return true;
+                                  });
+
+                                  // If a filter is active and this attraction has no matching checkins, skip
+                                  if (
+                                    trackerGuideFilter !== "all" &&
+                                    filteredLocCheckins.length === 0 &&
+                                    locCheckins.length > 0
+                                  ) {
+                                    return null;
+                                  }
+
+                                  // Determine attraction check-in status
+                                  const hasCheckins = locCheckins.length > 0;
+                                  const isAllCheckedIn = hasCheckins && locCheckins.every((c) => c.attendanceStatus === "CHECKED_IN");
+                                  const hasAnyCheckedIn = locCheckins.some((c) => c.attendanceStatus === "CHECKED_IN");
+                                  const isAllSkipped = hasCheckins && locCheckins.every((c) => c.attendanceStatus === "SKIPPED");
+                                  const isPartial = hasAnyCheckedIn && !isAllCheckedIn;
+
+                                  return (
+                                    <div key={loc.id || lIdx} className="relative group">
+                                      {/* Timeline Node on the line */}
+                                      <div
+                                        className={`absolute -left-[35px] sm:-left-[43px] top-0.5 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white transition-all shadow-xs ${
+                                          isAllCheckedIn
+                                            ? "bg-emerald-500 text-white shadow-emerald-200"
+                                            : isPartial
+                                            ? "bg-blue-500 text-white shadow-blue-200"
+                                            : isAllSkipped
+                                            ? "bg-rose-100 text-rose-700 border-2 border-rose-300"
+                                            : "bg-white border-2 border-slate-300 text-slate-500"
+                                        }`}
+                                        title={
+                                          isAllCheckedIn
+                                            ? "Đã check-in đầy đủ"
+                                            : isPartial
+                                            ? "Đang check-in (một số HDV đã đến)"
+                                            : isAllSkipped
+                                            ? "Đã bỏ qua điểm này"
+                                            : "Chưa tới điểm check-in"
+                                        }
+                                      >
+                                        {isAllCheckedIn ? (
+                                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                        ) : isAllSkipped ? (
+                                          <X className="w-3.5 h-3.5 stroke-[3]" />
+                                        ) : isPartial ? (
+                                          <Clock className="w-3.5 h-3.5" />
+                                        ) : (
+                                          <span>{lIdx + 1}</span>
+                                        )}
+                                      </div>
+
+                                      {/* Attraction Info */}
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <h4 className="font-bold text-gray-900 text-sm">{loc.name}</h4>
+                                          </div>
+
+                                          {!isMyLoc && (
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                              Đối tác: {locAgencyName}
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        {/* Assigned Guides & Check-in Status underneath the attraction */}
+                                        <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                                          {locCheckins.length === 0 ? (
+                                            isMyLoc ? (
+                                              <Popover>
+                                                <PopoverTrigger asChild>
+                                                  <button
+                                                    type="button"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-dashed border-purple-300 bg-purple-50/70 text-purple-700 hover:bg-purple-100 hover:border-purple-400 hover:shadow-2xs transition-all cursor-pointer group"
+                                                  >
+                                                    <UserPlus className="w-3.5 h-3.5 text-purple-600 group-hover:scale-110 transition-transform" />
+                                                    <span>+ Gán HDV cho điểm này</span>
+                                                  </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent
+                                                  className="w-80 p-3.5 bg-white rounded-2xl shadow-xl border border-gray-200 z-50 space-y-3"
+                                                  align="start"
+                                                  sideOffset={6}
+                                                >
+                                                  {/* Popover Header */}
+                                                  <div className="flex items-start justify-between gap-2 pb-2 border-b border-gray-100">
+                                                    <div className="min-w-0">
+                                                      <h5 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 truncate">
+                                                        <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                                        <span className="truncate">{loc.name}</span>
+                                                      </h5>
+                                                      <p className="text-[11px] text-gray-500 mt-0.5">
+                                                        Chọn HDV phụ trách điểm này (Ngày {day.day}):
+                                                      </p>
+                                                    </div>
+                                                  </div>
+
+                                                  {/* Guides List */}
+                                                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
+                                                    {companyAllGuides.map((g) => {
+                                                      const isAssigned = locCheckins.some((c) => c.guideId === g.guideId);
+                                                      return (
+                                                        <div
+                                                          key={g.guideId}
+                                                          onClick={() => handleToggleGuideForAttraction(loc.id || loc.name, loc.name, day.day, g)}
+                                                          className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none ${
+                                                            isAssigned
+                                                              ? "bg-purple-50/80 border-purple-300 shadow-2xs font-semibold"
+                                                              : "bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200"
+                                                          }`}
+                                                        >
+                                                          <div className="flex items-center gap-2.5 min-w-0">
+                                                            {g.guideAvatar ? (
+                                                              <img
+                                                                src={g.guideAvatar}
+                                                                alt={g.guideName}
+                                                                className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
+                                                              />
+                                                            ) : (
+                                                              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                                {g.guideName[0]}
+                                                              </div>
+                                                            )}
+                                                            <div className="min-w-0">
+                                                              <p className="text-xs text-gray-900 truncate">{g.guideName}</p>
+                                                              <p className="text-[10px] text-gray-500 truncate">{g.guidePhone || "HDV Công ty"}</p>
+                                                            </div>
+                                                          </div>
+
+                                                          <div
+                                                            className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
+                                                              isAssigned
+                                                                ? "bg-purple-600 border-purple-600 text-white shadow-2xs"
+                                                                : "border-gray-300 bg-white"
+                                                            }`}
+                                                          >
+                                                            {isAssigned && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                                          </div>
+                                                        </div>
+                                                      );
+                                                    })}
+                                                  </div>
+
+                                                  {/* Footer */}
+                                                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                                                    <span className="text-gray-500 font-medium">
+                                                      Đang gán: <strong className="text-purple-700">{locCheckins.length} HDV</strong>
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400 italic">Bấm chọn để cập nhật</span>
+                                                  </div>
+                                                </PopoverContent>
+                                              </Popover>
+                                            ) : (
+                                              <div className="flex items-center gap-1.5 text-xs text-slate-400 italic bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
+                                                <Lock className="w-3 h-3 text-slate-400" />
+                                                <span>Chặng đối tác: {locAgencyName} phụ trách</span>
+                                              </div>
+                                            )
+                                          ) : (
+                                            <>
+                                              {locCheckins.map((chk) => {
+                                                const isChecked = chk.attendanceStatus === "CHECKED_IN";
+                                                const isSkip = chk.attendanceStatus === "SKIPPED";
+                                                const isPending = chk.attendanceStatus === "PENDING";
+
+                                                // Respect current filter
+                                                if (trackerGuideFilter !== "all" && chk.guideId !== trackerGuideFilter) return null;
+
+                                                return (
+                                                  <div
+                                                    key={chk.id}
+                                                    title={`HDV: ${chk.guideName}`}
+                                                    className={`inline-flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full text-xs border transition-all ${
+                                                      isChecked
+                                                        ? "bg-emerald-50/90 border-emerald-200 text-emerald-900 shadow-2xs"
+                                                        : isSkip
+                                                        ? "bg-rose-50/90 border-rose-200 text-rose-900"
+                                                        : "bg-slate-50 border-slate-200 text-slate-700"
+                                                    }`}
+                                                  >
+                                                    {/* Avatar HDV (Phóng to hơn, nhận diện trực quan qua ảnh) */}
+                                                    {chk.guideAvatar ? (
+                                                      <img
+                                                        src={chk.guideAvatar}
+                                                        alt={chk.guideName}
+                                                        title={`HDV: ${chk.guideName}`}
+                                                        className="w-7 h-7 rounded-full object-cover border border-slate-300 shadow-2xs shrink-0"
+                                                      />
+                                                    ) : (
+                                                      <div
+                                                        title={`HDV: ${chk.guideName}`}
+                                                        className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
+                                                      >
+                                                        {chk.guideName ? chk.guideName[0] : "H"}
+                                                      </div>
+                                                    )}
+
+                                                    {/* Badge trạng thái */}
+                                                    {isChecked ? (
+                                                      <span className="inline-flex items-center gap-1 font-bold text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                                        <Check className="w-3 h-3 text-emerald-600" />
+                                                        Đã check-in {chk.checkedAt ? `(${chk.checkedAt})` : ""}
+                                                      </span>
+                                                    ) : isSkip ? (
+                                                      <span
+                                                        className="inline-flex items-center gap-1 font-bold text-[11px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full"
+                                                        title={chk.notes || "Bỏ qua"}
+                                                      >
+                                                        <X className="w-3 h-3 text-rose-600" />
+                                                        Đã bỏ qua
+                                                      </span>
+                                                    ) : (
+                                                      <span className="inline-flex items-center gap-1 font-medium text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                                        Chưa check-in
+                                                      </span>
+                                                    )}
+
+                                                    {/* Nút xem ảnh minh chứng (chỉ khi HDV đã upload ảnh từ app) */}
+                                                    {isChecked && chk.photoProofUrl && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          setProofPreviewData({
+                                                            title: `Minh chứng check-in: ${chk.locationName}`,
+                                                            image: chk.photoProofUrl!,
+                                                            time: chk.checkedAt,
+                                                            note: chk.notes,
+                                                            guideName: chk.guideName,
+                                                          });
+                                                          setPreviewProofModalOpen(true);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-800 text-[11px] font-semibold underline flex items-center gap-0.5 ml-0.5"
+                                                        title="Xem ảnh xác nhận check-in thực tế do HDV gửi lên"
+                                                      >
+                                                        <Camera className="w-3 h-3" />
+                                                        Xem ảnh
+                                                      </button>
+                                                    )}
+
+                                                    {/* Nút hủy gán nhanh nếu chưa check-in */}
+                                                    {isMyLoc && isPending && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          handleToggleGuideForAttraction(
+                                                            loc.id || loc.name,
+                                                            loc.name,
+                                                            day.day,
+                                                            { guideId: chk.guideId, guideName: chk.guideName }
+                                                          );
+                                                        }}
+                                                        title={`Hủy gán HDV này khỏi điểm ${loc.name}`}
+                                                        className="w-4 h-4 rounded-full hover:bg-slate-200 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors ml-0.5"
+                                                      >
+                                                        <X className="w-3 h-3" />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })}
+
+                                              {/* Nút thêm HDV dẫn cùng điểm này */}
+                                              {isMyLoc && (
+                                                <Popover>
+                                                  <PopoverTrigger asChild>
+                                                    <button
+                                                      type="button"
+                                                      title="Thêm hoặc đổi HDV cho điểm này"
+                                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-dashed border-slate-300 text-slate-600 hover:text-purple-700 hover:border-purple-400 hover:bg-purple-50 transition-all cursor-pointer shadow-2xs"
+                                                    >
+                                                      <Plus className="w-3 h-3 text-purple-600" />
+                                                      <span className="text-[11px]">Thêm HDV</span>
+                                                    </button>
+                                                  </PopoverTrigger>
+                                                  <PopoverContent
+                                                    className="w-80 p-3.5 bg-white rounded-2xl shadow-xl border border-gray-200 z-50 space-y-3"
+                                                    align="start"
+                                                    sideOffset={6}
+                                                  >
+                                                    {/* Popover Header */}
+                                                    <div className="flex items-start justify-between gap-2 pb-2 border-b border-gray-100">
+                                                      <div className="min-w-0">
+                                                        <h5 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 truncate">
+                                                          <MapPin className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                                          <span className="truncate">{loc.name}</span>
+                                                        </h5>
+                                                        <p className="text-[11px] text-gray-500 mt-0.5">
+                                                          Thêm hoặc bớt HDV phụ trách điểm này (Ngày {day.day}):
+                                                        </p>
+                                                      </div>
+                                                    </div>
+
+                                                    {/* Guides List */}
+                                                    <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
+                                                      {companyAllGuides.map((g) => {
+                                                        const isAssigned = locCheckins.some((c) => c.guideId === g.guideId);
+                                                        return (
+                                                          <div
+                                                            key={g.guideId}
+                                                            onClick={() => handleToggleGuideForAttraction(loc.id || loc.name, loc.name, day.day, g)}
+                                                            className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none ${
+                                                              isAssigned
+                                                                ? "bg-purple-50/80 border-purple-300 shadow-2xs font-semibold"
+                                                                : "bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200"
+                                                            }`}
+                                                          >
+                                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                              {g.guideAvatar ? (
+                                                                <img
+                                                                  src={g.guideAvatar}
+                                                                  alt={g.guideName}
+                                                                  className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
+                                                                />
+                                                              ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                                  {g.guideName[0]}
+                                                                </div>
+                                                              )}
+                                                              <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-gray-900 truncate">{g.guideName}</p>
+                                                                <p className="text-[10px] text-gray-500 truncate">{g.guidePhone || "HDV Công ty"}</p>
+                                                              </div>
+                                                            </div>
+
+                                                            <div
+                                                              className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
+                                                                isAssigned
+                                                                  ? "bg-purple-600 border-purple-600 text-white shadow-2xs"
+                                                                  : "border-gray-300 bg-white"
+                                                              }`}
+                                                            >
+                                                              {isAssigned && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                                            </div>
+                                                          </div>
+                                                        );
+                                                      })}
+                                                    </div>
+
+                                                    {/* Footer */}
+                                                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                                                      <span className="text-gray-500 font-medium">
+                                                        Đang gán: <strong className="text-purple-700">{locCheckins.length} HDV</strong>
+                                                      </span>
+                                                      <span className="text-[10px] text-gray-400 italic">Bấm chọn để cập nhật</span>
+                                                    </div>
+                                                  </PopoverContent>
+                                                </Popover>
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* VIEW 2: STANDARD ITINERARY */}
+              {itinerarySubTab === "standard" && (
+                <div className="space-y-4">
                 {booking.tour.itinerary.map((day) => {
                   const dayLocChange = booking.locationChanges?.find(
                     (lc) => lc.dayNumber === day.day || lc.dayId === day.id
@@ -2358,6 +3552,7 @@ export function CompanyBookingDetailPage({
                   );
                 })}
               </div>
+            )}
             </div>
           )}
         </div>
@@ -2644,21 +3839,33 @@ export function CompanyBookingDetailPage({
                 <UserCheck className="w-4 h-4 text-blue-600" />
                 Hướng dẫn viên phụ trách ({assignedGuides.length})
               </h3>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setSelectedGuideToAdd(guides[0]?.id || "");
-                  setSelectedGuideRole(assignedGuides.length === 0 ? "lead_guide" : "support_guide");
-                  setSelectedGuideNotes("");
-                  setAssignModalOpen(true);
-                }}
-                className="h-7 px-2.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200 font-semibold gap-1"
-                title="Phân công thêm HDV của công ty bạn vào đoàn"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                + Giao thêm HDV
-              </Button>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleOpenAssignAttractionsModal}
+                  className="h-7 px-2 text-xs text-purple-700 hover:text-purple-900 hover:bg-purple-50 border-purple-200 font-semibold gap-1 shadow-2xs"
+                  title="Phân công HDV theo từng điểm đến (booking_attraction_checkins)"
+                >
+                  <Navigation className="w-3 h-3 text-purple-600" />
+                  Gán điểm
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedGuideToAdd(guides[0]?.id || "");
+                    setSelectedGuideRole(assignedGuides.length === 0 ? "lead_guide" : "support_guide");
+                    setSelectedGuideNotes("");
+                    setAssignModalOpen(true);
+                  }}
+                  className="h-7 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200 font-semibold gap-1"
+                  title="Phân công thêm HDV của công ty bạn vào đoàn"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  + Thêm HDV
+                </Button>
+              </div>
             </div>
 
             {assignedGuides.length === 0 ? (
@@ -3782,6 +4989,368 @@ export function CompanyBookingDetailPage({
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* MODAL: PHÂN CÔNG HDV THEO ĐIỂM ĐẾN & CHẶNG (3 PRESETS)   */}
+      {/* ======================================================== */}
+      <Dialog open={assignAttractionsModalOpen} onOpenChange={setAssignAttractionsModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+              <Navigation className="w-5 h-5 text-purple-600" />
+              Phân công Hướng dẫn viên theo Điểm đến &amp; Chặng (`booking_attraction_checkins`)
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2 text-xs">
+            {/* Context / Alliance Permission Banner */}
+            <div className="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200 text-purple-900 space-y-1.5">
+              <p className="font-bold flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-purple-700" />
+                Đơn vị điều phối: {companyName || currentAgency?.agencyName || "Công ty của bạn"}
+                {isCoHostedTour && (
+                  <span className="ml-2 text-[10px] bg-purple-200 text-purple-900 font-extrabold px-2 py-0.5 rounded-full">
+                    Tour Liên minh Co-host
+                  </span>
+                )}
+              </p>
+              <p className="text-[11px] text-purple-800 leading-relaxed">
+                {isCoHostedTour
+                  ? "Trong mô hình Liên minh, quý công ty chỉ được phân công HDV trực thuộc đơn vị mình vào các điểm đến do công ty bạn đảm nhận. Các điểm đến của đối tác được bảo vệ quyền riêng tư và khóa chỉnh sửa."
+                  : "Quý công ty quản lý và điều phối toàn bộ lịch trình tham quan của đoàn. Vui lòng chọn 1 trong 3 kịch bản phân công bên dưới để tự động tạo bản ghi check-in."}
+              </p>
+            </div>
+
+            {/* 3 PRESET TABS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1 bg-gray-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setAssignPresetMode("single")}
+                className={`p-2.5 rounded-lg text-left transition-all ${
+                  assignPresetMode === "single"
+                    ? "bg-white text-purple-900 shadow-2xs font-bold ring-2 ring-purple-400/40"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/60"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-purple-700">
+                  <Zap className="w-3.5 h-3.5" />
+                  1. Gán 1 HDV Toàn bộ
+                </div>
+                <p className="text-[11px] text-gray-500 font-normal leading-snug">
+                  1 HDV dẫn toàn bộ các điểm đến của công ty bạn
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAssignPresetMode("co_guides")}
+                className={`p-2.5 rounded-lg text-left transition-all ${
+                  assignPresetMode === "co_guides"
+                    ? "bg-white text-blue-900 shadow-2xs font-bold ring-2 ring-blue-400/40"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/60"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-blue-700">
+                  <Users className="w-3.5 h-3.5" />
+                  2. Gán 2+ HDV (Song hành)
+                </div>
+                <p className="text-[11px] text-gray-500 font-normal leading-snug">
+                  Đoàn đông cần nhiều HDV cùng dẫn &amp; check-in riêng
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAssignPresetMode("custom")}
+                className={`p-2.5 rounded-lg text-left transition-all ${
+                  assignPresetMode === "custom"
+                    ? "bg-white text-emerald-900 shadow-2xs font-bold ring-2 ring-emerald-400/40"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/60"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-emerald-700">
+                  <MapPin className="w-3.5 h-3.5" />
+                  3. Tùy chỉnh Từng điểm
+                </div>
+                <p className="text-[11px] text-gray-500 font-normal leading-snug">
+                  Chia chặng, HDV A dẫn nửa đầu, HDV B dẫn nửa sau
+                </p>
+              </button>
+            </div>
+
+            {/* PRESET 1 CONTENT: SINGLE GUIDE */}
+            {assignPresetMode === "single" && (
+              <div className="p-4 bg-purple-50/30 rounded-xl border border-purple-200 space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold text-gray-800">
+                    Chọn 1 Hướng dẫn viên phụ trách toàn bộ ({allItineraryAttractions.filter(a => a.isMyAgencyAttraction).length} điểm đến của công ty):
+                  </Label>
+                  <p className="text-[11px] text-gray-500">
+                    Hệ thống sẽ gán HDV này vào tất cả các điểm tham quan do công ty bạn phụ trách.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto pr-1">
+                  {myAgencyGuides.map((g) => {
+                    const isSelected = selectedSingleGuideId === g.guideId;
+                    return (
+                      <div
+                        key={g.guideId}
+                        onClick={() => setSelectedSingleGuideId(g.guideId)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? "bg-purple-100/70 border-purple-400 ring-2 ring-purple-400/30 font-bold"
+                            : "bg-white border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        {g.guideAvatar ? (
+                          <img src={g.guideAvatar} alt={g.guideName} className="w-9 h-9 rounded-full object-cover border shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center shrink-0">
+                            {g.guideName[0]}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-900 truncate">{g.guideName}</p>
+                          <p className="text-[11px] text-gray-500">{g.guidePhone || "Chưa có SĐT"}</p>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-purple-700 shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* PRESET 2 CONTENT: MULTI GUIDES DUPLICATION */}
+            {assignPresetMode === "co_guides" && (
+              <div className="p-4 bg-blue-50/30 rounded-xl border border-blue-200 space-y-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-gray-800">
+                      Chọn các Hướng dẫn viên cùng song hành phụ trách đoàn đông:
+                    </Label>
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                      {selectedMultiGuideIds.length} HDV được chọn
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    Khi lưu, BE sẽ tự động nhân bản (duplicate) các dòng trong bảng `booking_attraction_checkins` để mỗi HDV thực hiện check-in riêng biệt với nhau.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto pr-1">
+                  {myAgencyGuides.map((g) => {
+                    const isChecked = selectedMultiGuideIds.includes(g.guideId);
+                    return (
+                      <div
+                        key={g.guideId}
+                        onClick={() => {
+                          if (isChecked) {
+                            setSelectedMultiGuideIds(selectedMultiGuideIds.filter(id => id !== g.guideId));
+                          } else {
+                            setSelectedMultiGuideIds([...selectedMultiGuideIds, g.guideId]);
+                          }
+                        }}
+                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                          isChecked
+                            ? "bg-blue-100/70 border-blue-400 ring-2 ring-blue-400/30 font-bold"
+                            : "bg-white border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 shrink-0"
+                        />
+                        {g.guideAvatar ? (
+                          <img src={g.guideAvatar} alt={g.guideName} className="w-8 h-8 rounded-full object-cover border shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">
+                            {g.guideName[0]}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-900 truncate">{g.guideName}</p>
+                          <p className="text-[11px] text-gray-500">{g.guidePhone || "Chưa có SĐT"}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Calculation formula explanation */}
+                <div className="p-2.5 bg-blue-100/60 rounded-lg text-[11px] text-blue-900 space-y-0.5">
+                  <p className="font-bold">
+                    💡 Quy tắc nhân bản bảng `booking_attraction_checkins`:
+                  </p>
+                  <p>
+                    {allItineraryAttractions.filter(a => a.isMyAgencyAttraction).length} điểm đến của công ty × {selectedMultiGuideIds.length} HDV ={" "}
+                    <strong>{allItineraryAttractions.filter(a => a.isMyAgencyAttraction).length * selectedMultiGuideIds.length} lượt check-in độc lập</strong>.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* PRESET 3 CONTENT: CUSTOM PER ATTRACTION */}
+            {assignPresetMode === "custom" && (
+              <div className="p-4 bg-emerald-50/30 rounded-xl border border-emerald-200 space-y-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold text-gray-800">
+                    Phân công chi tiết từng điểm đến (Chia chặng linh hoạt):
+                  </Label>
+                  <p className="text-[11px] text-gray-500">
+                    Gán HDV phù hợp cho từng điểm cụ thể (Ví dụ: HDV A dẫn nửa đầu điểm 1–10, HDV B dẫn nửa sau).
+                  </p>
+                </div>
+
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                  {allItineraryAttractions.filter(a => a.isMyAgencyAttraction).map((att, idx) => {
+                    const currentAssigned = customAttractionGuideMap[att.location.id] || [];
+
+                    return (
+                      <div key={att.location.id || idx} className="p-3 bg-white rounded-xl border border-gray-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-[10px]">
+                              {idx + 1}
+                            </span>
+                            <span className="font-bold text-gray-900 text-xs">{att.location.name}</span>
+                            <span className="text-[10px] text-gray-500">Ngày {att.dayNumber}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                            {currentAssigned.length} HDV
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-gray-100">
+                          {myAgencyGuides.map((g) => {
+                            const isAssigned = currentAssigned.includes(g.guideId);
+                            return (
+                              <button
+                                key={g.guideId}
+                                type="button"
+                                onClick={() => {
+                                  const updated = isAssigned
+                                    ? currentAssigned.filter(id => id !== g.guideId)
+                                    : [...currentAssigned, g.guideId];
+                                  setCustomAttractionGuideMap({
+                                    ...customAttractionGuideMap,
+                                    [att.location.id]: updated,
+                                  });
+                                }}
+                                className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1.5 ${
+                                  isAssigned
+                                    ? "bg-emerald-600 text-white font-bold shadow-2xs"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                {isAssigned && <Check className="w-3 h-3 text-white" />}
+                                {g.guideName}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* PARTNER ATTRACTIONS (LOCKED IN ALLIANCE TOURS) */}
+            {isCoHostedTour && allItineraryAttractions.some(a => !a.isMyAgencyAttraction) && (
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-[11px]">
+                <div className="flex items-center justify-between text-gray-600 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-gray-400" />
+                    Điểm đến thuộc chặng đối tác liên minh ({allItineraryAttractions.filter(a => !a.isMyAgencyAttraction).length} điểm):
+                  </span>
+                  <span className="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded">
+                    Khóa chỉnh sửa
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {allItineraryAttractions.filter(a => !a.isMyAgencyAttraction).map((pAtt, pIdx) => (
+                    <div key={pIdx} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200 text-gray-500">
+                      <span>• {pAtt.location.name} (Ngày {pAtt.dayNumber})</span>
+                      <span className="font-semibold text-purple-700 text-[10px]">
+                        Do {pAtt.responsibleAgencyName} phân công
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="outline" onClick={() => setAssignAttractionsModalOpen(false)}>
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={handleSaveAttractionAssignment}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold"
+              >
+                Xác nhận &amp; Lưu phân công
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* MODAL: XEM ẢNH MINH CHỨNG CHECK-IN THỰC TẾ               */}
+      {/* ======================================================== */}
+      <Dialog open={previewProofModalOpen} onOpenChange={setPreviewProofModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+              <Camera className="w-5 h-5 text-emerald-600" />
+              Minh chứng Check-in Thực tế
+            </DialogTitle>
+          </DialogHeader>
+
+          {proofPreviewData && (
+            <div className="space-y-3 pt-2 text-xs">
+              <div className="rounded-xl overflow-hidden border border-gray-200 bg-black/5 shadow-inner">
+                <img
+                  src={proofPreviewData.image}
+                  alt={proofPreviewData.title}
+                  className="w-full max-h-80 object-cover rounded-xl"
+                />
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5">
+                <p className="font-bold text-gray-900 text-sm">{proofPreviewData.title}</p>
+                {proofPreviewData.time && (
+                  <p className="text-gray-500 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-600" />
+                    Thời gian ghi nhận: <strong className="text-gray-800">{proofPreviewData.time}</strong>
+                  </p>
+                )}
+                {proofPreviewData.guideName && (
+                  <p className="text-gray-500 flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-blue-600" />
+                    HDV thực hiện: <strong className="text-blue-700">{proofPreviewData.guideName}</strong>
+                  </p>
+                )}
+                {proofPreviewData.note && (
+                  <p className="text-gray-700 bg-white p-2.5 rounded-lg border border-gray-200/80 italic">
+                    "{proofPreviewData.note}"
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <Button size="sm" variant="outline" onClick={() => setPreviewProofModalOpen(false)}>
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

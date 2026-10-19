@@ -9,6 +9,8 @@ import {
   CustomTourRequest,
   BookingAgencyShare,
   BookingAssignedGuide,
+  BookingAttractionCheckin,
+  BookingIncident,
 } from "@/app/types";
 import { mockTourCompanies } from "@/app/data/mockData";
 import { CompanyLayout } from "./CompanyLayout";
@@ -42,6 +44,8 @@ interface CompanyDashboardProps {
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
   onUpdateBookingPassengers?: (bookingId: string, updatedPassengers: any[]) => void;
   onUpdateBookingAgencies?: (bookingId: string, agencies: BookingAgencyShare[]) => void;
+  onUpdateAttractionCheckins?: (bookingId: string, checkins: BookingAttractionCheckin[]) => void;
+  onUpdateIncidents?: (bookingId: string, incidents: BookingIncident[]) => void;
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
   onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
   onViewTour?: (tour: Tour) => void;
@@ -73,6 +77,8 @@ export function CompanyDashboard({
   onUpdateBookingPrice,
   onUpdateBookingPassengers,
   onUpdateBookingAgencies,
+  onUpdateAttractionCheckins,
+  onUpdateIncidents,
   onUpdateCustomRequest,
   onRestoreTourVersion,
   onViewTour,
@@ -276,6 +282,8 @@ export function CompanyDashboard({
               onUpdateBookingPrice={onUpdateBookingPrice}
               onUpdateBookingPassengers={onUpdateBookingPassengers}
               onUpdateBookingAgencies={onUpdateBookingAgencies}
+              onUpdateAttractionCheckins={onUpdateAttractionCheckins}
+              onUpdateIncidents={onUpdateIncidents}
             />
           );
         }

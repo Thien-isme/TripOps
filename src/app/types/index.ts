@@ -504,6 +504,9 @@ export interface Booking {
   isCoHosted?: boolean;
   coHosts?: TourCoHost[];
   bookingAgencies?: BookingAgencyShare[];
+  // Guide Attraction Check-ins & Incidents
+  attractionCheckins?: BookingAttractionCheckin[];
+  incidents?: BookingIncident[];
 }
 
 export interface IncidentReport {
@@ -546,6 +549,48 @@ export interface GuideSchedule {
     category?: "important" | "transport" | "hotel_food" | "time" | "general";
     createdAt?: string;
   }[];
+}
+
+export type AttractionAttendanceStatus = "PENDING" | "CHECKED_IN" | "SKIPPED";
+
+export interface BookingAttractionCheckin {
+  id: string;
+  bookingId: string;
+  bookingTimelineAttractionId: string;
+  locationName: string;
+  dayNumber: number;
+  scheduledTime?: string;
+  agencyId: string;
+  agencyName?: string;
+  guideId: string;
+  guideName: string;
+  guidePhone?: string;
+  guideAvatar?: string;
+  attendanceStatus: AttractionAttendanceStatus;
+  checkedAt?: string;
+  photoProofUrl?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export type IncidentCategory = "HEALTH" | "VEHICLE" | "WEATHER" | "CUSTOMER" | "SECURITY" | "SCHEDULE" | "OTHER";
+export type IncidentStatus = "REPORTED" | "IN_PROGRESS" | "RESOLVED";
+
+export interface BookingIncident {
+  id: string;
+  bookingId: string;
+  agencyId: string;
+  agencyName?: string;
+  reportedById: string;
+  reportedByName: string;
+  incidentType: IncidentCategory;
+  title: string;
+  description: string;
+  evidenceUrls?: string[];
+  status: IncidentStatus;
+  reportedAt: string;
+  resolvedAt?: string;
+  resolutionNote?: string;
 }
 
 export interface Service {

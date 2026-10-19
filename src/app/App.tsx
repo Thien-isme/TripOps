@@ -49,6 +49,8 @@ import {
   BookingPriceAdjustment,
   BookingAgencyShare,
   BookingAssignedGuide,
+  BookingAttractionCheckin,
+  BookingIncident,
 } from "@/app/types";
 import {
   mockTours,
@@ -345,6 +347,24 @@ function App() {
   ) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, bookingAgencies: agencies } : b))
+    );
+  };
+
+  const handleUpdateAttractionCheckins = (
+    bookingId: string,
+    checkins: BookingAttractionCheckin[],
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, attractionCheckins: checkins } : b))
+    );
+  };
+
+  const handleUpdateIncidents = (
+    bookingId: string,
+    incidents: BookingIncident[],
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, incidents: incidents } : b))
     );
   };
 
@@ -1235,6 +1255,8 @@ function App() {
             onUpdateBookingPrice={handleUpdateBookingPrice}
             onUpdateBookingPassengers={handleUpdateBookingPassengers}
             onUpdateBookingAgencies={handleUpdateBookingAgencies}
+            onUpdateAttractionCheckins={handleUpdateAttractionCheckins}
+            onUpdateIncidents={handleUpdateIncidents}
             onUpdateCustomRequest={handleUpdateCustomTourRequest}
             onRestoreTourVersion={handleRestoreTourVersion}
             onViewTour={handleViewTour}
