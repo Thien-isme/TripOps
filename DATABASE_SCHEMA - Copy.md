@@ -64,12 +64,15 @@ Table tours {
 Table tour_pricing_tiers {
   id int [pk, increment]
   tour_id int // FK tham chiếu tới tours.id
+  agency_id varchar(36) [not null, note: 'FK tới users.id - ID của công ty báo giá (Cty A, Cty B...)']
   tier_name varchar(100)
   min_age int
   max_age int
   price decimal(12, 2)
   display_order int [default: 0]
 }
+
+Ref: tour_pricing_tiers.agency_id > users.id
 
 Table tour_timeline {
   id int [pk, increment]
@@ -207,8 +210,6 @@ Table bookings {
   has_customization boolean [default: false, note: 'true: có tùy biến khách sạn/ăn uống/điểm đến']
   original_total_price decimal(12, 2) [note: 'Tổng tiền gốc ban đầu trước khi công ty duyệt phụ thu/giảm trừ']
   total_price decimal(12, 2) [not null, note: 'Tổng tiền thực tế cuối cùng cần thanh toán']
-  price_adjustment_note text [note: 'Ghi chú của công ty: Phụ thu nâng cấp phòng 450k + đổi bữa tối 60k...']
-  price_adjusted_at timestamp [note: 'Thời điểm công ty chốt lại giá']
 
   status varchar(20) [default: 'pending', note: 'pending, confirmed, completed, cancelled, rejected']
   cancel_reason text
@@ -220,19 +221,66 @@ Table bookings {
 
 
 
+// ============================================================================
+// DANH SÁCH HÀNH KHÁCH THEO TỪNG CHẶNG VÀ CÔNG TY
+// ============================================================================
 Table booking_participants {
   id int [pk, increment]
-  booking_id int [not null] // FK trỏ tới bookings.id
+  booking_id int [not null, note: 'FK trỏ tới bookings.id']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty du lịch phụ trách khách này']
+  participant_index int [not null, note: 'STT khách trong đoàn (1, 2, 3...) để định danh cùng 1 người giữa Cty A & B']
+  is_primary boolean [default: true, note: 'true: Dòng hồ sơ gốc hiển thị cho khách xem | false: Dòng chặng phụ của cty đối tác']
+
+  // Thông tin cá nhân
   full_name varchar(150) [not null]
   date_of_birth date
   gender varchar(20) // MALE, FEMALE, OTHER
   identity_card_number varchar(50) // CCCD / CMND / Hộ chiếu
-  price double 
-  note text // bị dị ứng / ăn chay /
-  attendance_status varchar(50) [default: 'PENDING'] // PENDING, CHECKED_IN, ABSENT
-  checked_by varchar(36) // FK trỏ tới users.id (người thực hiện điểm danh)
+  phone varchar(30)
+  note text // Ăn chay, dị ứng, say xe...
+
+  // Giá chốt độc lập của chặng (Snapshot)
+  tier_name varchar(100) [note: 'Snapshot tên phân khúc lúc đặt: Người lớn, Trẻ em 5-11t...']
+  price decimal(12, 2) [not null, default: 0, note: 'Giá chốt thực tế cho chặng này (đã gồm tùy biến)']
+
+  // Điểm danh & Vận hành thực tế lúc tour chạy
+  assigned_guide_id varchar(36) [note: 'FK tới users.id - HDV của công ty này phụ trách']
+  attendance_status varchar(50) [default: 'PENDING', note: 'PENDING, CHECKED_IN, ABSENT']
+  checked_by varchar(36) [note: 'FK tới users.id - Người điểm danh']
   checked_at timestamp
+
+  // Trạng thái tham gia (chốt trước khi khởi hành)
+  status varchar(20) [default: 'ACTIVE', note: 'ACTIVE: Tham gia chặng | INACTIVE: Đã hủy/xoá khỏi chặng này']
+  status_note text [note: 'Lý do nếu khách không tham gia chặng']
+
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    (booking_id, agency_id, participant_index) [unique]
+  }
 }
+
+Table booking_assigned_guides {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  guide_id varchar(36) [not null, note: 'FK tới users.id - Hướng dẫn viên được chỉ định']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty trực tiếp quản lý và phân công HDV này']
+  role varchar(50) [default: 'lead_guide', note: 'lead_guide (Trưởng đoàn), stage_guide (HDV chặng), support_guide (HDV phụ tá), logistics (Hậu cần)']
+  notes text [note: 'Ghi chú phân công nhiệm vụ cụ thể']
+  assigned_at timestamp [default: `now()`]
+
+  indexes {
+    (booking_id, guide_id) [unique] // Mỗi HDV chỉ xuất hiện 1 lần trong 1 đơn booking
+  }
+}
+
+// ==========================================
+// CÁC MỐI QUAN HỆ KHÓA NGOẠI (REFS):
+// ==========================================
+Ref: booking_assigned_guides.booking_id > bookings.id
+Ref: booking_assigned_guides.guide_id > users.id
+Ref: booking_assigned_guides.agency_id > users.id
 
 // ============================================================================
 // 1. TỪNG NGÀY LỊCH TRÌNH CỦA ĐƠN BOOKING (Snapshot ngày & tiêu đề)
@@ -345,6 +393,7 @@ Table payment_transactions {
 Table booking_price_adjustments {
   id int [pk, increment]
   booking_id int [not null, note: 'FK tới bookings.id']
+  agency_id varchar(36) [note: 'FK tới users.id - Công ty phát sinh việc đổi giá (Cty A hay Cty B)']
   adjusted_by varchar(36) [not null, note: 'FK tới users.id - Người sửa giá']
   previous_total_price decimal(12, 2) [not null, note: 'Giá trước khi sửa']
   adjustment_amount decimal(12, 2) [not null, note: 'Chênh lệch (+ tăng, - giảm)']
@@ -352,6 +401,38 @@ Table booking_price_adjustments {
   reason text [not null, note: 'Lý do đổi giá theo trao đổi với khách']
   created_at timestamp [default: `now()`]
 }
+
+// ============================================================================
+// PHÂN CHIA DOANH THU & GIẢI NGÂN CHO TỪNG CÔNG TY TRONG BOOKING
+// ============================================================================
+Table booking_agencies {
+  id int [pk, increment]
+  booking_id int [not null, note: 'FK tới bookings.id']
+  agency_id varchar(36) [not null, note: 'FK tới users.id - Công ty du lịch tham gia']
+  is_host boolean [default: false, note: 'true: Công ty chủ trì (Host), false: Công ty đối tác']
+
+  // 1. DOANH THU CỦA CÔNG TY (TRƯỚC & SAU ĐIỀU CHỈNH)
+  original_amount decimal(12, 2) [default: 0, note: 'Tiền tạm tính ban đầu lúc khách mới gửi booking']
+  final_amount decimal(12, 2) [not null, default: 0, note: 'Tiền chốt cuối cùng của cty sau khi thêm/bớt khách hoặc tùy biến']
+
+  // 2. THÔNG TIN GIẢI NGÂN CỦA NỀN TẢNG (DISBURSEMENT / PAYOUT)
+  platform_fee decimal(12, 2) [default: 0, note: 'Phí hoa hồng nền tảng giữ lại (VD: 10%)']
+  net_payout decimal(12, 2) [default: 0, note: 'Tiền thực tế công ty nhận được (final_amount - platform_fee)']
+  settlement_status varchar(30) [default: 'UNPAID', note: 'UNPAID (Chưa giải ngân), READY (Đã hoàn thành tour, chờ chuyển), PAID (Đã giải ngân)']
+  payout_transferred_at timestamp [note: 'Thời điểm nền tảng chuyển khoản thực tế']
+  bank_reference_code varchar(100) [note: 'Mã ủy nhiệm chi / GD ngân hàng']
+
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    (booking_id, agency_id) [unique] // Mỗi công ty chỉ xuất hiện 1 dòng trong 1 đơn booking
+  }
+}
+
+// Khóa ngoại liên kết
+Ref: booking_agencies.booking_id > bookings.id
+Ref: booking_agencies.agency_id > users.id
 
 // Các liên kết khóa ngoại
 Ref: payment_requests.booking_id > bookings.id

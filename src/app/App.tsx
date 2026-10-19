@@ -47,6 +47,8 @@ import {
   SystemBankAccount,
   TourVersion,
   BookingPriceAdjustment,
+  BookingAgencyShare,
+  BookingAssignedGuide,
 } from "@/app/types";
 import {
   mockTours,
@@ -315,12 +317,34 @@ function App() {
 
   // Admin / Company actions
   const handleApproveBooking = (bookingId: string) => {
-    setBookings(
-      bookings.map((booking) =>
-        booking.id === bookingId
-          ? { ...booking, status: "confirmed" as const }
-          : booking,
-      ),
+    setBookings((prev) =>
+      prev.map((booking) => {
+        if (booking.id !== bookingId) return booking;
+
+        // Auto-confirm all agency quotes in Happy Case approval
+        const updatedAgencies = booking.bookingAgencies?.map((a) => ({
+          ...a,
+          confirmationStatus: "confirmed" as const,
+          quoteConfirmed: true,
+          confirmedAt: a.confirmedAt || new Date().toISOString(),
+        }));
+
+        return {
+          ...booking,
+          status: "confirmed" as const,
+          bookingAgencies: updatedAgencies || booking.bookingAgencies,
+          paymentRequests: booking.paymentRequests || [],
+        };
+      })
+    );
+  };
+
+  const handleUpdateBookingAgencies = (
+    bookingId: string,
+    agencies: BookingAgencyShare[],
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, bookingAgencies: agencies } : b))
     );
   };
 
@@ -357,41 +381,111 @@ function App() {
     bookingId: string,
     guideId: string,
   ) => {
-    const guide = mockUsers.find(
-      (u) => u.id === guideId && u.role === "guide",
-    );
+    const guide = users.find((u) => u.id === guideId && u.role === "guide") ||
+      mockUsers.find((u) => u.id === guideId && u.role === "guide");
     if (!guide) return;
 
-    setBookings(
-      bookings.map((booking) =>
-        booking.id === bookingId
-          ? {
-              ...booking,
+    setBookings((prev) =>
+      prev.map((booking) => {
+        if (booking.id !== bookingId) return booking;
+        const currentGuides = booking.assignedGuides || [];
+        const existingIdx = currentGuides.findIndex((ag) => ag.guideId === guide.id);
+        let updatedGuides: BookingAssignedGuide[];
+        if (existingIdx >= 0) {
+          updatedGuides = [...currentGuides];
+        } else {
+          updatedGuides = [
+            ...currentGuides,
+            {
+              id: `bag-${Date.now()}`,
               guideId: guide.id,
               guideName: guide.name,
-              guideAvatar: guide.avatar,
               guidePhone: guide.phone,
-            }
-          : booking,
-      ),
-    );
-
-    // Add to guide schedules
-    const booking = bookings.find((b) => b.id === bookingId);
-    if (booking) {
-      const newSchedule: GuideSchedule = {
-        id: `schedule-${Date.now()}`,
-        booking: {
+              guideAvatar: guide.avatar,
+              companyId: guide.companyId || booking.companyId || "",
+              companyName: guide.companyName || booking.companyName || "",
+              role: currentGuides.length === 0 ? "lead_guide" : "support_guide",
+              assignedAt: new Date().toISOString().split("T")[0],
+            },
+          ];
+        }
+        return {
           ...booking,
           guideId: guide.id,
           guideName: guide.name,
           guideAvatar: guide.avatar,
           guidePhone: guide.phone,
-        },
-        currentDay: 1,
-        completedLocations: [],
-      };
-      setGuideSchedules([...guideSchedules, newSchedule]);
+          assignedGuides: updatedGuides,
+        };
+      })
+    );
+
+    // Add to guide schedules
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (booking) {
+      const existingSchedule = guideSchedules.find(
+        (s) => s.booking.id === bookingId && (s.booking.guideId === guide.id || s.id.includes(guide.id))
+      );
+      if (!existingSchedule) {
+        const newSchedule: GuideSchedule = {
+          id: `schedule-${bookingId}-${guide.id}`,
+          booking: {
+            ...booking,
+            guideId: guide.id,
+            guideName: guide.name,
+            guideAvatar: guide.avatar,
+            guidePhone: guide.phone,
+          },
+          currentDay: 1,
+          completedLocations: [],
+        };
+        setGuideSchedules((prev) => [...prev, newSchedule]);
+      }
+    }
+  };
+
+  const handleUpdateAssignedGuides = (
+    bookingId: string,
+    updatedGuides: BookingAssignedGuide[],
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.id !== bookingId) return b;
+        const primary = updatedGuides[0];
+        return {
+          ...b,
+          assignedGuides: updatedGuides,
+          guideId: primary?.guideId,
+          guideName: primary?.guideName,
+          guideAvatar: primary?.guideAvatar,
+          guidePhone: primary?.guidePhone,
+        };
+      })
+    );
+
+    // Synchronize guide schedules for assigned guides
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (booking) {
+      updatedGuides.forEach((g) => {
+        const exists = guideSchedules.some(
+          (s) => s.booking.id === bookingId && (s.booking.guideId === g.guideId || s.id.includes(g.guideId))
+        );
+        if (!exists) {
+          const newSchedule: GuideSchedule = {
+            id: `schedule-${bookingId}-${g.guideId}`,
+            booking: {
+              ...booking,
+              guideId: g.guideId,
+              guideName: g.guideName,
+              guideAvatar: g.guideAvatar,
+              guidePhone: g.guidePhone,
+            },
+            currentDay: 1,
+            completedLocations: [],
+          };
+          setGuideSchedules((prev) => [...prev, newSchedule]);
+        }
+      });
     }
   };
 
@@ -641,20 +735,48 @@ function App() {
     bookingId: string,
     settledAmount: number,
     platformFee: number,
+    targetAgencyId?: string,
+    bankReference?: string,
   ) => {
     setBookings((prev) =>
-      prev.map((b) =>
-        b.id === bookingId
-          ? {
-              ...b,
-              settlementStatus: "settled" as const,
-              settledAmount,
-              settledAt: new Date().toISOString().split("T")[0],
-              platformFeeAmount: platformFee,
-              platformFeeRate: systemBankAccount.defaultCommissionRate || 8,
-            }
-          : b,
-      ),
+      prev.map((b) => {
+        if (b.id !== bookingId) return b;
+
+        let updatedAgencies = b.bookingAgencies;
+        if (targetAgencyId && updatedAgencies) {
+          updatedAgencies = updatedAgencies.map((a) =>
+            a.agencyId === targetAgencyId
+              ? {
+                  ...a,
+                  settlementStatus: "PAID" as const,
+                  settlementAmount: settledAmount,
+                  bankReference: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
+                  settledAt: new Date().toISOString().split("T")[0],
+                }
+              : a
+          );
+        } else if (updatedAgencies) {
+          updatedAgencies = updatedAgencies.map((a) => ({
+            ...a,
+            settlementStatus: "PAID" as const,
+            settlementAmount: a.finalAmount - Math.round(a.finalAmount * (b.platformFeeRate || 8) / 100),
+            bankReference: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
+            settledAt: new Date().toISOString().split("T")[0],
+          }));
+        }
+
+        const allSettled = !updatedAgencies || updatedAgencies.every((a) => a.settlementStatus === "PAID");
+
+        return {
+          ...b,
+          settlementStatus: allSettled ? ("settled" as const) : ("partially_settled" as any),
+          settledAmount: (b.settledAmount || 0) + settledAmount,
+          settledAt: new Date().toISOString().split("T")[0],
+          platformFeeAmount: (b.platformFeeAmount || 0) + platformFee,
+          platformFeeRate: systemBankAccount.defaultCommissionRate || 8,
+          bookingAgencies: updatedAgencies,
+        };
+      })
     );
   };
 
@@ -706,15 +828,33 @@ function App() {
     setBookings((prev) =>
       prev.map((b) => {
         if (b.id !== bookingId) return b;
-        const updatedPaymentRequests = (b.paymentRequests ?? []).map((pr) =>
-          pr.id === paymentRequestId
-            ? {
-                ...pr,
-                status: "paid" as const,
-                paidAt: new Date().toISOString().split("T")[0],
-              }
-            : pr,
-        );
+        let found = false;
+        let updatedPaymentRequests = (b.paymentRequests ?? []).map((pr) => {
+          if (pr.id === paymentRequestId) {
+            found = true;
+            return {
+              ...pr,
+              status: "paid" as const,
+              paidAt: new Date().toISOString().split("T")[0],
+            };
+          }
+          return pr;
+        });
+
+        if (!found) {
+          // Dynamic full payment request
+          updatedPaymentRequests.push({
+            id: paymentRequestId,
+            bookingId: b.id,
+            amount: b.totalPrice,
+            description: "Thanh toán 100% qua Ký quỹ Hệ thống (Escrow)",
+            dueDate: b.tourStartDate || new Date().toISOString().split("T")[0],
+            status: "paid" as const,
+            paidAt: new Date().toISOString().split("T")[0],
+            createdAt: new Date().toISOString().split("T")[0],
+          });
+        }
+
         const totalPaid = updatedPaymentRequests
           .filter((pr) => pr.status === "paid")
           .reduce((sum, pr) => sum + pr.amount, 0);
@@ -725,10 +865,8 @@ function App() {
           ...b,
           paymentRequests: updatedPaymentRequests,
           remainingAmount: remaining,
-          paymentStatus: (isFullyPaid || totalPaid > 0)
-            ? ("paid" as const)
-            : ("unpaid" as const),
-          depositPaid: totalPaid > 0,
+          paymentStatus: "paid" as const,
+          depositPaid: true,
           depositAmount: totalPaid,
         };
       }),
@@ -920,13 +1058,18 @@ function App() {
     bookingId: string,
     updatedPassengers: BookingPassenger[]
   ) => {
+    const primaryActiveCount = updatedPassengers.filter(
+      (p) => p.isPrimary !== false && p.status !== "INACTIVE"
+    ).length;
+    const finalGuestCount = primaryActiveCount > 0 ? primaryActiveCount : updatedPassengers.length;
+
     setBookings((prev) =>
       prev.map((b) =>
         b.id === bookingId
           ? {
               ...b,
               passengers: updatedPassengers,
-              numberOfGuests: updatedPassengers.length,
+              numberOfGuests: finalGuestCount,
             }
           : b
       )
@@ -935,7 +1078,7 @@ function App() {
       setSelectedUserBooking({
         ...selectedUserBooking,
         passengers: updatedPassengers,
-        numberOfGuests: updatedPassengers.length,
+        numberOfGuests: finalGuestCount,
       });
     }
   };
@@ -1085,11 +1228,13 @@ function App() {
             onApproveBooking={handleApproveBooking}
             onRejectBooking={handleRejectBooking}
             onAssignGuide={handleAssignGuide}
+            onUpdateAssignedGuides={handleUpdateAssignedGuides}
             onCreatePaymentRequest={handleCreatePaymentRequest}
             onMarkDepositPaid={handleMarkDepositPaid}
             onMarkFullyPaid={handleMarkFullyPaid}
             onUpdateBookingPrice={handleUpdateBookingPrice}
             onUpdateBookingPassengers={handleUpdateBookingPassengers}
+            onUpdateBookingAgencies={handleUpdateBookingAgencies}
             onUpdateCustomRequest={handleUpdateCustomTourRequest}
             onRestoreTourVersion={handleRestoreTourVersion}
             onViewTour={handleViewTour}

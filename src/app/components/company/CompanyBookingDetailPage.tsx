@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Booking, User, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, BookingPassenger, TourCoHost, BookingPriceAdjustment } from "@/app/types";
+import { Booking, User, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, BookingPassenger, TourCoHost, BookingPriceAdjustment, BookingAgencyShare, BookingAssignedGuide } from "@/app/types";
 import {
   ArrowLeft,
   Calendar,
@@ -39,9 +39,14 @@ import {
   Trash2,
   Edit,
   UserPlus,
+  UserMinus,
+  RotateCcw,
+  Zap,
   Flag,
   History,
   X,
+  Lock,
+  AlertCircle,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/app/components/ui/button";
@@ -61,15 +66,18 @@ interface CompanyBookingDetailPageProps {
   booking: Booking;
   guides: User[];
   companyName: string;
+  companyId?: string;
   onBack: () => void;
   onApproveBooking: (bookingId: string) => void;
   onRejectBooking: (bookingId: string, reason?: string) => void;
   onAssignGuide: (bookingId: string, guideId: string) => void;
+  onUpdateAssignedGuides?: (bookingId: string, guides: BookingAssignedGuide[]) => void;
   onCreatePaymentRequest: (bookingId: string, request: Omit<PaymentRequest, "id" | "bookingId" | "createdAt" | "status">) => void;
   onMarkDepositPaid?: (bookingId: string) => void;
   onMarkFullyPaid?: (bookingId: string) => void;
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string, adjustment?: Partial<BookingPriceAdjustment>) => void;
   onUpdateBookingPassengers?: (bookingId: string, passengers: BookingPassenger[]) => void;
+  onUpdateBookingAgencies?: (bookingId: string, agencies: BookingAgencyShare[]) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -126,15 +134,18 @@ export function CompanyBookingDetailPage({
   booking,
   guides,
   companyName,
+  companyId,
   onBack,
   onApproveBooking,
   onRejectBooking,
   onAssignGuide,
+  onUpdateAssignedGuides,
   onCreatePaymentRequest,
   onMarkDepositPaid,
   onMarkFullyPaid,
   onUpdateBookingPrice,
   onUpdateBookingPassengers,
+  onUpdateBookingAgencies,
 }: CompanyBookingDetailPageProps) {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -145,6 +156,40 @@ export function CompanyBookingDetailPage({
   const [newPriceInput, setNewPriceInput] = useState("");
   const [priceNoteInput, setPriceNoteInput] = useState("");
   const [priceAdjustmentsModalOpen, setPriceAdjustmentsModalOpen] = useState(false);
+
+  // Assigned Guides State (supporting multiple guides per tour & ownership)
+  const [assignedGuides, setAssignedGuides] = useState<BookingAssignedGuide[]>(() => {
+    if (booking.assignedGuides && booking.assignedGuides.length > 0) {
+      return booking.assignedGuides;
+    }
+    if (booking.guideName && booking.guideId) {
+      return [
+        {
+          id: `bag-${booking.id}-legacy`,
+          guideId: booking.guideId,
+          guideName: booking.guideName,
+          guidePhone: booking.guidePhone,
+          guideAvatar: booking.guideAvatar,
+          companyId: booking.companyId || companyId || "",
+          companyName: booking.companyName || companyName || "",
+          role: "lead_guide",
+          notes: "HDV Trưởng đoàn",
+          assignedAt: booking.bookingDate || new Date().toISOString().split("T")[0],
+        },
+      ];
+    }
+    return [];
+  });
+
+  // Assign Guide Modal states
+  const [selectedGuideToAdd, setSelectedGuideToAdd] = useState<string>("");
+  const [selectedGuideRole, setSelectedGuideRole] = useState<string>("lead_guide");
+  const [selectedGuideNotes, setSelectedGuideNotes] = useState<string>("");
+
+  // Replace Guide Modal states
+  const [replaceModalOpen, setReplaceModalOpen] = useState(false);
+  const [guideToReplace, setGuideToReplace] = useState<BookingAssignedGuide | null>(null);
+  const [newReplacementGuideId, setNewReplacementGuideId] = useState<string>("");
 
   // Stage list and Co-host Alliance support
   const stagesList: TourCoHost[] = useMemo(() => {
@@ -158,6 +203,104 @@ export function CompanyBookingDetailPage({
   }, [booking]);
 
   const isCoHostedTour = Boolean(booking.isCoHosted || stagesList.length > 1);
+
+  // Agencies List state (representing booking_agencies table)
+  // Agencies List state (representing booking_agencies table)
+  const [agenciesList, setAgenciesList] = useState<BookingAgencyShare[]>(() => {
+    if (booking.bookingAgencies && booking.bookingAgencies.length > 0) {
+      return booking.bookingAgencies.map((ba, idx) => {
+        const isHost = Boolean(
+          ba.isHost !== undefined
+            ? ba.isHost
+            : ba.agencyId === booking.companyId ||
+              (booking.coHosts && booking.coHosts.find((c) => c.companyId === ba.agencyId)?.role === "lead") ||
+              idx === 0
+        );
+        return {
+          ...ba,
+          isHost,
+          role: isHost ? ("lead" as const) : ("partner" as const),
+        };
+      });
+    }
+    const cHosts = booking.coHosts || booking.tour?.coHosts || [];
+    if (cHosts.length > 0) {
+      return cHosts.map((ch, idx) => {
+        const isLead = ch.role === "lead" || ch.companyId === booking.companyId || idx === 0;
+        const count = booking.numberOfGuests || 1;
+        const quote = ch.fixedPayoutAmount || (ch.quotePerGuest || (ch.quoteAdult ?? 2000000)) * count;
+        return {
+          id: `ba-${booking.id}-${idx}`,
+          bookingId: booking.id,
+          agencyId: ch.companyId,
+          agencyName: ch.companyName,
+          isHost: isLead,
+          role: isLead ? ("lead" as const) : ("partner" as const),
+          originalAmount: quote,
+          finalAmount: quote,
+          confirmationStatus: booking.status !== "pending" ? ("confirmed" as const) : ("pending" as const),
+          quoteConfirmed: booking.status !== "pending",
+          settlementStatus: "unpaid" as const,
+        };
+      });
+    }
+    return [
+      {
+        id: `ba-${booking.id}-main`,
+        bookingId: booking.id,
+        agencyId: booking.companyId,
+        agencyName: booking.companyName,
+        isHost: true,
+        role: "lead" as const,
+        originalAmount: booking.totalPrice,
+        finalAmount: booking.totalPrice,
+        confirmationStatus: booking.status !== "pending" ? ("confirmed" as const) : ("pending" as const),
+        quoteConfirmed: booking.status !== "pending",
+        settlementStatus: "unpaid" as const,
+      },
+    ];
+  });
+
+  // Determine current company's role (Lead vs Partner)
+  const isCurrentCompanyLead = useMemo(() => {
+    if (companyId) {
+      if (companyId === booking.companyId) return true;
+      const myAgency = agenciesList.find((a) => a.agencyId === companyId);
+      if (myAgency) return Boolean(myAgency.isHost || (myAgency as any).role === "lead");
+      const myCoHost = (booking.coHosts || booking.tour?.coHosts)?.find((c) => c.companyId === companyId);
+      if (myCoHost) return myCoHost.role === "lead";
+      return false;
+    }
+    if (companyName) {
+      if (companyName === booking.companyName) return true;
+      const myAgencyByName = agenciesList.find((a) => a.agencyName === companyName);
+      if (myAgencyByName) return Boolean(myAgencyByName.isHost || (myAgencyByName as any).role === "lead");
+      const myCoHostByName = (booking.coHosts || booking.tour?.coHosts)?.find((c) => c.companyName === companyName);
+      if (myCoHostByName) return myCoHostByName.role === "lead";
+    }
+    return true;
+  }, [agenciesList, companyId, companyName, booking]);
+
+  const currentAgency = useMemo(() => {
+    if (companyId) {
+      return agenciesList.find((a) => a.agencyId === companyId) || agenciesList[0];
+    }
+    return agenciesList.find((a) => a.agencyName === companyName) || agenciesList[0];
+  }, [agenciesList, companyId, companyName]);
+
+  const leadAgency = useMemo(() => {
+    return (
+      agenciesList.find((a) => a.isHost || (a as any).role === "lead" || a.agencyId === booking.companyId) ||
+      agenciesList[0]
+    );
+  }, [agenciesList, booking.companyId]);
+
+  // Stage filters and Modals
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [passengerToDeactivate, setPassengerToDeactivate] = useState<BookingPassenger | null>(null);
+  const [deactivateReason, setDeactivateReason] = useState("");
+  const [happyCaseModalOpen, setHappyCaseModalOpen] = useState(false);
 
   // Passenger list state - default: full tour for all passengers
   const [passengersList, setPassengersList] = useState<BookingPassenger[]>(() => {
@@ -177,6 +320,7 @@ export function CompanyBookingDetailPage({
   const [passengerIdNumber, setPassengerIdNumber] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
   const [passengerNotes, setPassengerNotes] = useState("");
+  const [passengerSelectedAgencyId, setPassengerSelectedAgencyId] = useState<string>("all");
 
   // Simultaneous price sync state when adding passenger
   const [autoUpdateTourPrice, setAutoUpdateTourPrice] = useState(true);
@@ -184,9 +328,28 @@ export function CompanyBookingDetailPage({
   const [customAdjustmentReason, setCustomAdjustmentReason] = useState("");
   const [passengerCustomPrice, setPassengerCustomPrice] = useState<string>("");
 
-  // Function to calculate passenger price based on age group (100% full tour itinerary)
-  const calculatePassengerPrice = (ageGroup: "adult" | "child_2_11" | "child_under_2"): number => {
+  // Function to calculate passenger price based on age group and stage
+  const calculatePassengerPrice = (
+    ageGroup: "adult" | "child_2_11" | "child_under_2",
+    targetAgencyId?: string
+  ): number => {
     if (ageGroup === "child_under_2") return 0;
+
+    // Specific agency stage selected
+    if (targetAgencyId && targetAgencyId !== "all") {
+      const stage = stagesList.find((ch) => ch.companyId === targetAgencyId);
+      const agencyShare = agenciesList.find((a) => a.agencyId === targetAgencyId);
+      let agencyBase = stage?.quoteAdult ?? stage?.quotePerGuest;
+      if (!agencyBase && agencyShare && booking.numberOfGuests) {
+        agencyBase = Math.round(agencyShare.finalAmount / booking.numberOfGuests);
+      }
+      if (!agencyBase) agencyBase = 1800000;
+
+      if (ageGroup === "child_2_11") {
+        return stage?.quoteChild ?? Math.round(agencyBase * 0.7);
+      }
+      return agencyBase;
+    }
 
     if (isCoHostedTour && stagesList.length > 0) {
       return stagesList.reduce((sum, ch) => {
@@ -198,8 +361,6 @@ export function CompanyBookingDetailPage({
       }, 0);
     }
 
-    // 1. Tìm giá vé người lớn thực tế hiện tại của đoàn:
-    // Ưu tiên 1: Lấy theo giá vé của khách người lớn đã có trong danh sách đoàn (passengersList)
     const existingAdult = passengersList.find((p) => p.ageGroup === "adult" && p.price && p.price > 0);
     let baseAdultPrice = 0;
     if (existingAdult && existingAdult.price) {
@@ -211,12 +372,10 @@ export function CompanyBookingDetailPage({
       }
     }
 
-    // Ưu tiên 2: Chia bình quân từ tổng tiền đơn hàng hiện tại (totalPrice / numberOfGuests)
     if (!baseAdultPrice && booking.numberOfGuests && booking.numberOfGuests > 0 && booking.totalPrice > 0) {
       baseAdultPrice = Math.round(booking.totalPrice / booking.numberOfGuests);
     }
 
-    // Ưu tiên 3: Nếu không có gì thì mới fallback về giá gốc niêm yết của tour
     if (!baseAdultPrice) {
       baseAdultPrice = booking.tour?.price || 0;
     }
@@ -232,6 +391,234 @@ export function CompanyBookingDetailPage({
     return baseAdultPrice;
   };
 
+  // Approval for Lead Agency (Lead confirms the group and itinerary)
+  const handleApproveHappyCase = () => {
+    const updatedAgencies: BookingAgencyShare[] = agenciesList.map((a) => ({
+      ...a,
+      confirmationStatus: "confirmed" as const,
+      quoteConfirmed: true,
+      confirmedAt: a.confirmedAt || new Date().toISOString(),
+    }));
+    setAgenciesList(updatedAgencies);
+    onUpdateBookingAgencies?.(booking.id, updatedAgencies);
+
+    onApproveBooking(booking.id);
+    setHappyCaseModalOpen(false);
+    alert(`✓ Đã duyệt booking thành công!\n\n🏢 Đơn vị chủ trì đã xác nhận công ty và các bên liên minh có thể tham gia dẫn dắt đoàn theo đúng lịch trình.\n\n👉 Bước tiếp theo: Quý công ty vui lòng sử dụng nút "Tạo yêu cầu thanh toán" trên thanh công cụ để tạo các đợt thu (đặt cọc đợt 1, thanh toán đợt 2, v.v.) theo thỏa thuận với khách hàng.`);
+  };
+
+  // Multi-Guide Management Handlers
+  const handleConfirmAddGuide = () => {
+    const targetGuide = guides.find((g) => g.id === selectedGuideToAdd);
+    if (!targetGuide) {
+      alert("Vui lòng chọn hướng dẫn viên để phân công!");
+      return;
+    }
+    if (assignedGuides.some((ag) => ag.guideId === targetGuide.id)) {
+      alert(`Hướng dẫn viên ${targetGuide.name} đã được phân công trong danh sách đoàn!`);
+      return;
+    }
+
+    const newAg: BookingAssignedGuide = {
+      id: `bag-${Date.now()}`,
+      guideId: targetGuide.id,
+      guideName: targetGuide.name,
+      guidePhone: targetGuide.phone,
+      guideAvatar: targetGuide.avatar,
+      companyId: companyId || currentAgency?.agencyId || booking.companyId || "",
+      companyName: companyName || currentAgency?.agencyName || booking.companyName || "",
+      role: selectedGuideRole,
+      notes: selectedGuideNotes.trim() || undefined,
+      assignedAt: new Date().toLocaleDateString("vi-VN"),
+    };
+
+    const updated = [...assignedGuides, newAg];
+    setAssignedGuides(updated);
+    onUpdateAssignedGuides?.(booking.id, updated);
+    if (assignedGuides.length === 0) {
+      onAssignGuide?.(booking.id, targetGuide.id);
+    }
+    setAssignModalOpen(false);
+    setSelectedGuideNotes("");
+    alert(`✓ Đã phân công hướng dẫn viên ${targetGuide.name} vào đoàn thành công!`);
+  };
+
+  const handleConfirmReplaceGuide = () => {
+    if (!guideToReplace || !newReplacementGuideId) return;
+    const replacement = guides.find((g) => g.id === newReplacementGuideId);
+    if (!replacement) {
+      alert("Vui lòng chọn hướng dẫn viên thay thế!");
+      return;
+    }
+    if (assignedGuides.some((ag) => ag.guideId === replacement.id && ag.id !== guideToReplace.id)) {
+      alert(`Hướng dẫn viên ${replacement.name} đã có trong danh sách phân công!`);
+      return;
+    }
+
+    const updated = assignedGuides.map((ag) => {
+      if (ag.id !== guideToReplace.id) return ag;
+      return {
+        ...ag,
+        guideId: replacement.id,
+        guideName: replacement.name,
+        guidePhone: replacement.phone,
+        guideAvatar: replacement.avatar,
+        assignedAt: new Date().toLocaleDateString("vi-VN"),
+      };
+    });
+
+    setAssignedGuides(updated);
+    onUpdateAssignedGuides?.(booking.id, updated);
+    setReplaceModalOpen(false);
+    setGuideToReplace(null);
+    alert(`✓ Đã thay thế HDV ${guideToReplace.guideName} bằng ${replacement.name} thành công!`);
+  };
+
+  const handleRemoveAssignedGuide = (guideAssignmentId: string) => {
+    const target = assignedGuides.find((ag) => ag.id === guideAssignmentId);
+    if (!target) return;
+    const isMyGuide = (companyId && target.companyId === companyId) ||
+      (companyName && target.companyName === companyName) ||
+      (!target.companyId && isCurrentCompanyLead);
+
+    if (!isMyGuide) {
+      alert(`Bạn không có quyền xoá HDV ${target.guideName} vì nhân sự này do ${target.companyName} trực tiếp quản lý và phân công!`);
+      return;
+    }
+
+    if (!window.confirm(`Xác nhận rút hướng dẫn viên ${target.guideName} khỏi đoàn này?`)) return;
+
+    const updated = assignedGuides.filter((ag) => ag.id !== guideAssignmentId);
+    setAssignedGuides(updated);
+    onUpdateAssignedGuides?.(booking.id, updated);
+  };
+
+  // Partner Agency confirms their stage quote
+  const handleConfirmAgencyQuote = (targetAgencyId: string) => {
+    const target = agenciesList.find((a) => a.agencyId === targetAgencyId);
+    const updatedAgencies = agenciesList.map((a) =>
+      a.agencyId === targetAgencyId
+        ? { ...a, quoteConfirmed: true, confirmedAt: new Date().toISOString() }
+        : a
+    );
+    setAgenciesList(updatedAgencies);
+    onUpdateBookingAgencies?.(booking.id, updatedAgencies);
+    alert(`✓ Đã xác nhận chốt biểu phí chặng của ${target?.agencyName || "công ty"} thành công!`);
+  };
+
+  // Passenger Deactivation handlers (Stage B reduction)
+  const handleOpenDeactivateModal = (passenger: BookingPassenger) => {
+    setPassengerToDeactivate(passenger);
+    setDeactivateReason("");
+    setDeactivateModalOpen(true);
+  };
+
+  const handleConfirmDeactivate = () => {
+    if (!passengerToDeactivate) return;
+    if (!deactivateReason.trim()) {
+      alert("Vui lòng nhập lý do rút hành khách khỏi chặng!");
+      return;
+    }
+    const p = passengerToDeactivate;
+    const targetAgencyId = p.agencyId || (isCurrentCompanyLead ? agenciesList[1]?.agencyId : currentAgency.agencyId) || agenciesList[0].agencyId;
+    const targetAgency = agenciesList.find((a) => a.agencyId === targetAgencyId) || agenciesList[0];
+    const deductAmount = p.price || 0;
+
+    const updatedPassengers = passengersList.map((item) =>
+      item.id === p.id
+        ? {
+            ...item,
+            status: "INACTIVE" as const,
+            statusNote: `Đã rút khỏi chặng ${targetAgency.agencyName}: ${deactivateReason.trim()}`,
+          }
+        : item
+    );
+    setPassengersList(updatedPassengers);
+    onUpdateBookingPassengers?.(booking.id, updatedPassengers);
+
+    const updatedAgencies = agenciesList.map((a) =>
+      a.agencyId === targetAgency.agencyId
+        ? {
+            ...a,
+            finalAmount: Math.max(0, a.finalAmount - deductAmount),
+            quoteConfirmed: false,
+          }
+        : a
+    );
+    setAgenciesList(updatedAgencies);
+    onUpdateBookingAgencies?.(booking.id, updatedAgencies);
+
+    const newTotal = Math.max(0, booking.totalPrice - deductAmount);
+    const reasonText = `Giảm khách ${p.fullName} ở chặng ${targetAgency.agencyName}: ${deactivateReason.trim()}`;
+    if (onUpdateBookingPrice) {
+      onUpdateBookingPrice(booking.id, newTotal, reasonText, {
+        id: `adj-${Date.now()}`,
+        bookingId: booking.id,
+        agencyId: targetAgency.agencyId,
+        agencyName: targetAgency.agencyName,
+        adjustedBy: companyName,
+        previousTotalPrice: booking.totalPrice,
+        adjustmentAmount: -deductAmount,
+        newTotalPrice: newTotal,
+        reason: reasonText,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    setDeactivateModalOpen(false);
+    setPassengerToDeactivate(null);
+    setDeactivateReason("");
+    alert(`✓ Đã rút hành khách "${p.fullName}" khỏi chặng ${targetAgency.agencyName}!\n✓ Đã trừ -${formatVND(deductAmount)} vào doanh thu chặng và cập nhật tổng tiền đơn hàng.`);
+  };
+
+  const handleReactivatePassenger = (p: BookingPassenger) => {
+    const targetAgencyId = p.agencyId || agenciesList[0].agencyId;
+    const targetAgency = agenciesList.find((a) => a.agencyId === targetAgencyId) || agenciesList[0];
+    const restoreAmount = p.price || 0;
+
+    if (!confirm(`Khôi phục hành khách "${p.fullName}" trở lại chặng ${targetAgency.agencyName}?\nTổng tiền sẽ được cộng lại (+${formatVND(restoreAmount)}).`)) return;
+
+    const updatedPassengers = passengersList.map((item) =>
+      item.id === p.id
+        ? {
+            ...item,
+            status: "ACTIVE" as const,
+            statusNote: undefined,
+          }
+        : item
+    );
+    setPassengersList(updatedPassengers);
+    onUpdateBookingPassengers?.(booking.id, updatedPassengers);
+
+    const updatedAgencies = agenciesList.map((a) =>
+      a.agencyId === targetAgency.agencyId
+        ? {
+            ...a,
+            finalAmount: a.finalAmount + restoreAmount,
+          }
+        : a
+    );
+    setAgenciesList(updatedAgencies);
+    onUpdateBookingAgencies?.(booking.id, updatedAgencies);
+
+    const newTotal = booking.totalPrice + restoreAmount;
+    const reasonText = `Khôi phục khách ${p.fullName} tham gia chặng ${targetAgency.agencyName}`;
+    if (onUpdateBookingPrice) {
+      onUpdateBookingPrice(booking.id, newTotal, reasonText, {
+        id: `adj-${Date.now()}`,
+        bookingId: booking.id,
+        agencyId: targetAgency.agencyId,
+        agencyName: targetAgency.agencyName,
+        adjustedBy: companyName,
+        previousTotalPrice: booking.totalPrice,
+        adjustmentAmount: restoreAmount,
+        newTotalPrice: newTotal,
+        reason: reasonText,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  };
+
   // Dynamic booking total price based on passenger tickets
   const dynamicTotalPrice = useMemo(() => {
     if (passengersList.length > 0) {
@@ -239,6 +626,19 @@ export function CompanyBookingDetailPage({
     }
     return booking.totalPrice;
   }, [passengersList, booking.totalPrice]);
+
+  // Sắp xếp nhật ký điều chỉnh giá theo thứ tự mới nhất từ trên xuống dưới (Newest-first)
+  const sortedPriceAdjustments = useMemo(() => {
+    if (!booking.priceAdjustments || booking.priceAdjustments.length === 0) return [];
+    return [...booking.priceAdjustments].sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime() || 0;
+      const timeB = new Date(b.createdAt).getTime() || 0;
+      return timeB - timeA;
+    });
+  }, [booking.priceAdjustments]);
+
+  // Lần điều chỉnh gần đây nhất
+  const latestPriceAdjustment = sortedPriceAdjustments[0] || null;
 
   const handleDeletePassenger = (passengerId: string) => {
     const pToDelete = passengersList.find((p) => p.id === passengerId);
@@ -287,10 +687,12 @@ export function CompanyBookingDetailPage({
     setPassengerIdNumber("");
     setPassengerPhone("");
     setPassengerNotes("");
+    const defaultAgency = isCurrentCompanyLead ? "all" : (currentAgency?.agencyId || "all");
+    setPassengerSelectedAgencyId(defaultAgency);
     setAutoUpdateTourPrice(true);
     setCreateExtraPaymentRequest(true);
     setCustomAdjustmentReason("");
-    const defaultPrice = calculatePassengerPrice("adult");
+    const defaultPrice = calculatePassengerPrice("adult", defaultAgency);
     setPassengerCustomPrice(defaultPrice.toString());
     setPassengerModalOpen(true);
   };
@@ -304,7 +706,8 @@ export function CompanyBookingDetailPage({
     setPassengerIdNumber(p.idNumber || "");
     setPassengerPhone(p.phone || "");
     setPassengerNotes(p.notes || "");
-    const initialPrice = p.price !== undefined ? p.price : calculatePassengerPrice(p.ageGroup || "adult");
+    setPassengerSelectedAgencyId(p.agencyId || "all");
+    const initialPrice = p.price !== undefined ? p.price : calculatePassengerPrice(p.ageGroup || "adult", p.agencyId || "all");
     setPassengerCustomPrice(initialPrice.toString());
     setPassengerModalOpen(true);
   };
@@ -315,7 +718,7 @@ export function CompanyBookingDetailPage({
     let grp: "adult" | "child_2_11" | "child_under_2" = "adult";
     if (age < 2) grp = "child_under_2";
     else if (age <= 11) grp = "child_2_11";
-    const autoPrice = calculatePassengerPrice(grp);
+    const autoPrice = calculatePassengerPrice(grp, passengerSelectedAgencyId);
     setPassengerCustomPrice(autoPrice.toString());
   };
 
@@ -330,7 +733,8 @@ export function CompanyBookingDetailPage({
     if (age < 2) ageGroup = "child_under_2";
     else if (age <= 11) ageGroup = "child_2_11";
 
-    const computedPrice = passengerCustomPrice !== "" ? Math.max(0, parseInt(passengerCustomPrice) || 0) : calculatePassengerPrice(ageGroup);
+    const computedPrice = passengerCustomPrice !== "" ? Math.max(0, parseInt(passengerCustomPrice) || 0) : calculatePassengerPrice(ageGroup, passengerSelectedAgencyId);
+    const targetAgency = passengerSelectedAgencyId !== "all" ? agenciesList.find((a) => a.agencyId === passengerSelectedAgencyId) : null;
 
     if (passengerModalMode === "add") {
       const newPassenger: BookingPassenger = {
@@ -343,6 +747,10 @@ export function CompanyBookingDetailPage({
         phone: passengerPhone.trim(),
         notes: passengerNotes.trim(),
         price: computedPrice,
+        agencyId: targetAgency ? targetAgency.agencyId : undefined,
+        agencyName: targetAgency ? targetAgency.agencyName : undefined,
+        isPrimary: true,
+        status: "ACTIVE",
       };
 
       const nextList = [...passengersList, newPassenger];
@@ -352,18 +760,38 @@ export function CompanyBookingDetailPage({
         onUpdateBookingPassengers(booking.id, nextList);
       }
 
+      // Update booking_agencies final amount
+      if (targetAgency) {
+        const nextAgencies = agenciesList.map((a) =>
+          a.agencyId === targetAgency.agencyId
+            ? { ...a, finalAmount: a.finalAmount + computedPrice }
+            : a
+        );
+        setAgenciesList(nextAgencies);
+        onUpdateBookingAgencies?.(booking.id, nextAgencies);
+      } else if (isCoHostedTour && agenciesList.length > 1) {
+        const nextAgencies = agenciesList.map((a) => {
+          const ch = stagesList.find((c) => c.companyId === a.agencyId);
+          const share = ch?.quoteAdult ?? ch?.quotePerGuest ?? Math.round(computedPrice / agenciesList.length);
+          return { ...a, finalAmount: a.finalAmount + share };
+        });
+        setAgenciesList(nextAgencies);
+        onUpdateBookingAgencies?.(booking.id, nextAgencies);
+      }
+
       // Simultaneously update tour price and create payment request if enabled
       if (autoUpdateTourPrice && computedPrice > 0) {
         const newTotal = booking.totalPrice + computedPrice;
         const ageLabel = ageGroup === "adult" ? "Người lớn" : ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)";
-        const reason = customAdjustmentReason.trim() || `Thêm thành viên đoàn: ${passengerName.trim()} (${ageLabel})`;
+        const stageLabel = targetAgency ? ` (Chặng ${targetAgency.agencyName})` : "";
+        const reason = customAdjustmentReason.trim() || `Thêm thành viên đoàn: ${passengerName.trim()} (${ageLabel})${stageLabel}`;
 
         let paymentReqId: string | undefined = undefined;
         if (createExtraPaymentRequest) {
           paymentReqId = `pr-add-${Date.now()}`;
           onCreatePaymentRequest(booking.id, {
             amount: computedPrice,
-            description: `Phụ thu bổ sung hành khách: ${passengerName.trim()} (${ageLabel})`,
+            description: `Phụ thu bổ sung hành khách: ${passengerName.trim()} (${ageLabel})${stageLabel}`,
             dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
           });
         }
@@ -372,6 +800,8 @@ export function CompanyBookingDetailPage({
           onUpdateBookingPrice(booking.id, newTotal, reason, {
             id: `adj-${Date.now()}`,
             bookingId: booking.id,
+            agencyId: targetAgency ? targetAgency.agencyId : undefined,
+            agencyName: targetAgency ? targetAgency.agencyName : undefined,
             adjustedBy: companyName,
             previousTotalPrice: booking.totalPrice,
             adjustmentAmount: computedPrice,
@@ -399,6 +829,8 @@ export function CompanyBookingDetailPage({
           phone: passengerPhone.trim(),
           notes: passengerNotes.trim(),
           price: computedPrice,
+          agencyId: targetAgency ? targetAgency.agencyId : p.agencyId,
+          agencyName: targetAgency ? targetAgency.agencyName : p.agencyName,
         };
       });
       setPassengersList(nextList);
@@ -509,41 +941,64 @@ export function CompanyBookingDetailPage({
           <div className="flex items-center gap-2 flex-wrap">
             {booking.status === "pending" && (
               <>
-                <Button
-                  onClick={() => onApproveBooking(booking.id)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm text-sm"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  Duyệt Booking
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setRejectModalOpen(true)}
-                  className="border-red-300 text-red-600 hover:bg-red-50 gap-1.5 text-sm"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Từ chối
-                </Button>
+                {isCurrentCompanyLead ? (
+                  <Button
+                    onClick={handleApproveHappyCase}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm text-sm font-bold"
+                    title="Xác nhận cty có thể tham gia dẫn dắt đoàn này theo đúng lịch trình thỏa thuận"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Duyệt Booking
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-800 border border-purple-200">
+                    <Handshake className="w-4 h-4 text-purple-600" />
+                    Đối tác liên minh (Chờ Chủ trì duyệt)
+                  </span>
+                )}
+
+                {isCurrentCompanyLead && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setRejectModalOpen(true)}
+                    className="border-red-300 text-red-600 hover:bg-red-50 gap-1.5 text-sm font-medium"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Từ chối
+                  </Button>
+                )}
               </>
             )}
 
             <Button
               variant="outline"
-              onClick={() => setAssignModalOpen(true)}
+              onClick={() => {
+                setSelectedGuideToAdd(guides[0]?.id || "");
+                setSelectedGuideRole(assignedGuides.length === 0 ? "lead_guide" : "support_guide");
+                setSelectedGuideNotes("");
+                setAssignModalOpen(true);
+              }}
               className="border-gray-300 text-gray-700 hover:bg-gray-50 gap-1.5 text-sm"
             >
               <UserCheck className="w-4 h-4 text-blue-600" />
-              {booking.guideName ? "Đổi HDV" : "Giao HDV"}
+              Giao HDV ({assignedGuides.length})
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => setPaymentModalOpen(true)}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 gap-1.5 text-sm"
-            >
-              <CreditCard className="w-4 h-4 text-emerald-600" />
-              Tạo yêu cầu thanh toán
-            </Button>
+            {/* Chỉ Công ty Chủ trì mới có quyền Tạo yêu cầu thanh toán cho khách hàng */}
+            {isCurrentCompanyLead && (
+              <Button
+                onClick={() => setPaymentModalOpen(true)}
+                className={`gap-1.5 text-sm font-bold shadow-sm transition-all ${
+                  booking.status === "confirmed" && booking.paymentStatus !== "paid"
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400/40"
+                    : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+                title="Tạo các đợt thanh toán (đặt cọc đợt 1, đợt 2, v.v.) theo trao đổi với khách hàng"
+              >
+                <CreditCard className="w-4 h-4 text-emerald-500" />
+                Tạo yêu cầu thanh toán
+              </Button>
+            )}
 
             <Button
               variant="outline"
@@ -632,77 +1087,195 @@ export function CompanyBookingDetailPage({
             <div className="bg-gradient-to-br from-amber-50/70 via-purple-50/50 to-blue-50/50 rounded-2xl border-2 border-amber-300 p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0 shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-800 flex-shrink-0 shadow-2xs">
                     <Handshake className="w-5 h-5 text-amber-700" />
                   </div>
                   <div>
                     <h2 className="text-base font-extrabold text-amber-950 flex items-center gap-2 flex-wrap">
-                      Tour Liên Minh Hợp Tác Giữa 2 Công Ty (Co-Hosting)
-                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">
-                        Cả 2 bên cùng nhận booking
+                      Tour Liên Minh Hợp Tác Giữa 2 Công Ty (Co-Hosting Alliance)
+                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300">
+                        Bảng doanh thu chặng: booking_agencies
                       </span>
                     </h2>
                     <p className="text-xs text-amber-800 mt-0.5">
-                      Đơn booking này thuộc tour liên minh đồng phối hợp. Cả đơn vị chủ trì và đối tác chuyên môn đều cùng nhận thông tin đơn để phục vụ khách.
+                      Đoàn do 2 công ty đồng phối hợp. Báo giá từng chặng được ghi nhận độc lập và Sàn Escrow sẽ giải ngân trực tiếp cho từng công ty sau khi tour hoàn thành.
                     </p>
                   </div>
                 </div>
+
+                {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPriceAdjustmentsModalOpen(true)}
+                    className="border-amber-300 bg-white hover:bg-amber-100/60 text-amber-900 text-xs font-bold gap-1.5 h-8 px-3 rounded-lg shrink-0 shadow-2xs"
+                  >
+                    <History className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Nhật ký điều chỉnh giá ({booking.priceAdjustments.length})</span>
+                  </Button>
+                )}
               </div>
 
-              {/* Both Companies Participation */}
+              {/* Both Companies Agency Shares (from booking_agencies) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(booking.coHosts || booking.tour?.coHosts)?.map((ch) => {
-                  const isLead = ch.role === "lead";
+                {agenciesList.map((agency) => {
+                  const isLead = Boolean(
+                    agency.isHost ||
+                    (agency as any).role === "lead" ||
+                    agency.agencyId === booking.companyId ||
+                    (stagesList.find((c) => c.companyId === agency.agencyId)?.role === "lead")
+                  );
+                  const coHostInfo = stagesList.find((c) => c.companyId === agency.agencyId);
+                  const isMyAgency = companyId ? agency.agencyId === companyId : agency.agencyName === companyName;
+                  const isAdjusted = agency.finalAmount !== agency.originalAmount;
+                  const diff = agency.finalAmount - agency.originalAmount;
+
                   return (
                     <div
-                      key={ch.id || ch.companyId}
-                      className={`p-4 rounded-xl border space-y-2 bg-white ${
-                        isLead ? "border-blue-200 shadow-2xs" : "border-purple-200 shadow-2xs"
-                      }`}
+                      key={agency.id || agency.agencyId}
+                      className={`p-5 rounded-2xl border-2 space-y-3.5 ${
+                        isLead
+                          ? "border-blue-400 bg-gradient-to-br from-blue-50/70 via-white to-blue-50/30 shadow-xs"
+                          : "border-purple-300 bg-gradient-to-br from-purple-50/70 via-white to-purple-50/30 shadow-xs"
+                      } ${isMyAgency ? "ring-2 ring-blue-500/50" : ""}`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {ch.companyLogo ? (
-                            <img src={ch.companyLogo} alt="" className="w-6 h-6 rounded-md object-cover border" />
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {coHostInfo?.companyLogo ? (
+                            <img src={coHostInfo.companyLogo} alt="" className="w-9 h-9 rounded-xl object-cover border border-gray-200 shadow-2xs" />
                           ) : (
-                            <div className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700">
-                              {ch.companyName?.slice(0, 1)}
+                            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700 border">
+                              {agency.agencyName?.slice(0, 1)}
                             </div>
                           )}
-                          <span className="font-bold text-gray-900 text-xs truncate">
-                            {ch.companyName}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="font-extrabold text-gray-900 text-sm block truncate">
+                              {agency.agencyName}
+                            </span>
+                            <span className="text-[11px] font-semibold block">
+                              {isLead ? (
+                                <span className="text-blue-700">{isMyAgency ? "🏢 Đơn vị của bạn (Chủ trì)" : "🏢 Đơn vị chủ trì điều phối"}</span>
+                              ) : (
+                                <span className="text-purple-700">{isMyAgency ? "🤝 Đơn vị của bạn (Đối tác)" : "🤝 Đối tác liên minh địa phương"}</span>
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                            isLead
-                              ? "bg-blue-100 text-blue-800 border border-blue-200"
-                              : "bg-purple-100 text-purple-800 border border-purple-200"
-                          }`}
-                        >
-                          {isLead ? "Đơn vị Chủ trì (Lead)" : "Đối tác Chuyên môn (Partner)"}
-                        </span>
+
+                        {isLead ? (
+                          <span className="text-xs font-black px-3 py-1 rounded-full bg-blue-600 text-white shadow-xs border border-blue-700 flex items-center gap-1.5 shrink-0">
+                            <Building2 className="w-3.5 h-3.5" />
+                            ĐƠN VỊ CHỦ TRÌ (LEAD)
+                          </span>
+                        ) : (
+                          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-300 shadow-xs flex items-center gap-1.5 shrink-0">
+                            <Handshake className="w-3.5 h-3.5 text-purple-700" />
+                            ĐỐI TÁC ĐỒNG DẪN (PARTNER)
+                          </span>
+                        )}
                       </div>
 
-                      <div className="text-xs text-gray-600 space-y-1 pt-1 border-t border-gray-100">
-                        <p>
-                          <strong className="text-gray-700">Phụ trách:</strong> {ch.assignedSegments || (isLead ? "Chặng đón & điều phối tổng thể" : "Chặng trải nghiệm địa phương")}
+                      {/* Role and segment clarification */}
+                      <div className="text-xs text-gray-600 space-y-2 pt-1 border-t border-gray-100">
+                        {isLead ? (
+                          <p className="text-[11px] text-blue-900 bg-blue-100/60 p-2.5 rounded-xl border border-blue-200/80 leading-relaxed">
+                            🏢 <strong>Vai trò Đơn vị Chủ trì:</strong> Chịu trách nhiệm pháp lý hợp đồng, xe đưa đón, duyệt đơn booking và phát hành các đợt thanh toán cho khách hàng.
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-purple-900 bg-purple-100/60 p-2.5 rounded-xl border border-purple-200/80 leading-relaxed">
+                            🤝 <strong>Vai trò Đối tác Chuyên tuyến:</strong> Phụ trách vận hành và hướng dẫn viên chặng địa phương, rà soát và điều chỉnh thêm/giảm khách chặng phụ trách.
+                          </p>
+                        )}
+
+                        <p className="text-[11px]">
+                          <strong className="text-gray-700">Chặng phụ trách:</strong>{" "}
+                          <span className="font-semibold text-gray-900">
+                            {coHostInfo?.assignedSegments || (isLead ? "Chặng đón đoàn & Điều phối tổng thể" : "Chặng trải nghiệm địa phương")}
+                          </span>
                         </p>
-                        {ch.fixedPayoutAmount ? (
-                          <p className="text-emerald-700 font-bold">
-                            Kinh phí chặng phân bổ: <span className="underline">{formatVND(ch.fixedPayoutAmount)}</span>
-                          </p>
-                        ) : ch.quotePerGuest ? (
-                          <p className="text-emerald-700 font-bold">
-                            Báo giá chặng: {formatVND(ch.quotePerGuest)} / khách × {booking.numberOfGuests} khách ={" "}
-                            <span className="underline">{formatVND(ch.quotePerGuest * booking.numberOfGuests)}</span>
-                          </p>
-                        ) : null}
+
+                        <div className="bg-white/80 rounded-xl p-2.5 border border-gray-200 space-y-1.5 shadow-2xs">
+                          <div className="flex justify-between items-center text-[11px]">
+                            <span className="text-gray-500">Báo giá chặng gốc ban đầu:</span>
+                            <span className="font-semibold text-gray-700">{formatVND(agency.originalAmount)}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-gray-800">Doanh thu chặng chốt:</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-black text-emerald-700 text-sm">{formatVND(agency.finalAmount)}</span>
+                              {isAdjusted && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                                  diff > 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                                }`}>
+                                  {diff > 0 ? `+${formatVND(diff)}` : `-${formatVND(Math.abs(diff))}`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Confirmation status */}
+                        {isLead ? (
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-blue-100">
+                            <span className="text-[11px] text-gray-500 font-medium">Quyền hạn chốt đơn:</span>
+                            {booking.status === "confirmed" || agency.quoteConfirmed ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                Đã duyệt tour &amp; Chốt biểu phí (Chủ trì)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                                <Info className="w-3.5 h-3.5 text-blue-600" />
+                                Tự động chốt khi Chủ trì bấm "Duyệt Booking"
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-purple-100">
+                            <span className="text-[11px] text-gray-500 font-medium">Trạng thái biểu phí chặng:</span>
+                            {booking.status === "confirmed" || agency.quoteConfirmed ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                Đã chốt theo biểu phí liên minh
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                                <Info className="w-3.5 h-3.5 text-blue-600" />
+                                Theo thỏa thuận hợp tác liên minh
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Happy Case Action Notice if Booking is Pending */}
+              {booking.status === "pending" && (
+                <div className="bg-blue-50/90 border border-blue-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                      Quy trình duyệt booking &amp; Thỏa thuận liên minh
+                    </p>
+                    <p className="text-[11px] text-blue-800 leading-relaxed">
+                      Công ty chủ trì duyệt booking khi xác nhận cty và đối tác có thể dẫn dắt đoàn. Sau khi duyệt, Chủ trì có thể chủ động tạo các đợt yêu cầu thanh toán (chia đợt đặt cọc hoặc thanh toán toàn bộ tùy thỏa thuận với khách hàng).
+                    </p>
+                  </div>
+                  {isCurrentCompanyLead && (
+                    <Button
+                      onClick={handleApproveHappyCase}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold h-9 px-4 shrink-0 shadow-sm flex items-center gap-1.5 rounded-xl"
+                    >
+                      <Zap className="w-4 h-4 text-yellow-300" />
+                      Duyệt Booking (Chủ trì)
+                    </Button>
+                  )}
+                </div>
+              )}
 
               {/* Escrow Guarantee Policy Note */}
               <div className="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3.5 flex items-start gap-3 text-xs text-emerald-900">
@@ -712,7 +1285,7 @@ export function CompanyBookingDetailPage({
                     Bảo chứng thanh toán Ký quỹ (Escrow) &amp; Quyết toán độc lập:
                   </p>
                   <p className="text-emerald-800 leading-relaxed text-[11px]">
-                    Khoản thanh toán của khách ({formatVND(booking.totalPrice)}) được bảo lưu an toàn tại Tài khoản Trung gian Ký quỹ của Sàn. Sau khi đoàn kết thúc tour an toàn, Sàn sẽ tự động đối soát và giải ngân chính xác phần tiền cho từng công ty theo đúng báo giá đã xác nhận.
+                    Khách hàng thanh toán 100% ({formatVND(booking.totalPrice)}) vào tài khoản ký quỹ trung gian của Nền tảng trước ngày khởi hành. Sau khi kết thúc tour an toàn, Sàn sẽ giải ngân độc lập cho từng công ty theo đúng doanh thu chặng chốt thực tế ở trên.
                   </p>
                 </div>
               </div>
@@ -984,189 +1557,389 @@ export function CompanyBookingDetailPage({
           </div>
 
           {/* PASSENGER LIST & STAGE ROLL-CALL TABLE */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <Users className="w-4 h-4 text-blue-600" />
-                  Danh sách hành khách &amp; Điều phối chặng ({passengersList.length} người)
-                </h2>
-                {isCoHostedTour && (
-                  <p className="text-[11px] text-gray-500 mt-0.5">
-                    Tour liên minh {stagesList.length} chặng phối hợp. Hỗ trợ khách tham gia theo chặng, tự động điều chỉnh đơn giá và điểm danh 1 chạm.
-                  </p>
+          {(() => {
+            const isLead = isCurrentCompanyLead;
+            const myAgencyId = companyId || currentAgency?.agencyId;
+
+            // If current company is partner, they can ONLY see passengers belonging to their agency
+            let visiblePassengers: BookingPassenger[] = [];
+            if (isLead) {
+              visiblePassengers = passengersList;
+            } else {
+              // 1. Check if there are explicit rows tagged for my agency
+              const myAgencyRows = passengersList.filter(
+                (p) =>
+                  p.agencyId === myAgencyId ||
+                  p.agencyName === companyName ||
+                  (currentAgency?.agencyName && p.agencyName === currentAgency.agencyName)
+              );
+
+              if (myAgencyRows.length > 0) {
+                visiblePassengers = myAgencyRows;
+              } else {
+                // 2. Fallback: If no explicit rows exist for my agency, but there are full-tour rows (unassigned to a specific stage)
+                const unassignedRows = passengersList.filter((p) => !p.agencyId || p.agencyId === "all");
+                if (unassignedRows.length > 0) {
+                  visiblePassengers = unassignedRows;
+                } else if (!passengersList.some((p) => p.agencyId && p.agencyId !== booking.companyId)) {
+                  // 3. Fallback: Full tour group where all participants participate in this partner stage
+                  const partnerStage = stagesList.find((s) => s.companyId === myAgencyId);
+                  const partnerAgency = agenciesList.find((a) => a.agencyId === myAgencyId);
+                  const stagePrice =
+                    partnerStage?.quoteAdult ??
+                    partnerStage?.quotePerGuest ??
+                    (partnerAgency && booking.numberOfGuests
+                      ? Math.round(partnerAgency.finalAmount / booking.numberOfGuests)
+                      : 1800000);
+
+                  visiblePassengers = passengersList.map((p) => ({
+                    ...p,
+                    agencyId: myAgencyId,
+                    agencyName: companyName || currentAgency?.agencyName || partnerStage?.companyName,
+                    price: stagePrice,
+                  }));
+                }
+              }
+            }
+
+            const activeCount = visiblePassengers.filter((p) => p.status !== "INACTIVE").length;
+            const inactiveCount = visiblePassengers.filter((p) => p.status === "INACTIVE").length;
+            const visibleTotalPrice = visiblePassengers
+              .filter((p) => p.status !== "INACTIVE")
+              .reduce((sum, p) => sum + (p.price || 0), 0);
+
+            const filteredPassengers = visiblePassengers.filter((p) => {
+              if (!isLead) return true; // Partner already strictly limited to their stage
+              if (stageFilter === "all") return true;
+              if (stageFilter === "my_stage") {
+                return !p.agencyId || p.agencyId === myAgencyId;
+              }
+              if (stageFilter === "partner_stage") {
+                return p.agencyId && p.agencyId !== myAgencyId;
+              }
+              return p.agencyId === stageFilter;
+            });
+
+            return (
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-600" />
+                        Danh sách hành khách tham gia đoàn ({visiblePassengers.length} người)
+                      </h2>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {activeCount} Đang tham gia
+                        </span>
+                        {inactiveCount > 0 && (
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                            {inactiveCount} Đã rút khỏi chặng
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {isCoHostedTour && (
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        {isLead
+                          ? `Tour liên minh ${agenciesList.length} công ty điều phối. Với vai trò Đơn vị Chủ trì, bạn có thể xem danh sách toàn đoàn, lọc theo từng chặng và thêm khách mới.`
+                          : `Tour liên minh: Bạn đang xem danh sách hành khách chặng do ${companyName} phụ trách theo bảng booking_participants.`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* ONLY Lead Company has permission to add new passengers */}
+                    {isLead && (
+                      <Button
+                        size="sm"
+                        onClick={handleOpenAddPassenger}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3 rounded-lg flex items-center gap-1.5 shadow-2xs font-semibold"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Thêm khách vào đoàn</span>
+                      </Button>
+                    )}
+
+                    {visiblePassengers.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            const fileName = `Danh_Sach_Doan_${booking.id}.xlsx`;
+                            const exportRows = visiblePassengers.map((p, idx) => {
+                              const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
+                              return {
+                                "STT": idx + 1,
+                                "Họ & Tên": p.fullName,
+                                "CCCD / Định danh": p.idNumber || "",
+                                "Ngày sinh": p.dateOfBirth || "",
+                                "Độ tuổi": age !== null ? `${age} tuổi` : "",
+                                "Giới tính": p.gender === "male" ? "Nam" : "Nữ",
+                                "Phân loại": p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)",
+                                "Chặng phụ trách": p.agencyName || "Toàn bộ tour (100% full tuyến)",
+                                "Trạng thái": p.status === "INACTIVE" ? `Đã rút (${p.statusNote || ""})` : "Đang tham gia",
+                                "Số điện thoại": p.phone || "",
+                                "Ghi chú riêng": p.notes || "",
+                                "Giá vé (VNĐ)": p.status === "INACTIVE" ? 0 : p.price,
+                              };
+                            });
+
+                            const ws = XLSX.utils.json_to_sheet(exportRows);
+                            const wb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach");
+                            XLSX.writeFile(wb, fileName);
+                          } catch (err: any) {
+                            alert("Không thể xuất file Excel: " + (err?.message || "Lỗi không xác định"));
+                          }
+                        }}
+                        className="text-xs gap-1.5 h-8 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Xuất Excel</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Partner Company Privacy Notice */}
+                {!isLead && isCoHostedTour && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-900">
+                    <ShieldCheck className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">
+                      <strong>Phân quyền Đối tác Liên minh (booking_participants):</strong> Quý công ty đang xem danh sách <strong>{filteredPassengers.length}</strong> hành khách thuộc phạm vi chặng do <strong>{companyName}</strong> phụ trách đón tiếp. Chỉ Đơn vị Chủ trì mới có quyền xem toàn bộ đoàn và thêm khách mới vào đoàn.
+                    </p>
+                  </div>
                 )}
-              </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  onClick={handleOpenAddPassenger}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3 rounded-lg flex items-center gap-1.5 shadow-2xs font-semibold"
-                >
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>Thêm khách vào chặng</span>
-                </Button>
-
-                {passengersList.length > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      try {
-                        const fileName = `Danh_Sach_Doan_${booking.id}.xlsx`;
-                        const exportRows = passengersList.map((p, idx) => {
-                          const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
-                          return {
-                            "STT": idx + 1,
-                            "Họ & Tên": p.fullName,
-                            "CCCD / Định danh": p.idNumber || "",
-                            "Ngày sinh": p.dateOfBirth || "",
-                            "Độ tuổi": age !== null ? `${age} tuổi` : "",
-                            "Giới tính": p.gender === "male" ? "Nam" : "Nữ",
-                            "Phân loại": p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)",
-                            "Lộ trình tham gia": "Toàn bộ tour (100% full tuyến)",
-                            "Số điện thoại": p.phone || "",
-                            "Ghi chú riêng": p.notes || "",
-                            "Giá vé (VNĐ)": p.price,
-                          };
-                        });
-
-                        const ws = XLSX.utils.json_to_sheet(exportRows);
-                        const wb = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach");
-                        XLSX.writeFile(wb, fileName);
-                      } catch (err: any) {
-                        alert("Không thể xuất file Excel: " + (err?.message || "Lỗi không xác định"));
-                      }
-                    }}
-                    className="text-xs gap-1.5 h-8 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold shadow-2xs"
-                  >
-                    <Download className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Xuất Excel danh sách đoàn</span>
-                  </Button>
+                {/* Stage Filter Buttons - ONLY visible to Lead Agency */}
+                {isLead && isCoHostedTour && agenciesList.length > 1 && (
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    <span className="text-xs font-bold text-gray-600 flex items-center gap-1">
+                      <Tag className="w-3.5 h-3.5 text-gray-400" /> Lọc theo chặng:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setStageFilter("all")}
+                      className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        stageFilter === "all"
+                          ? "bg-blue-600 text-white shadow-2xs"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      Tất cả ({passengersList.length})
+                    </button>
+                    {agenciesList.map((a) => {
+                      const countInStage = passengersList.filter((p) => !p.agencyId || p.agencyId === a.agencyId).length;
+                      return (
+                        <button
+                          key={a.agencyId}
+                          type="button"
+                          onClick={() => setStageFilter(a.agencyId)}
+                          className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                            stageFilter === a.agencyId
+                              ? "bg-purple-600 text-white shadow-2xs"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          <span>{a.agencyName}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                            stageFilter === a.agencyId ? "bg-white/20 text-white" : "bg-gray-200 text-gray-700"
+                          }`}>
+                            {countInStage}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-              </div>
-            </div>
 
-            <div className="space-y-3">
-              {passengersList.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-gray-100 text-gray-700 font-bold uppercase text-[11px]">
-                        <th className="px-3 py-2.5 text-left rounded-l-lg">#</th>
-                        <th className="px-3 py-2.5 text-left">Họ &amp; Tên</th>
-                        <th className="px-3 py-2.5 text-left">CCCD / Passport</th>
-                        <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
-                        <th className="px-3 py-2.5 text-left">Phân loại</th>
-                        <th className="px-3 py-2.5 text-left">Ghi chú riêng</th>
-                        <th className="px-3 py-2.5 text-right">Giá vé áp dụng</th>
-                        <th className="px-3 py-2.5 text-center rounded-r-lg">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {passengersList.map((p, i) => {
-                        return (
-                          <tr key={p.id} className="hover:bg-gray-50/80 transition-colors">
-                            <td className="px-3 py-2.5 text-gray-400 font-mono">{i + 1}</td>
-                            <td className="px-3 py-2.5 font-bold text-gray-900">
-                              {p.fullName}
-                              {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
-                            </td>
-                            <td className="px-3 py-2.5">
-                              {p.idNumber ? (
-                                <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                                  {p.idNumber}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 italic">—</span>
-                              )}
-                            </td>
-                            <td className="px-3 py-2.5 text-gray-600">
-                              <span>{p.dateOfBirth || "—"}</span>
-                              {(() => {
-                                const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
-                                return age !== null ? (
-                                  <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
-                                    {age} tuổi
-                                  </span>
-                                ) : null;
-                              })()}
-                            </td>
-                            <td className="px-3 py-2.5">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                p.ageGroup === "adult"
-                                  ? "bg-blue-50 text-blue-700"
-                                  : p.ageGroup === "child_2_11"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-purple-50 text-purple-700"
-                              }`}>
-                                {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
-                              </span>
-                            </td>
-
-                            <td className="px-3 py-2.5 max-w-[200px]">
-                              {p.notes ? (
-                                <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
-                                  {p.notes}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 italic">—</span>
-                              )}
-                            </td>
-
-                            <td className="px-3 py-2.5 text-right font-bold text-blue-700">
-                              <div>{p.price === 0 ? "Miễn phí" : formatVND(p.price)}</div>
-                            </td>
-
-                            <td className="px-3 py-2.5 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEditPassenger(p)}
-                                  className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
-                                  title="Chỉnh sửa thông tin"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeletePassenger(p.id)}
-                                  className="p-1 text-gray-400 hover:text-rose-600 rounded transition-colors"
-                                  title="Xóa hành khách này"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
+                <div className="space-y-3">
+                  {filteredPassengers.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gray-100 text-gray-700 font-bold uppercase text-[11px]">
+                            <th className="px-3 py-2.5 text-left rounded-l-lg">#</th>
+                            <th className="px-3 py-2.5 text-left">Họ &amp; Tên</th>
+                            <th className="px-3 py-2.5 text-left">CCCD / Passport</th>
+                            <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
+                            <th className="px-3 py-2.5 text-left">Phân loại</th>
+                            <th className="px-3 py-2.5 text-left">Chặng / Đơn vị tiếp nhận</th>
+                            <th className="px-3 py-2.5 text-left">Trạng thái chặng</th>
+                            <th className="px-3 py-2.5 text-right">Giá vé áp dụng</th>
+                            <th className="px-3 py-2.5 text-center rounded-r-lg">Thao tác</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot>
-                      <tr className="bg-gray-50 font-bold border-t border-gray-200">
-                        <td colSpan={6} className="px-3 py-2.5 text-right text-gray-700">
-                          Tổng cộng tiền vé ({passengersList.length} khách):
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
-                          {formatVND(dynamicTotalPrice)}
-                        </td>
-                        <td></td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredPassengers.map((p, i) => {
+                            const isInactive = p.status === "INACTIVE";
+                            return (
+                              <tr
+                                key={p.id}
+                                className={`transition-colors ${
+                                  isInactive ? "bg-rose-50/40 text-gray-500" : "hover:bg-gray-50/80"
+                                }`}
+                              >
+                                <td className="px-3 py-2.5 text-gray-400 font-mono">{i + 1}</td>
+                                <td className="px-3 py-2.5 font-bold text-gray-900">
+                                  <span className={isInactive ? "line-through text-gray-500" : ""}>
+                                    {p.fullName}
+                                  </span>
+                                  {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  {p.idNumber ? (
+                                    <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                      {p.idNumber}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-400 italic">—</span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2.5 text-gray-600">
+                                  <span>{p.dateOfBirth || "—"}</span>
+                                  {(() => {
+                                    const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                                    return age !== null ? (
+                                      <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                        {age} tuổi
+                                      </span>
+                                    ) : null;
+                                  })()}
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    p.ageGroup === "adult"
+                                      ? "bg-blue-50 text-blue-700"
+                                      : p.ageGroup === "child_2_11"
+                                      ? "bg-emerald-50 text-emerald-700"
+                                      : "bg-purple-50 text-purple-700"
+                                  }`}>
+                                    {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
+                                  </span>
+                                </td>
+
+                                <td className="px-3 py-2.5">
+                                  {p.agencyName ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                      {p.agencyName}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                      Toàn bộ tour (100%)
+                                    </span>
+                                  )}
+                                </td>
+
+                                <td className="px-3 py-2.5">
+                                  {isInactive ? (
+                                    <div className="space-y-0.5">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                        <XCircle className="w-3 h-3 text-rose-600" />
+                                        Đã rút khỏi chặng
+                                      </span>
+                                      {p.statusNote && (
+                                        <p className="text-[10px] text-rose-700 italic max-w-[170px] truncate" title={p.statusNote}>
+                                          {p.statusNote}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                      Đang tham gia
+                                    </span>
+                                  )}
+                                </td>
+
+                                <td className="px-3 py-2.5 text-right">
+                                  {isInactive ? (
+                                    <div>
+                                      <span className="line-through text-gray-400 text-xs">{formatVND(p.price || 0)}</span>
+                                      <span className="block text-[10px] text-rose-600 font-bold">0đ (Đã khấu trừ)</span>
+                                    </div>
+                                  ) : (
+                                    <div className="font-bold text-blue-700">
+                                      {p.price === 0 ? "Miễn phí" : formatVND(p.price || 0)}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="px-3 py-2.5 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEditPassenger(p)}
+                                      className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                                      title="Chỉnh sửa thông tin"
+                                    >
+                                      <Edit className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    {!isInactive ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenDeactivateModal(p)}
+                                        className="p-1 text-gray-400 hover:text-rose-600 rounded transition-colors"
+                                        title="Rút hành khách khỏi chặng này trước khởi hành"
+                                      >
+                                        <UserMinus className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleReactivatePassenger(p)}
+                                        className="p-1 text-gray-400 hover:text-emerald-600 rounded transition-colors"
+                                        title="Khôi phục hành khách này vào chặng"
+                                      >
+                                        <RotateCcw className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+
+                                    {isCurrentCompanyLead && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeletePassenger(p.id)}
+                                        className="p-1 text-gray-400 hover:text-rose-600 rounded transition-colors"
+                                        title="Xóa vĩnh viễn khỏi danh sách đoàn (Chỉ Công ty Chủ trì)"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-gray-50 font-bold border-t border-gray-200">
+                            <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
+                              Tổng cộng tiền vé ({activeCount} khách đang tham gia):
+                            </td>
+                            <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
+                              {formatVND(isLead && stageFilter === "all" ? dynamicTotalPrice : visibleTotalPrice)}
+                            </td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg p-6 text-center text-xs text-gray-500 space-y-2">
+                      <p>Chưa có hành khách nào phù hợp với bộ lọc này.</p>
+                      <Button size="sm" onClick={handleOpenAddPassenger} className="text-xs bg-blue-600 text-white">
+                        <UserPlus className="w-3.5 h-3.5 mr-1" /> Thêm hành khách
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-6 text-center text-xs text-gray-500 space-y-2">
-                  <p>Chưa có hành khách nào trong danh sách đoàn.</p>
-                  <Button size="sm" onClick={handleOpenAddPassenger} className="text-xs bg-blue-600 text-white">
-                    <UserPlus className="w-3.5 h-3.5 mr-1" /> Thêm hành khách đầu tiên
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })()}
 
           {/* DEDICATED ACCOMMODATION / HOTEL SECTION (MATCHING TourDetailPage.tsx & BookingFormPage.tsx) */}
           {(() => {
@@ -1697,7 +2470,7 @@ export function CompanyBookingDetailPage({
                   </p>
                 )}
 
-                {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
+                {latestPriceAdjustment && (
                   <div className="bg-amber-50/70 p-2 rounded-lg border border-amber-200 text-[11px] text-amber-900 space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="flex items-center gap-1 text-[11px]">
@@ -1705,11 +2478,11 @@ export function CompanyBookingDetailPage({
                         Điều chỉnh gần nhất:
                       </span>
                       <span className="text-[10px] text-gray-500">
-                        {new Date(booking.priceAdjustments[booking.priceAdjustments.length - 1].createdAt).toLocaleDateString("vi-VN")}
+                        {new Date(latestPriceAdjustment.createdAt).toLocaleDateString("vi-VN")}
                       </span>
                     </div>
                     <p className="text-[11px] text-amber-800 line-clamp-1 italic">
-                      "{booking.priceAdjustments[booking.priceAdjustments.length - 1].reason}"
+                      "{latestPriceAdjustment.reason}"
                     </p>
                   </div>
                 )}
@@ -1781,43 +2554,55 @@ export function CompanyBookingDetailPage({
             </div>
 
             {/* Quick Payment Action Buttons */}
-            {(() => {
-              const totalRequested = (booking.paymentRequests ?? [])
-                .filter((pr) => pr.status !== "cancelled")
-                .reduce((sum, pr) => sum + pr.amount, 0);
-              const remainingToRequest = Math.max(0, booking.totalPrice - totalRequested);
+            {isCurrentCompanyLead ? (
+              (() => {
+                const totalRequested = (booking.paymentRequests ?? [])
+                  .filter((pr) => pr.status !== "cancelled")
+                  .reduce((sum, pr) => sum + pr.amount, 0);
+                const remainingToRequest = Math.max(0, booking.totalPrice - totalRequested);
 
-              return (
-                <div className="space-y-2 pt-2">
-                  <Button
-                    variant="outline"
-                    disabled={remainingToRequest <= 0}
-                    onClick={() => {
-                      setPaymentAmount(remainingToRequest.toString());
-                      setPaymentDescription(
-                        totalRequested === 0
-                          ? "Đặt cọc đợt 1 (50%)"
-                          : remainingToRequest === booking.totalPrice - totalRequested
-                          ? "Thanh toán phần còn lại trước khởi hành"
-                          : "Thanh toán đợt tiếp theo"
-                      );
-                      setPaymentDueDate("");
-                      setPaymentModalOpen(true);
-                    }}
-                    className={`w-full text-xs h-9 gap-1.5 font-bold ${
-                      remainingToRequest <= 0
-                        ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
-                        : "border-blue-500 text-blue-700 hover:bg-blue-50"
-                    }`}
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    {remainingToRequest <= 0
-                      ? "Đã tạo đủ yêu cầu cho 100% giá trị tour"
-                      : `Tạo yêu cầu thanh toán (Còn ${formatVND(remainingToRequest)})`}
-                  </Button>
+                return (
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      variant="outline"
+                      disabled={remainingToRequest <= 0}
+                      onClick={() => {
+                        setPaymentAmount(remainingToRequest.toString());
+                        setPaymentDescription(
+                          totalRequested === 0
+                            ? "Đặt cọc đợt 1 (50%)"
+                            : remainingToRequest === booking.totalPrice - totalRequested
+                            ? "Thanh toán phần còn lại trước khởi hành"
+                            : "Thanh toán đợt tiếp theo"
+                        );
+                        setPaymentDueDate("");
+                        setPaymentModalOpen(true);
+                      }}
+                      className={`w-full text-xs h-9 gap-1.5 font-bold ${
+                        remainingToRequest <= 0
+                          ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                          : "border-blue-500 text-blue-700 hover:bg-blue-50"
+                      }`}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      {remainingToRequest <= 0
+                        ? "Đã tạo đủ yêu cầu cho 100% giá trị tour"
+                        : `Tạo yêu cầu thanh toán (Còn ${formatVND(remainingToRequest)})`}
+                    </Button>
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-[11px] text-amber-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                  Quyền tạo yêu cầu thanh toán
                 </div>
-              );
-            })()}
+                <p className="text-amber-700 leading-relaxed">
+                  Đơn hàng này do <strong>{leadAgency?.agencyName || booking.companyName || "Công ty Chủ trì"}</strong> đại diện liên minh ký hợp đồng và quản lý thu tiền từ khách hàng. Đối tác liên minh không tạo yêu cầu thanh toán trực tiếp với khách.
+                </p>
+              </div>
+            )}
 
             {/* Existing Payment Requests List */}
             {booking.paymentRequests && booking.paymentRequests.length > 0 && (
@@ -1852,52 +2637,167 @@ export function CompanyBookingDetailPage({
             )}
           </div>
 
-          {/* ASSIGNED GUIDE CARD */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-blue-600" />
-              Hướng dẫn viên phụ trách
-            </h3>
-            {booking.guideName ? (
-              <div className="bg-blue-50/60 rounded-xl p-3 border border-blue-100 flex items-center gap-3">
-                {booking.guideAvatar ? (
-                  <img
-                    src={booking.guideAvatar}
-                    alt={booking.guideName}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
-                    {booking.guideName[0]}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0 text-xs">
-                  <p className="font-bold text-gray-900 text-sm">{booking.guideName}</p>
-                  {booking.guidePhone && (
-                    <p className="text-blue-700 flex items-center gap-1 mt-0.5">
-                      <Phone className="w-3 h-3" />
-                      {booking.guidePhone}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setAssignModalOpen(true)}
-                    className="text-xs text-blue-600 hover:underline font-medium mt-1 block"
-                  >
-                    Thay đổi HDV
-                  </button>
-                </div>
-              </div>
-            ) : (
+          {/* ASSIGNED GUIDE CARD (Multi-guide support with company ownership) */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-blue-600" />
+                Hướng dẫn viên phụ trách ({assignedGuides.length})
+              </h3>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setSelectedGuideToAdd(guides[0]?.id || "");
+                  setSelectedGuideRole(assignedGuides.length === 0 ? "lead_guide" : "support_guide");
+                  setSelectedGuideNotes("");
+                  setAssignModalOpen(true);
+                }}
+                className="h-7 px-2.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200 font-semibold gap-1"
+                title="Phân công thêm HDV của công ty bạn vào đoàn"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                + Giao thêm HDV
+              </Button>
+            </div>
+
+            {assignedGuides.length === 0 ? (
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 text-center space-y-2">
                 <p className="text-xs text-amber-800">Chưa có hướng dẫn viên được chỉ định cho đoàn này.</p>
                 <Button
                   size="sm"
-                  onClick={() => setAssignModalOpen(true)}
+                  onClick={() => {
+                    setSelectedGuideToAdd(guides[0]?.id || "");
+                    setSelectedGuideRole("lead_guide");
+                    setSelectedGuideNotes("");
+                    setAssignModalOpen(true);
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
                 >
                   <UserCheck className="w-3.5 h-3.5 mr-1" />
                   Giao hướng dẫn viên
                 </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {assignedGuides.map((ag) => {
+                  const isMyGuide = Boolean(
+                    (companyId && ag.companyId === companyId) ||
+                    (companyName && ag.companyName === companyName) ||
+                    (!ag.companyId && isCurrentCompanyLead)
+                  );
+
+                  const roleLabel =
+                    ag.role === "lead_guide"
+                      ? "HDV Trưởng đoàn"
+                      : ag.role === "stage_guide"
+                      ? "HDV Chặng"
+                      : ag.role === "logistics"
+                      ? "Hậu cần & Điều phối"
+                      : "HDV Phụ tá / Hỗ trợ";
+
+                  const roleBadgeClass =
+                    ag.role === "lead_guide"
+                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                      : ag.role === "stage_guide"
+                      ? "bg-purple-100 text-purple-800 border-purple-200"
+                      : "bg-gray-100 text-gray-700 border-gray-200";
+
+                  return (
+                    <div
+                      key={ag.id}
+                      className={`p-3 rounded-xl border transition-all ${
+                        isMyGuide ? "bg-white border-blue-200 shadow-2xs" : "bg-gray-50/80 border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {ag.guideAvatar ? (
+                          <img
+                            src={ag.guideAvatar}
+                            alt={ag.guideName}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-xs shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0">
+                            {ag.guideName ? ag.guideName[0] : "H"}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0 text-xs space-y-1">
+                          <div className="flex items-center justify-between gap-1 flex-wrap">
+                            <span className="font-bold text-gray-900 text-xs sm:text-sm">{ag.guideName}</span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${roleBadgeClass}`}>
+                              {roleLabel}
+                            </span>
+                          </div>
+
+                          <div className="text-[11px] text-gray-500 flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-gray-700">{ag.companyName}</span>
+                            {isMyGuide ? (
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                                Của cty bạn
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">
+                                Đối tác
+                              </span>
+                            )}
+                          </div>
+
+                          {ag.guidePhone && (
+                            <p className="text-blue-700 flex items-center gap-1 text-[11px]">
+                              <Phone className="w-3 h-3" />
+                              {ag.guidePhone}
+                            </p>
+                          )}
+
+                          {ag.notes && (
+                            <p className="text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded border border-gray-100 italic">
+                              {ag.notes}
+                            </p>
+                          )}
+
+                          {/* Guide action permissions */}
+                          <div className="pt-1.5 flex items-center justify-between border-t border-gray-100 text-[11px]">
+                            {isMyGuide ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setGuideToReplace(ag);
+                                    const otherGuides = guides.filter((g) => g.id !== ag.guideId);
+                                    setNewReplacementGuideId(otherGuides[0]?.id || "");
+                                    setReplaceModalOpen(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 font-semibold hover:underline flex items-center gap-1"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  Thay thế
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveAssignedGuide(ag.id)}
+                                  className="text-rose-600 hover:text-rose-800 font-semibold hover:underline flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  Xoá
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-gray-500 italic flex items-center gap-1">
+                                <Lock className="w-3 h-3 text-gray-400" />
+                                Do {ag.companyName} quản lý
+                              </span>
+                            )}
+                            <span className="text-[10px] text-gray-400 ml-auto">
+                              Gán: {ag.assignedAt}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1934,51 +2834,200 @@ export function CompanyBookingDetailPage({
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: GIAO HƯỚNG DẪN VIÊN */}
+      {/* MODAL: GIAO THÊM HƯỚNG DẪN VIÊN */}
       <Dialog open={assignModalOpen} onOpenChange={setAssignModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Giao Hướng dẫn viên cho đoàn</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-blue-600" />
+              Phân công Hướng dẫn viên cho đoàn
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 pt-2">
+          <div className="space-y-4 pt-2 text-xs">
+            <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-200 text-blue-900 space-y-1">
+              <p className="font-bold flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-blue-700" />
+                Đơn vị phân công: {companyName || currentAgency?.agencyName || "Công ty của bạn"}
+              </p>
+              <p className="text-[11px] text-blue-800 leading-relaxed">
+                Quý công ty chỉ phân công hướng dẫn viên thuộc danh sách nhân sự của đơn vị mình. Mỗi hướng dẫn viên được chỉ định sẽ được bảo vệ quyền sở hữu, đơn vị khác không thể tự ý xóa hay thay thế.
+              </p>
+            </div>
+
             {guides.length === 0 ? (
-              <p className="text-xs text-gray-500">Công ty chưa có hướng dẫn viên trực thuộc nào.</p>
+              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-center space-y-2">
+                <AlertCircle className="w-6 h-6 text-amber-600 mx-auto" />
+                <p className="font-semibold text-amber-900">Chưa có hướng dẫn viên trực thuộc</p>
+                <p className="text-[11px] text-amber-800">
+                  Công ty của bạn chưa có danh sách hướng dẫn viên nào trong hệ thống.
+                </p>
+              </div>
             ) : (
-              <div className="space-y-2 max-h-72 overflow-y-auto">
-                {guides.map((g) => (
-                  <button
-                    key={g.id}
-                    onClick={() => {
-                      onAssignGuide(booking.id, g.id);
-                      setAssignModalOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                      booking.guideId === g.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                    }`}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">
+                    Chọn Hướng dẫn viên <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {guides.map((g) => {
+                      const isAlreadyAssigned = assignedGuides.some((ag) => ag.guideId === g.id);
+                      const isSelected = selectedGuideToAdd === g.id;
+
+                      return (
+                        <div
+                          key={g.id}
+                          onClick={() => {
+                            if (!isAlreadyAssigned) setSelectedGuideToAdd(g.id);
+                          }}
+                          className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all ${
+                            isAlreadyAssigned
+                              ? "opacity-50 border-gray-200 bg-gray-50 cursor-not-allowed"
+                              : isSelected
+                              ? "border-blue-500 bg-blue-50/70 ring-2 ring-blue-400/30 cursor-pointer"
+                              : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
+                          }`}
+                        >
+                          {g.avatar ? (
+                            <img src={g.avatar} alt={g.name} className="w-10 h-10 rounded-full object-cover border" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
+                              {g.name[0]}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="font-bold text-gray-900 text-xs">{g.name}</p>
+                              {isAlreadyAssigned && (
+                                <span className="text-[10px] font-bold text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded">
+                                  Đã có trong đoàn
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-500">{g.phone || g.email}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">
+                    Vai trò phụ trách trong đoàn <span className="text-red-500">*</span>
+                  </Label>
+                  <select
+                    value={selectedGuideRole}
+                    onChange={(e) => setSelectedGuideRole(e.target.value as any)}
+                    className="w-full text-xs p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
-                    {g.avatar ? (
-                      <img src={g.avatar} alt={g.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
-                        {g.name[0]}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0 text-xs">
-                      <p className="font-bold text-gray-900 text-sm">{g.name}</p>
-                      <p className="text-gray-500">{g.email}</p>
-                      {g.phone && <p className="text-blue-600">{g.phone}</p>}
-                    </div>
-                    {booking.guideId === g.id && (
-                      <span className="text-xs font-bold text-blue-700">Đang gán</span>
-                    )}
-                  </button>
-                ))}
+                    <option value="lead_guide">HDV Trưởng đoàn (Điều phối chung)</option>
+                    <option value="stage_guide">HDV Chặng (Phụ trách chặng địa phương)</option>
+                    <option value="support_guide">HDV Hỗ trợ / Phụ tá</option>
+                    <option value="logistics">Hậu cần & Vận chuyển</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">Ghi chú phân công (tùy chọn)</Label>
+                  <Input
+                    type="text"
+                    value={selectedGuideNotes}
+                    onChange={(e) => setSelectedGuideNotes(e.target.value)}
+                    placeholder="VD: Phụ trách đón đoàn tại sân bay, dẫn chặng 2..."
+                    className="text-xs"
+                  />
+                </div>
               </div>
             )}
-            <div className="flex justify-end pt-2">
-              <Button variant="outline" onClick={() => setAssignModalOpen(false)}>Đóng</Button>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="outline" onClick={() => setAssignModalOpen(false)}>Hủy</Button>
+              <Button
+                disabled={guides.length === 0 || !selectedGuideToAdd}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                onClick={handleConfirmAddGuide}
+              >
+                Xác nhận phân công
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: THAY THẾ HƯỚNG DẪN VIÊN */}
+      <Dialog open={replaceModalOpen} onOpenChange={setReplaceModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="w-5 h-5 text-blue-600" />
+              Thay thế Hướng dẫn viên
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2 text-xs">
+            {guideToReplace && (
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1">
+                <span className="text-[11px] text-gray-400 font-semibold block">Đang thay thế nhân sự:</span>
+                <p className="font-bold text-gray-900 text-sm">{guideToReplace.guideName}</p>
+                <p className="text-[11px] text-gray-500">Đơn vị quản lý: {guideToReplace.companyName}</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-gray-700">
+                Chọn Hướng dẫn viên thay thế <span className="text-red-500">*</span>
+              </Label>
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {guides
+                  .filter((g) => g.id !== guideToReplace?.guideId)
+                  .map((g) => {
+                    const isAlreadyAssigned = assignedGuides.some(
+                      (ag) => ag.guideId === g.id && ag.id !== guideToReplace?.id
+                    );
+                    const isSelected = newReplacementGuideId === g.id;
+
+                    return (
+                      <div
+                        key={g.id}
+                        onClick={() => {
+                          if (!isAlreadyAssigned) setNewReplacementGuideId(g.id);
+                        }}
+                        className={`flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all ${
+                          isAlreadyAssigned
+                            ? "opacity-50 border-gray-200 bg-gray-50 cursor-not-allowed"
+                            : isSelected
+                            ? "border-blue-500 bg-blue-50/70 ring-2 ring-blue-400/30 cursor-pointer"
+                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
+                        }`}
+                      >
+                        {g.avatar ? (
+                          <img src={g.avatar} alt={g.name} className="w-10 h-10 rounded-full object-cover border" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center">
+                            {g.name[0]}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-900 text-xs">{g.name}</p>
+                          <p className="text-[11px] text-gray-500">{g.phone || g.email}</p>
+                        </div>
+                        {isSelected && (
+                          <span className="text-xs font-bold text-blue-700">Đã chọn</span>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="outline" onClick={() => setReplaceModalOpen(false)}>Hủy</Button>
+              <Button
+                disabled={!newReplacementGuideId}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                onClick={handleConfirmReplaceGuide}
+              >
+                Xác nhận thay thế
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -2396,6 +3445,39 @@ export function CompanyBookingDetailPage({
                   className="w-full h-9 px-3 rounded-lg border border-gray-300 text-xs focus:border-blue-500 focus:outline-hidden"
                 />
               </div>
+
+              {/* Stage / Agency Selection (Alliance tours) */}
+              {isCoHostedTour && agenciesList.length > 1 && (
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="font-bold text-gray-700 block">Chặng tour &amp; Đơn vị tiếp nhận:</label>
+                  <select
+                    value={passengerSelectedAgencyId}
+                    onChange={(e) => {
+                      const sel = e.target.value;
+                      setPassengerSelectedAgencyId(sel);
+                      const age = calculateAge(passengerDob, booking.tourStartDate || booking.bookingDate) || 25;
+                      let grp: "adult" | "child_2_11" | "child_under_2" = "adult";
+                      if (age < 2) grp = "child_under_2";
+                      else if (age <= 11) grp = "child_2_11";
+                      const p = calculatePassengerPrice(grp, sel);
+                      setPassengerCustomPrice(p.toString());
+                    }}
+                    className="w-full h-9 px-3 rounded-lg border border-purple-300 bg-purple-50/50 text-xs font-semibold focus:border-purple-500 focus:outline-hidden"
+                  >
+                    <option value="all">Toàn bộ tour (100% tất cả các chặng)</option>
+                    {agenciesList.map((a) => (
+                      <option key={a.agencyId} value={a.agencyId}>
+                        Chỉ tham gia chặng: {a.agencyName} ({a.role === "lead" ? "Chủ trì" : "Đối tác"})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-gray-500">
+                    {passengerSelectedAgencyId === "all"
+                      ? "Hành khách tham gia trọn vẹn lịch trình của cả 2 công ty."
+                      : `Hành khách chỉ tham gia riêng chặng của công ty được chọn. Tiền vé sẽ chỉ phân bổ vào doanh thu chặng của công ty đó.`}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Price Box with Auto-calculation Explanation & Editable Input */}
@@ -2532,6 +3614,68 @@ export function CompanyBookingDetailPage({
         </DialogContent>
       </Dialog>
 
+      {/* MODAL: RÚT KHÁCH KHỎI CHẶNG (DEACTIVATE PASSENGER & AUTO DEDUCT PRICE) */}
+      <Dialog open={deactivateModalOpen} onOpenChange={setDeactivateModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-rose-700">
+              <UserMinus className="w-5 h-5 text-rose-600" />
+              Rút hành khách khỏi chặng (Trước khởi hành)
+            </DialogTitle>
+          </DialogHeader>
+
+          {passengerToDeactivate && (
+            <div className="space-y-4 pt-2 text-xs">
+              <div className="bg-rose-50 p-3.5 rounded-xl border border-rose-200 space-y-2 text-rose-950">
+                <p className="font-bold text-sm text-gray-900">
+                  {passengerToDeactivate.fullName}
+                  {passengerToDeactivate.phone && <span className="text-xs font-normal text-gray-500 ml-2">({passengerToDeactivate.phone})</span>}
+                </p>
+                <div className="flex justify-between items-center text-xs pt-1 border-t border-rose-200">
+                  <span className="text-gray-600">Tiền vé khấu trừ khỏi đơn hàng:</span>
+                  <span className="font-black text-rose-700 text-sm">-{formatVND(passengerToDeactivate.price || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-600">Đơn vị phụ trách khấu trừ:</span>
+                  <span className="font-bold text-gray-800">
+                    {passengerToDeactivate.agencyName || (isCurrentCompanyLead ? agenciesList[1]?.agencyName : currentAgency?.agencyName) || "Chặng phụ trách"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-bold text-gray-800 block">
+                  Lý do rút khách khỏi chặng <span className="text-red-500">*</span>
+                </label>
+                <Textarea
+                  value={deactivateReason}
+                  onChange={(e) => setDeactivateReason(e.target.value)}
+                  placeholder="VD: Khách hàng chỉ tham gia chặng đón Hà Nội của Viettravel, tự túc về không đi chặng Hà Giang..."
+                  rows={3}
+                  className="w-full text-xs"
+                />
+                <p className="text-[11px] text-gray-500">
+                  Lý do này sẽ được ghi vào nhật ký kiểm toán điều chỉnh giá (`booking_price_adjustments`) và hiển thị minh bạch cho khách hàng và đối tác.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <Button variant="outline" size="sm" onClick={() => setDeactivateModalOpen(false)}>
+                  Hủy bỏ
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleConfirmDeactivate}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
+                >
+                  Xác nhận rút &amp; Trừ tiền
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* MODAL: NHẬT KÝ ĐIỀU CHỈNH GIÁ & THÀNH VIÊN ĐOÀN (AUDIT LOG) */}
       <Dialog open={priceAdjustmentsModalOpen} onOpenChange={setPriceAdjustmentsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -2550,14 +3694,30 @@ export function CompanyBookingDetailPage({
               </p>
             </div>
 
-            {booking.priceAdjustments && booking.priceAdjustments.length > 0 ? (
+            {sortedPriceAdjustments && sortedPriceAdjustments.length > 0 ? (
               <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200 bg-white shadow-2xs">
-                {booking.priceAdjustments.map((adj, index) => {
+                {sortedPriceAdjustments.map((adj, index) => {
                   const isPositive = adj.adjustmentAmount > 0;
+                  const isLatest = index === 0;
+                  const logOrder = sortedPriceAdjustments.length - index;
+
                   return (
-                    <div key={adj.id || index} className="p-3.5 space-y-2 hover:bg-gray-50/80 transition-colors">
+                    <div
+                      key={adj.id || index}
+                      className={`p-3.5 space-y-2 hover:bg-gray-50/80 transition-colors ${
+                        isLatest ? "bg-amber-50/25 border-l-4 border-l-amber-500" : ""
+                      }`}
+                    >
                       <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                            #{logOrder}
+                          </span>
+                          {isLatest && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                              Mới nhất
+                            </span>
+                          )}
                           <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                             isPositive
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
@@ -2569,7 +3729,7 @@ export function CompanyBookingDetailPage({
                             {adj.reason}
                           </span>
                         </div>
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-[11px] text-gray-500 font-medium">
                           {new Date(adj.createdAt).toLocaleString("vi-VN")}
                         </span>
                       </div>
@@ -2595,6 +3755,12 @@ export function CompanyBookingDetailPage({
                             )}
                           </span>
                         </div>
+                        {adj.agencyName && (
+                          <div className="sm:col-span-3 pt-1 border-t border-gray-100 flex items-center gap-1.5 text-purple-700 font-bold">
+                            <Tag className="w-3 h-3 text-purple-500" />
+                            <span>Chặng áp dụng: {adj.agencyName}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

@@ -37,6 +37,8 @@ interface AdminFinancialManagementProps {
     bookingId: string,
     settledAmount: number,
     platformFee: number,
+    targetAgencyId?: string,
+    bankReference?: string
   ) => void;
 }
 
@@ -631,23 +633,49 @@ export function AdminFinancialManagement({
             const finalSettledAmount = paid - platformFee;
 
             const isCoHosted = Boolean(b.isCoHosted || b.tour?.isCoHosted);
+            const hasBookingAgencies = Boolean(b.bookingAgencies && b.bookingAgencies.length > 0);
             const coHosts = b.coHosts || b.tour?.coHosts || [];
-            const hostPayouts = coHosts.map((host) => {
-              let amount = 0;
-              if (host.fixedPayoutAmount) {
-                amount = host.fixedPayoutAmount;
-              } else if (host.quotePerGuest) {
-                amount = host.quotePerGuest * b.numberOfGuests;
-              } else if (host.revenueSharePercentage) {
-                amount = Math.round((finalSettledAmount * host.revenueSharePercentage) / 100);
-              } else {
-                amount = Math.round(finalSettledAmount / (coHosts.length || 1));
-              }
-              return {
-                ...host,
-                calculatedPayout: amount,
-              };
-            });
+
+            const agencyShares = hasBookingAgencies
+              ? b.bookingAgencies!.map((a) => {
+                  const fee = a.platformFee !== undefined ? a.platformFee : Math.round((a.finalAmount * feeRate) / 100);
+                  const net = a.netPayout !== undefined ? a.netPayout : a.finalAmount - fee;
+                  return {
+                    id: a.id,
+                    agencyId: a.agencyId,
+                    agencyName: a.agencyName,
+                    isHost: a.isHost,
+                    finalAmount: a.finalAmount,
+                    platformFee: fee,
+                    netPayout: net,
+                    settlementStatus: a.settlementStatus || "ready",
+                    bankReference: a.bankReference,
+                  };
+                })
+              : coHosts.map((host) => {
+                  let amount = 0;
+                  if (host.fixedPayoutAmount) {
+                    amount = host.fixedPayoutAmount;
+                  } else if (host.quotePerGuest) {
+                    amount = host.quotePerGuest * b.numberOfGuests;
+                  } else if (host.revenueSharePercentage) {
+                    amount = Math.round((finalSettledAmount * host.revenueSharePercentage) / 100);
+                  } else {
+                    amount = Math.round(finalSettledAmount / (coHosts.length || 1));
+                  }
+                  const fee = Math.round((amount * feeRate) / 100);
+                  return {
+                    id: host.id,
+                    agencyId: host.companyId,
+                    agencyName: host.companyName,
+                    isHost: host.role === "lead",
+                    finalAmount: amount,
+                    platformFee: fee,
+                    netPayout: amount - fee,
+                    settlementStatus: host.settlementStatus || "ready",
+                    bankReference: undefined,
+                  };
+                });
 
             return (
               <div className="space-y-4 text-xs">
@@ -655,7 +683,7 @@ export function AdminFinancialManagement({
                   <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
                     <Landmark className="w-5 h-5 text-emerald-600" />
                     {isCoHosted
-                      ? `Quyết toán Tiền Tour Liên Minh Đối Tác (${coHosts.length} Đơn Vị Phối Hợp)`
+                      ? `Quyết toán Tiền Tour Liên Minh Đối Tác (${agencyShares.length} Đơn Vị Phối Hợp)`
                       : "Quyết toán Tiền Tour cho Công ty Du lịch"}
                   </DialogTitle>
                 </DialogHeader>
@@ -673,8 +701,8 @@ export function AdminFinancialManagement({
                     <span>
                       Công ty thụ hưởng:{" "}
                       <strong className="text-blue-700">
-                        {isCoHosted && coHosts.length > 0
-                          ? coHosts.map((c) => c.companyName).join(" + ")
+                        {isCoHosted && agencyShares.length > 0
+                          ? agencyShares.map((c) => c.agencyName).join(" + ")
                           : b.companyName || b.tour.companyName}
                       </strong>
                     </span>
@@ -708,12 +736,12 @@ export function AdminFinancialManagement({
                 </div>
 
                 {/* CO-HOSTED SPLIT BREAKDOWN */}
-                {isCoHosted && coHosts.length > 0 && (
+                {isCoHosted && agencyShares.length > 0 && (
                   <div className="bg-purple-50/80 rounded-xl p-3.5 border border-purple-200 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-purple-950 text-xs flex items-center gap-1.5 uppercase">
                         <Handshake className="w-4 h-4 text-purple-600" />
-                        Phân Chia Quyết Toán Cho {coHosts.length} Công Ty Liên Minh:
+                        Phân Chia Quyết Toán Cho {agencyShares.length} Công Ty Liên Minh:
                       </span>
                       <span className="text-[10px] font-bold bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
                         Độc lập theo từng chặng
@@ -721,24 +749,61 @@ export function AdminFinancialManagement({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {hostPayouts.map((host, hIdx) => {
-                        const isLead = host.role === "lead";
+                      {agencyShares.map((agency) => {
+                        const isAgencySettled = agency.settlementStatus === "settled";
                         return (
-                          <div key={host.id || hIdx} className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-1">
+                          <div key={agency.id} className="bg-white p-3 rounded-lg border border-purple-100 shadow-2xs space-y-2">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-gray-900 text-xs truncate max-w-[150px]">
-                                {host.companyName}
+                                {agency.agencyName}
                               </span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${isLead ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
-                                {isLead ? "Chủ trì (Lead)" : "Đối tác (Partner)"}
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${agency.isHost ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
+                                {agency.isHost ? "🏢 Chủ trì (Lead)" : "🤝 Đối tác (Partner)"}
                               </span>
                             </div>
-                            <p className="text-[11px] text-gray-500 line-clamp-1">
-                              {host.assignedSegments || (isLead ? "Điều phối chính" : "Đối tác bản địa")}
-                            </p>
-                            <p className={`text-sm font-extrabold pt-1 ${isLead ? "text-blue-700" : "text-purple-700"}`}>
-                              {formatVND(host.calculatedPayout)}
-                            </p>
+
+                            <div className="space-y-1 text-[11px] bg-gray-50 p-2 rounded-lg border border-gray-100">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Doanh thu chặng:</span>
+                                <span className="font-semibold text-gray-800">{formatVND(agency.finalAmount)}</span>
+                              </div>
+                              <div className="flex justify-between text-rose-600">
+                                <span>Phí sàn ({feeRate}%):</span>
+                                <span>- {formatVND(agency.platformFee)}</span>
+                              </div>
+                              <div className="flex justify-between font-bold pt-1 border-t border-gray-200 text-emerald-700">
+                                <span>Thực nhận giải ngân:</span>
+                                <span>{formatVND(agency.netPayout)}</span>
+                              </div>
+                            </div>
+
+                            <div className="pt-1">
+                              {isAgencySettled ? (
+                                <span className="inline-flex items-center justify-center w-full gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Đã quyết toán ({agency.bankReference || settlementTransactionCode})
+                                </span>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  disabled={!settlementTransactionCode}
+                                  onClick={() => {
+                                    onSettleBooking(
+                                      b.id,
+                                      agency.netPayout,
+                                      agency.platformFee,
+                                      agency.agencyId,
+                                      settlementTransactionCode
+                                    );
+                                    setSettlementTransactionCode(`UNC-${Date.now().toString().slice(-6)}`);
+                                  }}
+                                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-[11px] h-7 font-bold gap-1 shadow-2xs"
+                                >
+                                  <DollarSign className="w-3 h-3" />
+                                  Giải ngân riêng chặng này ({formatVND(agency.netPayout)})
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -784,14 +849,14 @@ export function AdminFinancialManagement({
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5"
                     disabled={!settlementTransactionCode}
                     onClick={() => {
-                      onSettleBooking(b.id, finalSettledAmount, platformFee);
+                      onSettleBooking(b.id, finalSettledAmount, platformFee, undefined, settlementTransactionCode);
                       setSelectedBookingForSettlement(null);
                       setSettlementNote("");
                     }}
                   >
                     <Check className="w-4 h-4" />
-                    {isCoHosted && coHosts.length > 0
-                      ? `Xác nhận chuyển ${formatVND(finalSettledAmount)} cho ${coHosts.length} đơn vị liên minh`
+                    {isCoHosted && agencyShares.length > 0
+                      ? `Xác nhận chuyển toàn bộ ${formatVND(finalSettledAmount)} cho tất cả đơn vị`
                       : `Xác nhận đã chuyển ${formatVND(finalSettledAmount)} cho Cty`}
                   </Button>
                 </div>

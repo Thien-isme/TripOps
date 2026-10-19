@@ -51,6 +51,8 @@ interface AdminDashboardProps {
     bookingId: string,
     settledAmount: number,
     platformFee: number,
+    targetAgencyId?: string,
+    bankReference?: string
   ) => void;
   onSuspendCompany: (companyId: string, reason: string) => void;
   onLogout?: () => void;

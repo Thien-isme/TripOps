@@ -122,6 +122,16 @@ export function UserBookingDetailPage({
   const [passengersList, setPassengersList] = useState<BookingPassenger[]>(
     booking.passengers && booking.passengers.length > 0 ? booking.passengers : []
   );
+
+  // Deduplicated passenger list for customer view (filter out secondary stage copies if isPrimary is present)
+  const displayPassengers = useMemo(() => {
+    const hasPrimaryFlags = passengersList.some((p) => p.isPrimary !== undefined);
+    if (hasPrimaryFlags) {
+      return passengersList.filter((p) => p.isPrimary !== false);
+    }
+    return passengersList;
+  }, [passengersList]);
+
   const stagesList = useMemo(() => {
     if (booking.coHosts && booking.coHosts.length > 0) return booking.coHosts;
     if (booking.tour?.coHosts && booking.tour.coHosts.length > 0) return booking.tour.coHosts;
@@ -299,6 +309,18 @@ export function UserBookingDetailPage({
     : [];
   const leadCoHost = coHosts.find((c) => c.role === "lead");
   const partnerCoHosts = coHosts.filter((c) => c.role !== "lead");
+
+  // Sắp xếp nhật ký điều chỉnh giá theo thứ tự mới nhất từ trên xuống dưới (Newest-first)
+  const sortedPriceAdjustments = useMemo(() => {
+    if (!booking.priceAdjustments || booking.priceAdjustments.length === 0) return [];
+    return [...booking.priceAdjustments].sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime() || 0;
+      const timeB = new Date(b.createdAt).getTime() || 0;
+      return timeB - timeA;
+    });
+  }, [booking.priceAdjustments]);
+
+  const latestPriceAdjustment = sortedPriceAdjustments[0] || null;
 
   return (
     <div className="min-h-screen bg-gray-50/70 py-6 sm:py-8">
@@ -703,7 +725,7 @@ export function UserBookingDetailPage({
                 <div>
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
                     <Users className="w-4 h-4 text-teal-600" />
-                    Danh sách hành khách tham gia ({passengersList.length} người)
+                    Danh sách hành khách tham gia ({displayPassengers.length} người)
                   </h3>
                   <p className="text-[11px] text-gray-500">
                     Cung cấp đầy đủ thông tin hành khách để làm bảo hiểm du lịch và điểm danh đoàn.
@@ -721,7 +743,7 @@ export function UserBookingDetailPage({
                 </div>
               </div>
 
-              {passengersList.length > 0 ? (
+              {displayPassengers.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
@@ -738,84 +760,110 @@ export function UserBookingDetailPage({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {passengersList.map((p, idx) => (
-                        <tr key={p.id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2.5 text-gray-400 font-mono">{idx + 1}</td>
-                          <td className="px-3 py-2.5 font-bold text-gray-900">
-                            {p.fullName}
-                            {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
-                          </td>
-                          <td className="px-3 py-2.5">
-                            {p.idNumber ? (
-                              <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                                {p.idNumber}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400 italic">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-gray-600">
-                            <span>{p.dateOfBirth || "—"}</span>
-                            {(() => {
-                              const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
-                              return age !== null ? (
-                                <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
-                                  {age} tuổi
+                      {displayPassengers.map((p, idx) => {
+                        const stageWithdrawals = passengersList.filter(
+                          (other) =>
+                            other.status === "INACTIVE" &&
+                            ((p.participantIndex !== undefined && other.participantIndex === p.participantIndex) ||
+                              (other.fullName && other.fullName.toLowerCase() === p.fullName.toLowerCase()))
+                        );
+
+                        return (
+                          <tr key={p.id} className={`hover:bg-gray-50 ${p.status === "INACTIVE" ? "bg-rose-50/40 opacity-75" : ""}`}>
+                            <td className="px-3 py-2.5 text-gray-400 font-mono">{idx + 1}</td>
+                            <td className="px-3 py-2.5 font-bold text-gray-900">
+                              <div className="flex flex-col">
+                                <span className={p.status === "INACTIVE" ? "line-through text-gray-500" : ""}>
+                                  {p.fullName}
                                 </span>
-                              ) : null;
-                            })()}
-                          </td>
-                          <td className="px-3 py-2.5 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
-                          <td className="px-3 py-2.5">
-                            <span className={`px-2 py-0.5 rounded-full font-medium text-[11px] ${
-                              p.ageGroup === "adult"
-                                ? "bg-teal-50 text-teal-700"
-                                : p.ageGroup === "child_2_11"
-                                ? "bg-blue-50 text-blue-700"
-                                : "bg-emerald-50 text-emerald-700"
-                            }`}>
-                              {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2.5 max-w-[200px]">
-                            {p.notes ? (
-                              <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
-                                {p.notes}
+                                {p.phone && <span className="block text-[11px] font-normal text-blue-600">{p.phone}</span>}
+                                {p.status === "INACTIVE" && (
+                                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full w-fit">
+                                    ❌ Đã rút khỏi toàn bộ tour
+                                  </span>
+                                )}
+                                {stageWithdrawals.map((sw) => (
+                                  <span
+                                    key={sw.id}
+                                    className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md w-fit"
+                                  >
+                                    ⚠️ Rút khỏi chặng {sw.agencyName ? `[${sw.agencyName}]` : "đối tác"}{sw.statusNote ? `: ${sw.statusNote}` : ""}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2.5">
+                              {p.idNumber ? (
+                                <span className="font-mono font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                  {p.idNumber}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5 text-gray-600">
+                              <span>{p.dateOfBirth || "—"}</span>
+                              {(() => {
+                                const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                                return age !== null ? (
+                                  <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                    {age} tuổi
+                                  </span>
+                                ) : null;
+                              })()}
+                            </td>
+                            <td className="px-3 py-2.5 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
+                            <td className="px-3 py-2.5">
+                              <span className={`px-2 py-0.5 rounded-full font-medium text-[11px] ${
+                                p.ageGroup === "adult"
+                                  ? "bg-teal-50 text-teal-700"
+                                  : p.ageGroup === "child_2_11"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-emerald-50 text-emerald-700"
+                              }`}>
+                                {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                               </span>
-                            ) : (
-                              <span className="text-gray-400 italic">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2.5 text-right font-bold text-blue-700">
-                            {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
-                          </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <button
-                                type="button"
-                                title="Chỉnh sửa thông tin"
-                                onClick={() => handleOpenEditPassenger(p)}
-                                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                title="Xóa khách khỏi đoàn"
-                                onClick={() => handleDeletePassenger(p.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="px-3 py-2.5 max-w-[200px]">
+                              {p.notes ? (
+                                <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
+                                  {p.notes}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5 text-right font-bold text-blue-700">
+                              {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  type="button"
+                                  title="Chỉnh sửa thông tin"
+                                  onClick={() => handleOpenEditPassenger(p)}
+                                  className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Xóa khách khỏi đoàn"
+                                  onClick={() => handleDeletePassenger(p.id)}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                     <tfoot>
                       <tr className="bg-gray-50 font-bold border-t-2 border-gray-200">
                         <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
-                          Tổng cộng ({passengersList.length} khách):
+                          Tổng cộng ({displayPassengers.filter(p => p.status !== "INACTIVE").length} khách tham gia thực tế):
                         </td>
                         <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
                           {formatVND(booking.totalPrice)}
@@ -1342,7 +1390,7 @@ export function UserBookingDetailPage({
                     </p>
                   )}
 
-                  {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
+                  {latestPriceAdjustment && (
                     <div className="bg-amber-50/70 p-2 rounded-lg border border-amber-200 text-[11px] text-amber-900 space-y-1">
                       <div className="flex justify-between items-center font-bold">
                         <span className="flex items-center gap-1 text-[11px]">
@@ -1350,12 +1398,38 @@ export function UserBookingDetailPage({
                           Lần điều chỉnh gần nhất:
                         </span>
                         <span className="text-[10px] text-gray-500">
-                          {new Date(booking.priceAdjustments[booking.priceAdjustments.length - 1].createdAt).toLocaleDateString("vi-VN")}
+                          {new Date(latestPriceAdjustment.createdAt).toLocaleDateString("vi-VN")}
                         </span>
                       </div>
                       <p className="text-[11px] text-amber-800 line-clamp-1 italic">
-                        "{booking.priceAdjustments[booking.priceAdjustments.length - 1].reason}"
+                        "{latestPriceAdjustment.reason}"
                       </p>
+                    </div>
+                  )}
+
+                  {/* Stage-by-Stage Cost Breakdown for Alliance Tours */}
+                  {booking.bookingAgencies && booking.bookingAgencies.length > 0 && (
+                    <div className="bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 text-[11px] space-y-1.5 mt-2">
+                      <div className="flex justify-between items-center font-bold text-amber-950">
+                        <span className="flex items-center gap-1">
+                          <Handshake className="w-3.5 h-3.5 text-amber-700" />
+                          Phân bổ chi phí theo chặng công ty:
+                        </span>
+                      </div>
+                      <div className="space-y-1 divide-y divide-amber-200/50">
+                        {booking.bookingAgencies.map((agency) => (
+                          <div key={agency.id} className="pt-1 first:pt-0 flex justify-between items-center">
+                            <div>
+                              <span className="font-semibold text-gray-800 block">{agency.agencyName}</span>
+                              <span className="text-[10px] text-gray-500">
+                                {agency.isHost ? "Đơn vị chủ trì" : "Đối tác địa phương"}
+                                {agency.quoteConfirmed ? " • ✓ Đã chốt chi phí" : " • ⏳ Đang rà soát"}
+                              </span>
+                            </div>
+                            <span className="font-bold text-blue-700">{formatVND(agency.finalAmount)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1393,6 +1467,28 @@ export function UserBookingDetailPage({
                     <strong>Bảo chứng thanh toán (Escrow):</strong> Tiền thanh toán của bạn sẽ được giữ an toàn tại Tài khoản Hệ thống và chỉ chuyển giao cho Công ty du lịch sau khi kết thúc tour.
                   </span>
                 </div>
+
+                {/* PROMINENT 100% ESCROW PAYMENT BUTTON FOR CUSTOMER */}
+                {booking.paymentStatus !== "paid" && booking.status !== "cancelled" && (
+                  <Button
+                    onClick={() => {
+                      const pr = (booking.paymentRequests && booking.paymentRequests.find((r) => r.status !== "paid")) || {
+                        id: `pr-full-${booking.id}`,
+                        bookingId: booking.id,
+                        amount: booking.totalPrice,
+                        description: `Thanh toán 100% trọn gói tour qua Ký quỹ Hệ thống (Escrow)`,
+                        dueDate: booking.tourStartDate || new Date().toISOString().split("T")[0],
+                        status: "pending",
+                        createdAt: new Date().toISOString().split("T")[0],
+                      };
+                      setSelectedPaymentRequest(pr);
+                    }}
+                    className="w-full mt-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs h-9 gap-2 shadow-md rounded-xl"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-emerald-200" />
+                    Thanh toán 100% qua Ký quỹ Hệ thống (Escrow)
+                  </Button>
+                )}
               </div>
 
               {/* Payment Requests from Tour Company */}
@@ -2007,14 +2103,30 @@ export function UserBookingDetailPage({
               </p>
             </div>
 
-            {booking.priceAdjustments && booking.priceAdjustments.length > 0 ? (
+            {sortedPriceAdjustments && sortedPriceAdjustments.length > 0 ? (
               <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200 bg-white shadow-2xs">
-                {booking.priceAdjustments.map((adj, index) => {
+                {sortedPriceAdjustments.map((adj, index) => {
                   const isPositive = adj.adjustmentAmount > 0;
+                  const isLatest = index === 0;
+                  const logOrder = sortedPriceAdjustments.length - index;
+
                   return (
-                    <div key={adj.id || index} className="p-3.5 space-y-2 hover:bg-gray-50/80 transition-colors">
+                    <div
+                      key={adj.id || index}
+                      className={`p-3.5 space-y-2 hover:bg-gray-50/80 transition-colors ${
+                        isLatest ? "bg-teal-50/25 border-l-4 border-l-teal-500" : ""
+                      }`}
+                    >
                       <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                            #{logOrder}
+                          </span>
+                          {isLatest && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200">
+                              Mới nhất
+                            </span>
+                          )}
                           <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                             isPositive
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
@@ -2026,7 +2138,7 @@ export function UserBookingDetailPage({
                             {adj.reason}
                           </span>
                         </div>
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-[11px] text-gray-500 font-medium">
                           {new Date(adj.createdAt).toLocaleString("vi-VN")}
                         </span>
                       </div>

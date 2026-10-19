@@ -7,6 +7,8 @@ import {
   TourCompany,
   PaymentRequest,
   CustomTourRequest,
+  BookingAgencyShare,
+  BookingAssignedGuide,
 } from "@/app/types";
 import { mockTourCompanies } from "@/app/data/mockData";
 import { CompanyLayout } from "./CompanyLayout";
@@ -33,11 +35,13 @@ interface CompanyDashboardProps {
   onApproveBooking: (bookingId: string) => void;
   onRejectBooking: (bookingId: string, reason?: string) => void;
   onAssignGuide: (bookingId: string, guideId: string) => void;
+  onUpdateAssignedGuides?: (bookingId: string, guides: BookingAssignedGuide[]) => void;
   onCreatePaymentRequest: (bookingId: string, request: Omit<PaymentRequest, "id" | "bookingId" | "createdAt" | "status">) => void;
   onMarkDepositPaid?: (bookingId: string) => void;
   onMarkFullyPaid?: (bookingId: string) => void;
   onUpdateBookingPrice?: (bookingId: string, newPrice: number, note?: string) => void;
   onUpdateBookingPassengers?: (bookingId: string, updatedPassengers: any[]) => void;
+  onUpdateBookingAgencies?: (bookingId: string, agencies: BookingAgencyShare[]) => void;
   onUpdateCustomRequest?: (id: string, update: Partial<CustomTourRequest>) => void;
   onRestoreTourVersion?: (tourId: string, versionNumber: number) => void;
   onViewTour?: (tour: Tour) => void;
@@ -62,11 +66,13 @@ export function CompanyDashboard({
   onApproveBooking,
   onRejectBooking,
   onAssignGuide,
+  onUpdateAssignedGuides,
   onCreatePaymentRequest,
   onMarkDepositPaid,
   onMarkFullyPaid,
   onUpdateBookingPrice,
   onUpdateBookingPassengers,
+  onUpdateBookingAgencies,
   onUpdateCustomRequest,
   onRestoreTourVersion,
   onViewTour,
@@ -258,15 +264,18 @@ export function CompanyDashboard({
               booking={currentSelectedBooking}
               guides={companyGuides}
               companyName={company.name}
+              companyId={company.id}
               onBack={() => setSelectedBookingId(null)}
               onApproveBooking={onApproveBooking}
               onRejectBooking={onRejectBooking}
               onAssignGuide={onAssignGuide}
+              onUpdateAssignedGuides={onUpdateAssignedGuides}
               onCreatePaymentRequest={onCreatePaymentRequest}
               onMarkDepositPaid={onMarkDepositPaid}
               onMarkFullyPaid={onMarkFullyPaid}
               onUpdateBookingPrice={onUpdateBookingPrice}
               onUpdateBookingPassengers={onUpdateBookingPassengers}
+              onUpdateBookingAgencies={onUpdateBookingAgencies}
             />
           );
         }

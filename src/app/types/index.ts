@@ -175,6 +175,19 @@ export interface BookingPassenger {
   email?: string;
   idNumber?: string; // CCCD / Passport
   notes?: string;
+  // Alliance / Co-Host stage & multi-agency mapping (booking_participants schema)
+  participantIndex?: number;
+  agencyId?: string; // ID của công ty du lịch phụ trách chặng của khách này
+  agencyName?: string;
+  isPrimary?: boolean; // true: Dòng đại diện hiển thị cho khách xem
+  tierName?: string; // Tên phân khúc: Người lớn, Trẻ em, Em bé...
+  status?: "ACTIVE" | "INACTIVE"; // ACTIVE: Tham gia chặng, INACTIVE: Đã hủy/xoá khỏi chặng
+  statusNote?: string;
+  assignedGuideId?: string;
+  assignedGuideName?: string;
+  attendanceStatus?: "PENDING" | "CHECKED_IN" | "ABSENT";
+  checkedBy?: string;
+  checkedAt?: string;
   // Roll call status at departure
   departureAttendance?: "present" | "late" | "absent";
   departureCheckInTime?: string;
@@ -256,12 +269,36 @@ export interface BookingPriceAdjustment {
   id: string;
   bookingId: string;
   adjustedBy: string; // Tên nhân viên hoặc công ty thực hiện
+  agencyId?: string; // ID công ty phát sinh điều chỉnh giá (Cty A, Cty B...)
+  agencyName?: string;
   previousTotalPrice: number; // Giá cũ trước khi đổi
   adjustmentAmount: number; // Chênh lệch (+ tăng, - giảm)
   newTotalPrice: number; // Giá mới chốt lại
   reason: string; // Lý do điều chỉnh
   createdAt: string;
   paymentRequestId?: string; // Mã đợt thanh toán tương ứng nếu có tạo
+}
+
+// Bảng booking_agencies: Quản lý phân chia chặng, doanh thu và giải ngân cho từng công ty
+export interface BookingAgencyShare {
+  id?: string;
+  bookingId: string;
+  agencyId: string;
+  agencyName: string;
+  isHost: boolean;
+  originalAmount: number;
+  finalAmount: number;
+  // Đã bỏ khỏi DB schema (lưu vết chi tiết nằm trong booking_price_adjustments)
+  adjustmentReason?: string;
+  adjustedAt?: string;
+  // Đã bỏ khỏi DB schema (trạng thái duyệt toàn đơn nằm ở bookings.status)
+  confirmationStatus?: "pending" | "confirmed" | "rejected";
+  confirmedAt?: string;
+  platformFee?: number;
+  netPayout?: number;
+  settlementStatus: "unpaid" | "ready" | "paid";
+  payoutTransferredAt?: string;
+  bankReferenceCode?: string;
 }
 
 export interface SystemBankAccount {
@@ -391,6 +428,19 @@ export interface TourVersion {
   tourSnapshot: Tour; // Toàn bộ dữ liệu snapshot của version này
 }
 
+export interface BookingAssignedGuide {
+  id: string; // ID phân công duy nhất
+  guideId: string;
+  guideName: string;
+  guidePhone?: string;
+  guideAvatar?: string;
+  companyId: string; // ID công ty phân công HDV này (chỉ công ty này mới được sửa/xoá)
+  companyName: string; // Tên công ty phân công
+  role?: "lead_guide" | "support_guide" | "stage_guide" | string; // Vai trò HDV
+  notes?: string; // Ghi chú nhiệm vụ (VD: MC Gala, Dẫn chặng Đà Lạt, Xe 1...)
+  assignedAt?: string;
+}
+
 export interface Booking {
   id: string;
   tourId: string;
@@ -409,6 +459,7 @@ export interface Booking {
   guideName?: string;
   guideAvatar?: string;
   guidePhone?: string;
+  assignedGuides?: BookingAssignedGuide[]; // Danh sách nhiều HDV cho tour đoàn đông hoặc tour liên minh
   // Payment
   paymentStatus?: "unpaid" | "paid" | "refunded";
   depositAmount?: number;
@@ -452,6 +503,7 @@ export interface Booking {
   // Multi-company co-hosting / B2B partnership
   isCoHosted?: boolean;
   coHosts?: TourCoHost[];
+  bookingAgencies?: BookingAgencyShare[];
 }
 
 export interface IncidentReport {
