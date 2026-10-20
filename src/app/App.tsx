@@ -1235,6 +1235,7 @@ function App() {
             company={company}
             tours={tours}
             bookings={companyBookings}
+            services={services}
             guides={companyGuides}
             guideSchedules={guideSchedules}
             customTourRequests={customTourRequests}

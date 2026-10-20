@@ -563,7 +563,7 @@ export function ProviderServiceDetailPage({
                     height="100%"
                     style={{ border: 0 }}
                     loading="lazy"
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${(service.longitude || 108.4583) - 0.02}%2C${(service.latitude || 11.9404) - 0.02}%2C${(service.longitude || 108.4583) + 0.02}%2C${(service.latitude || 11.9404) + 0.02}&layer=mapnik&marker=${service.latitude || 11.9404}%2C${service.longitude || 108.4583}`}
+                    src={`https://maps.google.com/maps?q=${service.latitude || 11.9404},${service.longitude || 108.4583}&hl=vi&z=15&output=embed`}
                   />
                 </div>
 

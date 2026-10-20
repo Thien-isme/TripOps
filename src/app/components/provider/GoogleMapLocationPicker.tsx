@@ -87,7 +87,7 @@ export function GoogleMapLocationPicker({
     }
   };
 
-  const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.04}%2C${latitude - 0.03}%2C${longitude + 0.04}%2C${latitude + 0.03}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&hl=vi&z=15&output=embed`;
   const googleMapsExternalUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
   return (

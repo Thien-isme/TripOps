@@ -17,13 +17,17 @@ import {
   Mail,
   Globe,
   AlertCircle,
+  Compass,
+  ChevronRight,
 } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
 
 interface CompanyOverviewProps {
   company: TourCompany;
   tours: Tour[];
   bookings: Booking[];
   guides: User[];
+  onNavigate?: (section: string) => void;
 }
 
 export function CompanyOverview({
@@ -31,6 +35,7 @@ export function CompanyOverview({
   tours,
   bookings,
   guides,
+  onNavigate,
 }: CompanyOverviewProps) {
   const pendingBookings = bookings.filter(
     (b) => b.status === "pending",
@@ -181,7 +186,7 @@ export function CompanyOverview({
       </div>
 
       {/* Revenue */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xs">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="w-5 h-5 opacity-80" />
           <p className="text-sm opacity-80">Doanh thu ước tính</p>
@@ -195,6 +200,32 @@ export function CompanyOverview({
         <p className="text-sm opacity-60 mt-1">
           Từ {confirmedBookings} booking đã xác nhận
         </p>
+      </div>
+
+      {/* Services Discovery Banner */}
+      <div className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+            <Compass className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 text-sm sm:text-base">
+              Mạng lưới Dịch vụ Đối tác & Định vị OpenStreetMap
+            </h3>
+            <p className="text-xs text-gray-600 mt-0.5">
+              Khám phá các khách sạn, nhà hàng, điểm tham quan và đội xe đối tác trên toàn quốc. Tra cứu tọa độ GPS trực quan trên OpenStreetMap và đưa trực tiếp vào lịch trình tour.
+            </p>
+          </div>
+        </div>
+        {onNavigate && (
+          <Button
+            onClick={() => onNavigate("services")}
+            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 flex-shrink-0 shadow-xs"
+          >
+            Khám phá Dịch vụ Đối tác
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        )}
       </div>
 
       {/* Recent bookings */}

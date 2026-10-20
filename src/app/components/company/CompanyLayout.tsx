@@ -13,6 +13,7 @@ import {
   Star,
   PenSquare,
   Handshake,
+  Compass,
 } from "lucide-react";
 import { TourCompany, User } from "@/app/types";
 
@@ -42,6 +43,7 @@ export function CompanyLayout({
     { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
     { id: "tours", label: "Quản lý Tour", icon: Package },
     { id: "bookings", label: "Đặt tour", icon: Calendar },
+    { id: "services", label: "Dịch vụ đối tác", icon: Compass },
     { id: "guides", label: "Hướng dẫn viên", icon: Users },
     { id: "custom-requests", label: "Yêu cầu thiết kế", icon: PenSquare },
     { id: "co-hosting", label: "Liên minh đối tác", icon: Handshake, badge: coHostingBadgeCount },

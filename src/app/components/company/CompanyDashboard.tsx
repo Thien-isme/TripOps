@@ -3,6 +3,7 @@ import {
   Tour,
   Booking,
   User,
+  Service,
   GuideSchedule,
   TourCompany,
   PaymentRequest,
@@ -21,12 +22,14 @@ import { CompanyGuideManagement } from "./CompanyGuideManagement";
 import { CompanyCustomRequests } from "./CompanyCustomRequests";
 import { CompanyBookingDetailPage } from "./CompanyBookingDetailPage";
 import { CompanyCoHostManagement } from "./CompanyCoHostManagement";
+import { CompanyServicesExplorer } from "./CompanyServicesExplorer";
 
 interface CompanyDashboardProps {
   currentUser: User;
   company: TourCompany;
   tours: Tour[];
   bookings: Booking[];
+  services?: Service[];
   guides: User[];
   guideSchedules: GuideSchedule[];
   customTourRequests?: CustomTourRequest[];
@@ -60,6 +63,7 @@ export function CompanyDashboard({
   company,
   tours,
   bookings,
+  services = [],
   guides,
   guideSchedules,
   customTourRequests = [],
@@ -250,6 +254,7 @@ export function CompanyDashboard({
             tours={companyTours}
             bookings={companyBookings}
             guides={companyGuides}
+            onNavigate={setActiveSection}
           />
         );
       case "tours":
@@ -300,6 +305,14 @@ export function CompanyDashboard({
             onMarkFullyPaid={onMarkFullyPaid}
             onGenerateContract={(id) => {}}
             onViewBookingDetail={(b) => setSelectedBookingId(b.id)}
+          />
+        );
+      case "services":
+      case "provider-services":
+        return (
+          <CompanyServicesExplorer
+            services={services}
+            companyName={company.name}
           />
         );
       case "guides":
