@@ -439,6 +439,7 @@ Ref: booking_accommodations.provider_id > users.id
     Ref: booking_attraction_checkins.guide_id > users.id
     Ref: booking_attraction_checkins.agency_id > users.id
 
+
 // ============================================================================
 // BÁO CÁO SỰ CỐ VẬN HÀNH TOUR (TOUR INCIDENTS - NỐI TRỰC TIẾP TỚI BOOKING)
 // ============================================================================
@@ -463,8 +464,6 @@ Table booking_incidents {
 Ref: booking_incidents.booking_id > bookings.id
 Ref: booking_incidents.agency_id > users.id
 Ref: booking_incidents.reported_by > users.id
-
-
 
 // ============================================================================
 // 1. CÁC ĐỢT YÊU CẦU THANH TOÁN (PAYMENT MILESTONES)
@@ -600,6 +599,223 @@ Table complaints {
   updated_at timestamp [default: `now()`]
   deleted_at timestamp [note: 'Soft delete nếu cần']
 }
+
+// ============================================================================
+    // 1. MODULE CHAT (CHỈ CHAT 1-1 TRỰC TIẾP GIỮA 2 ACTORS BẤT KỲ)
+    // ============================================================================
+    
+    Table chat_conversations {
+      id int [pk, increment]
+      user_one_id varchar(36) [not null, note: 'FK tới users.id - Người tham gia thứ nhất']
+      user_two_id varchar(36) [not null, note: 'FK tới users.id - Người tham gia thứ hai']
+      
+      // Cache tin nhắn mới nhất để hiển thị danh sách hội thoại nhanh (Denormalized)
+      last_message_content text
+      last_message_sender_id varchar(36) [note: 'FK tới users.id - Người gửi tin nhắn cuối']
+      last_message_at timestamp
+      
+      status varchar(20) [not null, default: 'active', note: 'active, archived']
+      created_at timestamp [default: `now()`]
+      updated_at timestamp [default: `now()`]
+    }
+    
+    Table chat_messages {
+      id int [pk, increment]
+      conversation_id int [not null, note: 'FK tới chat_conversations.id']
+      sender_id varchar(36) [not null, note: 'FK tới users.id - Người gửi']
+      
+      content text [not null, note: 'Nội dung tin nhắn']
+      content_type varchar(20) [not null, default: 'text', note: 'text, image, file']
+      
+      // Trạng thái đã xem tin nhắn (Dành cho chat 1-1)
+      is_read boolean [default: false, note: 'true khi đối phương đã mở xem tin nhắn']
+      read_at timestamp
+      
+      reply_to_message_id int [note: 'FK tới chat_messages.id (khi trích dẫn/reply tin nhắn)']
+      is_edited boolean [default: false]
+      is_deleted boolean [default: false, note: 'Soft delete: hiển thị tin nhắn đã bị thu hồi']
+      
+      created_at timestamp [default: `now()`]
+      updated_at timestamp [default: `now()`]
+    }
+    
+    Table chat_attachments {
+      id int [pk, increment]
+      message_id int [not null, note: 'FK tới chat_messages.id']
+      file_name varchar(255) [not null]
+      file_url text [not null]
+      file_type varchar(50) [note: 'image/jpeg, application/pdf...']
+      file_size int [note: 'Dung lượng file (bytes)']
+      thumbnail_url text
+      created_at timestamp [default: `now()`]
+    }
+    
+    // Khóa ngoại Chat:
+    Ref: chat_conversations.user_one_id > users.id
+    Ref: chat_conversations.user_two_id > users.id
+    Ref: chat_conversations.last_message_sender_id > users.id
+    Ref: chat_messages.conversation_id > chat_conversations.id
+    Ref: chat_messages.sender_id > users.id
+    Ref: chat_messages.reply_to_message_id - chat_messages.id
+    Ref: chat_attachments.message_id > chat_messages.id
+    
+    
+    // ============================================================================
+    // 2. MODULE GÓI DỊCH VỤ - SUBSCRIPTION PLANS (CHỈ CHO CÔNG TY DU LỊCH)
+    // Lưu ý: Không lưu gói Free vào DB. Cty nào không có record = mặc định dùng Free
+    // ============================================================================
+    
+    Table subscription_plans {
+  id int [pk, increment]
+  name varchar(100) [not null, note: 'Tên gói trả phí: Cơ bản, Chuyên nghiệp, Doanh nghiệp...']
+  slug varchar(50) [unique, not null, note: 'Mã định danh gói trong code: basic, pro, enterprise']
+  description text
+  
+  // Biểu giá
+  price_monthly decimal(12, 2) [not null, note: 'Giá theo tháng (VNĐ)']
+  price_yearly decimal(12, 2) [note: 'Giá theo năm nếu trả trọn gói 1 năm (VNĐ)']
+  
+  // Hiển thị & Trạng thái
+  is_popular boolean [default: false, note: 'Gắn huy hiệu Gói phổ biến nhất']
+  sort_order int [default: 0]
+  status varchar(20) [default: 'active', note: 'active, inactive']
+  
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+    
+    Table agency_subscriptions {
+      id int [pk, increment]
+      agency_id varchar(36) [not null, note: 'FK tới users.id (đại diện công ty) hoặc business_profiles']
+      plan_id int [not null, note: 'FK tới subscription_plans.id']
+      
+      billing_cycle varchar(20) [not null, default: 'monthly', note: 'monthly (hàng tháng), yearly (hàng năm)']
+      price decimal(12, 2) [not null, note: 'Số tiền thực tế thanh toán']
+      
+      start_date date [not null]
+      end_date date [not null]
+      
+      status varchar(30) [not null, default: 'active', note: 'active (đang hiệu lực), past_due (quá hạn), cancelled (đã hủy), expired (hết hạn)']
+      auto_renew boolean [default: true, note: 'Tự động gia hạn khi đến hạn']
+      
+      cancelled_at timestamp
+      cancel_reason text
+      
+      last_payment_date timestamp
+      next_payment_date timestamp
+      
+      created_at timestamp [default: `now()`]
+      updated_at timestamp [default: `now()`]
+    }
+    
+    Table subscription_payment_history {
+      id int [pk, increment]
+      subscription_id int [not null, note: 'FK tới company_subscriptions.id']
+      company_id varchar(36) [not null, note: 'FK tới users.id']
+      plan_id int [not null, note: 'FK tới subscription_plans.id']
+      
+      amount decimal(12, 2) [not null, note: 'Số tiền nộp']
+      payment_method varchar(50) [not null, note: 'BANK_TRANSFER, VNPAY, MOMO, ZALOPAY']
+      transaction_code varchar(100) [note: 'Mã giao dịch cổng thanh toán / ngân hàng']
+      status varchar(30) [not null, default: 'PENDING', note: 'PENDING, SUCCESS, FAILED, REFUNDED']
+      
+      billing_period_start date [not null]
+      billing_period_end date [not null]
+      paid_at timestamp
+      
+      admin_note text
+      created_at timestamp [default: `now()`]
+    }
+    
+    // Khóa ngoại Subscription:
+    Ref: agency_subscriptions.agency_id > users.id
+    Ref: agency_subscriptions.plan_id > subscription_plans.id
+    Ref: subscription_payment_history.subscription_id > agency_subscriptions.id
+    Ref: subscription_payment_history.company_id > users.id
+    Ref: subscription_payment_history.plan_id > subscription_plans.id
+    
+    
+    // ============================================================================
+    // 3. MODULE YÊU CẦU HOÀN TIỀN (REFUND REQUESTS)
+    // Tiền hoàn được tính toán tự động theo quy định của nền tảng & chính sách tour
+    // ============================================================================
+    
+    Table refund_requests {
+      id int [pk, increment]
+      booking_id int [not null, note: 'FK tới bookings.id']
+      requested_by varchar(36) [not null, note: 'FK tới users.id - Khách hàng hoặc Cty du lịch gửi yêu cầu']
+      
+      reason varchar(50) [not null, note: 'CUSTOMER_REQUEST, TOUR_CANCELLED, SERVICE_QUALITY, WEATHER_FORCE_MAJEURE,DUPLICATE_PAYMENT, OTHER']
+      reason_detail text [not null, note: 'Mô tả chi tiết nguyên nhân']
+      evidence_urls json [note: 'Mảng URL ảnh/tài liệu chứng minh dạng JSON: ["url1", "url2"]']
+      
+      // Tiền tệ (Tính theo quy định nền tảng & chính sách hủy tour)
+      original_paid_amount decimal(12, 2) [not null, note: 'Tổng số tiền đã thanh toán của booking này']
+      approved_refund_amount decimal(12, 2) [note: 'Số tiền hoàn trả thực tế (được tính theo chính sách hoàn hủy của sàn)']
+      refund_fee decimal(12, 2) [default: 0, note: 'Phí hủy / phạt giữ lại theo quy định nếu có']
+      
+      // Tài khoản ngân hàng nhận tiền hoàn
+      refund_bank_name varchar(100) [note: 'Tên ngân hàng nhận']
+      refund_account_number varchar(50) [note: 'Số tài khoản nhận tiền']
+      refund_account_holder varchar(150) [note: 'Tên chủ tài khoản nhận tiền']
+      
+      // Trạng thái xử lý
+      status varchar(30) [not null, default: 'PENDING', note: 'PENDING (Chờ duyệt), REVIEWING (Đang kiểm tra), APPROVED (Đã duyệt), REJECTED (Từ chối), COMPLETED (Đã chuyển khoản hoàn tất)']
+      
+      reviewed_by varchar(36) [note: 'FK tới users.id - Admin xử lý']
+      review_note text [note: 'Ghi chú nội bộ của Admin']
+      rejection_reason text [note: 'Lý do từ chối nếu status = REJECTED']
+      
+      created_at timestamp [default: `now()`]
+      reviewed_at timestamp
+      completed_at timestamp
+    }
+    
+    // Khóa ngoại Refund:
+    Ref: refund_requests.booking_id > bookings.id
+    Ref: refund_requests.requested_by > users.id
+    Ref: refund_requests.reviewed_by > users.id
+    
+    
+    // ============================================================================
+    // 4. MODULE TÀI KHOẢN NGÂN HÀNG HỆ THỐNG & CẤU HÌNH HOA HỒNG (COMMISSION)
+    // Admin có thể tùy chỉnh 1 mức phí sàn duy nhất cho toàn hệ thống
+    // ============================================================================
+    
+Table system_bank_accounts {
+  id int [pk, increment]
+  bank_name varchar(150) [not null, note: 'VD: Vietcombank, Techcombank, MB Bank...']
+  bank_code varchar(30) [not null, note: 'VCB, TCB, MB, ICB... (Dùng để sinh mã VietQR động)']
+  account_number varchar(50) [not null, note: 'Số tài khoản nhận tiền ký quỹ (Escrow)']
+  account_holder varchar(150) [not null, note: 'Tên chủ tài khoản công ty sàn']
+  branch varchar(150) [note: 'Chi nhánh mở tài khoản']
+  
+  is_default boolean [default: true, note: 'true: Tài khoản mặc định hệ thống hiển thị cho khách chuyển tiền']
+  status varchar(20) [default: 'ACTIVE', note: 'ACTIVE, INACTIVE']
+  notes text [note: 'Ghi chú thêm nếu có']
+  
+  updated_by varchar(36) [note: 'FK tới users.id - Admin cập nhật gần nhất']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+// Khóa ngoại liên kết tới Admin thực hiện
+Ref: system_bank_accounts.updated_by > users.id
+
+Table system_commission_configs {
+  id int [pk, increment]
+  commission_rate decimal(5, 2) [not null, note: 'Tỷ lệ % phí sàn (VD: 8.00 = 8%)']
+  note text [note: 'Lý do hoặc chính sách áp dụng (VD: Miễn phí sàn khai trương, Tăng phí mùa cao điểm...)']
+  
+  is_active boolean [default: true, note: 'true: Mức phí đang có hiệu lực hiện tại (các mức cũ chuyển thành false)']
+  applied_from timestamp [default: `now()`, note: 'Thời điểm bắt đầu có hiệu lực']
+  
+  created_by varchar(36) [not null, note: 'FK tới users.id - Admin thiết lập mức phí này']
+  created_at timestamp [default: `now()`]
+}
+
+// Khóa ngoại liên kết tới Admin thiết lập
+Ref: system_commission_configs.created_by > users.id
 
 // KHÓA NGOẠI (REFS)
 Ref: feedbacks.booking_id > bookings.id
