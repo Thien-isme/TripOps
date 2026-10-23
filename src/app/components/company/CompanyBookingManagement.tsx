@@ -183,44 +183,9 @@ export function CompanyBookingManagement({
     );
 
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const customCount = bookings.filter((b) => b.hasLocationCustomization || (b.customHotelChanges && b.customHotelChanges.length > 0)).length;
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-          <p className="text-xs font-medium text-gray-500">Tổng số đặt tour</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{bookings.length}</p>
-          <p className="text-xs text-gray-400 mt-1">Tất cả các booking</p>
-        </div>
-        <div className="bg-amber-50/70 rounded-xl border border-amber-200 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            Cần duyệt ngay
-          </p>
-          <p className="text-2xl font-bold text-amber-900 mt-1">{pendingCount}</p>
-          <p className="text-xs text-amber-600 mt-1">Đang chờ công ty phê duyệt</p>
-        </div>
-        <div className="bg-emerald-50/70 rounded-xl border border-emerald-200 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
-            <CheckCircle className="w-3.5 h-3.5" />
-            Đã xác nhận
-          </p>
-          <p className="text-2xl font-bold text-emerald-900 mt-1">{confirmedCount}</p>
-          <p className="text-xs text-emerald-600 mt-1">Đang chuẩn bị khởi hành</p>
-        </div>
-        <div className="bg-purple-50/70 rounded-xl border border-purple-200 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-purple-700 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            Lịch trình tùy chỉnh
-          </p>
-          <p className="text-2xl font-bold text-purple-900 mt-1">{customCount}</p>
-          <p className="text-xs text-purple-600 mt-1">Có thay đổi điểm đến/khách sạn</p>
-        </div>
-      </div>
-
       {/* Control bar: Search & Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
