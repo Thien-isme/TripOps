@@ -125,6 +125,22 @@ function ProgramTab({ tour }: { tour: Tour }) {
         </section>
       )}
 
+      {/* Điểm khởi hành */}
+      {(tour.departureLocation || tour.departureCity) && (
+        <section className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+          <h3 className="text-sm font-bold text-emerald-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-emerald-600" />
+            Điểm khởi hành
+          </h3>
+          <div className="space-y-1 text-sm text-gray-700">
+            <p>
+              <span className="text-gray-500">Nơi xuất phát / Khởi hành:</span>{" "}
+              <strong>{tour.departureLocation || tour.departureCity}</strong>
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Highlights */}
       {tour.highlights.length > 0 && (
         <section>
@@ -153,11 +169,8 @@ function ProgramTab({ tour }: { tour: Tour }) {
               <div key={day.id} className="border border-gray-200 rounded-xl overflow-hidden">
                 <button
                   onClick={() => toggle(day.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                 >
-                  <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                    {day.day}
-                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-gray-900">
@@ -214,22 +227,10 @@ function ProgramTab({ tour }: { tour: Tour }) {
                       })()}
                     </div>
                   </div>
-                  {day.meals && day.meals.length > 0 && (
-                    <div className="flex gap-1 flex-shrink-0">
-                      {day.meals.map((m) => {
-                        const cfg = MEAL_LABELS[m.type];
-                        return (
-                          <span key={m.type} className={`text-xs px-1.5 py-0.5 rounded font-medium ${cfg.color}`}>
-                            {cfg.label}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
                   {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                    <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   )}
                 </button>
 
@@ -2311,6 +2312,12 @@ export function TourDetailPage({
                   {tour.operationPeriod}
                 </div>
               )}
+              {(tour.departureLocation || tour.departureCity) && (
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
+                  <span>Khởi hành: <strong>{tour.departureLocation || tour.departureCity}</strong></span>
+                </div>
+              )}
             </div>
 
             {/* Custom Tour Banner */}
@@ -2479,6 +2486,12 @@ export function TourDetailPage({
                   <span>Điểm đến</span>
                   <span className="font-medium">{tour.destination}</span>
                 </div>
+                {(tour.departureLocation || tour.departureCity) && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Khởi hành từ</span>
+                    <span className="font-medium text-emerald-700">{tour.departureLocation || tour.departureCity}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
                   <span>Nhóm khách</span>
                   <span className="font-medium">{tour.minGuests}–{tour.maxGuests} người</span>

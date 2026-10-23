@@ -389,6 +389,7 @@ export const mockTours: Tour[] = [
     companyLogo:
       "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
     operationPeriod: "Tháng 1 – Tháng 6 và Tháng 9 – Tháng 12 hàng năm",
+    departureLocation: "TP. Hồ Chí Minh",
     departureCity: "TP. Hồ Chí Minh",
     createdBy: "company-admin-1",
     createdByName: "Trần Quốc Bảo",
@@ -758,6 +759,9 @@ export const mockTours: Tour[] = [
     companyName: "Viettravel",
     companyLogo:
       "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
+    operationPeriod: "Quanh năm (Lý tưởng: Tháng 10 – Tháng 5)",
+    departureLocation: "TP. Hồ Chí Minh",
+    departureCity: "TP. Hồ Chí Minh",
     createdBy: "company-admin-1",
     createdByName: "Trần Quốc Bảo",
     createdByEmail: "company1@demo.com",
@@ -865,6 +869,9 @@ export const mockTours: Tour[] = [
     companyName: "Saigon Tourist",
     companyLogo:
       "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=200&h=200&fit=crop",
+    operationPeriod: "Quanh năm (Mùa đẹp nhất: Tháng 1 – Tháng 5)",
+    departureLocation: "Hà Nội",
+    departureCity: "Hà Nội",
     createdBy: "company-admin-2",
     createdByName: "Nguyễn Thị Phương",
     createdByEmail: "company2@demo.com",
@@ -971,6 +978,9 @@ export const mockTours: Tour[] = [
     companyName: "Saigon Tourist",
     companyLogo:
       "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=200&h=200&fit=crop",
+    operationPeriod: "Tháng 2 – Tháng 8 hàng năm",
+    departureLocation: "Đà Nẵng",
+    departureCity: "Đà Nẵng",
     createdBy: "company-admin-2",
     createdByName: "Nguyễn Thị Phương",
     createdByEmail: "company2@demo.com",
@@ -1003,6 +1013,9 @@ export const mockTours: Tour[] = [
     companyName: "Viettravel",
     companyLogo:
       "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
+    operationPeriod: "Tháng 8 – Tháng 11 hàng năm (Mùa lúa chín)",
+    departureLocation: "Hà Nội",
+    departureCity: "Hà Nội",
     createdBy: "company-admin-1",
     createdByName: "Trần Quốc Bảo",
     createdByEmail: "company1@demo.com",
@@ -1153,6 +1166,9 @@ export const mockTours: Tour[] = [
     companyName: "Fiditour",
     companyLogo:
       "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=200&h=200&fit=crop",
+    operationPeriod: "Tháng 1 – Tháng 9 hàng năm",
+    departureLocation: "TP. Hồ Chí Minh",
+    departureCity: "TP. Hồ Chí Minh",
     createdBy: "company-admin-3",
     createdByName: "Phạm Trung Hiếu",
     createdByEmail: "company3@demo.com",
@@ -1357,6 +1373,7 @@ export const mockTours: Tour[] = [
     companyLogo:
       "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
     operationPeriod: "15/11/2026 – 20/11/2026",
+    departureLocation: "TP. Hồ Chí Minh",
     departureCity: "TP. Hồ Chí Minh",
     createdBy: "company-admin-1",
     createdByName: "Viettravel",
@@ -1868,6 +1885,7 @@ export const mockTours: Tour[] = [
     companyLogo:
       "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=200&h=200&fit=crop",
     operationPeriod: "10/12/2026 – 12/12/2026",
+    departureLocation: "TP. Hồ Chí Minh",
     departureCity: "TP. Hồ Chí Minh",
     createdBy: "company-admin-1",
     createdByName: "Viettravel",

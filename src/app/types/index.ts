@@ -350,6 +350,7 @@ export interface Tour {
   itinerary: DailyItinerary[];
   // Operation period (replaces departure dates for group bookings)
   operationPeriod?: string; // e.g. "Tháng 1 – Tháng 6 hàng năm"
+  departureLocation?: string; // Điểm khởi hành (e.g. "TP. Hồ Chí Minh")
   departureCity?: string; // e.g. "TP. Hồ Chí Minh"
   departureDates?: TourDepartureDate[];
   priceTable?: TourPriceRow[];

@@ -644,9 +644,12 @@ export function TourFormPage({
   const [images, setImages] = useState<string[]>(initialImages);
   const [thumbnailIndex, setThumbnailIndex] = useState<number>(0);
 
-  // Operation period
+  // Operation period & Departure location
   const [operationPeriod, setOperationPeriod] = useState(
     tour?.operationPeriod ?? "Khởi hành theo thỏa thuận với khách"
+  );
+  const [departureLocation, setDepartureLocation] = useState(
+    tour?.departureLocation ?? (tour?.departureCity ?? "TP. Hồ Chí Minh")
   );
   const [minGuests, setMinGuests] = useState(
     tour?.minGuests ?? (customRequest?.numberOfGuests ?? 2)
@@ -1497,6 +1500,8 @@ export function TourFormPage({
       tourCode,
       name,
       destination,
+      departureLocation,
+      departureCity: departureLocation,
       duration,
       numberOfDays,
       numberOfNights,
@@ -1856,6 +1861,20 @@ export function TourFormPage({
                     value={operationPeriod}
                     onChange={(e) => setOperationPeriod(e.target.value)}
                     placeholder="VD: Quanh năm (Tháng 1 – Tháng 12)"
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* ĐIỂM KHỞI HÀNH */}
+                <div>
+                  <Label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                    Điểm khởi hành <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    value={departureLocation}
+                    onChange={(e) => setDepartureLocation(e.target.value)}
+                    placeholder="VD: TP. Hồ Chí Minh / Hà Nội"
                     className="mt-1"
                   />
                 </div>
