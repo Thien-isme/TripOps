@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   LayoutDashboard,
-  Map,
   Package,
   Calendar,
   Settings,
@@ -15,6 +14,8 @@ import {
   Building2,
   Users,
   Landmark,
+  Compass,
+  FileText,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -48,12 +49,9 @@ export function AdminLayout({
     },
     {
       id: "approve-tours",
-      label: "Phê duyệt Tour",
-      icon: FileCheck,
-      badge: pendingToursCount > 0 ? pendingToursCount : undefined,
+      label: "Quản lý Tour",
+      icon: Compass,
     },
-    { id: "active-tours", label: "Tour đang dẫn", icon: Map },
-    { id: "bookings", label: "Quản lý Booking", icon: Calendar },
     {
       id: "finance",
       label: "STK Sàn & Quyết toán",
@@ -66,8 +64,8 @@ export function AdminLayout({
     },
     {
       id: "approve-posts",
-      label: "Phê duyệt Bài đăng",
-      icon: FileCheck,
+      label: "Quản lý Bài đăng",
+      icon: FileText,
     },
     {
       id: "providers",

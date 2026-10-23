@@ -388,6 +388,7 @@ export interface Tour {
   // Tour publication & moderation status
   status?: "draft" | "pending_approval" | "published" | "rejected" | "hidden";
   rejectionReason?: string;
+  hiddenReason?: string; // Lý do Admin tạm ẩn tour (thông tin sai lệch, nhảm nhí...)
 }
 
 export interface TourCoHost {
@@ -624,8 +625,9 @@ export interface Service {
   thumbnailIndex?: number; // Vị trí ảnh làm thumbnail
   rating: number;
   capacity?: number;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "hidden";
   rejectionReason?: string; // Lý do từ chối bài đăng
+  hiddenReason?: string; // Lý do Admin tạm ẩn bài đăng
   createdAt: string;
   // Hotel specific fields
   stars?: number;

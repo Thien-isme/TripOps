@@ -525,7 +525,7 @@ function App() {
   };
 
   const handleDeleteTour = (tourId: string) => {
-    setTours(tours.filter((t) => t.id !== tourId));
+    setTours((prev) => prev.filter((t) => t.id !== tourId));
   };
 
   // Provider actions
@@ -570,7 +570,7 @@ function App() {
   };
 
   const handleDeleteService = (serviceId: string) => {
-    setServices(services.filter((s) => s.id !== serviceId));
+    setServices((prev) => prev.filter((s) => s.id !== serviceId));
   };
 
   const handleUpdateProviderProfile = (updatedUser: Partial<User>) => {
@@ -590,9 +590,25 @@ function App() {
     setServices(
       services.map((service) =>
         service.id === serviceId
-          ? { ...service, status: "approved" as const }
+          ? { ...service, status: "approved" as const, hiddenReason: undefined }
           : service,
       ),
+    );
+  };
+
+  const handleToggleHideService = (serviceId: string, reason?: string) => {
+    setServices((prev) =>
+      prev.map((service) => {
+        if (service.id !== serviceId) return service;
+        const willHide = service.status !== "hidden";
+        return {
+          ...service,
+          status: willHide ? ("hidden" as const) : ("approved" as const),
+          hiddenReason: willHide
+            ? (reason || "Thông tin dịch vụ bị tạm ẩn do không chính xác hoặc không phù hợp")
+            : undefined,
+        };
+      })
     );
   };
 
@@ -984,9 +1000,25 @@ function App() {
     setTours((prev) =>
       prev.map((t) =>
         t.id === tourId
-          ? { ...t, status: "published" as const, rejectionReason: undefined }
+          ? { ...t, status: "published" as const, rejectionReason: undefined, hiddenReason: undefined }
           : t
       )
+    );
+  };
+
+  const handleToggleHideTour = (tourId: string, reason?: string) => {
+    setTours((prev) =>
+      prev.map((t) => {
+        if (t.id !== tourId) return t;
+        const willHide = t.status !== "hidden";
+        return {
+          ...t,
+          status: willHide ? ("hidden" as const) : ("published" as const),
+          hiddenReason: willHide
+            ? (reason || "Thông tin tour bị tạm ẩn do không chính xác hoặc không phù hợp")
+            : undefined,
+        };
+      })
     );
   };
 
@@ -1321,11 +1353,15 @@ function App() {
               companies={companies}
               onApproveTour={handleApproveTour}
               onRejectTour={handleRejectTour}
+              onToggleHideTour={handleToggleHideTour}
+              onDeleteTour={handleDeleteTour}
               onApproveBooking={handleApproveBooking}
               onRejectBooking={handleRejectBooking}
               onAssignGuide={handleAssignGuide}
               onApproveService={handleApproveService}
               onRejectService={handleRejectService}
+              onToggleHideService={handleToggleHideService}
+              onDeleteService={handleDeleteService}
               onApproveProvider={handleApproveProvider}
               onRejectProvider={handleRejectProvider}
               onUpdateUserStatus={handleUpdateUserStatus}
@@ -1392,7 +1428,11 @@ function App() {
             customMealChanges={bookingCustomData?.customMealChanges}
             locationChanges={bookingCustomData?.locationChanges}
             onBack={() => {
-              setCurrentPage("tour-detail");
+              if (selectedTour) {
+                setCurrentPage("tour-detail");
+              } else {
+                setCurrentPage(previousPage || "home");
+              }
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             onSubmit={(data) => {
@@ -1426,7 +1466,7 @@ function App() {
                 tours={tours}
                 userBookings={userBookings}
                 customTourRequests={customTourRequests.filter((r) => r.userId === currentUser?.id)}
-                onBookTour={handleBookTour}
+                onBookTour={handleOpenBookingForm}
                 onCancelBooking={handleCancelBooking}
                 onViewTour={handleViewTour}
                 onCancelCustomRequest={handleCancelCustomTourRequest}

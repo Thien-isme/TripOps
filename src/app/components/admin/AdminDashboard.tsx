@@ -10,8 +10,6 @@ import {
 } from "@/app/types";
 import { AdminLayout } from "./AdminLayout";
 import { AdminDashboardOverview } from "./AdminDashboardOverview";
-import { ActiveToursManagement } from "./ActiveToursManagement";
-import { AdminBookingManagement } from "./AdminBookingManagement";
 import { AdminFinancialManagement } from "./AdminFinancialManagement";
 import { ProviderAccountApproval } from "./ProviderAccountApproval";
 import { ServicePostApproval } from "./ServicePostApproval";
@@ -32,11 +30,15 @@ interface AdminDashboardProps {
   companies: TourCompany[];
   onApproveTour?: (tourId: string) => void;
   onRejectTour?: (tourId: string, reason: string) => void;
-  onApproveBooking: (bookingId: string) => void;
-  onRejectBooking: (bookingId: string, reason?: string) => void;
-  onAssignGuide: (bookingId: string, guideId: string) => void;
-  onApproveService: (serviceId: string) => void;
-  onRejectService: (serviceId: string, reason: string) => void;
+  onToggleHideTour?: (tourId: string, reason?: string) => void;
+  onDeleteTour?: (tourId: string) => void;
+  onApproveBooking?: (bookingId: string) => void;
+  onRejectBooking?: (bookingId: string, reason?: string) => void;
+  onAssignGuide?: (bookingId: string, guideId: string) => void;
+  onApproveService?: (serviceId: string) => void;
+  onRejectService?: (serviceId: string, reason: string) => void;
+  onToggleHideService?: (serviceId: string, reason?: string) => void;
+  onDeleteService?: (serviceId: string) => void;
   onApproveProvider: (providerId: string) => void;
   onRejectProvider: (
     providerId: string,
@@ -70,11 +72,15 @@ export function AdminDashboard({
   companies,
   onApproveTour,
   onRejectTour,
+  onToggleHideTour,
+  onDeleteTour,
   onApproveBooking,
   onRejectBooking,
   onAssignGuide,
   onApproveService,
   onRejectService,
+  onToggleHideService,
+  onDeleteService,
   onApproveProvider,
   onRejectProvider,
   onUpdateUserStatus,
@@ -119,28 +125,16 @@ export function AdminDashboard({
             onSuspendCompany={onSuspendCompany}
           />
         );
+      case "tours":
       case "approve-tours":
         return (
           <AdminTourModeration
             tours={tours}
+            services={services}
+            onToggleHideTour={onToggleHideTour}
+            onDeleteTour={onDeleteTour}
             onApproveTour={onApproveTour || (() => {})}
             onRejectTour={onRejectTour || (() => {})}
-          />
-        );
-      case "active-tours":
-        return (
-          <ActiveToursManagement
-            guideSchedules={guideSchedules}
-          />
-        );
-      case "bookings":
-        return (
-          <AdminBookingManagement
-            bookings={bookings}
-            guides={guides}
-            onApproveBooking={onApproveBooking}
-            onRejectBooking={onRejectBooking}
-            onAssignGuide={onAssignGuide}
           />
         );
       case "finance":
@@ -160,12 +154,15 @@ export function AdminDashboard({
             onRejectProvider={onRejectProvider}
           />
         );
+      case "services":
       case "approve-posts":
         return (
           <ServicePostApproval
             services={services}
-            onApproveService={onApproveService}
-            onRejectService={onRejectService}
+            onToggleHideService={onToggleHideService}
+            onDeleteService={onDeleteService}
+            onApproveService={onApproveService || (() => {})}
+            onRejectService={onRejectService || (() => {})}
           />
         );
       case "providers":

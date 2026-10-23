@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Tour, Booking, CustomTourRequest } from "@/app/types";
 import { TourList } from "./TourList";
 import { MyBookings } from "./MyBookings";
-import { BookingModal } from "./BookingModal";
 import { UserCustomRequests } from "./UserCustomRequests";
 import { Compass, Calendar, PenSquare } from "lucide-react";
 
@@ -11,11 +10,7 @@ interface UserDashboardProps {
   userBookings: Booking[];
   customTourRequests?: CustomTourRequest[];
   initialTab?: "explore" | "mybookings" | "custom-requests";
-  onBookTour: (
-    tourId: string,
-    numberOfGuests: number,
-    startDate: string,
-  ) => void;
+  onBookTour: (tour: Tour) => void;
   onCancelBooking: (bookingId: string, reason: string) => void;
   onViewTour?: (tour: Tour) => void;
   onCancelCustomRequest?: (id: string) => void;
@@ -38,22 +33,6 @@ export function UserDashboard({
   const [activeTab, setActiveTab] = useState<
     "explore" | "mybookings" | "custom-requests"
   >(initialTab || "explore");
-  const [selectedTour, setSelectedTour] = useState<Tour | null>(
-    null,
-  );
-
-  const handleBookTour = (
-    numberOfGuests: number,
-    startDate: string,
-  ) => {
-    if (selectedTour) {
-      onBookTour(selectedTour.id, numberOfGuests, startDate);
-      setSelectedTour(null);
-      alert(
-        "Đặt tour thành công! Vui lòng đợi xác nhận từ quản lý.",
-      );
-    }
-  };
 
   const tabs = [
     { id: "explore", label: "Khám phá Tour", icon: Compass },
@@ -93,7 +72,7 @@ export function UserDashboard({
       {activeTab === "explore" && (
         <TourList
           tours={tours.filter((t) => t.tourType !== "custom_request")}
-          onBookTour={(tour) => setSelectedTour(tour)}
+          onBookTour={onBookTour}
           onViewTour={onViewTour}
         />
       )}
@@ -117,15 +96,7 @@ export function UserDashboard({
           onCancel={(id) => onCancelCustomRequest?.(id)}
           onNavigateToForm={() => onNavigateToCustomTourForm?.()}
           onViewTour={onViewTour}
-          onBookTour={(tour) => setSelectedTour(tour)}
-        />
-      )}
-
-      {selectedTour && (
-        <BookingModal
-          tour={selectedTour}
-          onClose={() => setSelectedTour(null)}
-          onConfirm={handleBookTour}
+          onBookTour={onBookTour}
         />
       )}
     </div>

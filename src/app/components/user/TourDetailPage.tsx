@@ -34,8 +34,21 @@ import {
   Check,
   FileText,
   ExternalLink,
+  Eye,
+  EyeOff,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { Badge } from "@/app/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/app/components/ui/dialog";
+import { Textarea } from "@/app/components/ui/textarea";
 import { mockUsers } from "@/app/data/mockData";
 import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
 
@@ -52,8 +65,11 @@ interface TourDetailPageProps {
   services: Service[];
   currentUser?: { id: string; name: string } | null;
   onBack: () => void;
-  onBookNow: (tour: Tour, customData?: TourDetailCustomData) => void;
+  onBookNow?: (tour: Tour, customData?: TourDetailCustomData) => void;
   onShowLogin?: () => void;
+  isAdmin?: boolean;
+  onToggleHideTour?: (tourId: string, reason?: string) => void;
+  onDeleteTour?: (tourId: string) => void;
 }
 
 type TabId = "program" | "regulations" | "pricing" | "custom" | "reviews";
@@ -2077,7 +2093,22 @@ export function TourDetailPage({
   onBack,
   onBookNow,
   onShowLogin,
+  isAdmin,
+  onToggleHideTour,
+  onDeleteTour,
 }: TourDetailPageProps) {
+  const [showHideModal, setShowHideModal] = useState(false);
+  const [hideReason, setHideReason] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const quickReasonSuggestions = [
+    "Thông tin lộ trình sai lệch, nhảm nhí không đúng thực tế.",
+    "Giá tour ảo hoặc chênh lệch bất thường so với thị trường.",
+    "Hình ảnh bài đăng tour vi phạm tiêu chuẩn cộng đồng.",
+    "Nội dung trùng lặp hoặc spam trên sàn du lịch.",
+    "Công ty đăng thông tin dịch vụ ảo chưa được xác thực.",
+  ];
+
   const isCustomTour = tour.tourType === "custom_request";
   const visibleTabs = isCustomTour
     ? TABS.filter((t) => t.id !== "custom" && t.id !== "reviews")
@@ -2098,9 +2129,9 @@ export function TourDetailPage({
       return;
     }
     if (customData && (customData.customHotelChanges?.length || customData.customMealChanges?.length || customData.locationChanges?.length)) {
-      onBookNow(tour, customData);
+      onBookNow?.(tour, customData);
     } else {
-      onBookNow(tour);
+      onBookNow?.(tour);
     }
   };
 
@@ -2109,7 +2140,7 @@ export function TourDetailPage({
       onShowLogin?.();
       return;
     }
-    onBookNow(tour, cData);
+    onBookNow?.(tour, cData);
   };
 
   const [selectedPhoto, setSelectedPhoto] = useState<string>(
@@ -2119,28 +2150,100 @@ export function TourDetailPage({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sticky top bar */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLiked(!liked)}
-              className={`p-2 rounded-full transition-colors ${liked ? "text-red-500 bg-red-50" : "text-gray-400 hover:bg-gray-100"}`}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 border-gray-200 hover:bg-gray-100 rounded-xl font-medium text-xs sm:text-sm"
             >
-              <Heart className={`w-5 h-5 ${liked ? "fill-red-500" : ""}`} />
-            </button>
-            <button className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
-              <Share2 className="w-5 h-5" />
-            </button>
+              <ArrowLeft className="w-4 h-4" />
+              {isAdmin ? "Quay lại danh sách Quản lý Tour" : "Quay lại"}
+            </Button>
+
+            {isAdmin && (
+              <div className="flex items-center gap-2">
+                {tour.status === "hidden" ? (
+                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-300 font-semibold gap-1.5 py-1 px-2.5 text-xs">
+                    <EyeOff className="w-3.5 h-3.5 text-rose-600" />
+                    Đã tạm ẩn trên sàn (Xàm / Vi phạm)
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold gap-1.5 py-1 px-2.5 text-xs">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    Đang hiển thị công khai trên sàn
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
+
+          {isAdmin ? (
+            <div className="flex items-center gap-2">
+              {tour.status === "hidden" ? (
+                <Button
+                  size="sm"
+                  onClick={() => onToggleHideTour?.(tour.id)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold gap-1.5 shadow-xs"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Mở hiển thị lại
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowHideModal(true)}
+                  className="border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold gap-1.5"
+                >
+                  <EyeOff className="w-3.5 h-3.5 text-amber-600" />
+                  Tạm ẩn tour (Xàm / Vi phạm)
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowDeleteModal(true)}
+                className="border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Xóa vĩnh viễn
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setLiked(!liked)}
+                className={`p-2 rounded-full transition-colors ${liked ? "text-red-500 bg-red-50" : "text-gray-400 hover:bg-gray-100"}`}
+              >
+                <Heart className={`w-5 h-5 ${liked ? "fill-red-500" : ""}`} />
+              </button>
+              <button className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
+                <Share2 className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {isAdmin && tour.status === "hidden" && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 text-sm">
+              <h4 className="font-bold text-rose-900">Tour đang bị tạm ẩn khỏi sàn</h4>
+              <p className="text-xs text-rose-700 mt-1">
+                <strong>Lý do kiểm duyệt:</strong> {tour.hiddenReason || "Thông tin tour không chính xác, thiếu căn cứ hoặc không phù hợp với tiêu chuẩn sàn."}
+              </p>
+              <p className="text-xs text-rose-600 mt-0.5">
+                Tour này hiện không hiển thị trên danh sách tìm kiếm tour công khai và khách hàng không thể đặt chỗ.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -2382,24 +2485,66 @@ export function TourDetailPage({
                 </div>
               </div>
 
-              <Button
-                onClick={handleBook}
-                className={`w-full ${
-                  isCustomTour
-                    ? "bg-purple-600 hover:bg-purple-700 text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
-                } font-semibold py-3 text-base rounded-xl`}
-              >
-                {currentUser ? (isCustomTour ? "Đặt Tour Thiết Kế Này Ngay" : "Đặt tour ngay") : "Đăng nhập để đặt"}
-              </Button>
+              {isAdmin ? (
+                <div className="space-y-2.5 pt-2 border-t border-gray-100">
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+                    <p className="font-semibold text-blue-950 flex items-center gap-1.5 mb-1">
+                      <ShieldCheck className="w-4 h-4 text-blue-600" /> Bảng điều khiển Admin
+                    </p>
+                    <p className="text-blue-700 text-[11px] leading-relaxed">
+                      Bạn đang xem toàn bộ thông tin chi tiết tour. Nếu nội dung sai sự thật, xàm hoặc vi phạm, bạn có thể tạm ẩn hoặc xóa khỏi hệ thống.
+                    </p>
+                  </div>
 
-              {!currentUser && (
-                <p className="text-center text-xs text-gray-400">
-                  Đã có tài khoản?{" "}
-                  <button onClick={onShowLogin} className="text-blue-600 hover:underline">
-                    Đăng nhập
-                  </button>
-                </p>
+                  {tour.status === "hidden" ? (
+                    <Button
+                      onClick={() => onToggleHideTour?.(tour.id)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-xs text-xs"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Mở hiển thị lại tour
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowHideModal(true)}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-xs text-xs"
+                    >
+                      <EyeOff className="w-4 h-4" />
+                      Tạm ẩn tour (Xàm / Vi phạm)
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="w-full border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Xóa vĩnh viễn tour này
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleBook}
+                    className={`w-full ${
+                      isCustomTour
+                        ? "bg-purple-600 hover:bg-purple-700 text-white"
+                        : "bg-red-600 hover:bg-red-700 text-white"
+                    } font-semibold py-3 text-base rounded-xl`}
+                  >
+                    {currentUser ? (isCustomTour ? "Đặt Tour Thiết Kế Này Ngay" : "Đặt tour ngay") : "Đăng nhập để đặt"}
+                  </Button>
+
+                  {!currentUser && (
+                    <p className="text-center text-xs text-gray-400">
+                      Đã có tài khoản?{" "}
+                      <button onClick={onShowLogin} className="text-blue-600 hover:underline">
+                        Đăng nhập
+                      </button>
+                    </p>
+                  )}
+                </>
               )}
 
               {tour.companyName && (
@@ -2419,6 +2564,121 @@ export function TourDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Admin Hide Tour Modal */}
+      {isAdmin && (
+        <>
+          <Dialog open={showHideModal} onOpenChange={setShowHideModal}>
+            <DialogContent className="max-w-md rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-amber-700 text-base">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  Tạm ẩn tour khỏi sàn du lịch
+                </DialogTitle>
+                <DialogDescription className="text-xs text-gray-500">
+                  Chọn hoặc nhập lý do tạm ẩn tour "<strong>{tour.name}</strong>". Tour bị ẩn sẽ không hiển thị trên sàn cho khách hàng.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-2 block">
+                    Lý do thường gặp (bấm để chọn nhanh):
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {quickReasonSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setHideReason(suggestion)}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border text-left transition-all ${
+                          hideReason === suggestion
+                            ? "bg-amber-100 border-amber-400 text-amber-900 font-semibold"
+                            : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                    Nội dung chi tiết lý do ẩn:
+                  </label>
+                  <Textarea
+                    rows={3}
+                    placeholder="Nhập lý do chi tiết để công ty biết và chỉnh sửa lại..."
+                    value={hideReason}
+                    onChange={(e) => setHideReason(e.target.value)}
+                    className="text-xs rounded-xl"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowHideModal(false)}
+                    className="rounded-xl text-xs"
+                  >
+                    Hủy bỏ
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const reason = hideReason.trim() || "Thông tin tour bị tạm ẩn do không chính xác hoặc không phù hợp.";
+                      onToggleHideTour?.(tour.id, reason);
+                      setShowHideModal(false);
+                    }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold"
+                  >
+                    Xác nhận Tạm ẩn tour
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Admin Delete Confirmation Modal */}
+          <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+            <DialogContent className="max-w-md rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-rose-700 text-base">
+                  <Trash2 className="w-5 h-5 text-rose-600" />
+                  Xác nhận xóa vĩnh viễn tour
+                </DialogTitle>
+                <DialogDescription className="text-xs text-gray-600">
+                  Bạn có chắc chắn muốn xóa tour <strong>"{tour.name}"</strong>? Tour này sẽ bị gỡ bỏ hoàn toàn khỏi hệ thống sàn và không thể khôi phục.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="rounded-xl text-xs"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onDeleteTour?.(tour.id);
+                    setShowDeleteModal(false);
+                    onBack();
+                  }}
+                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold"
+                >
+                  Xác nhận Xóa vĩnh viễn
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

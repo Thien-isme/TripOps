@@ -24,17 +24,29 @@ import {
   Info,
   ExternalLink,
   FileText,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Badge } from "@/app/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/app/components/ui/dialog";
+import { Textarea } from "@/app/components/ui/textarea";
 import { ImageUploadManager } from "../ImageUploadManager";
 
 interface ProviderServiceDetailPageProps {
   service: Service;
   onBack: () => void;
-  onEdit: (service: Service) => void;
+  onEdit?: (service: Service) => void;
   onDelete: (serviceId: string) => void;
   onUpdateServiceImages?: (serviceId: string, images: string[], thumbnail: string) => void;
+  isAdmin?: boolean;
+  onToggleHide?: (serviceId: string, reason?: string) => void;
 }
 
 export function ProviderServiceDetailPage({
@@ -43,6 +55,8 @@ export function ProviderServiceDetailPage({
   onEdit,
   onDelete,
   onUpdateServiceImages,
+  isAdmin = false,
+  onToggleHide,
 }: ProviderServiceDetailPageProps) {
   const imagesList = service.images && service.images.length > 0
     ? service.images
@@ -50,14 +64,31 @@ export function ProviderServiceDetailPage({
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showImageManager, setShowImageManager] = useState(false);
+  const [showAdminHideModal, setShowAdminHideModal] = useState(false);
+  const [adminHideReason, setAdminHideReason] = useState("");
+
+  const quickReasonSuggestions = [
+    "Thông tin dịch vụ sai lệch, nhảm nhí không đúng thực tế.",
+    "Bảng giá ảo hoặc phụ thu bất hợp lý.",
+    "Hình ảnh bài đăng chất lượng kém hoặc sao chép trái phép.",
+    "Cơ sở dịch vụ đã tạm dừng hoạt động hoặc đổi địa chỉ.",
+    "Bài đăng trùng lặp hoặc spam trên sàn.",
+  ];
 
   const getStatusBadge = (status: Service["status"]) => {
     switch (status) {
+      case "hidden":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+            <XCircle className="w-3.5 h-3.5 text-rose-600" />
+            Đã tạm ẩn trên sàn (Xàm / Vi phạm)
+          </span>
+        );
       case "approved":
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            Đã phê duyệt (Đang hoạt động)
+            {isAdmin ? "Đang hiển thị công khai trên sàn" : "Đã phê duyệt (Đang hoạt động)"}
           </span>
         );
       case "rejected":
@@ -70,9 +101,9 @@ export function ProviderServiceDetailPage({
       case "pending":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin-slow" />
-            Đang chờ admin kiểm duyệt
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            Đang hiển thị công khai
           </span>
         );
     }
@@ -141,14 +172,14 @@ export function ProviderServiceDetailPage({
             variant="outline"
             size="sm"
             onClick={onBack}
-            className="rounded-xl border-gray-200 hover:bg-gray-100 text-gray-700"
+            className="rounded-xl border-gray-200 hover:bg-gray-100 text-gray-700 font-medium text-xs sm:text-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Quay lại bảng dịch vụ
+            {isAdmin ? "Quay lại danh sách Quản lý Bài đăng" : "Quay lại bảng dịch vụ"}
           </Button>
           <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
             <span>/</span>
-            <span>Dịch vụ</span>
+            <span>{isAdmin ? "Giám sát bài đăng" : "Dịch vụ"}</span>
             <span>/</span>
             <span className="text-gray-700 font-medium truncate max-w-[200px]">
               {service.name}
@@ -158,44 +189,108 @@ export function ProviderServiceDetailPage({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-purple-600 border-purple-200 hover:bg-purple-50 rounded-xl"
-            onClick={() => setShowImageManager(true)}
-          >
-            <ImageIcon className="w-4 h-4 mr-1.5" />
-            Quản lý ảnh ({imagesList.length})
-          </Button>
+          {isAdmin ? (
+            <>
+              {service.status === "hidden" ? (
+                <Button
+                  size="sm"
+                  onClick={() => onToggleHide?.(service.id)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs text-xs font-semibold gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mở hiển thị lại bài đăng
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAdminHideModal(true)}
+                  className="border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold gap-1.5"
+                >
+                  <EyeOff className="w-4 h-4 text-amber-600" />
+                  Tạm ẩn bài đăng (Xàm / Vi phạm)
+                </Button>
+              )}
 
-          <Button
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs"
-            onClick={() => onEdit(service)}
-          >
-            <Edit className="w-4 h-4 mr-1.5" />
-            Chỉnh sửa
-          </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl text-xs font-semibold gap-1.5"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `[Admin] Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này sẽ gỡ bỏ hoàn toàn bài đăng khỏi hệ thống.`
+                    )
+                  ) {
+                    onDelete(service.id);
+                    onBack();
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+                Xóa bài đăng
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-purple-600 border-purple-200 hover:bg-purple-50 rounded-xl"
+                onClick={() => setShowImageManager(true)}
+              >
+                <ImageIcon className="w-4 h-4 mr-1.5" />
+                Quản lý ảnh ({imagesList.length})
+              </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl"
-            onClick={() => {
-              if (
-                confirm(
-                  `Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này không thể hoàn tác.`
-                )
-              ) {
-                onDelete(service.id);
-                onBack();
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs"
+                onClick={() => onEdit?.(service)}
+              >
+                <Edit className="w-4 h-4 mr-1.5" />
+                Chỉnh sửa
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này không thể hoàn tác.`
+                    )
+                  ) {
+                    onDelete(service.id);
+                    onBack();
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Admin Hidden Notice Banner */}
+      {isAdmin && service.status === "hidden" && (
+        <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-start gap-3.5">
+          <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h4 className="font-bold text-rose-900 text-sm">
+              Bài đăng dịch vụ đang bị tạm ẩn khỏi sàn
+            </h4>
+            <p className="text-xs text-rose-700 mt-1">
+              <strong>Lý do kiểm duyệt Admin:</strong> {service.hiddenReason || "Thông tin dịch vụ không chính xác, nhảm nhí hoặc không phù hợp với tiêu chuẩn sàn."}
+            </p>
+            <p className="text-xs text-rose-600 mt-0.5">
+              Các công ty du lịch hiện không thể tìm thấy hoặc gán dịch vụ này vào các tour mới trên sàn.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Rejection / Moderation Status Banner */}
       {service.status === "rejected" && (
@@ -607,21 +702,73 @@ export function ProviderServiceDetailPage({
 
           {/* Quick Action Footer */}
           <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
-            <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-              onClick={() => onEdit(service)}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Chỉnh sửa thông tin
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full text-purple-600 border-purple-200 hover:bg-purple-50 rounded-xl"
-              onClick={() => setShowImageManager(true)}
-            >
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Cập nhật ảnh bài đăng
-            </Button>
+            {isAdmin ? (
+              <div className="space-y-2">
+                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+                  <p className="font-semibold flex items-center gap-1.5 text-blue-950 mb-0.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> Giám sát bài đăng (Admin)
+                  </p>
+                  <p className="text-[11px] text-blue-700 leading-relaxed">
+                    Bạn đang xem toàn bộ thông tin bài đăng dịch vụ do nhà cung cấp đăng tải.
+                  </p>
+                </div>
+
+                {service.status === "hidden" ? (
+                  <Button
+                    onClick={() => onToggleHide?.(service.id)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                    Mở hiển thị lại bài đăng
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAdminHideModal(true)}
+                    className="w-full border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold"
+                  >
+                    <EyeOff className="w-4 h-4 mr-1.5 text-amber-600" />
+                    Tạm ẩn bài đăng (Xàm / Vi phạm)
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        `[Admin] Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này sẽ gỡ bỏ hoàn toàn bài đăng khỏi hệ thống.`
+                      )
+                    ) {
+                      onDelete(service.id);
+                      onBack();
+                    }
+                  }}
+                  className="w-full border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold"
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  Xóa bài đăng vĩnh viễn
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                  onClick={() => onEdit?.(service)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Chỉnh sửa thông tin
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-purple-600 border-purple-200 hover:bg-purple-50 rounded-xl"
+                  onClick={() => setShowImageManager(true)}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Cập nhật ảnh bài đăng
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -637,7 +784,7 @@ export function ProviderServiceDetailPage({
               images: images,
               image: images[thumbnailIndex] || images[0],
             };
-            onEdit(updated);
+            onEdit?.(updated);
             if (onUpdateServiceImages) {
               onUpdateServiceImages(service.id, images, images[thumbnailIndex] || images[0]);
             }
@@ -647,6 +794,82 @@ export function ProviderServiceDetailPage({
           initialThumbnailIndex={activeImageIndex}
           title={`Quản lý thư viện ảnh - ${service.name}`}
         />
+      )}
+
+      {/* Admin Hide Service Modal */}
+      {isAdmin && (
+        <Dialog open={showAdminHideModal} onOpenChange={setShowAdminHideModal}>
+          <DialogContent className="max-w-md rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-amber-700 text-base">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+                Tạm ẩn bài đăng dịch vụ khỏi sàn
+              </DialogTitle>
+              <DialogDescription className="text-xs text-gray-500">
+                Chọn hoặc nhập lý do tạm ẩn bài đăng "<strong>{service.name}</strong>". Bài đăng bị ẩn sẽ không hiển thị trên sàn và công ty du lịch không thể gán vào tour mới.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div>
+                <label className="text-xs font-semibold text-gray-700 mb-2 block">
+                  Lý do thường gặp (bấm để chọn nhanh):
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickReasonSuggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setAdminHideReason(suggestion)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border text-left transition-all ${
+                        adminHideReason === suggestion
+                          ? "bg-amber-100 border-amber-400 text-amber-900 font-semibold"
+                          : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+                  Nội dung chi tiết lý do ẩn:
+                </label>
+                <Textarea
+                  rows={3}
+                  placeholder="Nhập lý do chi tiết..."
+                  value={adminHideReason}
+                  onChange={(e) => setAdminHideReason(e.target.value)}
+                  className="text-xs rounded-xl"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAdminHideModal(false)}
+                  className="rounded-xl text-xs"
+                >
+                  Hủy bỏ
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const reason = adminHideReason.trim() || "Thông tin dịch vụ bị tạm ẩn do không chính xác hoặc không phù hợp.";
+                    onToggleHide?.(service.id, reason);
+                    setShowAdminHideModal(false);
+                  }}
+                  className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold"
+                >
+                  Xác nhận Tạm ẩn bài đăng
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

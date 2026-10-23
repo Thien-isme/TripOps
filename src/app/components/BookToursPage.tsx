@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Tour, User } from "@/app/types";
 import { PublicTourDetailModal } from "./user/PublicTourDetailModal";
-import { BookTourModal } from "./user/BookTourModal";
 
 interface BookToursPageProps {
   tours: Tour[];
@@ -60,10 +59,6 @@ export function BookToursPage({
     null,
   );
   const [showDetailModal, setShowDetailModal] = useState(false);
-  
-  // Book tour modal state
-  const [showBookModal, setShowBookModal] = useState(false);
-  const [tourToBook, setTourToBook] = useState<Tour | null>(null);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -361,8 +356,11 @@ export function BookToursPage({
               ) : (
                 <button
                   onClick={() => {
-                    setTourToBook(tour);
-                    setShowBookModal(true);
+                    if (!currentUser) {
+                      onShowLogin?.();
+                      return;
+                    }
+                    onBookTour?.(tour.id);
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                 >
@@ -672,23 +670,6 @@ export function BookToursPage({
         <PublicTourDetailModal
           tour={selectedTour}
           onClose={() => setShowDetailModal(false)}
-        />
-      )}
-      
-      {/* Book Tour Modal */}
-      {showBookModal && tourToBook && (
-        <BookTourModal
-          tour={tourToBook}
-          currentUser={currentUser}
-          onClose={() => {
-            setShowBookModal(false);
-            setTourToBook(null);
-          }}
-          onConfirmBooking={(tourId, numberOfGuests, startDate) => {
-            onBookTour?.(tourId, numberOfGuests, startDate);
-            setShowBookModal(false);
-            setTourToBook(null);
-          }}
         />
       )}
     </div>
