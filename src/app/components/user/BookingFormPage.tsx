@@ -30,6 +30,7 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
+import { VietnameseDatePicker } from "@/app/components/ui/VietnameseDatePicker";
 
 interface BookingFormPageProps {
   tour: Tour;
@@ -595,13 +596,13 @@ export function BookingFormPage({
                       <Label htmlFor="custom-start-date" className="text-xs font-semibold text-teal-900 mb-1 block">
                         Chọn ngày khởi hành theo kế hoạch của bạn:
                       </Label>
-                      <Input
+                      <VietnameseDatePicker
                         id="custom-start-date"
-                        type="date"
                         value={tourStartDate}
                         min={new Date().toISOString().split("T")[0]}
-                        onChange={(e) => handleStartDateChange(e.target.value)}
-                        className="bg-white border-teal-300 focus:ring-teal-500 max-w-sm font-medium text-gray-900"
+                        onChange={(val) => handleStartDateChange(val)}
+                        placeholder="Chọn ngày khởi hành..."
+                        className="max-w-sm"
                       />
                     </div>
                     {tourStartDate && (
@@ -851,12 +852,15 @@ export function BookingFormPage({
                         <Label className="text-xs text-gray-500">
                           Ngày sinh <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                          type="date"
-                          value={p.dateOfBirth}
-                          onChange={(e) => updatePassenger(p.id, { dateOfBirth: e.target.value })}
-                          className="mt-1 text-sm"
-                        />
+                        <div className="mt-1">
+                          <VietnameseDatePicker
+                            value={p.dateOfBirth}
+                            onChange={(val) => updatePassenger(p.id, { dateOfBirth: val })}
+                            isBirthDate={true}
+                            max={new Date().toISOString().split("T")[0]}
+                            placeholder="Chọn ngày sinh..."
+                          />
+                        </div>
                       </div>
                       <div>
                         <Label className="text-xs text-gray-500">Giới tính</Label>
@@ -867,20 +871,6 @@ export function BookingFormPage({
                         >
                           <option value="male">Nam</option>
                           <option value="female">Nữ</option>
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Label className="text-xs text-gray-500">Loại khách</Label>
-                        <select
-                          value={p.ageGroup}
-                          onChange={(e) => updatePassenger(p.id, { ageGroup: e.target.value as BookingPassenger["ageGroup"] })}
-                          className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                        >
-                          {AGE_GROUPS.map((g) => (
-                            <option key={g.value} value={g.value}>
-                              {g.label} ({g.ageRange})
-                            </option>
-                          ))}
                         </select>
                       </div>
                       <div className="sm:col-span-2">
