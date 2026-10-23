@@ -775,6 +775,116 @@ export function CompanyBookingDetailPage({
   const [customAdjustmentReason, setCustomAdjustmentReason] = useState("");
   const [passengerCustomPrice, setPassengerCustomPrice] = useState<string>("");
 
+  // Direct Custom Service Updates (Hotel, Sightseeing Location, Meal) by Tour Operator / Admin
+  const [hotelChanges, setHotelChanges] = useState<CustomHotelChange[]>(() => booking.customHotelChanges || []);
+  const [locChanges, setLocChanges] = useState<CustomLocationChange[]>(() => booking.locationChanges || []);
+  const [mealChangesList, setMealChangesList] = useState<CustomMealChange[]>(() => booking.customMealChanges || []);
+
+  // Quick Service Edit Modal State
+  const [serviceEditModalOpen, setServiceEditModalOpen] = useState(false);
+  const [serviceEditType, setServiceEditType] = useState<"hotel" | "location" | "meal">("hotel");
+  const [editTargetDay, setEditTargetDay] = useState<number>(1);
+  const [editTargetKey, setEditTargetKey] = useState<string>("");
+  const [editOldName, setEditOldName] = useState("");
+  const [editNewName, setEditNewName] = useState("");
+  const [editPriceDiff, setEditPriceDiff] = useState<string>("0");
+  const [editReason, setEditReason] = useState("");
+  const [editAddressOrNote, setEditAddressOrNote] = useState("");
+
+  const handleSaveServiceEdit = () => {
+    if (!editNewName.trim()) {
+      alert("Vui lòng nhập tên dịch vụ thay thế!");
+      return;
+    }
+    const diff = parseInt(editPriceDiff) || 0;
+    const defaultReason =
+      serviceEditType === "hotel"
+        ? `Đã liên hệ thống nhất với khách đổi khách sạn sang "${editNewName.trim()}"`
+        : serviceEditType === "meal"
+        ? `Đã liên hệ thống nhất với khách đổi bữa ăn sang "${editNewName.trim()}"`
+        : `Đã liên hệ thống nhất với khách đổi điểm tham quan sang "${editNewName.trim()}"`;
+    const reasonText = editReason.trim() || defaultReason;
+
+    if (serviceEditType === "hotel") {
+      const existingIdx = hotelChanges.findIndex(
+        (h) => h.destination === editTargetKey || (hotelChanges.length === 1 && !h.destination)
+      );
+      const updatedHotel: CustomHotelChange = {
+        destination: editTargetKey,
+        newHotelName: editNewName.trim(),
+        originalHotelName: editOldName,
+        mode: "custom",
+        address: editAddressOrNote.trim() || undefined,
+        note: reasonText,
+        newPricePerNight: diff,
+      };
+      let nextHotels: CustomHotelChange[];
+      if (existingIdx >= 0) {
+        nextHotels = [...hotelChanges];
+        nextHotels[existingIdx] = updatedHotel;
+      } else {
+        nextHotels = [...hotelChanges, updatedHotel];
+      }
+      setHotelChanges(nextHotels);
+    } else if (serviceEditType === "location") {
+      const existingIdx = locChanges.findIndex(
+        (l) => l.dayNumber === editTargetDay && (l.locationId === editTargetKey || l.requestedLocations === editOldName || l.originalLocationName === editOldName)
+      );
+      const updatedLoc: CustomLocationChange = {
+        dayId: `day-${editTargetDay}`,
+        dayNumber: editTargetDay,
+        locationId: editTargetKey,
+        originalLocationName: editOldName,
+        requestedLocations: editNewName.trim(),
+        note: reasonText,
+      };
+      let nextLocs: CustomLocationChange[];
+      if (existingIdx >= 0) {
+        nextLocs = [...locChanges];
+        nextLocs[existingIdx] = updatedLoc;
+      } else {
+        nextLocs = [...locChanges, updatedLoc];
+      }
+      setLocChanges(nextLocs);
+    } else if (serviceEditType === "meal") {
+      const existingIdx = mealChangesList.findIndex(
+        (m) => m.dayNumber === editTargetDay && m.mealType === editTargetKey
+      );
+      const updatedMeal: CustomMealChange = {
+        dayNumber: editTargetDay,
+        mealType: editTargetKey as any,
+        originalMealName: editOldName,
+        newMealName: editNewName.trim(),
+        mode: "custom",
+        priceDifference: diff,
+        note: reasonText,
+      };
+      let nextMeals: CustomMealChange[];
+      if (existingIdx >= 0) {
+        nextMeals = [...mealChangesList];
+        nextMeals[existingIdx] = updatedMeal;
+      } else {
+        nextMeals = [...mealChangesList, updatedMeal];
+      }
+      setMealChangesList(nextMeals);
+    }
+
+    if (diff !== 0 && onUpdateBookingPrice) {
+      const newTotal = booking.totalPrice + diff;
+      onUpdateBookingPrice(booking.id, newTotal, reasonText, {
+        adjustedBy: companyName || "Công ty lữ hành",
+        previousTotalPrice: booking.totalPrice,
+        adjustmentAmount: diff,
+        newTotalPrice: newTotal,
+        reason: reasonText,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    setServiceEditModalOpen(false);
+    alert(`✓ Đã cập nhật lại dịch vụ thành công!\n✓ Dịch vụ mới: ${editNewName.trim()}\n${diff !== 0 ? `✓ Điều chỉnh giá: ${diff > 0 ? "+" : ""}${formatVND(diff)}\n` : "✓ Giá tour không thay đổi.\n"}✓ Lý do: ${reasonText}`);
+  };
+
   // Function to calculate passenger price based on age group and stage
   const calculatePassengerPrice = (
     ageGroup: "adult" | "child_2_11" | "child_under_2",
@@ -1810,7 +1920,7 @@ export function CompanyBookingDetailPage({
               if (stageFilter === "partner_stage") {
                 return p.agencyId && p.agencyId !== myAgencyId;
               }
-              return p.agencyId === stageFilter || p.agencyId === "all";
+              return p.agencyId === stageFilter || p.agencyId === "all" || !p.agencyId;
             });
 
             const filteredActiveCount = filteredPassengers.filter((p) => p.status !== "INACTIVE").length;
@@ -1878,8 +1988,7 @@ export function CompanyBookingDetailPage({
                                 "Độ tuổi": age !== null ? `${age} tuổi` : "",
                                 "Giới tính": p.gender === "male" ? "Nam" : "Nữ",
                                 "Phân loại": p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)",
-                                "Chặng phụ trách": p.agencyName || "Toàn bộ tour (100% full tuyến)",
-                                "Trạng thái": p.status === "INACTIVE" ? `Đã rút (${p.statusNote || ""})` : "Đang tham gia",
+                                "Trạng thái chặng": p.status === "INACTIVE" ? `Đã rút (${p.statusNote || ""})` : "Đang tham gia chặng",
                                 "Số điện thoại": p.phone || "",
                                 "Ghi chú riêng": p.notes || "",
                                 "Giá vé (VNĐ)": p.status === "INACTIVE" ? 0 : p.price,
@@ -1931,7 +2040,7 @@ export function CompanyBookingDetailPage({
                       Tất cả ({passengersList.length})
                     </button>
                     {agenciesList.map((a) => {
-                      const countInStage = passengersList.filter((p) => p.agencyId === a.agencyId || p.agencyId === "all").length;
+                      const countInStage = passengersList.filter((p) => p.agencyId === a.agencyId || p.agencyId === "all" || !p.agencyId).length;
                       return (
                         <button
                           key={a.agencyId}
@@ -1966,7 +2075,6 @@ export function CompanyBookingDetailPage({
                             <th className="px-3 py-2.5 text-left">CCCD / Passport</th>
                             <th className="px-3 py-2.5 text-left">Ngày sinh / Tuổi</th>
                             <th className="px-3 py-2.5 text-left">Phân loại</th>
-                            <th className="px-3 py-2.5 text-left">Chặng / Đơn vị tiếp nhận</th>
                             <th className="px-3 py-2.5 text-left">Trạng thái chặng</th>
                             <th className="px-3 py-2.5 text-right">Giá vé áp dụng</th>
                             <th className="px-3 py-2.5 text-center rounded-r-lg">Thao tác</th>
@@ -2022,18 +2130,6 @@ export function CompanyBookingDetailPage({
                                 </td>
 
                                 <td className="px-3 py-2.5">
-                                  {p.agencyName ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                      {p.agencyName}
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                      Toàn bộ tour (100%)
-                                    </span>
-                                  )}
-                                </td>
-
-                                <td className="px-3 py-2.5">
                                   {isInactive ? (
                                     <div className="space-y-0.5">
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
@@ -2049,7 +2145,7 @@ export function CompanyBookingDetailPage({
                                   ) : (
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                       <CheckCircle className="w-3 h-3 text-emerald-600" />
-                                      Đang tham gia
+                                      Đang tham gia chặng
                                     </span>
                                   )}
                                 </td>
@@ -2116,7 +2212,7 @@ export function CompanyBookingDetailPage({
                         </tbody>
                         <tfoot>
                           <tr className="bg-gray-50 font-bold border-t border-gray-200">
-                            <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
+                            <td colSpan={6} className="px-3 py-2.5 text-right text-gray-700">
                               Tổng cộng tiền vé ({filteredActiveCount} khách {stageFilter !== "all" ? "chặng này" : "đang tham gia"}):
                             </td>
                             <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
@@ -2143,7 +2239,7 @@ export function CompanyBookingDetailPage({
           {/* DEDICATED ACCOMMODATION / HOTEL SECTION (MATCHING TourDetailPage.tsx & BookingFormPage.tsx) */}
           {(() => {
             const tour = booking.tour;
-            const customHotelChanges = booking.customHotelChanges;
+            const customHotelChanges = hotelChanges;
 
             let accommodationList: Array<{
               destination: string;
@@ -2242,6 +2338,24 @@ export function CompanyBookingDetailPage({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setServiceEditType("hotel");
+                              setEditTargetKey(acc.destination);
+                              setEditOldName(acc.originalHotelName || acc.hotelName);
+                              setEditNewName(acc.hotelName);
+                              setEditPriceDiff("0");
+                              setEditReason(acc.note || "Đã liên hệ thống nhất với khách đổi khách sạn");
+                              setEditAddressOrNote(acc.address || "");
+                              setServiceEditModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg font-semibold transition-colors shadow-2xs cursor-pointer"
+                            title="Điều chỉnh thông tin hoặc đổi khách sạn khác"
+                          >
+                            <Edit className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Cập nhật khách sạn</span>
+                          </button>
                           {acc.isChanged ? (
                             acc.mode === "system" ? (
                               <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -3023,10 +3137,10 @@ export function CompanyBookingDetailPage({
               {itinerarySubTab === "standard" && (
                 <div className="space-y-4">
                 {booking.tour.itinerary.map((day) => {
-                  const dayLocChange = booking.locationChanges?.find(
+                  const dayLocChange = locChanges.find(
                     (lc) => lc.dayNumber === day.day || lc.dayId === day.id
                   );
-                  const dayMealChanges = booking.customMealChanges?.filter(
+                  const dayMealChanges = mealChangesList.filter(
                     (mc) => mc.dayNumber === day.day
                   );
 
@@ -3089,7 +3203,7 @@ export function CompanyBookingDetailPage({
                           <div className="space-y-2.5">
                             {day.locations && day.locations.length > 0 ? (
                               day.locations.map((loc, lIdx) => {
-                                const locChange = booking.locationChanges?.find(
+                                const locChange = locChanges.find(
                                   (lc) =>
                                     (lc.dayId === day.id || lc.dayNumber === day.day) &&
                                     (lc.locationId === loc.id ||
@@ -3127,7 +3241,7 @@ export function CompanyBookingDetailPage({
                                               </p>
                                               {locChange?.note && (
                                                 <p className="text-xs text-amber-700 italic mt-0.5">
-                                                  Ghi chú của khách: {locChange.note}
+                                                  Ghi chú: {locChange.note}
                                                 </p>
                                               )}
                                             </>
@@ -3135,15 +3249,36 @@ export function CompanyBookingDetailPage({
                                             <p className="font-medium text-gray-900 text-sm">{loc.name}</p>
                                           )}
                                         </div>
-                                        <span
-                                          className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
-                                            isLocChanged
-                                              ? "bg-amber-100 text-amber-700 border border-amber-300"
-                                              : "bg-gray-100 text-gray-600"
-                                          }`}
-                                        >
-                                          {isLocChanged ? "Đã đổi" : "Theo tour"}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setServiceEditType("location");
+                                              setEditTargetDay(day.day);
+                                              setEditTargetKey(loc.id || loc.name);
+                                              setEditOldName(loc.name);
+                                              setEditNewName(isLocChanged ? locChange?.requestedLocations || loc.name : loc.name);
+                                              setEditPriceDiff("0");
+                                              setEditReason(locChange?.note || "Đã liên hệ thống nhất với khách đổi điểm tham quan");
+                                              setEditAddressOrNote("");
+                                              setServiceEditModalOpen(true);
+                                            }}
+                                            className="text-xs text-amber-700 hover:text-amber-900 bg-white hover:bg-amber-100/70 border border-amber-300 px-2 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                            title="Điều chỉnh hoặc đổi điểm đến này"
+                                          >
+                                            <Edit className="w-3 h-3 text-amber-600" />
+                                            <span>Đổi điểm</span>
+                                          </button>
+                                          <span
+                                            className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                                              isLocChanged
+                                                ? "bg-amber-100 text-amber-700 border border-amber-300"
+                                                : "bg-gray-100 text-gray-600"
+                                            }`}
+                                          >
+                                            {isLocChanged ? "Đã đổi" : "Theo tour"}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -3225,8 +3360,27 @@ export function CompanyBookingDetailPage({
                                         </div>
                                       </div>
 
-                                      <div className="flex items-center gap-2 flex-shrink-0">
-                                        <div className="border border-gray-200 bg-white px-3 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1.5 shadow-2xs">
+                                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setServiceEditType("meal");
+                                            setEditTargetDay(day.day);
+                                            setEditTargetKey(mealType);
+                                            setEditOldName(defaultMeal.serviceName || "Nhà hàng theo tour");
+                                            setEditNewName(isChanged ? mealChange?.newMealName || defaultMeal.serviceName || "" : defaultMeal.serviceName || "");
+                                            setEditPriceDiff(mealChange?.priceDifference ? mealChange.priceDifference.toString() : "0");
+                                            setEditReason(mealChange?.note || "Đã liên hệ thống nhất với khách đổi nhà hàng / bữa ăn");
+                                            setEditAddressOrNote("");
+                                            setServiceEditModalOpen(true);
+                                          }}
+                                          className="text-xs text-emerald-700 hover:text-emerald-900 bg-white hover:bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                          title="Điều chỉnh bữa ăn & nhà hàng này"
+                                        >
+                                          <Edit className="w-3 h-3 text-emerald-600" />
+                                          <span>Đổi bữa ăn</span>
+                                        </button>
+                                        <div className="border border-gray-200 bg-white px-2.5 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1 shadow-2xs">
                                           {isChanged ? (
                                             <span className="text-[10px] text-emerald-800 font-bold">
                                               Đã đổi {mealChange?.priceDifference ? `(+${formatVND(mealChange.priceDifference)})` : ""}
@@ -3234,7 +3388,6 @@ export function CompanyBookingDetailPage({
                                           ) : (
                                             <span>Theo tour (0đ)</span>
                                           )}
-                                          <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
                                         </div>
                                       </div>
                                     </div>
@@ -5062,6 +5215,160 @@ export function CompanyBookingDetailPage({
         }}
         serviceContext={providerServiceContext}
       />
+
+      {/* ======================================================== */}
+      {/* MODAL: ĐIỀU CHỈNH DỊCH VỤ TRỰC TIẾP (KHÁCH SẠN / ĂN UỐNG / ĐIỂM ĐẾN) */}
+      {/* ======================================================== */}
+      <Dialog open={serviceEditModalOpen} onOpenChange={setServiceEditModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+              {serviceEditType === "hotel" ? (
+                <>
+                  <Building2 className="w-5 h-5 text-blue-600" />
+                  Cập nhật Khách sạn lưu trú
+                </>
+              ) : serviceEditType === "meal" ? (
+                <>
+                  <Utensils className="w-5 h-5 text-emerald-600" />
+                  Cập nhật Bữa ăn &amp; Nhà hàng (Ngày {editTargetDay})
+                </>
+              ) : (
+                <>
+                  <MapPin className="w-5 h-5 text-amber-600" />
+                  Cập nhật Điểm tham quan (Ngày {editTargetDay})
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-1 text-xs">
+            <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200 text-blue-900 space-y-1">
+              <p className="font-semibold flex items-center gap-1.5 text-xs text-blue-950">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Cập nhật thông tin dịch vụ theo thỏa thuận với khách hàng
+              </p>
+              <p className="text-[11px] text-blue-800 leading-relaxed">
+                Nhân viên công ty có thể trực tiếp đổi dịch vụ và điều chỉnh lại mức giá tour tại đây. Dữ liệu sẽ lập tức được đồng bộ trên hệ thống mà khách hàng không cần phải hủy booking.
+              </p>
+            </div>
+
+            {/* Old / Current Service */}
+            {editOldName && (
+              <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 flex items-center justify-between">
+                <span className="text-gray-500">Dịch vụ hiện tại:</span>
+                <span className="font-semibold text-gray-800">{editOldName}</span>
+              </div>
+            )}
+
+            {/* New Service Name Input */}
+            <div className="space-y-1.5">
+              <label className="font-bold text-gray-700 block">
+                Tên {serviceEditType === "hotel" ? "Khách sạn mới" : serviceEditType === "meal" ? "Nhà hàng / Món ăn mới" : "Điểm tham quan mới"}: <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={editNewName}
+                onChange={(e) => setEditNewName(e.target.value)}
+                placeholder={serviceEditType === "hotel" ? "VD: Khách Sạn Colline Đà Lạt (4*)" : serviceEditType === "meal" ? "VD: Nhà hàng Cơm Niêu Như Ngọc Đà Lạt" : "VD: Vườn Hoa Thành Phố Đà Lạt"}
+                className="w-full h-9 px-3 rounded-lg border border-gray-300 text-xs font-semibold focus:outline-hidden focus:border-blue-500 bg-white"
+              />
+            </div>
+
+            {/* Address or Room Note (for hotel) */}
+            {serviceEditType === "hotel" && (
+              <div className="space-y-1.5">
+                <label className="font-bold text-gray-700 block">Địa chỉ / Ghi chú phòng (tùy chọn):</label>
+                <input
+                  type="text"
+                  value={editAddressOrNote}
+                  onChange={(e) => setEditAddressOrNote(e.target.value)}
+                  placeholder="VD: 10 Phan Bội Châu, Phường 1, TP. Đà Lạt"
+                  className="w-full h-9 px-3 rounded-lg border border-gray-300 text-xs focus:outline-hidden focus:border-blue-500 bg-white"
+                />
+              </div>
+            )}
+
+            {/* Price Difference Adjustment */}
+            <div className="space-y-1.5 bg-amber-50/60 p-3 rounded-xl border border-amber-200">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-amber-950 block">Điều chỉnh chênh lệch giá tour (VNĐ):</label>
+                <span className="text-[11px] text-amber-800">
+                  {parseInt(editPriceDiff) > 0 ? `Tăng +${formatVND(parseInt(editPriceDiff))}` : parseInt(editPriceDiff) < 0 ? `Giảm ${formatVND(parseInt(editPriceDiff))}` : "Không thay đổi giá (0đ)"}
+                </span>
+              </div>
+              <input
+                type="number"
+                step={10000}
+                value={editPriceDiff}
+                onChange={(e) => setEditPriceDiff(e.target.value)}
+                placeholder="0"
+                className="w-full h-9 px-3 rounded-lg border border-amber-300 text-xs font-mono font-bold focus:outline-hidden focus:border-amber-500 bg-white"
+              />
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <button
+                  type="button"
+                  onClick={() => setEditPriceDiff("0")}
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 cursor-pointer"
+                >
+                  0đ (Giữ nguyên)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditPriceDiff("50000")}
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 cursor-pointer"
+                >
+                  +50.000đ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditPriceDiff("100000")}
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white border border-amber-300 hover:bg-amber-100 text-amber-800 cursor-pointer"
+                >
+                  +100.000đ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditPriceDiff("-50000")}
+                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white border border-rose-300 hover:bg-rose-100 text-rose-800 cursor-pointer"
+                >
+                  -50.000đ
+                </button>
+              </div>
+            </div>
+
+            {/* Reason for change */}
+            <div className="space-y-1.5">
+              <label className="font-bold text-gray-700 block">
+                Lý do thay đổi &amp; Thỏa thuận với khách: <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={editReason}
+                onChange={(e) => setEditReason(e.target.value)}
+                placeholder="VD: Đã gọi điện trao đổi với khách, thống nhất chuyển sang KS Colline do đối tác Heritage hết phòng giai đoạn này."
+                className="w-full p-2.5 rounded-lg border border-gray-300 text-xs focus:outline-hidden focus:border-blue-500 bg-white"
+              />
+              <p className="text-[10px] text-gray-500 italic">
+                Lý do này sẽ được ghi vào nhật ký biến động tài chính của booking để kiểm toán và hiển thị minh bạch cho các bên.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <Button variant="outline" size="sm" onClick={() => setServiceEditModalOpen(false)}>
+                Hủy bỏ
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveServiceEdit}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer"
+              >
+                ✓ Lưu &amp; Cập nhật hệ thống
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
