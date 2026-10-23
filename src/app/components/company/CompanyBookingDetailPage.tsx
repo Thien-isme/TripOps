@@ -2069,13 +2069,18 @@ export function CompanyBookingDetailPage({
               if (!isLead) return true; // Partner already strictly limited to their stage
               if (stageFilter === "all") return true;
               if (stageFilter === "my_stage") {
-                return !p.agencyId || p.agencyId === myAgencyId;
+                return p.agencyId === myAgencyId || p.agencyId === "all";
               }
               if (stageFilter === "partner_stage") {
                 return p.agencyId && p.agencyId !== myAgencyId;
               }
-              return p.agencyId === stageFilter;
+              return p.agencyId === stageFilter || p.agencyId === "all";
             });
+
+            const filteredActiveCount = filteredPassengers.filter((p) => p.status !== "INACTIVE").length;
+            const filteredTotalPrice = filteredPassengers
+              .filter((p) => p.status !== "INACTIVE")
+              .reduce((sum, p) => sum + (p.price || 0), 0);
 
             return (
               <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
@@ -2125,8 +2130,9 @@ export function CompanyBookingDetailPage({
                         variant="outline"
                         onClick={() => {
                           try {
-                            const fileName = `Danh_Sach_Doan_${booking.id}.xlsx`;
-                            const exportRows = visiblePassengers.map((p, idx) => {
+                            const exportPassengers = stageFilter !== "all" ? filteredPassengers : visiblePassengers;
+                            const fileName = `Danh_Sach_Doan_${booking.id}${stageFilter !== "all" ? `_${stageFilter}` : ""}.xlsx`;
+                            const exportRows = exportPassengers.map((p, idx) => {
                               const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
                               return {
                                 "STT": idx + 1,
@@ -2189,7 +2195,7 @@ export function CompanyBookingDetailPage({
                       Tất cả ({passengersList.length})
                     </button>
                     {agenciesList.map((a) => {
-                      const countInStage = passengersList.filter((p) => !p.agencyId || p.agencyId === a.agencyId).length;
+                      const countInStage = passengersList.filter((p) => p.agencyId === a.agencyId || p.agencyId === "all").length;
                       return (
                         <button
                           key={a.agencyId}
@@ -2375,10 +2381,10 @@ export function CompanyBookingDetailPage({
                         <tfoot>
                           <tr className="bg-gray-50 font-bold border-t border-gray-200">
                             <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
-                              Tổng cộng tiền vé ({activeCount} khách đang tham gia):
+                              Tổng cộng tiền vé ({filteredActiveCount} khách {stageFilter !== "all" ? "chặng này" : "đang tham gia"}):
                             </td>
                             <td className="px-3 py-2.5 text-right text-blue-700 text-sm font-extrabold">
-                              {formatVND(isLead && stageFilter === "all" ? dynamicTotalPrice : visibleTotalPrice)}
+                              {formatVND(filteredTotalPrice)}
                             </td>
                             <td></td>
                           </tr>

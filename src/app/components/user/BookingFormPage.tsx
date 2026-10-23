@@ -969,13 +969,41 @@ export function BookingFormPage({
               </div>
 
               {/* Contact info */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Người đại diện liên lạc</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-700"><User className="w-4 h-4 text-gray-400" />{contactName}</div>
-                  <div className="flex items-center gap-2 text-gray-700"><Phone className="w-4 h-4 text-gray-400" />{contactPhone}</div>
-                  <div className="flex items-center gap-2 text-gray-700 col-span-2"><Mail className="w-4 h-4 text-gray-400" />{contactEmail}</div>
-                  {contactAddress && <div className="flex items-center gap-2 text-gray-700 col-span-2"><MapPin className="w-4 h-4 text-gray-400" />{contactAddress}</div>}
+              <div className="bg-gray-50/70 rounded-xl p-4 border border-gray-200 space-y-3">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                  <User className="w-4 h-4 text-teal-600" />
+                  Người đại diện liên lạc
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span>Họ tên: <strong className="text-gray-900">{contactName}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span>SĐT: <strong className="text-gray-900">{contactPhone}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700 sm:col-span-2">
+                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span>Email: <strong className="text-gray-900">{contactEmail}</strong></span>
+                  </div>
+                  {contactAddress && (
+                    <div className="flex items-center gap-2 text-gray-700 sm:col-span-2">
+                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span>Địa chỉ: <strong className="text-gray-900">{contactAddress}</strong></span>
+                    </div>
+                  )}
+                  {bookingNotes && (
+                    <div className="sm:col-span-2 pt-2.5 mt-1 border-t border-gray-200">
+                      <span className="text-xs font-semibold text-gray-600 block mb-1 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-teal-600" />
+                        Ghi chú của bạn cho chuyến đi:
+                      </span>
+                      <p className="text-sm text-gray-800 bg-white rounded-lg p-2.5 border border-gray-200 italic leading-relaxed">
+                        "{bookingNotes}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1051,181 +1079,15 @@ export function BookingFormPage({
                 </div>
               </div>
 
-              {/* ===== KHÁCH SẠN LƯU TRÚ (HIỂN THỊ RIÊNG THEO ĐIỂM ĐẾN - NHƯ ẢNH 2) ===== */}
-              {(() => {
-                const accommodationList = (() => {
-                  if (tour.hotels && tour.hotels.length > 0) {
-                    return tour.hotels.map((h) => {
-                      const dest = h.destination || tour.destination || "Điểm đến";
-                      const change = customHotelChanges?.find(
-                        (hc) => hc.destination === dest || hc.destination === h.destination || tour.hotels!.length === 1
-                      );
-                      return {
-                        destination: dest,
-                        nights: h.nights || 1,
-                        hotelName: change ? change.newHotelName : h.name,
-                        stars: change?.stars || h.stars || 4,
-                        originalHotelName: change?.originalHotelName || h.name,
-                        isChanged: Boolean(change),
-                        mode: change?.mode || "system",
-                        note: change?.note,
-                        address: change?.address || h.address || h.description,
-                        priceDifference: change?.newPricePerNight !== undefined && h.pricePerNight !== undefined
-                          ? change.newPricePerNight - h.pricePerNight
-                          : undefined,
-                      };
-                    });
-                  }
-
-                  const uniqueDests: string[] = [];
-                  tour.itinerary?.forEach((d) => {
-                    const dest = d.destinationCity || tour.destination || "Điểm đến";
-                    if (!uniqueDests.includes(dest)) uniqueDests.push(dest);
-                  });
-
-                  return uniqueDests.map((dest) => {
-                    const change = customHotelChanges?.find((hc) => hc.destination === dest || uniqueDests.length === 1);
-                    const dayWithHotel = tour.itinerary?.find((d) => (d.destinationCity || tour.destination) === dest && d.hotel);
-                    const defaultHotel = dayWithHotel?.hotel || tour.itinerary?.[0]?.hotel;
-                    const nights = tour.itinerary?.filter((d) => (d.destinationCity || tour.destination) === dest).length || 1;
-
-                    return {
-                      destination: dest,
-                      nights: Math.max(1, nights > 1 ? nights - 1 : nights),
-                      hotelName: change ? change.newHotelName : (defaultHotel?.name || "Khách sạn tiêu chuẩn theo tour"),
-                      stars: change?.stars || defaultHotel?.stars || 4,
-                      originalHotelName: change?.originalHotelName || defaultHotel?.name,
-                      isChanged: Boolean(change),
-                      mode: change?.mode || "system",
-                      note: change?.note,
-                      address: change?.address || defaultHotel?.address || defaultHotel?.description,
-                      priceDifference: undefined,
-                    };
-                  });
-                })();
-
-                if (!accommodationList || accommodationList.length === 0) return null;
-
-                return (
-                  <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 space-y-3.5 shadow-xs">
-                    <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-blue-600" />
-                          Khách sạn lưu trú
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Danh sách khách sạn, khu vực nghỉ dưỡng được bố trí cho chuyến đi của đoàn
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {accommodationList.map((acc, aIdx) => (
-                        <div key={aIdx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                          <div className="px-4 py-3 bg-blue-50/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
-                                <Building2 className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-bold text-gray-900">{acc.destination}</p>
-                                <p className="text-xs text-gray-500">
-                                  {acc.nights} đêm • {acc.hotelName} {acc.stars ? `(${acc.stars}★)` : ""}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {acc.isChanged ? (
-                                acc.mode === "system" ? (
-                                  <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                    Option từ tour {acc.priceDifference ? `(+${formatVND(acc.priceDifference)})` : ""}
-                                  </span>
-                                ) : acc.mode === "provider" ? (
-                                  <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-                                    <Sparkles className="w-3 h-3 text-amber-500" />
-                                    Đối tác Nền tảng
-                                  </span>
-                                ) : (
-                                  <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                    Tự đề xuất
-                                  </span>
-                                )
-                              ) : (
-                                <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-blue-700 border border-blue-200">
-                                  Theo tour (Tiêu chuẩn 0đ)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="p-3.5 space-y-1.5 text-xs">
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-500">Khách sạn được chọn:</span>
-                              <span className="font-bold text-gray-900 text-sm">
-                                {acc.hotelName} {acc.stars ? `(${acc.stars}★)` : ""}
-                              </span>
-                            </div>
-                            {acc.isChanged && acc.originalHotelName && acc.originalHotelName !== acc.hotelName && (
-                              <div className="flex items-center justify-between text-gray-400">
-                                <span>Tiêu chuẩn theo tour:</span>
-                                <span className="line-through">{acc.originalHotelName}</span>
-                              </div>
-                            )}
-                            {acc.address && (
-                              <div className="flex items-start justify-between text-gray-600 pt-1 border-t border-gray-100">
-                                <span className="text-gray-400">Địa chỉ / Ghi chú phòng:</span>
-                                <span className="text-right font-medium text-gray-700">{acc.address}</span>
-                              </div>
-                            )}
-                            {acc.note && (
-                              <div className="flex items-start justify-between text-purple-700 pt-1 border-t border-purple-100 italic">
-                                <span>Yêu cầu riêng của khách:</span>
-                                <span className="text-right font-medium">{acc.note}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              {/* CUSTOMIZATION HIGHLIGHTS (NẾU CÓ TÙY CHỈNH) */}
+              {isCustomized && (
+                <div className="bg-purple-50/70 rounded-2xl border border-purple-200 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-700" />
+                    <h4 className="font-bold text-xs text-purple-900 uppercase">
+                      Các tùy chỉnh bạn đã chọn cho chuyến đi này
+                    </h4>
                   </div>
-                );
-              })()}
-
-              {/* ===== ITINERARY TIMELINE (LỘ TRÌNH THAM QUAN CƠ BẢN CỦA CÔNG TY) ===== */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-purple-600" />
-                      Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Lộ trình các điểm tham quan và ẩm thực được thiết lập cho đoàn.
-                    </p>
-                  </div>
-                  {isCustomized ? (
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1 self-start sm:self-auto">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                      Lịch trình có tùy chỉnh theo yêu cầu
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1 self-start sm:self-auto">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      Theo lịch trình tiêu chuẩn của tour
-                    </span>
-                  )}
-                </div>
-
-                {/* CUSTOMIZATION HIGHLIGHTS (NẾU CÓ) */}
-                {isCustomized && (
-                  <div className="bg-purple-50/70 rounded-2xl border border-purple-200 p-4 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-700" />
-                      <h4 className="font-bold text-xs text-purple-900 uppercase">
-                        Các tùy chỉnh bạn đã chọn cho chuyến đi này
-                      </h4>
-                    </div>
                     <div className="space-y-2 text-xs">
                       {/* Hotel changes */}
                       {customHotelChanges && customHotelChanges.length > 0 && (
@@ -1328,251 +1190,6 @@ export function BookingFormPage({
                   </div>
                 )}
 
-                {/* Days List styled exactly like TourDetailPage.tsx */}
-                <div className="space-y-4">
-                  {tour.itinerary && tour.itinerary.length > 0 ? (
-                    tour.itinerary.map((day) => {
-                      const dayLocChange = locationChanges?.find(
-                        (lc) => lc.dayNumber === day.day || lc.dayId === day.id,
-                      );
-                      const dayMealChanges = customMealChanges?.filter(
-                        (mc) => mc.dayNumber === day.day,
-                      );
-
-                      const hasAnyDayCustomization = Boolean(
-                        dayLocChange || (dayMealChanges && dayMealChanges.length > 0),
-                      );
-
-                      return (
-                        <div
-                          key={day.id || day.day}
-                          className={`rounded-xl border overflow-hidden transition-all ${
-                            hasAnyDayCustomization ? "border-amber-300" : "border-gray-200"
-                          }`}
-                        >
-                          {/* Day header */}
-                          <div
-                            className={`px-4 py-3 flex items-center justify-between ${
-                              hasAnyDayCustomization ? "bg-amber-50" : "bg-gray-50"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
-                                {day.day}
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900 text-sm">
-                                  Ngày {day.day}: {day.title}
-                                  {day.meals && day.meals.length > 0 && (
-                                    <span className="text-xs text-gray-500 font-normal ml-1.5">
-                                      (Ăn{" "}
-                                      {day.meals
-                                        .map((m) =>
-                                          m.type === "breakfast" ? "sáng" : m.type === "lunch" ? "trưa" : "tối",
-                                        )
-                                        .join(", ")}
-                                      )
-                                    </span>
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {dayLocChange && (
-                                <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-300">
-                                  Đổi điểm tham quan
-                                </span>
-                              )}
-                              {dayMealChanges && dayMealChanges.length > 0 && (
-                                <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full font-medium border border-emerald-300">
-                                  Đổi bữa ăn
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Day description & Sightseeing locations */}
-                          <div className="px-4 py-3.5 space-y-3 bg-white">
-                            {day.description && (
-                              <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                                {day.description}
-                              </p>
-                            )}
-
-                            {/* Locations timeline */}
-                            <div className="relative pl-1">
-                              <div className="absolute left-3.5 top-2 bottom-2 w-0.5 bg-gray-200" />
-
-                              <div className="space-y-2.5">
-                                {day.locations && day.locations.length > 0 ? (
-                                  day.locations.map((loc, lIdx) => {
-                                    const locChange = locationChanges?.find(
-                                      (lc) =>
-                                        (lc.dayId === day.id || lc.dayNumber === day.day) &&
-                                        (lc.locationId === loc.id ||
-                                          (lc.originalLocationName && lc.originalLocationName.toLowerCase() === loc.name.toLowerCase()) ||
-                                          (lc.originalLocations && lc.originalLocations.some((orig) => orig.toLowerCase() === loc.name.toLowerCase())))
-                                    );
-                                    const isLocChanged = Boolean(locChange);
-
-                                    return (
-                                      <div key={loc.id || lIdx} className="relative flex items-center gap-3">
-                                        {/* Dot */}
-                                        <div
-                                          className={`relative z-10 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border-2 ${
-                                            isLocChanged
-                                              ? "bg-amber-400 border-amber-400 text-white"
-                                              : "bg-white border-blue-400 text-blue-500"
-                                          }`}
-                                        >
-                                          <MapPin className="w-3.5 h-3.5" />
-                                        </div>
-
-                                        {/* Content */}
-                                        <div
-                                          className={`flex-1 rounded-xl border p-3 ${
-                                            isLocChanged ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
-                                          }`}
-                                        >
-                                          <div className="flex items-center justify-between gap-2">
-                                            <div className="flex-1 min-w-0">
-                                              {isLocChanged ? (
-                                                <>
-                                                  <p className="text-xs text-gray-400 line-through">{loc.name}</p>
-                                                  <p className="text-sm font-medium text-amber-800 mt-0.5">
-                                                    → {locChange?.requestedLocations}
-                                                  </p>
-                                                  {locChange?.note && (
-                                                    <p className="text-xs text-amber-600 mt-0.5 italic">
-                                                      Ghi chú: {locChange.note}
-                                                    </p>
-                                                  )}
-                                                </>
-                                              ) : (
-                                                <p className="font-medium text-gray-900 text-sm">{loc.name}</p>
-                                              )}
-                                            </div>
-                                            <span
-                                              className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
-                                                isLocChanged
-                                                  ? "bg-amber-100 text-amber-700 border border-amber-300"
-                                                  : "bg-gray-100 text-gray-600"
-                                              }`}
-                                            >
-                                              {isLocChanged ? "Đã đổi" : "Theo tour"}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })
-                                ) : (
-                                  <p className="text-xs text-gray-500 italic pl-8">
-                                    Hoạt động tự do hoặc di chuyển theo lịch trình tour.
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Day Meals Section */}
-                            {day.meals && day.meals.length > 0 && (
-                              <div className="pt-3 border-t border-gray-100 space-y-2.5">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-                                    <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                                    Chế độ ẩm thực &amp; Bữa ăn Ngày {day.day}
-                                  </span>
-                                  <span className="text-[11px] text-gray-400">
-                                    (Có thể đổi nhà hàng hoặc yêu cầu riêng)
-                                  </span>
-                                </div>
-
-                                <div className="space-y-2">
-                                  {day.meals.map((defaultMeal, mIdx) => {
-                                    const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
-                                    const mealChange = dayMealChanges?.find((mc) => mc.mealType === mealType);
-                                    const isChanged = Boolean(mealChange);
-                                    const mealLabel =
-                                      mealType === "breakfast" ? "Bữa sáng" : mealType === "lunch" ? "Bữa trưa" : "Bữa tối";
-
-                                    return (
-                                      <div
-                                        key={mIdx}
-                                        className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs"
-                                      >
-                                        <div
-                                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left ${
-                                            mealType === "breakfast"
-                                              ? "bg-amber-50/60"
-                                              : mealType === "lunch"
-                                              ? "bg-emerald-50/60"
-                                              : "bg-purple-50/60"
-                                          }`}
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div
-                                              className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                                mealType === "breakfast"
-                                                  ? "bg-amber-100 text-amber-700"
-                                                  : mealType === "lunch"
-                                                  ? "bg-emerald-100 text-emerald-700"
-                                                  : "bg-purple-100 text-purple-700"
-                                              }`}
-                                            >
-                                              {mealType === "breakfast" ? (
-                                                <Sun className="w-4 h-4" />
-                                              ) : mealType === "dinner" ? (
-                                                <UtensilsCrossed className="w-4 h-4" />
-                                              ) : (
-                                                <Utensils className="w-4 h-4" />
-                                              )}
-                                            </div>
-                                            <div className="min-w-0">
-                                              <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                                                {mealLabel}:{" "}
-                                                <span className="font-bold text-gray-900">
-                                                  {isChanged
-                                                    ? mealChange?.newMealName
-                                                    : defaultMeal.serviceName || "Nhà hàng theo tour"}
-                                                </span>
-                                              </p>
-                                              <p className="text-[11px] text-gray-500">
-                                                Mặc định: {defaultMeal.serviceName || "Nhà hàng địa phương"}
-                                              </p>
-                                            </div>
-                                          </div>
-
-                                          <div className="flex items-center gap-2 flex-shrink-0">
-                                            <div className="border border-gray-200 bg-white px-3 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1.5 shadow-2xs">
-                                              {isChanged ? (
-                                                <span className="text-[10px] text-emerald-800 font-bold">
-                                                  Đã đổi {mealChange?.priceDifference ? `(+${formatVND(mealChange.priceDifference)})` : ""}
-                                                </span>
-                                              ) : (
-                                                <span>Theo tour (0đ)</span>
-                                              )}
-                                              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-600">
-                      Điểm đến: <strong>{tour.destination}</strong> · Lịch trình tiêu chuẩn {tour.duration}.
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Payment & Provider Verification info */}
               <div className="rounded-xl p-4.5 border bg-teal-50/80 border-teal-200 space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -1600,12 +1217,7 @@ export function BookingFormPage({
                 </div>
               </div>
 
-              {bookingNotes && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Ghi chú của bạn</h3>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">{bookingNotes}</p>
-                </div>
-              )}
+
             </div>
 
             <div className="flex justify-between">
