@@ -26,6 +26,7 @@ import {
   Sun,
   UtensilsCrossed,
   Phone,
+  Mail,
   Share2,
   Heart,
   Sparkles,
@@ -49,7 +50,7 @@ import {
   DialogDescription,
 } from "@/app/components/ui/dialog";
 import { Textarea } from "@/app/components/ui/textarea";
-import { mockUsers } from "@/app/data/mockData";
+import { mockUsers, mockTourCompanies } from "@/app/data/mockData";
 import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
 
 export interface TourDetailCustomData {
@@ -412,7 +413,6 @@ function PricingTab({ tour }: { tour: Tour }) {
             <tr className="bg-gray-100">
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Loại khách</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">Độ tuổi</th>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">Khách sạn</th>
               <th className="px-4 py-3 text-right font-semibold text-gray-700">Giá tiền</th>
             </tr>
           </thead>
@@ -421,7 +421,6 @@ function PricingTab({ tour }: { tour: Tour }) {
               <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="px-4 py-3 font-medium text-gray-900">{row.ageGroupLabel ?? row.ageGroup}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{row.ageRange || "—"}</td>
-                <td className="px-4 py-3 text-gray-700">{row.hotelType || "—"}</td>
                 <td className="px-4 py-3 text-right font-bold text-blue-700">
                   {row.price === 0 ? "Miễn phí" : formatVND(row.price)}
                 </td>
@@ -2560,19 +2559,43 @@ export function TourDetailPage({
                 </>
               )}
 
-              {tour.companyName && (
-                <div className="border-t border-gray-100 pt-4 space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Liên hệ công ty</p>
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <Building2 className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">{tour.companyName}</span>
+              {tour.companyName && (() => {
+                const matchedCompany = mockTourCompanies.find(
+                  (c) => c.id === tour.companyId || c.name.toLowerCase() === tour.companyName?.toLowerCase()
+                );
+                const companyPhone = tour.companyPhone || matchedCompany?.phone || "1900 1234";
+                const companyEmail = tour.companyEmail || matchedCompany?.email || "info@viettravel.com.vn";
+
+                return (
+                  <div className="border-t border-gray-100 pt-4 space-y-2.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Liên hệ công ty</p>
+                    
+                    <div className="flex items-center gap-2 text-sm text-gray-800">
+                      <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="font-semibold">{tour.companyName}</span>
+                    </div>
+
+                    <div className="space-y-1 text-xs text-gray-600 pl-0.5">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span>SĐT: <strong className="text-gray-900 font-medium">{companyPhone}</strong></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span>Email: <strong className="text-gray-900 font-medium">{companyEmail}</strong></span>
+                      </div>
+                    </div>
+
+                    <a
+                      href={`tel:${companyPhone.replace(/\s+/g, "")}`}
+                      className="w-full flex items-center justify-center gap-2 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Phone className="w-4 h-4 text-emerald-600" />
+                      Gọi tư vấn miễn phí
+                    </a>
                   </div>
-                  <button className="w-full flex items-center justify-center gap-2 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Phone className="w-4 h-4" />
-                    Gọi tư vấn miễn phí
-                  </button>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         </div>

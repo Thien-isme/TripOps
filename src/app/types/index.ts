@@ -365,6 +365,8 @@ export interface Tour {
   companyId?: string;
   companyName?: string;
   companyLogo?: string;
+  companyPhone?: string;
+  companyEmail?: string;
   // Creator info
   createdBy?: string;
   createdByName?: string;
