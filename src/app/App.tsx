@@ -1301,14 +1301,14 @@ function App() {
 
     return (
       <div className="min-h-screen bg-gray-50">
-        {currentUser.role !== "admin" && (
+        {currentUser.role !== "admin" && currentUser.role !== "provider" && (
           <UnifiedHeader
             currentUser={currentUser}
             onShowLogin={() => setShowLogin(true)}
             onLogout={handleLogout}
             onNavigate={handleNavigate}
             currentPage={currentPage}
-            onOpenAIAdvisor={() => setShowAIAdvisor(true)}
+            
           />
         )}
 
@@ -1316,7 +1316,7 @@ function App() {
           className={
             currentUser.role === "admin" || currentUser.role === "provider"
               ? "min-h-screen"
-              : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24"
+              : "w-full px-4 sm:px-6 lg:px-8 py-8 pt-24"
           }
         >
           {currentUser.role === "guide" && (
@@ -1408,7 +1408,7 @@ function App() {
         onLogout={handleLogout}
         onNavigate={handleNavigate}
         currentPage={currentPage}
-        onOpenAIAdvisor={() => setShowAIAdvisor(true)}
+        
       />
       <div className="pt-16">
         {currentPage === "custom-tour" ? (
@@ -1461,7 +1461,7 @@ function App() {
         ) : currentPage === "home" && currentUser?.role === "user" ? (
           // Logged in user sees their dashboard on home page
           <div className="min-h-screen bg-gray-50">
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
               <UserDashboard
                 tours={tours}
                 userBookings={userBookings}

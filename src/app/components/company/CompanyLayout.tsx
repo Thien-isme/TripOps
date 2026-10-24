@@ -189,7 +189,7 @@ export function CompanyLayout({
         </div>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 sm:p-8 w-full space-y-6">
           {children}
         </main>
       </div>

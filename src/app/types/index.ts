@@ -161,6 +161,8 @@ export interface TourPriceRow {
   ageGroupLabel: string; // e.g. "Người lớn"
   ageRange?: string; // e.g. "Từ 12 tuổi"
   hotelType?: string;
+  minAge?: number; // min_age in tour_pricing_tiers
+  maxAge?: number; // max_age in tour_pricing_tiers
   price: number;
 }
 

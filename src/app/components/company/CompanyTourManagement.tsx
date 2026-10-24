@@ -1213,9 +1213,9 @@ export function TourFormPage({
     tour?.priceTable && tour.priceTable.length > 0
       ? JSON.parse(JSON.stringify(tour.priceTable))
       : [
-          { ageGroup: "adult", ageGroupLabel: "Người lớn", ageRange: "Từ 11 tuổi trở lên", price: 3500000 },
-          { ageGroup: "child_2_11", ageGroupLabel: "Trẻ em (2–11 tuổi)", ageRange: "Từ 2 đến dưới 11 tuổi", price: 2450000 },
-          { ageGroup: "child_under_2", ageGroupLabel: "Em bé (dưới 2 tuổi)", ageRange: "Dưới 2 tuổi", price: 0 },
+          { ageGroup: "adult", ageGroupLabel: "Người lớn", ageRange: "Từ 11 tuổi trở lên", minAge: 11, maxAge: 120, price: 3500000 },
+          { ageGroup: "child_2_11", ageGroupLabel: "Trẻ em (2–11 tuổi)", ageRange: "Từ 2 đến dưới 11 tuổi", minAge: 2, maxAge: 10, price: 2450000 },
+          { ageGroup: "child_under_2", ageGroupLabel: "Em bé (dưới 2 tuổi)", ageRange: "Dưới 2 tuổi", minAge: 0, maxAge: 1, price: 0 },
         ]
   );
 
@@ -1228,6 +1228,8 @@ export function TourFormPage({
       ageGroup: `custom_${Date.now()}`,
       ageGroupLabel: "Khung giá mới (VD: Người cao tuổi)",
       ageRange: "Từ 60 tuổi trở lên",
+      minAge: 60,
+      maxAge: 120,
       price: Math.round(price * 0.8) || 2000000,
     };
     setPriceTable([...priceTable, newRow]);
@@ -3469,17 +3471,7 @@ export function TourFormPage({
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleResetDefaultPriceRows}
-                        className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-[#F0F9FF]"
-                        title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5 mr-1 text-gray-500" />
-                        Mẫu chuẩn 3 nhóm
-                      </Button>
+                      
                       <Button
                         type="button"
                         size="sm"
@@ -3496,10 +3488,10 @@ export function TourFormPage({
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-gray-100 text-gray-700">
-                          <th className="p-3 text-left w-1/4">Phân loại khách</th>
-                          <th className="p-3 text-left w-1/3">Độ tuổi áp dụng</th>
-                          <th className="p-3 text-right">Đơn giá vé (VNĐ)</th>
-                          <th className="p-3 text-center w-16">Thao tác</th>
+                          <th className="p-3 text-left w-[42%] font-semibold">Tên phân loại khách</th>
+                          <th className="p-3 text-center w-[26%] font-semibold">Khoảng tuổi áp dụng</th>
+                          <th className="p-3 text-right w-[24%] font-semibold">Đơn giá vé (VNĐ)</th>
+                          <th className="p-3 text-center w-[8%] font-semibold">Thao tác</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 bg-white">
@@ -3517,17 +3509,42 @@ export function TourFormPage({
                                 className="text-xs h-8 font-semibold text-gray-900"
                               />
                             </td>
-                            <td className="p-3">
-                              <Input
-                                value={row.ageRange ?? ""}
-                                onChange={(e) => {
-                                  const updated = [...priceTable];
-                                  updated[idx].ageRange = e.target.value;
-                                  setPriceTable(updated);
-                                }}
-                                placeholder="VD: Từ 11 tuổi trở lên, Từ 2 đến 11 tuổi..."
-                                className="text-xs h-8"
-                              />
+                            
+                            <td className="p-3 text-center">
+                              <div className="inline-flex items-center justify-center gap-2 bg-[#F0F9FF] px-3 py-1 rounded-xl border border-[#CBD5E1] shadow-2xs">
+                                <span className="text-[11px] text-gray-500 font-medium">Từ</span>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={120}
+                                  value={row.minAge ?? ""}
+                                  onChange={(e) => {
+                                    const updated = [...priceTable];
+                                    const val = e.target.value === "" ? undefined : parseInt(e.target.value);
+                                    updated[idx].minAge = val !== undefined && !isNaN(val) ? Math.max(0, val) : undefined;
+                                    setPriceTable(updated);
+                                  }}
+                                  placeholder="0"
+                                  className="text-xs h-8 w-14 text-center font-bold text-[#075985] bg-white border-gray-300 focus:border-[#075985] px-1 shadow-2xs"
+                                />
+                                <span className="text-gray-400 font-semibold">-</span>
+                                <span className="text-[11px] text-gray-500 font-medium">Đến</span>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={120}
+                                  value={row.maxAge ?? ""}
+                                  onChange={(e) => {
+                                    const updated = [...priceTable];
+                                    const val = e.target.value === "" ? undefined : parseInt(e.target.value);
+                                    updated[idx].maxAge = val !== undefined && !isNaN(val) ? Math.max(0, val) : undefined;
+                                    setPriceTable(updated);
+                                  }}
+                                  placeholder="120"
+                                  className="text-xs h-8 w-14 text-center font-bold text-[#075985] bg-white border-gray-300 focus:border-[#075985] px-1 shadow-2xs"
+                                />
+                                <span className="text-[11px] text-gray-600 font-medium">tuổi</span>
+                              </div>
                             </td>
                             <td className="p-3 text-right">
                               <div className="flex items-center justify-end gap-1.5">
@@ -4200,7 +4217,7 @@ export function TourFormPage({
                             <thead className="bg-gray-100">
                               <tr>
                                 <th className="p-2 text-left">Phân loại</th>
-                                <th className="p-2 text-left">Độ tuổi</th>
+                                <th className="p-2 text-center">Độ tuổi áp dụng</th>
                                 <th className="p-2 text-right">Giá vé</th>
                               </tr>
                             </thead>
@@ -4208,7 +4225,11 @@ export function TourFormPage({
                               {priceTable.map((p, idx) => (
                                 <tr key={idx}>
                                   <td className="p-2 font-medium">{p.ageGroupLabel}</td>
-                                  <td className="p-2 text-gray-600">{p.ageRange}</td>
+                                  <td className="p-2 text-center text-gray-600">
+                                    {p.minAge !== undefined && p.maxAge !== undefined
+                                      ? (p.maxAge >= 100 ? `Từ ${p.minAge} tuổi trở lên` : `Từ ${p.minAge} đến ${p.maxAge} tuổi`)
+                                      : (p.ageRange || "-")}
+                                  </td>
                                   <td className="p-2 text-right font-bold text-[#075985]">
                                     {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                                   </td>
