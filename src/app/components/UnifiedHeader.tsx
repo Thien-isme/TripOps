@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  MapPin,
+  Compass,
   ChevronDown,
   LogOut,
   Settings,
@@ -16,6 +16,7 @@ import {
   MapPinned,
   MessageCircleMore,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { User as UserType } from "@/app/types";
 
@@ -51,11 +52,10 @@ export function UnifiedHeader({
   const roleLabels = {
     user: "Khách hàng",
     guide: "Hướng dẫn viên",
-    admin: "Quản lý",
+    admin: "Quản trị viên",
     provider: "Nhà cung cấp",
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -74,7 +74,6 @@ export function UnifiedHeader({
       );
   }, []);
 
-  // Generate avatar initials
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -84,393 +83,211 @@ export function UnifiedHeader({
       .slice(0, 2);
   };
 
-  // Generate avatar color based on name
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      "from-blue-500 to-blue-600",
-      "from-purple-500 to-purple-600",
-      "from-green-500 to-green-600",
-      "from-orange-500 to-orange-600",
-      "from-pink-500 to-pink-600",
-      "from-indigo-500 to-indigo-600",
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
-
-  // Handle navigation - if user is logged in and role is not 'user', go to dashboard
   const handleNavigateClick = (page: string) => {
     if (currentUser && currentUser.role !== "user") {
-      // For non-user roles, going to these pages means logging out first
       if (page !== "home") {
-        return; // Don't navigate for non-user roles
+        return;
       }
     }
     onNavigate(page);
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+    <header className="fixed top-0 left-0 right-0 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#E8E4DC] z-50 transition-all duration-300">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+        <div className="flex justify-between items-center h-20">
+          {/* Logo Brand: TripOps */}
           <div
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => handleNavigateClick("home")}
           >
-            <MapPin className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              TourViet
-            </span>
+            <div className="w-10 h-10 rounded-full bg-[#15291E] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+              <Compass className="w-5 h-5 text-[#E8E4DC]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-serif font-semibold tracking-tight text-[#15291E]">
+                TripOps
+              </span>
+              <span className="text-[10px] tracking-widest uppercase text-[#686C67] -mt-0.5 font-medium">
+                Curated Travel
+              </span>
+            </div>
           </div>
 
-          {/* Navigation - Only show for users or non-logged in */}
+          {/* Navigation Items */}
           {(!currentUser || currentUser.role === "user") && (
             <div className="hidden md:flex items-center gap-8">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigateClick(item.id)}
-                  className={`transition-colors font-medium ${
-                    currentPage === item.id
-                      ? "text-blue-600"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              {menuItems.map((item) => {
+                const isActive = currentPage === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigateClick(item.id)}
+                    className={`relative text-sm tracking-wide transition-colors py-1 ${
+                      isActive
+                        ? "text-[#15291E] font-semibold"
+                        : "text-[#686C67] hover:text-[#15291E]"
+                    }`}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#BD5E38] rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
+          {/* Right Action Bar */}
           <div className="flex items-center gap-3">
-            {/* AI Advisor Button */}
+            {/* AI Advisor Button - Elegant terracotta minimalist styling */}
             {onOpenAIAdvisor && (
               <button
                 type="button"
                 onClick={onOpenAIAdvisor}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-full text-xs font-extrabold shadow-sm hover:shadow-md transition-all transform hover:scale-105"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#BD5E38]/30 bg-[#BD5E38]/10 hover:bg-[#BD5E38]/20 text-[#BD5E38] text-xs font-semibold tracking-wide transition-all shadow-sm"
               >
-                <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-                <span>✨ AI Tư vấn Tour</span>
+                <Sparkles className="w-3.5 h-3.5 text-[#BD5E38]" />
+                <span>AI Cố vấn Tour</span>
               </button>
             )}
 
-            {/* Right side - Login button or User Avatar */}
+            {/* Login Button or Profile Dropdown */}
             {!currentUser ? (
-              // Not logged in - show login button
               <button
                 onClick={onShowLogin}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#15291E] text-[#FBF9F5] text-sm font-medium hover:bg-[#BD5E38] transition-all duration-300 shadow-sm"
               >
-                Đăng nhập
+                <span>Đăng nhập</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             ) : currentUser.role === "user" ? (
-            // Logged in as user - show avatar with dropdown
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() =>
-                  setIsDropdownOpen(!isDropdownOpen)
-                }
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                {/* Avatar */}
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.name)} flex items-center justify-center text-white font-semibold shadow-md`}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-3 px-3 py-1.5 rounded-full border border-[#E8E4DC] hover:border-[#15291E] transition-colors bg-white"
                 >
-                  {getInitials(currentUser.name)}
-                </div>
-
-                {/* User Info - Hidden on mobile */}
-                <div className="hidden md:block text-left">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {currentUser.name}
+                  <div className="w-8 h-8 rounded-full bg-[#15291E] flex items-center justify-center text-white text-xs font-semibold">
+                    {getInitials(currentUser.name)}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {roleLabels[currentUser.role]}
-                  </div>
-                </div>
 
-                <ChevronDown
-                  className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[calc(100vh-100px)] overflow-y-auto">
-                  {/* User Info in Dropdown */}
-                  <div className="px-4 py-3 border-b border-gray-100 sticky top-0 bg-white z-10">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.name)} flex items-center justify-center text-white font-semibold shadow-md`}
-                      >
-                        {getInitials(currentUser.name)}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {currentUser.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {currentUser.email}
-                        </div>
-                      </div>
+                  <div className="hidden md:block text-left pr-1">
+                    <div className="text-xs font-semibold text-[#15291E]">
+                      {currentUser.name}
                     </div>
-                    <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full inline-block">
+                    <div className="text-[10px] text-[#686C67]">
                       {roleLabels[currentUser.role]}
                     </div>
                   </div>
 
-                  {/* Menu Items */}
-                  <div className="py-2">
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("user-profile");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Settings className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Quản lý hồ sơ
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Cập nhật thông tin cá nhân
-                        </div>
-                      </div>
-                    </button>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[#686C67] transition-transform ${
+                      isDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("my-bookings");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Calendar className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Tour đã đặt
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Xem và quản lý các tour
-                        </div>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-[0_12px_40px_rgb(0,0,0,0.08)] border border-[#E8E4DC] py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                    <div className="px-4 py-3 border-b border-[#E8E4DC]">
+                      <div className="font-semibold text-sm text-[#15291E]">
+                        {currentUser.name}
                       </div>
-                    </button>
+                      <div className="text-xs text-[#686C67]">
+                        {currentUser.email}
+                      </div>
+                      <span className="mt-2 inline-block px-2 py-0.5 rounded-full bg-[#15291E]/5 text-[#15291E] text-[10px] font-semibold">
+                        {roleLabels[currentUser.role]}
+                      </span>
+                    </div>
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("promotions");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Tag className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Khuyến mãi
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Ưu đãi & mã giảm giá
-                        </div>
-                      </div>
-                    </button>
+                    <div className="py-2 text-sm text-[#191A19]">
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onNavigate("user-profile");
+                        }}
+                        className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[#FBF9F5] transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-[#686C67]" />
+                        <span>Hồ sơ cá nhân</span>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("messages");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <MessageSquare className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Tin nhắn
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Từ cơ sở lưu trú
-                        </div>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onNavigate("my-bookings");
+                        }}
+                        className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[#FBF9F5] transition-colors"
+                      >
+                        <History className="w-4 h-4 text-[#686C67]" />
+                        <span>Lịch sử đặt tour</span>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("wishlist");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Heart className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Danh sách yêu thích
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Tour đã lưu
-                        </div>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onNavigate("wishlist");
+                        }}
+                        className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[#FBF9F5] transition-colors"
+                      >
+                        <Heart className="w-4 h-4 text-[#686C67]" />
+                        <span>Yêu thích</span>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("my-reviews");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Star className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Nhận xét của tôi
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Đánh giá đã viết
-                        </div>
-                      </div>
-                    </button>
+                      <div className="my-1 border-t border-[#E8E4DC]" />
 
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("notifications");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <Bell className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Thông báo
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Cập nhật mới nhất
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onNavigate("help-center");
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <HelpCircle className="w-5 h-5 text-gray-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          Trung tâm trợ giúp
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Câu hỏi & hỗ trợ
-                        </div>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onLogout?.();
+                        }}
+                        className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-red-50 text-red-600 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-3 px-3 py-1.5 rounded-full border border-[#E8E4DC] hover:border-[#15291E] transition-colors bg-white"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#15291E] flex items-center justify-center text-white text-xs font-semibold">
+                    {getInitials(currentUser.name)}
+                  </div>
+                  <div className="hidden md:block text-left pr-1">
+                    <div className="text-xs font-semibold text-[#15291E]">
+                      {currentUser.name}
+                    </div>
+                    <div className="text-[10px] text-[#686C67]">
+                      {roleLabels[currentUser.role]}
+                    </div>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#686C67]" />
+                </button>
 
-                  {/* Logout */}
-                  <div className="border-t border-gray-100 pt-2">
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-[#E8E4DC] py-2 z-50">
                     <button
                       onClick={() => {
                         setIsDropdownOpen(false);
                         onLogout?.();
                       }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-red-50 transition-colors text-red-600"
+                      className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-red-50 text-red-600 transition-colors text-sm"
                     >
-                      <LogOut className="w-5 h-5" />
-                      <div>
-                        <div className="text-sm font-medium">
-                          Đăng xuất
-                        </div>
-                        <div className="text-xs text-red-500">
-                          Thoát khỏi tài khoản
-                        </div>
-                      </div>
+                      <LogOut className="w-4 h-4" />
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Logged in as non-user (guide, admin, provider) - show simple avatar with logout
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() =>
-                  setIsDropdownOpen(!isDropdownOpen)
-                }
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                {/* Avatar */}
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.name)} flex items-center justify-center text-white font-semibold shadow-md`}
-                >
-                  {getInitials(currentUser.name)}
-                </div>
-
-                {/* User Info - Hidden on mobile */}
-                <div className="hidden md:block text-left">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {currentUser.name}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {roleLabels[currentUser.role]}
-                  </div>
-                </div>
-
-                <ChevronDown
-                  className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {/* Dropdown Menu for non-user roles */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
-                  {/* User Info in Dropdown */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(currentUser.name)} flex items-center justify-center text-white font-semibold shadow-md`}
-                      >
-                        {getInitials(currentUser.name)}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {currentUser.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {currentUser.email}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full inline-block">
-                      {roleLabels[currentUser.role]}
-                    </div>
-                  </div>
-
-                  {/* Logout */}
-                  <div className="pt-2">
-                    <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        onLogout?.();
-                      }}
-                      className="w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-red-50 transition-colors text-red-600"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      <div>
-                        <div className="text-sm font-medium">
-                          Đăng xuất
-                        </div>
-                        <div className="text-xs text-red-500">
-                          Thoát khỏi tài khoản
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>

@@ -1,4 +1,4 @@
-import { Service } from "@/app/types";
+﻿import { Service } from "@/app/types";
 import {
   Plus,
   Edit,
@@ -46,10 +46,10 @@ export function ServiceManagement({
   };
 
   const categoryColors = {
-    hotel: "bg-blue-100 text-blue-800",
+    hotel: "bg-[#15291E]/10 text-blue-800",
     restaurant: "bg-orange-100 text-orange-800",
     transportation: "bg-green-100 text-green-800",
-    activity: "bg-purple-100 text-purple-800",
+    activity: "bg-[#BD5E38]/15 text-purple-800",
   };
 
   const myServices = services.filter(
@@ -76,7 +76,7 @@ export function ServiceManagement({
         </div>
         <button
           onClick={onCreateService}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Tạo dịch vụ mới
@@ -97,7 +97,7 @@ export function ServiceManagement({
               onClick={() => setFilterCategory(category.value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filterCategory === category.value
-                  ? "bg-blue-600 text-white"
+                  ? "bg-[#15291E] text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -158,14 +158,14 @@ export function ServiceManagement({
 
               <div className="pt-3 border-t border-gray-200">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-xl font-bold text-blue-600">
+                  <div className="text-xl font-bold text-[#15291E]">
                     {formatPrice(service.price)}
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => onEditService(service)}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                    className="flex-1 px-3 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors flex items-center justify-center gap-2 text-sm"
                   >
                     <Edit className="w-4 h-4" />
                     Sửa
@@ -199,7 +199,7 @@ export function ServiceManagement({
           </p>
           <button
             onClick={onCreateService}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38]"
           >
             Tạo dịch vụ đầu tiên
           </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Star,
   MapPin,
@@ -211,32 +211,32 @@ export function MyReviewsPage() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin className="w-4 h-4 text-blue-600" />
+                        <MapPin className="w-4 h-4 text-[#15291E]" />
                         <span>{review.tourDestination}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Calendar className="w-4 h-4 text-blue-600" />
+                        <Calendar className="w-4 h-4 text-[#15291E]" />
                         <span>
                           {review.tourStartDate} -{" "}
                           {review.tourEndDate}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <User className="w-4 h-4 text-blue-600" />
+                        <User className="w-4 h-4 text-[#15291E]" />
                         <span>HDV: {review.guideName}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4 text-blue-600" />
+                        <Phone className="w-4 h-4 text-[#15291E]" />
                         <span>{review.guidePhone}</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <User className="w-4 h-4 text-blue-600" />
+                        <User className="w-4 h-4 text-[#15291E]" />
                         <span>
                           {review.numberOfGuests} người
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600">
-                        <span className="font-semibold text-blue-600">
+                        <span className="font-semibold text-[#15291E]">
                           {review.totalPrice.toLocaleString(
                             "vi-VN",
                           )}
@@ -300,9 +300,9 @@ export function MyReviewsPage() {
                     <div className="flex gap-2 ml-4">
                       <button
                         onClick={() => handleEdit(review)}
-                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[#FBF9F5] rounded-lg transition-colors"
                       >
-                        <Edit className="w-5 h-5 text-blue-600" />
+                        <Edit className="w-5 h-5 text-[#15291E]" />
                       </button>
                       <button
                         onClick={() =>
@@ -328,7 +328,7 @@ export function MyReviewsPage() {
                     </button>
                     <button
                       onClick={() => handleSave(review.id)}
-                      className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                      className="flex-1 px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors font-semibold flex items-center justify-center gap-2"
                     >
                       <Save className="w-5 h-5" />
                       Lưu thay đổi

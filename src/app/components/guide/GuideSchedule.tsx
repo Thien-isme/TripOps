@@ -1,4 +1,4 @@
-import { GuideSchedule, Location } from "@/app/types";
+﻿import { GuideSchedule, Location } from "@/app/types";
 import {
   Calendar,
   MapPin,
@@ -170,8 +170,8 @@ export function GuideScheduleComponent({
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                      <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0">
+                    <div className="flex items-start gap-4 p-4 bg-[#FBF9F5] rounded-xl border border-blue-100">
+                      <div className="w-12 h-12 rounded-xl bg-[#15291E] flex items-center justify-center text-white shrink-0">
                         <ShieldCheck className="w-6 h-6" />
                       </div>
                       <div className="space-y-1">
@@ -182,11 +182,11 @@ export function GuideScheduleComponent({
                           Admin - Tổng đài hỗ trợ
                         </h4>
                         <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 text-sm text-blue-700 font-semibold">
+                          <div className="flex items-center gap-2 text-sm text-[#15291E] font-semibold">
                             <Phone className="w-3 h-3" /> 1900
                             1234 (Hotline)
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-blue-600">
+                          <div className="flex items-center gap-2 text-xs text-[#15291E]">
                             <MessageSquare className="w-3 h-3" />{" "}
                             Zalo: 0912.345.678
                           </div>
@@ -199,7 +199,7 @@ export function GuideScheduleComponent({
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-blue-600" />
+                          <Calendar className="w-5 h-5 text-[#15291E]" />
                           Ngày {currentDay}:{" "}
                           {currentItinerary.title}
                         </h4>
@@ -230,7 +230,7 @@ export function GuideScheduleComponent({
                                 className={`flex flex-col p-4 rounded-xl border-2 transition-all ${
                                   isCheckedIn
                                     ? "bg-green-50 border-green-200 shadow-sm"
-                                    : "bg-white border-gray-100 hover:border-blue-200"
+                                    : "bg-white border-gray-100 hover:border-[#E8E4DC]"
                                 }`}
                               >
                                 <div className="flex items-start justify-between gap-4">
@@ -263,7 +263,7 @@ export function GuideScheduleComponent({
                                           location,
                                         })
                                       }
-                                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-bold text-sm whitespace-nowrap shadow-md shadow-blue-200"
+                                      className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-all font-bold text-sm whitespace-nowrap shadow-md shadow-blue-200"
                                     >
                                       Check-in
                                     </button>
@@ -318,7 +318,7 @@ export function GuideScheduleComponent({
                         </div>
                         <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-600 transition-all"
+                            className="h-full bg-[#15291E] transition-all"
                             style={{
                               width: `${
                                 (schedule.completedLocations.filter(
@@ -351,7 +351,7 @@ export function GuideScheduleComponent({
       >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-700">
+            <DialogTitle className="flex items-center gap-2 text-[#15291E]">
               <ShieldCheck className="w-6 h-6" />
               Xác nhận Check-in tại địa điểm
             </DialogTitle>
@@ -373,7 +373,7 @@ export function GuideScheduleComponent({
               </Label>
               <div
                 onClick={mockUploadImage}
-                className="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all"
+                className="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-300 hover:bg-[#FBF9F5] transition-all"
               >
                 {checkInImage ? (
                   <div className="relative w-full aspect-video rounded-xl overflow-hidden">
@@ -415,7 +415,7 @@ export function GuideScheduleComponent({
                 placeholder="VD: Đoàn đến trễ 10 phút, Thời tiết đẹp, Đã đổi sang điểm tham quan lân cận..."
                 value={checkInNote}
                 onChange={(e) => setCheckInNote(e.target.value)}
-                className="min-h-[100px] rounded-xl border-gray-200 focus:ring-blue-500"
+                className="min-h-[100px] rounded-xl border-gray-200 focus:ring-[#15291E]"
               />
             </div>
           </div>
@@ -429,7 +429,7 @@ export function GuideScheduleComponent({
             </Button>
             <Button
               onClick={handleCheckInSubmit}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-xl font-bold"
+              className="bg-[#15291E] hover:bg-[#BD5E38] text-white px-8 rounded-xl font-bold"
               disabled={!checkInImage}
             >
               Hoàn tất Check-in

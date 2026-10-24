@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   X,
   Upload,
@@ -91,9 +91,9 @@ export function ImageUploadManager({
           {!showSuccess ? (
             <>
               {/* Add Image Section */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-[#E8E4DC]">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-blue-600" />
+                  <Upload className="w-5 h-5 text-[#15291E]" />
                   Thêm hình ảnh
                 </h3>
                 <div className="flex gap-2">
@@ -111,7 +111,7 @@ export function ImageUploadManager({
                   <button
                     type="button"
                     onClick={handleAddImage}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Thêm
@@ -238,7 +238,7 @@ export function ImageUploadManager({
                   className={`flex-1 px-6 py-3 rounded-lg transition-colors font-semibold ${
                     images.length === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                      : "bg-[#15291E] text-white hover:from-blue-700 hover:to-purple-700"
                   }`}
                 >
                   Lưu hình ảnh ({images.length})

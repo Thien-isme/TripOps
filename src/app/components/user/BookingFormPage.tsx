@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import { Tour, BookingPassenger, TourPriceRow, CustomHotelChange, CustomLocationChange, CustomMealChange } from "@/app/types";
 import {
@@ -529,9 +529,9 @@ export function BookingFormPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FBF9F5]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
+      <div className="bg-white border-b border-[#E8E4DC] sticky top-0 z-20">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={onBack}
@@ -569,8 +569,8 @@ export function BookingFormPage({
         {step === 2 && (
           <div className="space-y-6">
             {/* Tour info */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h2 className="text-base font-bold text-teal-700 border-b border-gray-200 pb-2 mb-4">
+            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+              <h2 className="text-base font-bold text-teal-700 border-b border-[#E8E4DC] pb-2 mb-4">
                 Thông tin tour & Ngày khởi hành
               </h2>
               <div className="space-y-2 text-sm text-gray-700 mb-4">
@@ -590,10 +590,10 @@ export function BookingFormPage({
                 </Label>
 
                 {/* Direct date picker allowing user to freely pick their desired departure date */}
-                <div className="bg-teal-50/60 border border-teal-200 rounded-xl p-3.5 space-y-2">
+                <div className="bg-[#15291E]/5/60 border border-[#15291E]/15 rounded-xl p-3.5 space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="flex-1">
-                      <Label htmlFor="custom-start-date" className="text-xs font-semibold text-teal-900 mb-1 block">
+                      <Label htmlFor="custom-start-date" className="text-xs font-semibold text-[#15291E] mb-1 block">
                         Chọn ngày khởi hành theo kế hoạch của bạn:
                       </Label>
                       <VietnameseDatePicker
@@ -606,7 +606,7 @@ export function BookingFormPage({
                       />
                     </div>
                     {tourStartDate && (
-                      <div className="sm:self-end pb-1 text-xs text-teal-800">
+                      <div className="sm:self-end pb-1 text-xs text-[#15291E]">
                         Ngày đã chọn: <strong className="text-teal-950 font-bold">{tourStartDate}</strong>
                       </div>
                     )}
@@ -619,14 +619,14 @@ export function BookingFormPage({
             </div>
 
             {/* Price table */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h2 className="text-base font-bold text-teal-700 border-b border-gray-200 pb-2 mb-4">
+            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+              <h2 className="text-base font-bold text-teal-700 border-b border-[#E8E4DC] pb-2 mb-4">
                 Giá tour
               </h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200">
+                    <tr className="border-b border-[#E8E4DC]">
                       <th className="text-left py-2 font-semibold text-gray-600">Loại khách</th>
                       <th className="text-right py-2 font-semibold text-gray-600">Giá</th>
                     </tr>
@@ -639,7 +639,7 @@ export function BookingFormPage({
                             <p className="font-medium text-gray-800">{row.ageGroupLabel ?? row.ageGroup}</p>
                             {row.ageRange && <p className="text-xs text-gray-400">{row.ageRange}</p>}
                           </td>
-                          <td className="py-2.5 text-right font-semibold text-blue-700">
+                          <td className="py-2.5 text-right font-semibold text-[#15291E]">
                             {row.price === 0 ? "Miễn phí" : formatVND(row.price)}
                           </td>
                         </tr>
@@ -647,7 +647,7 @@ export function BookingFormPage({
                     ) : (
                       <tr>
                         <td className="py-2.5 font-medium text-gray-800">Người lớn</td>
-                        <td className="py-2.5 text-right font-semibold text-blue-700">{formatVND(tour.price)}</td>
+                        <td className="py-2.5 text-right font-semibold text-[#15291E]">{formatVND(tour.price)}</td>
                       </tr>
                     )}
                   </tbody>
@@ -656,8 +656,8 @@ export function BookingFormPage({
             </div>
 
             {/* Contact info */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <h2 className="text-base font-bold text-teal-700 border-b border-gray-200 pb-2 mb-4">
+            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+              <h2 className="text-base font-bold text-teal-700 border-b border-[#E8E4DC] pb-2 mb-4">
                 Thông tin liên lạc
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -701,7 +701,7 @@ export function BookingFormPage({
                     value={bookingNotes}
                     onChange={(e) => setBookingNotes(e.target.value)}
                     placeholder="Yêu cầu đặc biệt, dị ứng thức ăn, …"
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
+                    className="mt-1 w-full border border-[#E8E4DC] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
                     rows={3}
                   />
                 </div>
@@ -709,8 +709,8 @@ export function BookingFormPage({
             </div>
 
             {/* Passenger list */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-3 mb-4 gap-3">
+            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8E4DC] pb-3 mb-4 gap-3">
                 <div>
                   <h2 className="text-base font-bold text-teal-700 flex items-center gap-2">
                     <Users className="w-4 h-4 text-teal-600" />
@@ -727,7 +727,7 @@ export function BookingFormPage({
                     type="button"
                     variant="outline"
                     onClick={handleDownloadExcelTemplate}
-                    className="text-xs h-9 px-3 border-teal-300 text-teal-800 hover:bg-teal-50 font-semibold gap-1.5 shadow-2xs"
+                    className="text-xs h-9 px-3 border-teal-300 text-[#15291E] hover:bg-[#15291E]/5 font-semibold gap-1.5 shadow-2xs"
                     title="Tải file mẫu Excel (.xlsx)"
                   >
                     <Download className="w-3.5 h-3.5 text-teal-600" />
@@ -746,10 +746,10 @@ export function BookingFormPage({
                     type="button"
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs h-9 px-3 border-blue-300 text-blue-800 hover:bg-blue-50 font-semibold gap-1.5 shadow-2xs"
+                    className="text-xs h-9 px-3 border-[#E8E4DC] text-[#15291E] hover:bg-[#FBF9F5] font-semibold gap-1.5 shadow-2xs"
                     title="Tải lên file danh sách khách (.xlsx, .xls, .csv)"
                   >
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-[#15291E]" />
                     Upload file Excel
                   </Button>
 
@@ -799,7 +799,7 @@ export function BookingFormPage({
               )}
 
               {/* Fast Excel Guide Tip */}
-              <div className="bg-teal-50/60 border border-teal-200/80 rounded-xl p-3 mb-4 flex items-center justify-between text-xs text-teal-900">
+              <div className="bg-[#15291E]/5/60 border border-[#15291E]/15/80 rounded-xl p-3 mb-4 flex items-center justify-between text-xs text-[#15291E]">
                 <div className="flex items-start sm:items-center gap-2.5">
                   <FileSpreadsheet className="w-4 h-4 text-teal-700 flex-shrink-0 mt-0.5 sm:mt-0" />
                   <span>
@@ -810,7 +810,7 @@ export function BookingFormPage({
 
               <div className="space-y-4">
                 {passengers.map((p, idx) => (
-                  <div key={p.id} className="border border-gray-200 rounded-xl p-4 space-y-3">
+                  <div key={p.id} className="border border-[#E8E4DC] rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                         <User className="w-4 h-4 text-teal-600" />
@@ -867,7 +867,7 @@ export function BookingFormPage({
                         <select
                           value={p.gender}
                           onChange={(e) => updatePassenger(p.id, { gender: e.target.value as "male" | "female" })}
-                          className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                          className="mt-1 w-full border border-[#E8E4DC] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
                         >
                           <option value="male">Nam</option>
                           <option value="female">Nữ</option>
@@ -887,10 +887,10 @@ export function BookingFormPage({
                       const age = calculateAge(p.dateOfBirth, tourStartDate);
                       const grp = AGE_GROUPS.find((g) => g.value === p.ageGroup);
                       return (
-                        <div className="flex flex-wrap items-center justify-between bg-blue-50/80 border border-blue-100 rounded-lg px-3 py-2 text-sm gap-2">
+                        <div className="flex flex-wrap items-center justify-between bg-[#FBF9F5]/80 border border-[#E8E4DC] rounded-lg px-3 py-2 text-sm gap-2">
                           <div className="flex flex-wrap items-center gap-2">
                             {age !== null ? (
-                              <span className="inline-flex items-center gap-1 text-xs bg-white text-teal-700 font-semibold px-2 py-0.5 rounded border border-teal-200 shadow-2xs">
+                              <span className="inline-flex items-center gap-1 text-xs bg-white text-teal-700 font-semibold px-2 py-0.5 rounded border border-[#15291E]/15 shadow-2xs">
                                 🎂 {age} tuổi (tính đến ngày đi tour)
                               </span>
                             ) : (
@@ -902,7 +902,7 @@ export function BookingFormPage({
                           </div>
                           <div className="flex items-center gap-1.5 ml-auto">
                             <span className="text-xs text-gray-500">Giá vé:</span>
-                            <span className="font-bold text-blue-700">
+                            <span className="font-bold text-[#15291E]">
                               {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                             </span>
                           </div>
@@ -914,13 +914,13 @@ export function BookingFormPage({
               </div>
 
               {/* Total Price & Payment Policy */}
-              <div className="mt-4 pt-4 border-t border-gray-200 space-y-3 text-sm">
+              <div className="mt-4 pt-4 border-t border-[#E8E4DC] space-y-3 text-sm">
                 <div className="flex justify-between items-center text-gray-700">
                   <span className="font-medium">Tổng giá tour dự kiến ({passengers.length} khách):</span>
-                  <span className="font-bold text-blue-700 text-base">{formatVND(totalPrice)}</span>
+                  <span className="font-bold text-[#15291E] text-base">{formatVND(totalPrice)}</span>
                 </div>
 
-                <div className="bg-teal-50 border border-teal-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-teal-900">
+                <div className="bg-[#15291E]/5 border border-[#15291E]/15 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-[#15291E]">
                   <Info className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-bold block text-teal-950 mb-0.5">Không cần thanh toán ngay khi đặt:</span>
@@ -948,11 +948,11 @@ export function BookingFormPage({
         {/* Step 3: Confirmation */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-6 space-y-5">
               <h2 className="text-lg font-bold text-gray-900">Xác nhận thông tin đăng ký</h2>
 
               {/* Tour summary */}
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-[#FBF9F5] rounded-xl p-4">
                 <div className="flex items-start gap-4">
                   <img src={tour.image} alt={tour.name} className="w-20 h-16 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -960,7 +960,7 @@ export function BookingFormPage({
                     <p className="text-xs text-gray-500 mt-0.5">Mã: {tour.tourCode}</p>
                     <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-600">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{tour.duration}</span>
-                      <span className="flex items-center gap-1 font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded"><Calendar className="w-3.5 h-3.5" />Khởi hành: {tourStartDate}</span>
+                      <span className="flex items-center gap-1 font-semibold text-teal-700 bg-[#15291E]/5 px-2 py-0.5 rounded"><Calendar className="w-3.5 h-3.5" />Khởi hành: {tourStartDate}</span>
                       <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{tour.destination}</span>
                       {tour.companyName && <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{tour.companyName}</span>}
                     </div>
@@ -969,7 +969,7 @@ export function BookingFormPage({
               </div>
 
               {/* Contact info */}
-              <div className="bg-gray-50/70 rounded-xl p-4 border border-gray-200 space-y-3">
+              <div className="bg-[#FBF9F5]/70 rounded-xl p-4 border border-[#E8E4DC] space-y-3">
                 <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
                   <User className="w-4 h-4 text-teal-600" />
                   Người đại diện liên lạc
@@ -994,12 +994,12 @@ export function BookingFormPage({
                     </div>
                   )}
                   {bookingNotes && (
-                    <div className="sm:col-span-2 pt-2.5 mt-1 border-t border-gray-200">
+                    <div className="sm:col-span-2 pt-2.5 mt-1 border-t border-[#E8E4DC]">
                       <span className="text-xs font-semibold text-gray-600 block mb-1 flex items-center gap-1.5">
                         <FileText className="w-3.5 h-3.5 text-teal-600" />
                         Ghi chú của bạn cho chuyến đi:
                       </span>
-                      <p className="text-sm text-gray-800 bg-white rounded-lg p-2.5 border border-gray-200 italic leading-relaxed">
+                      <p className="text-sm text-gray-800 bg-white rounded-lg p-2.5 border border-[#E8E4DC] italic leading-relaxed">
                         "{bookingNotes}"
                       </p>
                     </div>
@@ -1033,7 +1033,7 @@ export function BookingFormPage({
                             <td className="px-3 py-2 font-medium text-gray-900">{p.fullName}</td>
                             <td className="px-3 py-2">
                               {p.idNumber ? (
-                                <span className="font-mono text-xs text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                <span className="font-mono text-xs text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded border border-[#E8E4DC]">
                                   {p.idNumber}
                                 </span>
                               ) : (
@@ -1045,7 +1045,7 @@ export function BookingFormPage({
                               {(() => {
                                 const age = calculateAge(p.dateOfBirth, tourStartDate);
                                 return age !== null ? (
-                                  <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                  <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-[#15291E]/5 px-1.5 py-0.5 rounded border border-[#15291E]/15">
                                     {age} tuổi
                                   </span>
                                 ) : null;
@@ -1062,7 +1062,7 @@ export function BookingFormPage({
                                 <span className="text-gray-400 italic">—</span>
                               )}
                             </td>
-                            <td className="px-3 py-2 text-right font-semibold text-blue-700">
+                            <td className="px-3 py-2 text-right font-semibold text-[#15291E]">
                               {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                             </td>
                           </tr>
@@ -1070,9 +1070,9 @@ export function BookingFormPage({
                       })}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t-2 border-gray-200 bg-gray-50">
+                      <tr className="border-t-2 border-[#E8E4DC] bg-[#FBF9F5]">
                         <td colSpan={7} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
-                        <td className="px-3 py-2 text-right font-bold text-blue-700 text-base">{formatVND(totalPrice)}</td>
+                        <td className="px-3 py-2 text-right font-bold text-[#15291E] text-base">{formatVND(totalPrice)}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -1081,9 +1081,9 @@ export function BookingFormPage({
 
               {/* CUSTOMIZATION HIGHLIGHTS (NẾU CÓ TÙY CHỈNH) */}
               {isCustomized && (
-                <div className="bg-purple-50/70 rounded-2xl border border-purple-200 p-4 space-y-3">
+                <div className="bg-[#FBF9F5]/70 rounded-2xl border border-[#BD5E38]/30 p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-700" />
+                    <Sparkles className="w-4 h-4 text-[#A34C2A]" />
                     <h4 className="font-bold text-xs text-purple-900 uppercase">
                       Các tùy chỉnh bạn đã chọn cho chuyến đi này
                     </h4>
@@ -1091,16 +1091,16 @@ export function BookingFormPage({
                     <div className="space-y-2 text-xs">
                       {/* Hotel changes */}
                       {customHotelChanges && customHotelChanges.length > 0 && (
-                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                        <div className="bg-white rounded-xl p-3 border border-[#BD5E38]/30 space-y-1">
                           <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                            <Building2 className="w-3.5 h-3.5 text-[#BD5E38]" />
                             Khách sạn lưu trú:
                           </p>
                           {customHotelChanges.map((hc, idx) => (
                             <div key={idx} className="pl-5 space-y-0.5">
                               <p className="font-bold text-gray-900">
                                 {hc.destination}:{" "}
-                                <span className={hc.mode === "system" ? "text-emerald-700 font-bold" : "text-purple-700 font-bold"}>
+                                <span className={hc.mode === "system" ? "text-emerald-700 font-bold" : "text-[#A34C2A] font-bold"}>
                                   {hc.newHotelName}
                                 </span>
                                 {hc.stars && ` (${hc.stars}★)`}{" "}
@@ -1109,7 +1109,7 @@ export function BookingFormPage({
                                     Option từ tour (Đã tự động áp dụng)
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] bg-purple-50 text-purple-800 px-1.5 py-0.2 rounded border border-purple-200 font-medium">
+                                  <span className="text-[10px] bg-[#FBF9F5] text-purple-800 px-1.5 py-0.2 rounded border border-[#BD5E38]/30 font-medium">
                                     Yêu cầu riêng (Cần công ty duyệt)
                                   </span>
                                 )}
@@ -1125,9 +1125,9 @@ export function BookingFormPage({
 
                       {/* Location changes */}
                       {locationChanges && locationChanges.length > 0 && (
-                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                        <div className="bg-white rounded-xl p-3 border border-[#BD5E38]/30 space-y-1">
                           <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                            <MapPin className="w-3.5 h-3.5 text-[#BD5E38]" />
                             Điểm tham quan:
                           </p>
                           {locationChanges.map((lc, idx) => (
@@ -1155,16 +1155,16 @@ export function BookingFormPage({
 
                       {/* Meal changes */}
                       {customMealChanges && customMealChanges.length > 0 && (
-                        <div className="bg-white rounded-xl p-3 border border-purple-200 space-y-1">
+                        <div className="bg-white rounded-xl p-3 border border-[#BD5E38]/30 space-y-1">
                           <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                            <Utensils className="w-3.5 h-3.5 text-purple-600" />
+                            <Utensils className="w-3.5 h-3.5 text-[#BD5E38]" />
                             Ẩm thực &amp; Thực đơn:
                           </p>
                           {customMealChanges.map((mc, idx) => (
                             <div key={idx} className="pl-5 space-y-0.5">
                               <p className="font-bold text-gray-900">
                                 Ngày {mc.dayNumber} ({mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):{" "}
-                                <span className={mc.mode === "system" ? "text-emerald-700 font-bold" : "text-purple-700 font-bold"}>
+                                <span className={mc.mode === "system" ? "text-emerald-700 font-bold" : "text-[#A34C2A] font-bold"}>
                                   {mc.newMealName}
                                 </span>{" "}
                                 {mc.mode === "system" ? (
@@ -1172,7 +1172,7 @@ export function BookingFormPage({
                                     Option từ tour (Đã tự động áp dụng)
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] bg-purple-50 text-purple-800 px-1.5 py-0.2 rounded border border-purple-200 font-medium">
+                                  <span className="text-[10px] bg-[#FBF9F5] text-purple-800 px-1.5 py-0.2 rounded border border-[#BD5E38]/30 font-medium">
                                     Yêu cầu riêng (Cần công ty duyệt)
                                   </span>
                                 )}
@@ -1191,27 +1191,27 @@ export function BookingFormPage({
                 )}
 
               {/* Payment & Provider Verification info */}
-              <div className="rounded-xl p-4.5 border bg-teal-50/80 border-teal-200 space-y-2.5">
+              <div className="rounded-xl p-4.5 border bg-[#15291E]/5/80 border-[#15291E]/15 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-teal-950 flex items-center gap-1.5">
                     <Info className="w-4 h-4 text-teal-700" />
                     Chính sách đặt chỗ & Thanh toán sau
                   </h3>
-                  <span className="text-xs bg-teal-200 text-teal-900 font-bold px-2.5 py-0.5 rounded-full">
+                  <span className="text-xs bg-teal-200 text-[#15291E] font-bold px-2.5 py-0.5 rounded-full">
                     Chưa cần thanh toán
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs text-teal-900">
-                  <div className="flex justify-between items-center py-1 border-b border-teal-200/60 font-semibold">
+                <div className="space-y-2 text-xs text-[#15291E]">
+                  <div className="flex justify-between items-center py-1 border-b border-[#15291E]/15/60 font-semibold">
                     <span>Tổng giá tour tạm tính ({passengers.length} người):</span>
-                    <span className="text-sm font-bold text-blue-700">{formatVND(totalPrice)}</span>
+                    <span className="text-sm font-bold text-[#15291E]">{formatVND(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between items-center font-bold text-emerald-800">
                     <span>Số tiền cần thanh toán ngay lúc này:</span>
                     <span className="text-sm">0đ</span>
                   </div>
-                  <p className="text-xs text-teal-800 leading-relaxed bg-white/70 p-3 rounded-lg border border-teal-200/70">
+                  <p className="text-xs text-[#15291E] leading-relaxed bg-white/70 p-3 rounded-lg border border-[#15291E]/15/70">
                     💡 <strong>Lưu ý quan trọng:</strong> Vì các dịch vụ như khách sạn và chỗ ăn uống có thể có giá thay đổi theo thời điểm thực tế, công ty du lịch sẽ liên hệ trực tiếp với các đơn vị cung cấp đối tác ở ngoài hệ thống để hỏi và chốt giá chính thức cho đoàn của bạn. Sau khi công ty du lịch xác nhận lại thông tin và chốt giá, bạn mới tiến hành thanh toán.
                   </p>
                 </div>
@@ -1238,7 +1238,7 @@ export function BookingFormPage({
 
         {/* Step 4: Done */}
         {step === 4 && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 sm:p-10 text-center space-y-6">
+          <div className="bg-white rounded-2xl border border-[#E8E4DC] p-8 sm:p-10 text-center space-y-6">
             <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto shadow-xs">
               <CheckCircle className="w-10 h-10 text-teal-600" />
             </div>
@@ -1251,27 +1251,27 @@ export function BookingFormPage({
             </div>
 
             {/* Status card */}
-            <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5 max-w-lg mx-auto text-left space-y-3">
+            <div className="bg-[#15291E]/5 border border-[#15291E]/15 rounded-2xl p-5 max-w-lg mx-auto text-left space-y-3">
               <div className="flex items-start gap-3">
                 <Clock className="w-5 h-5 text-teal-700 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-teal-950 text-sm">
                     Trạng thái: Chờ công ty du lịch xác nhận &amp; chốt giá
                   </p>
-                  <p className="text-xs text-teal-800 mt-1 leading-relaxed">
+                  <p className="text-xs text-[#15291E] mt-1 leading-relaxed">
                     Công ty du lịch đang liên hệ với các bên cung cấp (khách sạn, nhà hàng, phương tiện) ở ngoài hệ thống để kiểm tra tình trạng dịch vụ và chốt giá chính thức cho bạn.
                   </p>
                 </div>
               </div>
 
-              <div className="border-t border-teal-200/80 pt-3 space-y-1.5 text-xs text-teal-900">
+              <div className="border-t border-[#15291E]/15/80 pt-3 space-y-1.5 text-xs text-[#15291E]">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Số lượng khách:</span>
                   <span className="font-bold text-gray-900">{passengers.length} người</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tổng giá tour tạm tính:</span>
-                  <span className="font-bold text-blue-700 text-sm">{formatVND(totalPrice)}</span>
+                  <span className="font-bold text-[#15291E] text-sm">{formatVND(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Số tiền cần thanh toán ngay:</span>

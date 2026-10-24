@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   User,
   Mail,
@@ -80,7 +80,7 @@ export function UserProfile() {
                 </div>
               </div>
               {isEditing && (
-                <button className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
+                <button className="absolute bottom-0 right-0 w-10 h-10 bg-[#15291E] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#BD5E38] transition-colors">
                   <Camera className="w-5 h-5" />
                 </button>
               )}
@@ -91,7 +91,7 @@ export function UserProfile() {
               <div className="mb-6 flex justify-end">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2"
+                  className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors font-semibold flex items-center gap-2"
                 >
                   <Edit2 className="w-5 h-5" />
                   Chỉnh sửa hồ sơ
@@ -324,7 +324,7 @@ export function UserProfile() {
                   </button>
                   <button
                     onClick={handleSave}
-                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors font-semibold flex items-center justify-center gap-2"
                   >
                     <Save className="w-5 h-5" />
                     Lưu thay đổi

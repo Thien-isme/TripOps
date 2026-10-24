@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { DailyItinerary, Location, TourMeal } from "@/app/types";
 import {
   Sparkles,
@@ -314,7 +314,7 @@ export function AIItineraryPlannerModal({
               {/* Destination */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  <MapPin className="w-3.5 h-3.5 text-[#15291E]" />
                   Điểm đến của Tour
                 </label>
                 <input
@@ -322,7 +322,7 @@ export function AIItineraryPlannerModal({
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   placeholder="Ví dụ: Đà Lạt, Phú Quốc, Hà Giang, Đà Nẵng..."
-                  className="w-full text-xs rounded-lg border border-slate-300 px-3.5 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden mb-2"
+                  className="w-full text-xs rounded-lg border border-slate-300 px-3.5 py-2.5 bg-white focus:ring-2 focus:ring-[#15291E] focus:outline-hidden mb-2"
                 />
                 <div className="flex flex-wrap gap-1.5">
                   <span className="text-[11px] text-slate-400 self-center mr-1">Gợi ý nhanh:</span>
@@ -333,7 +333,7 @@ export function AIItineraryPlannerModal({
                       onClick={() => setDestination(d)}
                       className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${
                         destination === d
-                          ? "bg-blue-600 text-white font-bold"
+                          ? "bg-[#15291E] text-white font-bold"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                     >
@@ -354,7 +354,7 @@ export function AIItineraryPlannerModal({
                   <select
                     value={daysCount}
                     onChange={(e) => setDaysCount(Number(e.target.value))}
-                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
                   >
                     <option value={2}>2 Ngày 1 Đêm (Cuối tuần)</option>
                     <option value={3}>3 Ngày 2 Đêm (Phổ biến nhất)</option>
@@ -366,13 +366,13 @@ export function AIItineraryPlannerModal({
                 {/* Target Audience */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-purple-600" />
+                    <Users className="w-3.5 h-3.5 text-[#BD5E38]" />
                     Đối tượng du khách
                   </label>
                   <select
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
-                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
                   >
                     <option value="company">Đoàn Doanh nghiệp & Teambuilding</option>
                     <option value="family">Gia đình nhiều thế hệ</option>
@@ -390,7 +390,7 @@ export function AIItineraryPlannerModal({
                   <select
                     value={theme}
                     onChange={(e) => setTheme(e.target.value)}
-                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                    className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
                   >
                     <option value="nature_teambuilding">Thiên nhiên & Teambuilding</option>
                     <option value="culture_food">Văn hoá bản địa & Ẩm thực</option>
@@ -410,7 +410,7 @@ export function AIItineraryPlannerModal({
                   value={extraRequests}
                   onChange={(e) => setExtraRequests(e.target.value)}
                   placeholder="Ví dụ: Buổi tối ngày 2 cần tiệc BBQ ngoài trời, hạn chế di chuyển dốc cao..."
-                  className="w-full text-xs rounded-lg border border-slate-300 px-3.5 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                  className="w-full text-xs rounded-lg border border-slate-300 px-3.5 py-2.5 bg-white focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
                 />
               </div>
 
@@ -444,7 +444,7 @@ export function AIItineraryPlannerModal({
                 </div>
                 <button
                   onClick={() => setGeneratedData(null)}
-                  className="text-xs text-blue-700 hover:text-blue-900 font-bold underline flex items-center gap-1"
+                  className="text-xs text-[#15291E] hover:text-blue-900 font-bold underline flex items-center gap-1"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Tạo lại cấu hình khác
@@ -488,7 +488,7 @@ export function AIItineraryPlannerModal({
                   <div key={day.day} className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-md bg-blue-100 text-blue-800 text-xs font-extrabold flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-md bg-[#15291E]/10 text-blue-800 text-xs font-extrabold flex items-center justify-center">
                           {day.day}
                         </span>
                         <h5 className="text-xs font-bold text-slate-900">{day.title}</h5>
@@ -504,7 +504,7 @@ export function AIItineraryPlannerModal({
                     <div className="space-y-2">
                       {day.locations.map((loc, lIdx) => (
                         <div key={lIdx} className="bg-slate-50 rounded-lg p-2.5 border border-slate-100 flex items-start gap-2.5">
-                          <span className="text-[11px] font-mono font-bold bg-white text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded shrink-0">
+                          <span className="text-[11px] font-mono font-bold bg-white text-[#15291E] border border-[#E8E4DC] px-1.5 py-0.5 rounded shrink-0">
                             {loc.time || "08:30"}
                           </span>
                           <div className="text-xs">

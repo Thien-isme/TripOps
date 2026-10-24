@@ -1,4 +1,4 @@
-import {
+﻿import {
   Bell,
   Check,
   CheckCheck,
@@ -154,7 +154,7 @@ export function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors flex items-center gap-2"
               >
                 <CheckCheck className="w-4 h-4" />
                 Đánh dấu tất cả đã đọc
@@ -170,7 +170,7 @@ export function NotificationsPage() {
               className={`bg-white rounded-xl p-5 shadow-md border-2 transition-all ${
                 notif.read
                   ? "border-gray-200"
-                  : "border-blue-500 bg-blue-50/30"
+                  : "border-blue-500 bg-[#FBF9F5]/30"
               }`}
             >
               <div className="flex items-start gap-4">
@@ -186,7 +186,7 @@ export function NotificationsPage() {
                       {notif.title}
                     </h3>
                     {!notif.read && (
-                      <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></span>
+                      <span className="w-2 h-2 bg-[#15291E] rounded-full flex-shrink-0 mt-2"></span>
                     )}
                   </div>
                   <p className="text-gray-600 text-sm mb-2">
@@ -201,10 +201,10 @@ export function NotificationsPage() {
                   {!notif.read && (
                     <button
                       onClick={() => markAsRead(notif.id)}
-                      className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-[#15291E]/10 rounded-lg transition-colors"
                       title="Đánh dấu đã đọc"
                     >
-                      <Check className="w-4 h-4 text-blue-600" />
+                      <Check className="w-4 h-4 text-[#15291E]" />
                     </button>
                   )}
                   <button

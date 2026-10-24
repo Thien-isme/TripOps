@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { Compass, ArrowRight } from "lucide-react";
 
 interface PublicHeaderProps {
   onShowLogin: () => void;
@@ -13,51 +13,75 @@ export function PublicHeader({
 }: PublicHeaderProps) {
   const menuItems = [
     { id: "home", label: "Trang chủ" },
-    { id: "book-tours", label: "Đặt Tour" },
+    { id: "book-tours", label: "Hành trình" },
+    { id: "services", label: "Dịch vụ địa phương" },
+    { id: "about", label: "Về TripOps" },
+    { id: "reviews", label: "Trải nghiệm thực tế" },
     { id: "contact", label: "Liên hệ" },
-    { id: "about", label: "Về chúng tôi" },
-    { id: "reviews", label: "Đánh giá của khách hàng" },
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+    <header className="fixed top-0 left-0 right-0 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#E8E4DC] z-50 transition-all duration-300">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+        <div className="flex justify-between items-center h-20">
+          {/* Brand Logo */}
           <div
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onNavigate?.("home")}
           >
-            <MapPin className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              TourViet
-            </span>
+            <div className="w-10 h-10 rounded-full bg-[#15291E] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+              <Compass className="w-5 h-5 text-[#E8E4DC]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold tracking-tight text-[#15291E]">
+                TripOps
+              </span>
+              <span className="text-[10px] tracking-widest uppercase text-[#686C67] -mt-1 font-medium">
+                Curated Travel
+              </span>
+            </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate?.(item.id)}
-                className={`transition-colors font-medium ${
-                  currentPage === item.id
-                    ? "text-blue-600"
-                    : "text-gray-700 hover:text-blue-600"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {menuItems.map((item) => {
+              const isActive = currentPage === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate?.(item.id)}
+                  className={`relative text-sm tracking-wide transition-colors py-1 ${
+                    isActive
+                      ? "text-[#15291E] font-medium"
+                      : "text-[#686C67] hover:text-[#15291E]"
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#BD5E38] rounded-full" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Login Button */}
-          <button
-            onClick={onShowLogin}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            Đăng nhập
-          </button>
+          {/* Action CTAs */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onShowLogin}
+              className="text-sm font-medium text-[#15291E] hover:text-[#BD5E38] transition-colors px-3 py-2"
+            >
+              Đăng nhập
+            </button>
+
+            <button
+              onClick={() => onNavigate?.("book-tours")}
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#15291E] text-[#FBF9F5] text-sm font-medium tracking-wide hover:bg-[#BD5E38] transition-all duration-300 shadow-sm"
+            >
+              <span>Khám phá ngay</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </nav>
     </header>

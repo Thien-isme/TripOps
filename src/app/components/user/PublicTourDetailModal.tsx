@@ -4,12 +4,11 @@ import {
   MapPin,
   Clock,
   Users,
-  DollarSign,
-  Star,
+  Compass,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
   Calendar,
-  User,
-  Mail,
-  UserCheck,
 } from "lucide-react";
 
 interface PublicTourDetailModalProps {
@@ -31,295 +30,152 @@ export function PublicTourDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto my-8">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Chi tiết tour
-          </h2>
+    <div className="fixed inset-0 bg-[#15291E]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-[#FFFFFF] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto border border-[#E8E4DC] shadow-[0_20px_60px_rgb(0,0,0,0.15)] font-sans">
+        
+        {/* Sticky Header */}
+        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-[#E8E4DC] px-6 py-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-2">
+            <Compass className="w-4 h-4 text-[#BD5E38]" />
+            <span className="text-xs uppercase font-semibold tracking-widest text-[#15291E]">
+              Chi tiết hành trình TripOps
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-8 h-8 rounded-full border border-[#E8E4DC] hover:border-[#15291E] flex items-center justify-center transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X className="w-4 h-4 text-[#15291E]" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Tour Image */}
-          <div className="rounded-xl overflow-hidden shadow-lg">
+        {/* Content Body */}
+        <div className="p-6 sm:p-8 space-y-8">
+          
+          {/* Main Visual */}
+          <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-[#FBF9F5] border border-[#E8E4DC]">
             <img
               src={tour.image}
               alt={tour.name}
-              className="w-full h-80 object-cover"
+              className="w-full h-full object-cover filter saturate-[0.92]"
             />
+            <div className="absolute top-4 left-4 bg-[#FBF9F5]/90 backdrop-blur-md text-[#15291E] px-3 py-1 rounded-full text-xs font-medium border border-[#E8E4DC]">
+              {tour.destination}
+            </div>
+            {tour.companyName && (
+              <div className="absolute bottom-4 left-4 bg-[#15291E]/90 text-white px-3 py-1 rounded-full text-xs font-light">
+                Đơn vị tổ chức: {tour.companyName}
+              </div>
+            )}
           </div>
 
-          {/* Tour Name and Description */}
-          <div>
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-3xl font-bold text-gray-900">
-                {tour.name}
-              </h3>
-              <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                <span className="font-bold text-gray-900">
-                  {tour.rating}
+          {/* Title & Metadata Strip */}
+          <div className="space-y-4">
+            <h2 className="text-2xl sm:text-4xl font-serif text-[#15291E] leading-snug">
+              {tour.name}
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-[#FBF9F5] border border-[#E8E4DC]">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Thời lượng</span>
+                <span className="text-sm font-semibold text-[#15291E] flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-[#BD5E38]" />
+                  {tour.duration}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Quy mô đoàn</span>
+                <span className="text-sm font-semibold text-[#15291E] flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5 text-[#BD5E38]" />
+                  Tối đa {tour.maxGuests} người
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Điểm xuất phát</span>
+                <span className="text-sm font-semibold text-[#15291E] flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#BD5E38]" />
+                  {tour.destination}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Dịch vụ đi kèm</span>
+                <span className="text-sm font-semibold text-[#15291E] flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#BD5E38]" />
+                  Bảo hiểm 100%
                 </span>
               </div>
             </div>
-            <p className="text-lg text-gray-600 leading-relaxed">
+          </div>
+
+          {/* Description */}
+          <div className="space-y-3">
+            <h3 className="text-sm uppercase tracking-wider font-semibold text-[#BD5E38]">
+              Trải nghiệm nổi bật
+            </h3>
+            <p className="text-sm text-[#191A19]/80 leading-relaxed font-light">
               {tour.description}
             </p>
           </div>
 
-          {/* Tour Info Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-100">
-              <div className="flex items-center gap-2 text-blue-600 mb-1">
-                <MapPin className="w-5 h-5" />
-                <span className="font-semibold text-sm">
-                  Điểm đến
-                </span>
+          {/* TripOps Guarantees */}
+          <div className="p-6 rounded-2xl bg-[#15291E] text-[#FBF9F5] space-y-3">
+            <h4 className="text-xs uppercase tracking-widest text-[#BD5E38] font-semibold">
+              Cam kết chuẩn mực dịch vụ TripOps
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#FBF9F5]/80 font-light">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#BD5E38]" />
+                <span>Không phát sinh phụ phí ẩn trong suốt hành trình</span>
               </div>
-              <p className="text-gray-900 font-medium">
-                {tour.destination}
-              </p>
-            </div>
-
-            <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-100">
-              <div className="flex items-center gap-2 text-purple-600 mb-1">
-                <Clock className="w-5 h-5" />
-                <span className="font-semibold text-sm">
-                  Thời gian
-                </span>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#BD5E38]" />
+                <span>Khách sạn & phương tiện được kiểm tra thực tế</span>
               </div>
-              <p className="text-gray-900 font-medium">
-                {tour.duration}
-              </p>
-            </div>
-
-            <div className="bg-green-50 rounded-xl p-4 border-2 border-green-100">
-              <div className="flex items-center gap-2 text-green-600 mb-1">
-                <DollarSign className="w-5 h-5" />
-                <span className="font-semibold text-sm">
-                  Giá
-                </span>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#BD5E38]" />
+                <span>Hướng dẫn viên bản địa am hiểu văn hóa sâu sắc</span>
               </div>
-              <p className="text-gray-900 font-bold text-lg">
-                {formatPrice(tour.price)}
-              </p>
-            </div>
-
-            <div className="bg-orange-50 rounded-xl p-4 border-2 border-orange-100">
-              <div className="flex items-center gap-2 text-orange-600 mb-1">
-                <Users className="w-5 h-5" />
-                <span className="font-semibold text-sm">
-                  Số khách
-                </span>
-              </div>
-              <p className="text-gray-900 font-medium">
-                {tour.minGuests} - {tour.maxGuests} người
-              </p>
-            </div>
-
-            {tour.tourCode && (
-              <div className="bg-indigo-50 rounded-xl p-4 border-2 border-indigo-100">
-                <div className="flex items-center gap-2 text-indigo-600 mb-1">
-                  <Calendar className="w-5 h-5" />
-                  <span className="font-semibold text-sm">
-                    Mã tour
-                  </span>
-                </div>
-                <p className="text-gray-900 font-medium">
-                  {tour.tourCode}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Important Notice - Min Guests */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-5">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5">
-                <UserCheck className="w-6 h-6 text-amber-600" />
-              </div>
-              <div>
-                <h4 className="font-bold text-amber-900 mb-1">
-                  Lưu ý về số lượng khách
-                </h4>
-                <p className="text-amber-800">
-                  Tour yêu cầu tối thiểu{" "}
-                  <strong>{tour.minGuests} người</strong> và tối
-                  đa <strong>{tour.maxGuests} người</strong> để
-                  khởi hành.
-                </p>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#BD5E38]" />
+                <span>Hỗ trợ điều phối viên 1:1 qua hotline khẩn cấp</span>
               </div>
             </div>
           </div>
 
-          {/* Highlights */}
-          {tour.highlights && tour.highlights.length > 0 && (
-            <div>
-              <h4 className="font-bold text-2xl text-gray-900 mb-4 flex items-center gap-2">
-                <Star className="w-6 h-6 text-yellow-500" />
-                Điểm nổi bật
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {tour.highlights.map((highlight, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 bg-gray-50 p-4 rounded-xl"
-                  >
-                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-white text-sm font-bold">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <span className="text-gray-700 leading-relaxed">
-                      {highlight}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Itinerary */}
-          {tour.itinerary && tour.itinerary.length > 0 && (
-            <div>
-              <h4 className="font-bold text-2xl text-gray-900 mb-5">
-                Lịch trình chi tiết
-              </h4>
-              <div className="space-y-5">
-                {tour.itinerary.map((day, index) => (
-                  <div
-                    key={day.id}
-                    className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-colors"
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-                        {day.day}
-                      </div>
-                      <div className="flex-1">
-                        <h5 className="font-bold text-xl text-gray-900 mb-1">
-                          {day.title}
-                        </h5>
-                        <p className="text-gray-600">
-                          {day.description}
-                        </p>
-                        {day.date && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            Ngày:{" "}
-                            {new Date(
-                              day.date,
-                            ).toLocaleDateString("vi-VN")}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Locations */}
-                    {day.locations &&
-                      day.locations.length > 0 && (
-                        <div className="pl-[72px] space-y-3">
-                          {day.locations.map(
-                            (location, locIndex) => (
-                              <div
-                                key={location.id}
-                                className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg"
-                              >
-                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                                  {locIndex + 1}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between gap-2 mb-1">
-                                    <h6 className="font-bold text-gray-900">
-                                      {location.name}
-                                    </h6>
-                                    {location.time && (
-                                      <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                        {location.time}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-start gap-2 text-sm text-gray-600">
-                                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                    <span>
-                                      {location.address}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            ),
-                          )}
-                        </div>
-                      )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Created By Info - Optional */}
-          {tour.createdByName && (
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-600" />
-                Thông tin tour
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span>
-                    Người tạo:{" "}
-                    <strong>{tour.createdByName}</strong>
-                  </span>
-                </div>
-                {tour.createdAt && (
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span>
-                      Ngày tạo:{" "}
-                      <strong>{tour.createdAt}</strong>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Footer - Action Buttons */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-between gap-4">
+        {/* Action Footer */}
+        <div className="sticky bottom-0 bg-white border-t border-[#E8E4DC] px-6 sm:px-8 py-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600">Giá tour</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Chi phí trọn gói từ</span>
+            <span className="text-2xl font-serif font-semibold text-[#15291E]">
               {formatPrice(tour.price)}
-            </p>
-            <p className="text-xs text-gray-500">
-              * Giá cho 1 người
-            </p>
+            </span>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+              className="px-5 py-2.5 rounded-full border border-[#E8E4DC] text-xs font-medium text-[#15291E] hover:border-[#15291E] transition-colors"
             >
-              Đóng
+              Đóng lại
             </button>
-            {onBookNow && (
-              <button
-                onClick={onBookNow}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold"
-              >
-                Đặt ngay
-              </button>
-            )}
+            <button
+              onClick={() => {
+                onClose();
+                onBookNow?.();
+              }}
+              className="px-6 py-2.5 rounded-full bg-[#15291E] text-white text-xs font-semibold hover:bg-[#BD5E38] transition-all duration-300 shadow-sm flex items-center gap-2"
+            >
+              <span>Đặt hành trình này</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
+
       </div>
     </div>
   );

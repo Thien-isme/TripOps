@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
-  Star,
   PenSquare,
   Handshake,
   Compass,
@@ -42,60 +41,55 @@ export function CompanyLayout({
   const menuItems = [
     { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
     { id: "tours", label: "Quản lý Tour", icon: Package },
-    { id: "bookings", label: "Đặt tour", icon: Calendar },
+    { id: "bookings", label: "Đặt tour & Khách", icon: Calendar },
     { id: "services", label: "Dịch vụ đối tác", icon: Compass },
     { id: "guides", label: "Hướng dẫn viên", icon: Users },
-    { id: "custom-requests", label: "Yêu cầu thiết kế", icon: PenSquare },
-    { id: "co-hosting", label: "Liên minh đối tác", icon: Handshake, badge: coHostingBadgeCount },
+    { id: "custom-requests", label: "Yêu cầu thiết kế riêng", icon: PenSquare },
+    { id: "co-hosting", label: "Liên minh lữ hành", icon: Handshake, badge: coHostingBadgeCount },
   ];
 
   const SidebarContent = () => (
     <>
-      <div className="p-4 border-b border-gray-200">
+      {/* Brand & User Profile Header */}
+      <div className="p-4 border-b border-[#E8E4DC]">
         <div className="flex items-center justify-between gap-2">
           {!collapsed && (
             <div className="flex items-center gap-3 min-w-0">
-              {company.logo ? (
-                <img
-                  src={company.logo}
-                  alt={company.name}
-                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-5 h-5 text-blue-600" />
-                </div>
-              )}
+              <div className="w-10 h-10 rounded-xl bg-[#15291E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
+                {company.name ? company.name.substring(0, 2).toUpperCase() : "TO"}
+              </div>
               <div className="min-w-0">
-                <p className="font-semibold text-gray-900 text-sm truncate">
+                <p className="font-serif font-semibold text-[#15291E] text-sm truncate">
                   {company.name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block -mt-0.5 font-medium truncate">
                   {currentUser.name}
-                </p>
+                </span>
               </div>
             </div>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors hidden lg:block flex-shrink-0"
+            className="p-1.5 hover:bg-[#FBF9F5] rounded-lg transition-colors hidden lg:flex items-center justify-center border border-[#E8E4DC] text-[#686C67]"
+            title={collapsed ? "Mở rộng menu" : "Thu gọn"}
           >
             {collapsed ? (
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-3.5 h-3.5" />
             ) : (
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             )}
           </button>
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors lg:hidden"
+            className="p-2 hover:bg-[#FBF9F5] rounded-lg transition-colors lg:hidden text-[#686C67]"
           >
-            <X className="w-4 h-4 text-gray-600" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <nav className="p-4 space-y-1 flex-1">
+      {/* Navigation */}
+      <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
@@ -106,22 +100,22 @@ export function CompanyLayout({
                 onNavigate(item.id);
                 setMobileOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-xs font-medium ${
                 isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-[#15291E] text-white shadow-sm font-semibold"
+                  : "text-[#686C67] hover:text-[#15291E] hover:bg-[#FBF9F5]"
               }`}
             >
               <Icon
-                className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-gray-500"}`}
+                className={`w-4 h-4 flex-shrink-0 ${
+                  isActive ? "text-[#BD5E38]" : "text-[#686C67]"
+                }`}
               />
               {!collapsed && (
                 <div className="flex items-center justify-between flex-1 min-w-0">
-                  <span className="font-medium text-sm truncate">
-                    {item.label}
-                  </span>
+                  <span className="truncate">{item.label}</span>
                   {item.badge && item.badge > 0 ? (
-                    <span className="bg-amber-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ml-1">
+                    <span className="bg-[#BD5E38] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">
                       {item.badge}
                     </span>
                   ) : null}
@@ -132,18 +126,15 @@ export function CompanyLayout({
         })}
       </nav>
 
+      {/* Logout */}
       {onLogout && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-3 border-t border-[#E8E4DC]">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && (
-              <span className="font-medium text-sm">
-                Đăng xuất
-              </span>
-            )}
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!collapsed && <span>Đăng xuất</span>}
           </button>
         </div>
       )}
@@ -151,46 +142,57 @@ export function CompanyLayout({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#FBF9F5] flex font-sans antialiased text-[#191A19]">
+      {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-white border-r border-gray-200 transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
-          collapsed ? "w-16" : "w-60"
+        className={`hidden lg:flex flex-col bg-white border-r border-[#E8E4DC] transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
+          collapsed ? "w-16" : "w-64"
         }`}
       >
         <SidebarContent />
       </aside>
 
+      {/* Mobile Drawer */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-[#15291E]/50 z-40 backdrop-blur-xs"
           onClick={() => setMobileOpen(false)}
         />
       )}
-
       <aside
-        className={`lg:hidden fixed left-0 top-0 bottom-0 w-60 bg-white border-r border-gray-200 z-50 flex flex-col transform transition-transform ${
+        className={`lg:hidden fixed top-0 bottom-0 left-0 w-64 bg-white z-50 transform transition-transform duration-300 flex flex-col border-r border-[#E8E4DC] ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <SidebarContent />
       </aside>
 
-      <main
-        className={`flex-1 overflow-auto transition-all duration-300 ${collapsed ? "lg:ml-16" : "lg:ml-60"}`}
+      {/* Main Container */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          collapsed ? "lg:ml-16" : "lg:ml-64"
+        }`}
       >
-        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30 flex items-center gap-3">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <Menu className="w-5 h-5 text-gray-600" />
-          </button>
-          <span className="font-semibold text-gray-900">
-            {company.name}
-          </span>
+        {/* Mobile Header Bar */}
+        <div className="lg:hidden bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="p-1.5 hover:bg-[#FBF9F5] rounded-lg border border-[#E8E4DC]"
+            >
+              <Menu className="w-5 h-5 text-[#15291E]" />
+            </button>
+            <span className="font-serif font-semibold text-[#15291E] text-sm">
+              {company.name}
+            </span>
+          </div>
         </div>
-        <div className="p-6">{children}</div>
-      </main>
+
+        {/* Dynamic Page Content */}
+        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import {
   Tour,
   Service,
@@ -86,7 +86,7 @@ const TABS: { id: TabId; label: string }[] = [
 const MEAL_LABELS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   breakfast: { label: "Sáng", icon: Sun, color: "text-amber-600 bg-amber-50" },
   lunch: { label: "Trưa", icon: Utensils, color: "text-emerald-600 bg-emerald-50" },
-  dinner: { label: "Tối", icon: UtensilsCrossed, color: "text-purple-600 bg-purple-50" },
+  dinner: { label: "Tối", icon: UtensilsCrossed, color: "text-[#BD5E38] bg-[#FBF9F5]" },
 };
 
 function formatVND(n: number) {
@@ -112,8 +112,8 @@ function ProgramTab({ tour }: { tour: Tour }) {
     <div className="space-y-8">
       {/* Operation period */}
       {tour.operationPeriod && (
-        <section className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-          <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide mb-2 flex items-center gap-2">
+        <section className="bg-[#FBF9F5] border border-blue-100 rounded-xl p-4">
+          <h3 className="text-sm font-bold text-[#15291E] uppercase tracking-wide mb-2 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Thời gian hoạt động
           </h3>
@@ -217,7 +217,7 @@ function ProgramTab({ tour }: { tour: Tour }) {
                         if (list.length === 1) {
                           const [_, cName] = list[0];
                           return (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1 shadow-2xs">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#BD5E38]/15 text-purple-800 border border-[#BD5E38]/30 flex items-center gap-1 shadow-2xs">
                               <Handshake className="w-3 h-3" />
                               Phụ trách: {cName}
                             </span>
@@ -277,7 +277,7 @@ function ProgramTab({ tour }: { tour: Tour }) {
                                     ? "bg-amber-50/60 border-amber-200/80"
                                     : isLunch
                                     ? "bg-emerald-50/60 border-emerald-200/80"
-                                    : "bg-purple-50/60 border-purple-200/80"
+                                    : "bg-[#FBF9F5]/60 border-[#BD5E38]/30/80"
                                 }`}
                               >
                                 <div
@@ -286,7 +286,7 @@ function ProgramTab({ tour }: { tour: Tour }) {
                                       ? "bg-amber-100 text-amber-700"
                                       : isLunch
                                       ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-purple-100 text-purple-700"
+                                      : "bg-[#BD5E38]/15 text-[#A34C2A]"
                                   }`}
                                 >
                                   {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
@@ -421,7 +421,7 @@ function PricingTab({ tour }: { tour: Tour }) {
               <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="px-4 py-3 font-medium text-gray-900">{row.ageGroupLabel ?? row.ageGroup}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{row.ageRange || "—"}</td>
-                <td className="px-4 py-3 text-right font-bold text-blue-700">
+                <td className="px-4 py-3 text-right font-bold text-[#15291E]">
                   {row.price === 0 ? "Miễn phí" : formatVND(row.price)}
                 </td>
               </tr>
@@ -908,7 +908,7 @@ function CustomTab({
   return (
     <div className="space-y-6">
       {/* Price banner matching thaydoikhachsan.png */}
-      <div className="rounded-2xl p-5 bg-blue-600 text-white shadow-sm">
+      <div className="rounded-2xl p-5 bg-[#15291E] text-white shadow-sm">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="text-sm text-blue-100 font-medium">Giá cơ bản / người</p>
@@ -939,7 +939,7 @@ function CustomTab({
       {/* ===== HOTEL SECTION ===== */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-blue-600" />
+          <Building2 className="w-4 h-4 text-[#15291E]" />
           Khách sạn lưu trú
         </h3>
 
@@ -957,10 +957,10 @@ function CustomTab({
             <div key={destination} className="border border-gray-200 rounded-xl overflow-hidden">
               <button
                 onClick={() => setExpandedHotelDest(isExpanded ? null : destination)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors text-left"
+                className="w-full flex items-center justify-between px-4 py-3 bg-[#FBF9F5] hover:bg-[#15291E]/10 transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
-                  <Building2 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <Building2 className="w-5 h-5 text-[#15291E] flex-shrink-0" />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{destination}</p>
                     <p className="text-xs text-gray-500">
@@ -1005,7 +1005,7 @@ function CustomTab({
                       onClick={() => updateDestHotel(destination, { ...choice, mode: "system" })}
                       className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                         choice.mode === "system"
-                          ? "bg-white text-blue-700 shadow-xs border border-blue-200"
+                          ? "bg-white text-[#15291E] shadow-xs border border-[#E8E4DC]"
                           : "text-gray-600 hover:text-gray-900"
                       }`}
                     >
@@ -1095,7 +1095,7 @@ function CustomTab({
                                 priceDifference: opt.diff,
                               })}
                               className={`text-left p-3.5 rounded-xl border-2 transition-all ${
-                                isSel ? "border-blue-500 bg-white ring-1 ring-blue-400/30" : "border-gray-200 bg-white hover:border-blue-200"
+                                isSel ? "border-blue-500 bg-white ring-1 ring-blue-400/30" : "border-gray-200 bg-white hover:border-[#E8E4DC]"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2">
@@ -1297,7 +1297,7 @@ function CustomTab({
       <div className="space-y-3">
         <div>
           <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-purple-600" />
+            <MapPin className="w-4 h-4 text-[#BD5E38]" />
             Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -1322,7 +1322,7 @@ function CustomTab({
               {/* Day header */}
               <div className={`px-4 py-3 flex items-center justify-between ${hasChanges ? "bg-amber-50" : "bg-gray-50"}`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
+                  <div className="w-8 h-8 bg-[#BD5E38] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
                     {day.day}
                   </div>
                   <div>
@@ -1398,7 +1398,7 @@ function CustomTab({
                               className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
                                 loc.changed
                                   ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700"
+                                  : "bg-gray-100 text-gray-600 hover:bg-[#BD5E38]/15 hover:text-[#A34C2A]"
                               }`}
                             >
                               {loc.changed ? "Huỷ thay đổi" : "Thay đổi"}
@@ -1463,7 +1463,7 @@ function CustomTab({
                                   ? "bg-amber-50/60 hover:bg-amber-100/50"
                                   : mealType === "lunch"
                                   ? "bg-emerald-50/60 hover:bg-emerald-100/50"
-                                  : "bg-purple-50/60 hover:bg-purple-100/50"
+                                  : "bg-[#FBF9F5]/60 hover:bg-[#BD5E38]/15/50"
                               }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
@@ -1472,7 +1472,7 @@ function CustomTab({
                                     ? "bg-amber-100 text-amber-700"
                                     : mealType === "lunch"
                                     ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-purple-100 text-purple-700"
+                                    : "bg-[#BD5E38]/15 text-[#A34C2A]"
                                 }`}>
                                   {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
                                 </div>
@@ -1803,7 +1803,7 @@ function CustomTab({
 
       {/* Price summary */}
       {!needsCompanyQuote && knownDelta !== 0 && (
-        <div className="bg-white border-2 border-blue-200 rounded-2xl p-5">
+        <div className="bg-white border-2 border-[#E8E4DC] rounded-2xl p-5">
           <h4 className="font-bold text-gray-900 mb-3 text-sm">Tóm tắt điều chỉnh / người:</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600">
@@ -1828,7 +1828,7 @@ function CustomTab({
             )}
             <div className="border-t border-gray-200 pt-2 flex justify-between font-bold">
               <span>Tổng dự kiến / người</span>
-              <span className="text-blue-700 text-base">{formatVND(estimatedTotal ?? basePrice)}</span>
+              <span className="text-[#15291E] text-base">{formatVND(estimatedTotal ?? basePrice)}</span>
             </div>
           </div>
           <p className="text-xs text-gray-400 mt-2">* Giá chính thức xác nhận khi công ty duyệt booking.</p>
@@ -2020,7 +2020,7 @@ function ReviewsTab({ tour }: { tour: Tour }) {
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6">
         <div className="text-center">
-          <p className="text-6xl font-bold text-blue-700">{avg.toFixed(1)}</p>
+          <p className="text-6xl font-bold text-[#15291E]">{avg.toFixed(1)}</p>
           <div className="flex justify-center gap-0.5 mt-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} className={`w-5 h-5 ${i < Math.round(avg) ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
@@ -2059,7 +2059,7 @@ function ReviewsTab({ tour }: { tour: Tour }) {
                   {r.userAvatar ? (
                     <img src={r.userAvatar} alt={r.userName} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700">
+                    <div className="w-10 h-10 rounded-full bg-[#15291E]/10 flex items-center justify-center font-bold text-[#15291E]">
                       {r.userName[0]}
                     </div>
                   )}
@@ -2281,7 +2281,7 @@ export function TourDetailPage({
                     onClick={() => setSelectedPhoto(img)}
                     className={`relative rounded-xl overflow-hidden border-2 flex-shrink-0 w-20 h-14 transition-all ${
                       (selectedPhoto === img)
-                        ? "border-blue-600 ring-2 ring-blue-500/50 scale-105"
+                        ? "border-[#15291E] ring-2 ring-blue-500/50 scale-105"
                         : "border-gray-200 hover:border-blue-300 opacity-70 hover:opacity-100"
                     }`}
                   >
@@ -2383,8 +2383,8 @@ export function TourDetailPage({
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                             ch.role === "lead"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-purple-100 text-purple-800"
+                              ? "bg-[#15291E]/10 text-blue-800"
+                              : "bg-[#BD5E38]/15 text-purple-800"
                           }`}
                         >
                           {ch.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Bản địa"}
@@ -2415,7 +2415,7 @@ export function TourDetailPage({
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex-shrink-0 px-4 py-3 text-sm font-medium transition-all border-b-2 ${
                       activeTab === tab.id
-                        ? "border-blue-600 text-blue-700 bg-blue-50/50"
+                        ? "border-[#15291E] text-[#15291E] bg-[#FBF9F5]/50"
                         : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
@@ -2449,7 +2449,7 @@ export function TourDetailPage({
             <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-5 sticky top-20 space-y-4">
               <div>
                 <p className="text-sm text-gray-500">Giá tour / người</p>
-                <p className="text-3xl font-bold text-blue-700">{formatVND(customPrice)}</p>
+                <p className="text-3xl font-bold text-[#15291E]">{formatVND(customPrice)}</p>
                 <p className="text-xs text-gray-400">/ người lớn</p>
                 {customPrice !== basePrice && (
                   <p className={`text-xs font-semibold mt-1 ${customPrice > basePrice ? "text-amber-600" : "text-emerald-600"}`}>
@@ -2459,18 +2459,18 @@ export function TourDetailPage({
               </div>
 
               {isCustomTour && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-xs text-purple-900 space-y-1">
+                <div className="bg-[#FBF9F5] border border-[#BD5E38]/30 rounded-xl p-3 text-xs text-purple-900 space-y-1">
                   <p className="font-bold flex items-center gap-1 text-purple-950">
                     <span>🔒</span> Tour thiết kế riêng độc quyền
                   </p>
-                  <p className="text-[11px] text-purple-700 leading-relaxed">
+                  <p className="text-[11px] text-[#A34C2A] leading-relaxed">
                     Giá và dịch vụ đã chốt theo yêu cầu riêng. Quý khách bấm đặt tour bên dưới để hoàn tất giữ chỗ.
                   </p>
                 </div>
               )}
 
               {tour.operationPeriod && (
-                <div className="bg-blue-50 rounded-xl p-3 text-sm">
+                <div className="bg-[#FBF9F5] rounded-xl p-3 text-sm">
                   <p className="text-xs text-blue-500 font-medium mb-1">Thời gian hoạt động</p>
                   <p className="text-gray-800">{tour.operationPeriod}</p>
                 </div>
@@ -2499,11 +2499,11 @@ export function TourDetailPage({
 
               {isAdmin ? (
                 <div className="space-y-2.5 pt-2 border-t border-gray-100">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+                  <div className="p-3 bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl text-xs text-blue-900">
                     <p className="font-semibold text-blue-950 flex items-center gap-1.5 mb-1">
-                      <ShieldCheck className="w-4 h-4 text-blue-600" /> Bảng điều khiển Admin
+                      <ShieldCheck className="w-4 h-4 text-[#15291E]" /> Bảng điều khiển Admin
                     </p>
-                    <p className="text-blue-700 text-[11px] leading-relaxed">
+                    <p className="text-[#15291E] text-[11px] leading-relaxed">
                       Bạn đang xem toàn bộ thông tin chi tiết tour. Nếu nội dung sai sự thật, xàm hoặc vi phạm, bạn có thể tạm ẩn hoặc xóa khỏi hệ thống.
                     </p>
                   </div>
@@ -2541,7 +2541,7 @@ export function TourDetailPage({
                     onClick={handleBook}
                     className={`w-full ${
                       isCustomTour
-                        ? "bg-purple-600 hover:bg-purple-700 text-white"
+                        ? "bg-[#BD5E38] hover:bg-[#A34C2A] text-white"
                         : "bg-red-600 hover:bg-red-700 text-white"
                     } font-semibold py-3 text-base rounded-xl`}
                   >
@@ -2551,7 +2551,7 @@ export function TourDetailPage({
                   {!currentUser && (
                     <p className="text-center text-xs text-gray-400">
                       Đã có tài khoản?{" "}
-                      <button onClick={onShowLogin} className="text-blue-600 hover:underline">
+                      <button onClick={onShowLogin} className="text-[#15291E] hover:underline">
                         Đăng nhập
                       </button>
                     </p>
@@ -2571,7 +2571,7 @@ export function TourDetailPage({
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Liên hệ công ty</p>
                     
                     <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <Building2 className="w-4 h-4 text-[#15291E] flex-shrink-0" />
                       <span className="font-semibold">{tour.companyName}</span>
                     </div>
 

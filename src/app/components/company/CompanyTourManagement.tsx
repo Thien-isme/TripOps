@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import {
   Tour,
   TourCompany,
@@ -172,7 +172,7 @@ export function CompanyTourManagement({
         <Button
           disabled={!isApproved}
           onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-[#15291E] hover:bg-[#BD5E38] text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
           Tạo Tour mới
@@ -180,12 +180,12 @@ export function CompanyTourManagement({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E8E4DC] pb-3">
         <button
           onClick={() => setTourTypeFilter("all")}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             tourTypeFilter === "all"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-[#15291E] text-white shadow-xs"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
@@ -195,7 +195,7 @@ export function CompanyTourManagement({
           onClick={() => setTourTypeFilter("public")}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             tourTypeFilter === "public"
-              ? "bg-blue-600 text-white shadow-xs"
+              ? "bg-[#15291E] text-white shadow-xs"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
@@ -227,8 +227,8 @@ export function CompanyTourManagement({
           onClick={() => setTourTypeFilter("custom")}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
             tourTypeFilter === "custom"
-              ? "bg-purple-600 text-white shadow-xs"
-              : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+              ? "bg-[#BD5E38] text-white shadow-xs"
+              : "bg-[#FBF9F5] text-[#A34C2A] hover:bg-[#BD5E38]/15"
           }`}
         >
           <span>✨ Tour thiết kế theo yêu cầu ({customCount})</span>
@@ -236,7 +236,7 @@ export function CompanyTourManagement({
       </div>
 
       {copiedNotice && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center justify-between text-sm text-emerald-800 animate-in fade-in">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center justify-between text-sm text-emerald-800 animate-in fade-in">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-emerald-600" />
             <span>{copiedNotice}</span>
@@ -251,13 +251,13 @@ export function CompanyTourManagement({
       )}
 
       {!isApproved && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
           Công ty chưa được phê duyệt. Bạn cần được nền tảng phê duyệt để tạo và đăng tour.
         </div>
       )}
 
       {filteredTours.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-2xl border border-[#E8E4DC] p-16 text-center">
           <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">
             {tourTypeFilter === "custom"
@@ -279,8 +279,8 @@ export function CompanyTourManagement({
             return (
               <div
                 key={tour.id}
-                className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between ${
-                  isCustom ? "border-purple-300 ring-1 ring-purple-100" : "border-gray-200"
+                className={`bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between ${
+                  isCustom ? "border-purple-300 ring-1 ring-purple-100" : "border-[#E8E4DC]"
                 }`}
               >
                 <div>
@@ -297,11 +297,11 @@ export function CompanyTourManagement({
 
                     <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
                       {isCustom ? (
-                        <div className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                        <div className="bg-[#BD5E38] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
                           <span>🔒 Theo yêu cầu (v{tour.version || 1})</span>
                         </div>
                       ) : (
-                        <div className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                        <div className="bg-[#15291E] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
                           {tour.tourCode}
                         </div>
                       )}
@@ -346,9 +346,9 @@ export function CompanyTourManagement({
 
                   <div className="p-4">
                     {isCustom && tour.targetCustomerName && (
-                      <div className="mb-2 bg-purple-50 text-purple-800 text-[11px] font-semibold px-2 py-1 rounded-md flex items-center justify-between border border-purple-200">
+                      <div className="mb-2 bg-[#FBF9F5] text-purple-800 text-[11px] font-semibold px-2 py-1 rounded-md flex items-center justify-between border border-[#BD5E38]/30">
                         <span>Khách: {tour.targetCustomerName}</span>
-                        {tour.targetCustomerPhone && <span className="text-purple-600">{tour.targetCustomerPhone}</span>}
+                        {tour.targetCustomerPhone && <span className="text-[#BD5E38]">{tour.targetCustomerPhone}</span>}
                       </div>
                     )}
 
@@ -397,7 +397,7 @@ export function CompanyTourManagement({
                   <div className="flex items-center justify-between border-t border-gray-100 pt-3">
                     <div>
                       <p className="text-[11px] text-gray-400">Giá cơ bản từ</p>
-                      <p className="text-base font-extrabold text-blue-600">
+                      <p className="text-base font-extrabold text-[#15291E]">
                         {tour.price.toLocaleString("vi-VN")}đ
                       </p>
                     </div>
@@ -433,7 +433,7 @@ export function CompanyTourManagement({
                           type="button"
                           title="Lịch sử phiên bản & Phục hồi (Version Backup/Restore)"
                           onClick={() => setVersionHistoryTour(tour)}
-                          className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors"
+                          className="p-2 text-[#BD5E38] hover:text-purple-800 hover:bg-[#FBF9F5] rounded-lg transition-colors"
                         >
                           <History className="w-4 h-4" />
                         </button>
@@ -450,7 +450,7 @@ export function CompanyTourManagement({
                         type="button"
                         title="Chỉnh sửa chi tiết tour"
                         onClick={() => setEditingTour(tour)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 hover:text-[#15291E] hover:bg-[#FBF9F5] rounded-lg transition-colors"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -497,9 +497,9 @@ export function CompanyTourManagement({
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <p className="text-xs font-bold text-gray-800">
-              Tour: <span className="text-blue-600 font-semibold">{viewRejectionTour?.name}</span>
+              Tour: <span className="text-[#15291E] font-semibold">{viewRejectionTour?.name}</span>
             </p>
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs text-rose-900 leading-relaxed">
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 text-xs text-rose-900 leading-relaxed">
               <p className="font-bold mb-1">Ghi chú từ kiểm duyệt viên:</p>
               <p>{viewRejectionTour?.rejectionReason || "Chưa có phản hồi chi tiết từ kiểm duyệt viên. Vui lòng kiểm tra lại thông tin tour."}</p>
             </div>
@@ -516,7 +516,7 @@ export function CompanyTourManagement({
                     setEditingTour(t);
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center gap-1.5"
+                className="bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs flex items-center gap-1.5"
               >
                 <Edit className="w-3.5 h-3.5" />
                 Chỉnh sửa tour ngay
@@ -1552,7 +1552,7 @@ export function TourFormPage({
   return (
     <div className="bg-slate-50 min-h-screen pb-16 space-y-6 -m-6">
       {/* Sticky Top Header Bar */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200 px-6 py-3.5 flex items-center justify-between shadow-2xs">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E8E4DC] px-6 py-3.5 flex items-center justify-between shadow-2xs">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -1565,7 +1565,7 @@ export function TourFormPage({
           <div className="h-5 w-px bg-gray-200" />
           <div>
             <h1 className="text-base sm:text-lg font-bold text-gray-900 leading-tight flex items-center gap-2">
-              <Package className={`w-5 h-5 ${isCustom ? "text-purple-600" : "text-blue-600"}`} />
+              <Package className={`w-5 h-5 ${isCustom ? "text-[#BD5E38]" : "text-[#15291E]"}`} />
               {isCustom
                 ? (tour ? `Chỉnh sửa Tour Theo Yêu Cầu: ${tour.name} (v${tour.version || 1})` : "Thiết Kế Tour Riêng Theo Yêu Cầu Của Khách")
                 : (tour ? `Chỉnh sửa Tour: ${tour.name}` : "Thiết kế & Tạo Tour Du lịch Mới")}
@@ -1601,8 +1601,8 @@ export function TourFormPage({
             onClick={handleSubmit}
             className={`${
               isCustom
-                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-[#BD5E38] hover:bg-[#A34C2A] text-white"
+                : "bg-[#15291E] hover:bg-[#BD5E38] text-white"
             } font-semibold shadow-xs`}
           >
             <Check className="w-4 h-4 mr-1.5" />
@@ -1698,7 +1698,7 @@ export function TourFormPage({
       )}
 
       {/* Sticky Tabs Bar */}
-      <div className="bg-white border-y border-gray-200 px-6 shadow-2xs sticky top-[57px] z-20">
+      <div className="bg-white border-y border-[#E8E4DC] px-6 shadow-2xs sticky top-[57px] z-20">
         <div className="flex overflow-x-auto gap-1">
           {[
             { id: "general", label: "1. Thông tin chung, Ảnh & Điểm nhấn" },
@@ -1713,11 +1713,11 @@ export function TourFormPage({
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`py-3.5 px-4 text-xs sm:text-sm font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                 activeTab === tab.id
-                  ? "border-blue-600 text-blue-700 bg-blue-50/50"
-                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "border-[#15291E] text-[#15291E] bg-[#FBF9F5]/50"
+                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-[#FBF9F5]"
               }`}
             >
-              {tab.id === "preview" && <Eye className="w-4 h-4 text-purple-600" />}
+              {tab.id === "preview" && <Eye className="w-4 h-4 text-[#BD5E38]" />}
               {tab.label}
             </button>
           ))}
@@ -1731,25 +1731,25 @@ export function TourFormPage({
             <div className="space-y-6">
               {/* Partner Banner in Tab 1 */}
               {isCoHostedTour && !isLeadCompany && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5 flex items-center gap-3 text-xs text-purple-900 shadow-2xs">
-                  <Info className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                <div className="bg-[#FBF9F5] border border-[#BD5E38]/30 rounded-2xl p-3.5 flex items-center gap-3 text-xs text-purple-900 shadow-2xs">
+                  <Info className="w-5 h-5 text-[#BD5E38] flex-shrink-0" />
                   <div>
                     <p className="font-bold">Chế độ Đối tác Liên minh (Partner Mode):</p>
-                    <p className="text-purple-700 mt-0.5">
+                    <p className="text-[#A34C2A] mt-0.5">
                       Thông tin chung của tour do Đơn vị Chủ trì (<strong>{leadHost?.companyName || "Đơn vị chủ trì"}</strong>) quản lý. Bạn có thể xem thông tin tại đây, thiết kế các ngày lịch trình do công ty bạn phụ trách tại <strong>Tab 2</strong> và xác nhận báo giá chặng của mình tại <strong>Tab 3</strong>.
                     </p>
                   </div>
                 </div>
               )}
               {/* UPLOAD MULTIPLE IMAGES & CHOOSE THUMBNAIL */}
-              <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-4.5 space-y-3">
+              <div className="bg-[#FBF9F5]/60 border border-[#E8E4DC] rounded-2xl p-4.5 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <Label className="text-sm font-bold text-blue-950 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-blue-600" />
+                      <ImageIcon className="w-4 h-4 text-[#15291E]" />
                       Hình ảnh của Tour (Tải lên từ máy tính &amp; Chọn Thumbnail)
                     </Label>
-                    <p className="text-xs text-blue-700 mt-0.5">
+                    <p className="text-xs text-[#15291E] mt-0.5">
                       Chọn ảnh từ máy tính. Nhấp vào ảnh để đặt làm <strong>Ảnh đại diện (Thumbnail)</strong> chính thức.
                     </p>
                   </div>
@@ -1768,7 +1768,7 @@ export function TourFormPage({
                       variant="outline"
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-white border-blue-300 text-blue-700 hover:bg-blue-50 text-xs gap-1.5 shadow-xs"
+                      className="bg-white border-blue-300 text-[#15291E] hover:bg-[#FBF9F5] text-xs gap-1.5 shadow-xs"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       Tải ảnh từ máy tính
@@ -1784,13 +1784,13 @@ export function TourFormPage({
                       <div
                         key={idx}
                         onClick={() => setThumbnailIndex(idx)}
-                        className={`relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all aspect-video group shadow-xs ${
-                          isThumb ? "border-blue-600 ring-2 ring-blue-500/50" : "border-gray-200 hover:border-blue-400"
+                        className={`relative rounded-2xl overflow-hidden border-2 cursor-pointer transition-all aspect-video group shadow-xs ${
+                          isThumb ? "border-[#15291E] ring-2 ring-blue-500/50" : "border-[#E8E4DC] hover:border-blue-400"
                         }`}
                       >
                         <img src={img} alt={`Tour photo ${idx + 1}`} className="w-full h-full object-cover" />
                         {isThumb && (
-                          <div className="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                          <div className="absolute top-1.5 left-1.5 bg-[#15291E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                             <Check className="w-3 h-3" />
                             Ảnh đại diện
                           </div>
@@ -1854,7 +1854,7 @@ export function TourFormPage({
                 {/* THỜI GIAN HOẠT ĐỘNG */}
                 <div>
                   <Label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                    <Calendar className="w-3.5 h-3.5 text-[#15291E]" />
                     Thời gian hoạt động / Mùa tour <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -1908,7 +1908,7 @@ export function TourFormPage({
                     step={50000}
                     value={price}
                     onChange={(e) => setPrice(parseInt(e.target.value) || 0)}
-                    className="mt-1 font-bold text-blue-700"
+                    className="mt-1 font-bold text-[#15291E]"
                   />
                 </div>
 
@@ -2015,7 +2015,7 @@ export function TourFormPage({
                 <button
                   type="button"
                   onClick={addDay}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#E8E4DC] bg-white hover:bg-[#FBF9F5] text-gray-700 font-medium transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Thêm ngày tour
@@ -2026,13 +2026,13 @@ export function TourFormPage({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <Building2 className="w-4 h-4 text-[#15291E]" />
                     KHÁCH SẠN LƯU TRÚ ({hotels.length})
                   </h3>
                   <button
                     type="button"
                     onClick={addHotel}
-                    className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg border border-blue-300 bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E]/10 font-medium transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Thêm khách sạn
@@ -2047,16 +2047,16 @@ export function TourFormPage({
                     const hotelOwnerName = hotel.createdByCompanyName || "Công ty đối tác";
 
                     return (
-                      <div key={hotel.id || hIdx} className={`border rounded-xl overflow-hidden bg-white shadow-2xs ${isHotelLocked ? "border-amber-200" : "border-gray-200"}`}>
+                      <div key={hotel.id || hIdx} className={`border rounded-2xl overflow-hidden bg-white shadow-2xs ${isHotelLocked ? "border-amber-200" : "border-[#E8E4DC]"}`}>
                         <button
                           type="button"
                           onClick={() => setExpandedHotelId(isExpanded ? null : (hotel.id || `h-${hIdx}`))}
                           className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
-                            isHotelLocked ? "bg-amber-50/70 hover:bg-amber-100/60" : "bg-blue-50/80 hover:bg-blue-100/70"
+                            isHotelLocked ? "bg-amber-50/70 hover:bg-amber-100/60" : "bg-[#FBF9F5]/80 hover:bg-[#15291E]/10/70"
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <Building2 className={`w-5 h-5 flex-shrink-0 ${isHotelLocked ? "text-amber-700" : "text-blue-600"}`} />
+                            <Building2 className={`w-5 h-5 flex-shrink-0 ${isHotelLocked ? "text-amber-700" : "text-[#15291E]"}`} />
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-bold text-gray-900">{hotel.destination || destination || "Khu vực lưu trú"}</p>
@@ -2168,7 +2168,7 @@ export function TourFormPage({
                                   value={hotel.stars ?? 4}
                                   disabled={isHotelLocked}
                                   onChange={(e) => updateHotel(hotel.id || "", { stars: parseInt(e.target.value) || 4 })}
-                                  className={`mt-1 w-full h-9 px-3 py-1.5 text-xs border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                  className={`mt-1 w-full h-9 px-3 py-1.5 text-xs border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:border-blue-500 ${
                                     isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-800"
                                   }`}
                                 >
@@ -2195,7 +2195,7 @@ export function TourFormPage({
                             </p>
 
                             {/* CÁC LỰA CHỌN KHÁCH SẠN / RESORT KHÁC CHO TOUR (OPTIONS) */}
-                            <div className="pt-4 border-t border-gray-200 space-y-3.5">
+                            <div className="pt-4 border-t border-[#E8E4DC] space-y-3.5">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div>
                                   <Label className="text-xs font-bold text-gray-900 flex items-center gap-1.5 uppercase">
@@ -2224,7 +2224,7 @@ export function TourFormPage({
 
                               {/* Danh sách các option khách sạn đã cấu hình */}
                               {(hotel.alternativeHotels || []).length === 0 ? (
-                                <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                                <div className="p-4 border border-dashed border-[#E8E4DC] rounded-2xl text-center text-xs text-gray-400">
                                   Chưa có phương án khách sạn bổ sung. Bấm "+ Thêm phương án khách sạn khác (Option)" nếu muốn cung cấp thêm các lựa chọn lưu trú khác cho khách hàng khi đặt tour.
                                 </div>
                               ) : (
@@ -2232,7 +2232,7 @@ export function TourFormPage({
                                   {(hotel.alternativeHotels || []).map((alt, aIdx) => (
                                     <div
                                       key={alt.id || aIdx}
-                                      className="p-3 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white transition-all space-y-2 shadow-2xs"
+                                      className="p-3 rounded-2xl border border-[#E8E4DC] bg-[#FBF9F5]/50 hover:bg-white transition-all space-y-2 shadow-2xs"
                                     >
                                       <div className="flex items-center justify-between gap-2">
                                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -2266,7 +2266,7 @@ export function TourFormPage({
                                                   stars: parseInt(e.target.value) || 4,
                                                 })
                                               }
-                                              className={`text-xs mt-0.5 w-full h-9 px-2 py-1 border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                              className={`text-xs mt-0.5 w-full h-9 px-2 py-1 border border-gray-300 rounded-md font-medium focus:outline-none focus:ring-1 focus:ring-[#15291E] ${
                                                 isHotelLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white text-gray-800"
                                               }`}
                                             >
@@ -2364,7 +2364,7 @@ export function TourFormPage({
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-purple-600" />
+                      <MapPin className="w-4 h-4 text-[#BD5E38]" />
                       LỊCH TRÌNH CHI TIẾT &amp; CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY)
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -2375,7 +2375,7 @@ export function TourFormPage({
                     type="button"
                     size="sm"
                     onClick={addDay}
-                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs gap-1.5 flex items-center shadow-xs"
+                    className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white text-xs gap-1.5 flex items-center shadow-xs"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Thêm ngày tour
@@ -2390,19 +2390,19 @@ export function TourFormPage({
                     const isDayLocked = isCoHostedTour && !isDayCreatedByMe;
 
                     return (
-                    <div key={day.id || dIdx} className={`rounded-xl border overflow-hidden bg-white shadow-2xs ${isCoHostedTour && !isDayCreatedByMe ? "border-purple-200" : "border-gray-200"}`}>
+                    <div key={day.id || dIdx} className={`rounded-2xl border overflow-hidden bg-white shadow-2xs ${isCoHostedTour && !isDayCreatedByMe ? "border-[#BD5E38]/30" : "border-[#E8E4DC]"}`}>
                       {/* Banner hiển thị quyền chỉnh sửa khi tour liên minh */}
                       {isCoHostedTour && (
                         <div className={`border-b px-4 py-2 flex items-center justify-between text-xs ${
                           isDayCreatedByMe
                             ? "bg-emerald-50/95 border-emerald-200 text-emerald-900"
-                            : "bg-purple-50/90 border-purple-200 text-purple-900"
+                            : "bg-[#FBF9F5]/90 border-[#BD5E38]/30 text-purple-900"
                         }`}>
                           <div className="flex items-center gap-2">
                             {isDayCreatedByMe ? (
                               <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             ) : (
-                              <Handshake className="w-3.5 h-3.5 text-purple-600 flex-shrink-0" />
+                              <Handshake className="w-3.5 h-3.5 text-[#BD5E38] flex-shrink-0" />
                             )}
                             <span>
                               {isDayCreatedByMe ? (
@@ -2415,7 +2415,7 @@ export function TourFormPage({
                           <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded flex items-center gap-1 border ${
                             isDayCreatedByMe
                               ? "bg-emerald-200 text-emerald-900 border-emerald-300"
-                              : "bg-purple-100 text-purple-800 border-purple-300"
+                              : "bg-[#BD5E38]/15 text-purple-800 border-purple-300"
                           }`}>
                             {isDayCreatedByMe ? "Đơn vị khởi tạo ngày" : "Phối hợp đóng góp"}
                           </span>
@@ -2425,7 +2425,7 @@ export function TourFormPage({
                       {/* Day header identical to thongtintour.png */}
                       <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-gray-100">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          <div className="w-7 h-7 bg-[#BD5E38] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                             {day.day}
                           </div>
                           <div>
@@ -2487,7 +2487,7 @@ export function TourFormPage({
                                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs ${
                                         isMyCompany
                                           ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                          : "bg-blue-100 text-blue-800 border border-blue-200"
+                                          : "bg-[#15291E]/10 text-blue-800 border border-[#E8E4DC]"
                                       }`}
                                     >
                                       <Building2 className="w-3 h-3" />
@@ -2542,12 +2542,12 @@ export function TourFormPage({
                               setItinerary(updated);
                             }}
                             placeholder="VD: TP.HCM – Đà Lạt (Ăn trưa, tối)"
-                            className={`text-xs mt-0.5 ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : ""}`}
+                            className={`text-xs mt-0.5 ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#E8E4DC]" : ""}`}
                           />
                         </div>
 
                         {/* Description box like thongtintour.png */}
-                        <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div className="bg-[#FBF9F5] p-3 rounded-lg border border-gray-100">
                           <Label className="text-[11px] font-semibold text-gray-600 block mb-1">Mô tả lịch trình trong ngày</Label>
                           <Textarea
                             value={day.description}
@@ -2559,7 +2559,7 @@ export function TourFormPage({
                             }}
                             rows={2}
                             placeholder="Mô tả tóm tắt hoạt động trong ngày..."
-                            className={`text-xs ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white"}`}
+                            className={`text-xs ${isDayLocked ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#E8E4DC]" : "bg-white"}`}
                           />
                         </div>
 
@@ -2570,7 +2570,7 @@ export function TourFormPage({
                             <button
                               type="button"
                               onClick={() => addLocationToDay(dIdx)}
-                              className="text-purple-600 hover:text-purple-800 text-[11px] font-semibold flex items-center gap-1"
+                              className="text-[#BD5E38] hover:text-purple-800 text-[11px] font-semibold flex items-center gap-1"
                             >
                               <Plus className="w-3 h-3" /> Thêm điểm tham quan
                             </button>
@@ -2624,20 +2624,20 @@ export function TourFormPage({
 
                                     {/* Location Card with Drag Handle & Swap Controls */}
                                     <div
-                                      className={`flex-1 flex items-center justify-between p-2.5 rounded-xl border bg-white transition-all ${
+                                      className={`flex-1 flex items-center justify-between p-2.5 rounded-2xl border bg-white transition-all ${
                                         isBeingDragged
-                                          ? "border-dashed border-purple-400 bg-purple-50/50 opacity-60"
+                                          ? "border-dashed border-purple-400 bg-[#FBF9F5]/50 opacity-60"
                                           : isDropTarget
-                                          ? "border-purple-500 bg-purple-50 ring-2 ring-purple-300"
+                                          ? "border-purple-500 bg-[#FBF9F5] ring-2 ring-purple-300"
                                           : isLocLocked
-                                          ? "border-gray-200 bg-gray-50/60 shadow-2xs"
-                                          : "border-gray-200 hover:border-gray-300 shadow-2xs"
+                                          ? "border-[#E8E4DC] bg-[#FBF9F5]/60 shadow-2xs"
+                                          : "border-[#E8E4DC] hover:border-gray-300 shadow-2xs"
                                       }`}
                                     >
                                       {/* Drag Handle */}
                                       <div
                                         title={isLocLocked ? `Không thể di chuyển điểm do ${locOwnerName} quản lý` : "Kéo thả để sắp xếp thứ tự điểm tham quan"}
-                                        className={`mr-2 p-0.5 flex-shrink-0 ${isLocLocked ? "text-gray-300 cursor-not-allowed" : "cursor-grab active:cursor-grabbing text-gray-400 hover:text-purple-600"}`}
+                                        className={`mr-2 p-0.5 flex-shrink-0 ${isLocLocked ? "text-gray-300 cursor-not-allowed" : "cursor-grab active:cursor-grabbing text-gray-400 hover:text-[#BD5E38]"}`}
                                       >
                                         <GripVertical className="w-4 h-4" />
                                       </div>
@@ -2663,9 +2663,9 @@ export function TourFormPage({
                                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 flex items-center gap-1 border ${
                                             isLocLocked
                                               ? "bg-amber-50 text-amber-900 border-amber-200"
-                                              : "bg-purple-50 text-purple-700 border-purple-200 font-semibold"
+                                              : "bg-[#FBF9F5] text-[#A34C2A] border-[#BD5E38]/30 font-semibold"
                                           }`}>
-                                            {isLocLocked ? <Lock className="w-2.5 h-2.5 text-amber-600" /> : <Building2 className="w-2.5 h-2.5 text-purple-600" />}
+                                            {isLocLocked ? <Lock className="w-2.5 h-2.5 text-amber-600" /> : <Building2 className="w-2.5 h-2.5 text-[#BD5E38]" />}
                                             {isLocLocked ? locOwnerName : `${loc.createdByCompanyName || company.name} (Bạn)`}
                                           </span>
                                         )}
@@ -2677,7 +2677,7 @@ export function TourFormPage({
                                           type="button"
                                           disabled={isLocLocked || lIdx === 0}
                                           onClick={() => moveLocation(dIdx, lIdx, lIdx - 1)}
-                                          className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
+                                          className="p-1 text-gray-400 hover:text-[#BD5E38] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                           title="Đổi thứ tự lên trên"
                                         >
                                           <ArrowUp className="w-3.5 h-3.5" />
@@ -2686,7 +2686,7 @@ export function TourFormPage({
                                           type="button"
                                           disabled={isLocLocked || lIdx === day.locations.length - 1}
                                           onClick={() => moveLocation(dIdx, lIdx, lIdx + 1)}
-                                          className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
+                                          className="p-1 text-gray-400 hover:text-[#BD5E38] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                           title="Đổi thứ tự xuống dưới"
                                         >
                                           <ArrowDown className="w-3.5 h-3.5" />
@@ -2746,7 +2746,7 @@ export function TourFormPage({
                               <button
                                 type="button"
                                 onClick={() => addMealToDay(dIdx, "dinner")}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-medium transition-colors flex items-center gap-1 shadow-2xs"
+                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-[#FBF9F5] text-[#A34C2A] hover:bg-[#BD5E38]/15 font-medium transition-colors flex items-center gap-1 shadow-2xs"
                               >
                                 <Plus className="w-3 h-3" />
                                 Thêm bữa tối
@@ -2756,7 +2756,7 @@ export function TourFormPage({
 
                           {/* Danh sách các bữa ăn của ngày */}
                           {(!day.meals || day.meals.length === 0) ? (
-                            <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400 bg-gray-50/50">
+                            <div className="p-3 border border-dashed border-[#E8E4DC] rounded-2xl text-center text-xs text-gray-400 bg-[#FBF9F5]/50">
                               Chưa có bữa ăn nào cho Ngày {day.day}. Nhấp nút "+ Thêm bữa sáng", "+ Thêm bữa trưa" hoặc "+ Thêm bữa tối" ở trên để bổ sung.
                             </div>
                           ) : (
@@ -2772,7 +2772,7 @@ export function TourFormPage({
                                 const mealOwnerName = meal.createdByCompanyName || (mealOwnerId === company.id ? company.name : dayOwnerName);
 
                                 return (
-                                  <div key={mealKey} className={`border rounded-xl overflow-hidden bg-white shadow-2xs ${isMealLocked ? "border-amber-200" : "border-gray-200"}`}>
+                                  <div key={mealKey} className={`border rounded-2xl overflow-hidden bg-white shadow-2xs ${isMealLocked ? "border-amber-200" : "border-[#E8E4DC]"}`}>
                                     <button
                                       type="button"
                                       onClick={() => setExpandedMealKey(isExpanded ? null : mealKey)}
@@ -2783,7 +2783,7 @@ export function TourFormPage({
                                           ? "bg-amber-50/50 hover:bg-amber-100/50"
                                           : mealType === "lunch"
                                           ? "bg-emerald-50/50 hover:bg-emerald-100/50"
-                                          : "bg-purple-50/50 hover:bg-purple-100/50"
+                                          : "bg-[#FBF9F5]/50 hover:bg-[#BD5E38]/15/50"
                                       }`}
                                     >
                                       <div className="flex items-center gap-2.5 min-w-0">
@@ -2794,7 +2794,7 @@ export function TourFormPage({
                                             ? "bg-amber-100 text-amber-700"
                                             : mealType === "lunch"
                                             ? "bg-emerald-100 text-emerald-700"
-                                            : "bg-purple-100 text-purple-700"
+                                            : "bg-[#BD5E38]/15 text-[#A34C2A]"
                                         }`}>
                                           {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
                                         </div>
@@ -2808,9 +2808,9 @@ export function TourFormPage({
                                               <span className={`text-[10px] px-1.5 py-0.2 rounded font-normal flex items-center gap-1 border ${
                                                 isMealLocked
                                                   ? "bg-amber-100 text-amber-900 border-amber-300 font-semibold"
-                                                  : "text-purple-700 bg-purple-50 border-purple-200 font-semibold"
+                                                  : "text-[#A34C2A] bg-[#FBF9F5] border-[#BD5E38]/30 font-semibold"
                                               }`}>
-                                                {isMealLocked ? <Lock className="w-2.5 h-2.5 text-amber-700" /> : <Building2 className="w-2.5 h-2.5 text-purple-600" />}
+                                                {isMealLocked ? <Lock className="w-2.5 h-2.5 text-amber-700" /> : <Building2 className="w-2.5 h-2.5 text-[#BD5E38]" />}
                                                 {isMealLocked ? `Khóa: ${mealOwnerName}` : `Tạo bởi: ${meal.createdByCompanyName || company.name} (Bạn)`}
                                               </span>
                                             )}
@@ -2822,7 +2822,7 @@ export function TourFormPage({
                                       </div>
 
                                       <div className="flex items-center gap-2 flex-shrink-0">
-                                        <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200 font-medium">
+                                        <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-[#E8E4DC] font-medium">
                                           {altsCount > 0 ? `${altsCount + 1} phương án ẩm thực` : "1 phương án tiêu chuẩn (0đ)"}
                                         </span>
                                         {isMealLocked ? (
@@ -2915,7 +2915,7 @@ export function TourFormPage({
 
                                           {/* List of configured alternative meals */}
                                           {altsCount === 0 ? (
-                                            <div className="p-3 border border-dashed border-gray-200 rounded-xl text-center text-[11px] text-gray-400">
+                                            <div className="p-3 border border-dashed border-[#E8E4DC] rounded-2xl text-center text-[11px] text-gray-400">
                                               Chưa có phương án ẩm thực bổ sung. Bấm "+ Thêm phương án bữa ăn khác (Option)" để thiết lập thêm các lựa chọn thực đơn cho khách.
                                             </div>
                                           ) : (
@@ -2923,7 +2923,7 @@ export function TourFormPage({
                                               {(meal.alternativeMeals || []).map((alt, aIdx) => (
                                                 <div
                                                   key={alt.id || aIdx}
-                                                  className="p-2.5 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white transition-all space-y-1.5 shadow-2xs"
+                                                  className="p-2.5 rounded-2xl border border-[#E8E4DC] bg-[#FBF9F5]/50 hover:bg-white transition-all space-y-1.5 shadow-2xs"
                                                 >
                                                   <div className="flex items-center justify-between gap-2">
                                                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -3039,7 +3039,7 @@ export function TourFormPage({
                   <button
                     type="button"
                     onClick={addDay}
-                    className="w-full py-3.5 border-2 border-dashed border-purple-300 rounded-xl text-purple-700 bg-purple-50/50 hover:bg-purple-100/70 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                    className="w-full py-3.5 border-2 border-dashed border-purple-300 rounded-2xl text-[#A34C2A] bg-[#FBF9F5]/50 hover:bg-[#BD5E38]/15/70 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-4 h-4" />
                     Thêm ngày mới vào lịch trình tour (Ngày {itinerary.length + 1})
@@ -3054,11 +3054,11 @@ export function TourFormPage({
             <div className="space-y-6">
               {/* BẢNG GIÁ VÉ THEO PHÂN LOẠI ĐỘ TUỔI & MA TRẬN BÁO GIÁ LIÊN MINH (GỘP 1 BẢNG DUY NHẤT) */}
               {isCoHostedTour ? (
-                <div className="bg-gradient-to-r from-purple-50 via-indigo-50/40 to-blue-50 border-2 border-purple-200 rounded-2xl p-5 space-y-4 shadow-sm">
+                <div className="bg-gradient-to-r from-purple-50 via-indigo-50/40 to-blue-50 border-2 border-[#BD5E38]/30 rounded-2xl p-5 space-y-4 shadow-sm">
                   {/* Thanh Tiêu đề & Quyền hạn */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-purple-200/80">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#BD5E38]/30/80">
                     <div className="flex items-center gap-2.5">
-                      <span className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs flex-shrink-0">
+                      <span className="w-9 h-9 rounded-2xl bg-[#BD5E38] text-white flex items-center justify-center font-bold text-sm shadow-xs flex-shrink-0">
                         <Handshake className="w-5 h-5" />
                       </span>
                       <div>
@@ -3082,7 +3082,7 @@ export function TourFormPage({
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* Huy hiệu vai trò công ty hiện tại */}
                       <span className="text-xs font-bold text-purple-900 bg-white border border-purple-300 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-                        <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                        <Building2 className="w-3.5 h-3.5 text-[#BD5E38]" />
                         Đang thao tác: <strong>{company.name}</strong> ({isLeadCompany ? "Đơn vị Chủ trì" : "Đối tác Liên minh"})
                       </span>
 
@@ -3094,10 +3094,10 @@ export function TourFormPage({
                             variant="outline"
                             size="sm"
                             onClick={handleResetDefaultPriceRows}
-                            className="text-xs h-8 px-2.5 text-purple-700 border-purple-300 hover:bg-purple-100/70 font-semibold shadow-2xs"
+                            className="text-xs h-8 px-2.5 text-[#A34C2A] border-purple-300 hover:bg-[#BD5E38]/15/70 font-semibold shadow-2xs"
                             title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
                           >
-                            <RefreshCw className="w-3.5 h-3.5 mr-1 text-purple-600" />
+                            <RefreshCw className="w-3.5 h-3.5 mr-1 text-[#BD5E38]" />
                             Mẫu chuẩn 3 nhóm
                           </Button>
 
@@ -3117,14 +3117,14 @@ export function TourFormPage({
                             size="sm"
                             variant="outline"
                             onClick={() => setShowAddCoHostModal(true)}
-                            className="text-xs h-8 px-3 border-purple-300 text-purple-700 hover:bg-purple-100 font-bold gap-1 shadow-2xs"
+                            className="text-xs h-8 px-3 border-purple-300 text-[#A34C2A] hover:bg-[#BD5E38]/15 font-bold gap-1 shadow-2xs"
                           >
                             <UserPlus className="w-3.5 h-3.5" />
                             Mời thêm đối tác
                           </Button>
                         </>
                       ) : (
-                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 border border-[#E8E4DC] px-3 py-1 rounded-full flex items-center gap-1.5">
                           <Lock className="w-3 h-3 text-gray-500" />
                           Khung độ tuổi do Đơn vị chủ trì thiết lập (Chỉ xem)
                         </span>
@@ -3133,12 +3133,12 @@ export function TourFormPage({
                   </div>
 
                   {/* BẢNG MA TRẬN DUY NHẤT KẾT HỢP PHÂN LOẠI ĐỘ TUỔI VÀ BÁO GIÁ CÁC CÔNG TY */}
-                  <div className="bg-white border-2 border-purple-300 rounded-xl p-4 space-y-3 shadow-xs overflow-hidden">
-                    <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-2xs">
+                  <div className="bg-white border-2 border-purple-300 rounded-2xl p-4 space-y-3 shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto rounded-2xl border border-[#E8E4DC] shadow-2xs">
                       <table className="w-full text-xs text-left">
                         <thead>
                           <tr className="bg-gray-100 text-gray-700 text-[11px] uppercase">
-                            <th className="p-3 font-bold border-b border-gray-200 min-w-[210px]">
+                            <th className="p-3 font-bold border-b border-[#E8E4DC] min-w-[210px]">
                               <div>Phân loại khách &amp; Độ tuổi áp dụng</div>
                               <span className="text-[10px] text-gray-500 font-normal lowercase">
                                 {isLeadCompany ? "(Chủ trì có quyền thêm/sửa/xóa)" : "(Do chủ trì ban hành)"}
@@ -3150,9 +3150,9 @@ export function TourFormPage({
                               return (
                                 <th
                                   key={ch.id || idx}
-                                  className={`p-3 font-bold border-b border-gray-200 min-w-[220px] transition-colors ${
+                                  className={`p-3 font-bold border-b border-[#E8E4DC] min-w-[220px] transition-colors ${
                                     isMe
-                                      ? "bg-purple-100/90 text-purple-950 border-x-2 border-t-2 border-purple-400 shadow-xs"
+                                      ? "bg-[#BD5E38]/15/90 text-purple-950 border-x-2 border-t-2 border-purple-400 shadow-xs"
                                       : "bg-gray-100 text-gray-700"
                                   }`}
                                 >
@@ -3160,14 +3160,14 @@ export function TourFormPage({
                                     <span
                                       className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded ${
                                         isMe
-                                          ? "bg-purple-600 text-white shadow-2xs"
+                                          ? "bg-[#BD5E38] text-white shadow-2xs"
                                           : "bg-gray-200 text-gray-600 border border-gray-300 flex items-center gap-1"
                                       }`}
                                     >
                                       {isMe ? "✏️ Chặng của bạn (Được sửa)" : <><Lock className="w-2.5 h-2.5" /> Đối tác (Chỉ xem)</>}
                                     </span>
                                     <div className="flex items-center gap-1">
-                                      <span className="text-[10px] px-1.5 py-0.5 rounded font-extrabold bg-white border border-gray-200 text-gray-700">
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded font-extrabold bg-white border border-[#E8E4DC] text-gray-700">
                                         {ch.revenueSharePercentage ?? Math.round(100 / coHostsList.length)}%
                                       </span>
                                       {!isMe && isLeadCompany && (
@@ -3192,7 +3192,7 @@ export function TourFormPage({
                               );
                             })}
 
-                            <th className="p-3 font-extrabold text-right border-b border-gray-200 bg-emerald-50 text-emerald-900 min-w-[180px]">
+                            <th className="p-3 font-extrabold text-right border-b border-[#E8E4DC] bg-emerald-50 text-emerald-900 min-w-[180px]">
                               <div>ĐƠN GIÁ BÁN TRỌN GÓI</div>
                               <span className="text-[10px] text-emerald-700 font-medium lowercase">
                                 (Tự động cộng dồn)
@@ -3207,9 +3207,9 @@ export function TourFormPage({
                             const totalRowPrice = getTotalQuoteForRow(row);
 
                             return (
-                              <tr key={row.ageGroup || idx} className="hover:bg-purple-50/20 transition-colors">
+                              <tr key={row.ageGroup || idx} className="hover:bg-[#FBF9F5]/20 transition-colors">
                                 {/* Cột 1: Tên phân loại & Độ tuổi - CHỈ ĐƠN VỊ CHỦ TRÌ MỚI CÓ THỂ SỬA HOẶC XÓA */}
-                                <td className="p-3 align-top bg-gray-50/40">
+                                <td className="p-3 align-top bg-[#FBF9F5]/40">
                                   {isLeadCompany ? (
                                     <div className="flex items-start gap-1.5">
                                       <div className="space-y-1 flex-1">
@@ -3231,7 +3231,7 @@ export function TourFormPage({
                                             setPriceTable(updated);
                                           }}
                                           placeholder="Độ tuổi áp dụng..."
-                                          className="text-[11px] h-6.5 text-gray-600 bg-gray-50/80"
+                                          className="text-[11px] h-6.5 text-gray-600 bg-[#FBF9F5]/80"
                                         />
                                       </div>
                                       {priceTable.length > 1 && (
@@ -3267,8 +3267,8 @@ export function TourFormPage({
                                       key={ch.id || cIdx}
                                       className={`p-3 align-top ${
                                         isMe
-                                          ? "bg-purple-50/50 border-x-2 border-purple-300"
-                                          : "bg-gray-50/30 text-gray-700 cursor-not-allowed select-none"
+                                          ? "bg-[#FBF9F5]/50 border-x-2 border-purple-300"
+                                          : "bg-[#FBF9F5]/30 text-gray-700 cursor-not-allowed select-none"
                                       }`}
                                     >
                                       {isMe ? (
@@ -3283,7 +3283,7 @@ export function TourFormPage({
                                               className="text-xs font-bold text-purple-950 bg-white border-2 border-purple-400 focus:border-purple-600 focus:ring-1 focus:ring-purple-400 pr-10 h-8.5 shadow-2xs"
                                               placeholder="Nhập giá..."
                                             />
-                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-purple-700 font-extrabold">
+                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#A34C2A] font-extrabold">
                                               VNĐ
                                             </span>
                                           </div>
@@ -3292,7 +3292,7 @@ export function TourFormPage({
                                               <button
                                                 type="button"
                                                 onClick={() => setMyQuoteForRow(row, Math.round(myQuoteAdult * 0.7))}
-                                                className="text-purple-700 hover:text-purple-900 underline font-medium cursor-pointer"
+                                                className="text-[#A34C2A] hover:text-purple-900 underline font-medium cursor-pointer"
                                                 title="Tính nhanh 70% giá người lớn"
                                               >
                                                 Gợi ý 70% ({formatVND(Math.round(myQuoteAdult * 0.7))})
@@ -3306,7 +3306,7 @@ export function TourFormPage({
                                           </div>
                                         </div>
                                       ) : (
-                                        <div className="flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-100/70 rounded border border-gray-200 mt-1">
+                                        <div className="flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-100/70 rounded border border-[#E8E4DC] mt-1">
                                           <span className="font-semibold text-gray-800">
                                             {quoteVal === 0 ? "0đ (Miễn phí)" : formatVND(quoteVal)}
                                           </span>
@@ -3328,8 +3328,8 @@ export function TourFormPage({
                           })}
 
                           {/* Hàng Dịch vụ chặng bao gồm */}
-                          <tr className="hover:bg-purple-50/20 transition-colors">
-                            <td className="p-3 font-bold text-gray-900 align-top bg-gray-50/40">
+                          <tr className="hover:bg-[#FBF9F5]/20 transition-colors">
+                            <td className="p-3 font-bold text-gray-900 align-top bg-[#FBF9F5]/40">
                               <div className="text-xs">Dịch vụ chặng bao gồm</div>
                               <span className="text-[10px] text-gray-500 font-normal">KS, ăn uống, vé, xe...</span>
                             </td>
@@ -3341,8 +3341,8 @@ export function TourFormPage({
                                   key={ch.id || idx}
                                   className={`p-3 align-top ${
                                     isMe
-                                      ? "bg-purple-50/50 border-x-2 border-purple-300"
-                                      : "bg-gray-50/30 text-gray-700"
+                                      ? "bg-[#FBF9F5]/50 border-x-2 border-purple-300"
+                                      : "bg-[#FBF9F5]/30 text-gray-700"
                                   }`}
                                 >
                                   {isMe ? (
@@ -3354,7 +3354,7 @@ export function TourFormPage({
                                       className="text-[11px] bg-white border border-purple-300 rounded-lg p-2 focus:ring-1 focus:ring-purple-400 resize-none leading-relaxed"
                                     />
                                   ) : (
-                                    <div className="p-2 rounded bg-gray-100/60 border border-gray-200 text-[11px] text-gray-600 italic line-clamp-3">
+                                    <div className="p-2 rounded bg-gray-100/60 border border-[#E8E4DC] text-[11px] text-gray-600 italic line-clamp-3">
                                       "{ch.quoteNote || ch.notes || "Đối tác đang chuẩn bị chi tiết dịch vụ chặng..."}"
                                     </div>
                                   )}
@@ -3367,8 +3367,8 @@ export function TourFormPage({
                           </tr>
 
                           {/* Hàng Trạng thái & Thao tác chốt giá */}
-                          <tr className="bg-gray-50/50">
-                            <td className="p-3 font-bold text-gray-900 align-middle bg-gray-50/60">
+                          <tr className="bg-[#FBF9F5]/50">
+                            <td className="p-3 font-bold text-gray-900 align-middle bg-[#FBF9F5]/60">
                               <div className="text-xs">Trạng thái chốt giá</div>
                             </td>
                             {coHostsList.map((ch, idx) => {
@@ -3379,8 +3379,8 @@ export function TourFormPage({
                                   key={ch.id || idx}
                                   className={`p-3 align-middle ${
                                     isMe
-                                      ? "bg-purple-50/50 border-x-2 border-b-2 border-purple-400"
-                                      : "bg-gray-50/30 text-center"
+                                      ? "bg-[#FBF9F5]/50 border-x-2 border-b-2 border-purple-400"
+                                      : "bg-[#FBF9F5]/30 text-center"
                                   }`}
                                 >
                                   {isMe ? (
@@ -3394,7 +3394,7 @@ export function TourFormPage({
                                       className={`w-full text-xs font-bold py-1.5 h-8 shadow-xs cursor-pointer ${
                                         myQuoteStatus === "submitted"
                                           ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                          : "bg-purple-600 hover:bg-purple-700 text-white"
+                                          : "bg-[#BD5E38] hover:bg-[#A34C2A] text-white"
                                       }`}
                                     >
                                       {myQuoteStatus === "submitted" ? "✓ Đã chốt báo giá" : "Xác nhận chốt giá"}
@@ -3445,7 +3445,7 @@ export function TourFormPage({
                         </p>
                       </div>
 
-                      <div className="bg-blue-50/80 p-3 rounded-lg border border-blue-200 text-xs text-blue-950 flex items-start gap-2">
+                      <div className="bg-[#FBF9F5]/80 p-3 rounded-lg border border-[#E8E4DC] text-xs text-blue-950 flex items-start gap-2">
                         <span className="text-sm">ℹ️</span>
                         <p className="leading-relaxed text-[11px]">
                           <strong>Tự động nhận diện độ tuổi:</strong> Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng phân loại trên.
@@ -3474,7 +3474,7 @@ export function TourFormPage({
                         variant="outline"
                         size="sm"
                         onClick={handleResetDefaultPriceRows}
-                        className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-gray-50"
+                        className="text-xs h-8 px-2.5 text-gray-600 border-gray-300 hover:bg-[#FBF9F5]"
                         title="Khôi phục lại 3 khung giá mặc định (Người lớn, Trẻ em, Em bé)"
                       >
                         <RefreshCw className="w-3.5 h-3.5 mr-1 text-gray-500" />
@@ -3492,7 +3492,7 @@ export function TourFormPage({
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-2xs">
+                  <div className="overflow-x-auto border border-[#E8E4DC] rounded-2xl shadow-2xs">
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-gray-100 text-gray-700">
@@ -3504,7 +3504,7 @@ export function TourFormPage({
                       </thead>
                       <tbody className="divide-y divide-gray-100 bg-white">
                         {priceTable.map((row, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50/70 transition-colors">
+                          <tr key={idx} className="hover:bg-[#FBF9F5]/70 transition-colors">
                             <td className="p-3">
                               <Input
                                 value={row.ageGroupLabel}
@@ -3541,7 +3541,7 @@ export function TourFormPage({
                                     updated[idx].price = Math.max(0, parseInt(e.target.value) || 0);
                                     setPriceTable(updated);
                                   }}
-                                  className="text-xs h-8 text-right font-bold text-blue-700 max-w-[160px]"
+                                  className="text-xs h-8 text-right font-bold text-[#15291E] max-w-[160px]"
                                 />
                                 <span className="text-[11px] text-gray-500 font-medium">đ</span>
                               </div>
@@ -3563,9 +3563,9 @@ export function TourFormPage({
                     </table>
                   </div>
 
-                  <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between text-xs text-blue-900">
+                  <div className="p-2.5 bg-[#FBF9F5]/70 border border-[#E8E4DC] rounded-2xl flex items-center justify-between text-xs text-blue-900">
                     <div className="flex items-center gap-2">
-                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <Info className="w-4 h-4 text-[#15291E] flex-shrink-0" />
                       <span>
                         Khi khách hàng nhập ngày sinh hoặc tải danh sách bằng Excel, hệ thống sẽ tự tính số tuổi đến ngày khởi hành để áp dụng chính xác mức giá từ bảng trên.
                       </span>
@@ -3749,10 +3749,10 @@ export function TourFormPage({
 
           {/* TAB 5: MÔ PHỎNG TOUR HIỂN THỊ (PREVIEW Y HỆT KHÁCH HÀNG XEM) */}
           {activeTab === "preview" && (
-            <div className="space-y-6 bg-gray-50/70 p-4 rounded-2xl border border-gray-200">
-              <div className="bg-purple-100/70 text-purple-900 border border-purple-300 p-3 rounded-xl text-xs flex items-center justify-between">
+            <div className="space-y-6 bg-[#FBF9F5]/70 p-4 rounded-2xl border border-[#E8E4DC]">
+              <div className="bg-[#BD5E38]/15/70 text-purple-900 border border-purple-300 p-3 rounded-2xl text-xs flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-purple-700" />
+                  <Eye className="w-4 h-4 text-[#A34C2A]" />
                   <span><strong>Chế độ mô phỏng trực tiếp:</strong> Đây là giao diện chính xác mà khách hàng sẽ thấy sau khi bạn đăng tour này.</span>
                 </div>
                 <span className="text-[11px] font-bold bg-purple-200 px-2 py-0.5 rounded">Preview Live</span>
@@ -3787,7 +3787,7 @@ export function TourFormPage({
                           src={img}
                           alt=""
                           className={`w-16 h-12 rounded-lg object-cover border-2 flex-shrink-0 ${
-                            thumbnailIndex === i ? "border-blue-600 ring-2 ring-blue-500/50" : "border-gray-200"
+                            thumbnailIndex === i ? "border-[#15291E] ring-2 ring-blue-500/50" : "border-[#E8E4DC]"
                           }`}
                         />
                       ))}
@@ -3795,7 +3795,7 @@ export function TourFormPage({
                   )}
 
                   {/* Meta strip */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 flex flex-wrap gap-4 text-xs text-gray-700 shadow-2xs">
+                  <div className="bg-white border border-[#E8E4DC] rounded-2xl p-3.5 flex flex-wrap gap-4 text-xs text-gray-700 shadow-2xs">
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-4 h-4 text-blue-500" />
                       <span>{destination || "Điểm đến"}</span>
@@ -3815,8 +3815,8 @@ export function TourFormPage({
                   </div>
 
                   {/* Preview Tabs View */}
-                  <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
-                    <div className="flex border-b border-gray-200 bg-gray-50/50">
+                  <div className="bg-white border border-[#E8E4DC] rounded-2xl overflow-hidden shadow-2xs">
+                    <div className="flex border-b border-[#E8E4DC] bg-[#FBF9F5]/50">
                       {[
                         { id: "program", label: "Chương trình tour" },
                         { id: "regulations", label: "Quy định" },
@@ -3830,7 +3830,7 @@ export function TourFormPage({
                           onClick={() => setPreviewActiveTab(t.id as any)}
                           className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
                             previewActiveTab === t.id
-                              ? "border-blue-600 text-blue-700 bg-white"
+                              ? "border-[#15291E] text-[#15291E] bg-white"
                               : "border-transparent text-gray-500 hover:text-gray-800"
                           }`}
                         >
@@ -3850,15 +3850,15 @@ export function TourFormPage({
                           {/* 1. KHÁCH SẠN LƯU TRÚ */}
                           <div className="space-y-2">
                             <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
-                              <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                              <Building2 className="w-3.5 h-3.5 text-[#15291E]" />
                               Khách sạn lưu trú ({hotels.length})
                             </h4>
                             <div className="space-y-2">
                               {hotels.map((h, hi) => (
-                                <div key={hi} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                  <div className="p-3 bg-blue-50/80 flex items-center justify-between border-b border-gray-100">
+                                <div key={hi} className="border border-[#E8E4DC] rounded-2xl overflow-hidden bg-white shadow-2xs">
+                                  <div className="p-3 bg-[#FBF9F5]/80 flex items-center justify-between border-b border-gray-100">
                                     <div className="flex items-center gap-2.5">
-                                      <Building2 className="w-4 h-4 text-blue-600" />
+                                      <Building2 className="w-4 h-4 text-[#15291E]" />
                                       <div>
                                         <div className="flex items-center gap-1.5">
                                           <p className="font-bold text-gray-900 text-xs">{h.destination || destination || "Điểm đến"}</p>
@@ -3871,12 +3871,12 @@ export function TourFormPage({
                                         </p>
                                       </div>
                                     </div>
-                                    <span className="text-[10px] bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-600 font-medium">
+                                    <span className="text-[10px] bg-white border border-[#E8E4DC] px-2 py-0.5 rounded text-gray-600 font-medium">
                                       {(h.alternativeHotels || []).length > 0 ? `${(h.alternativeHotels || []).length + 1} phương án chỗ ở` : "1 phương án chỗ ở tiêu chuẩn"}
                                     </span>
                                   </div>
                                   {(h.alternativeHotels || []).length > 0 && (
-                                    <div className="p-2.5 space-y-1.5 bg-gray-50/50">
+                                    <div className="p-2.5 space-y-1.5 bg-[#FBF9F5]/50">
                                       {(h.alternativeHotels || []).map((alt, ai) => (
                                         <div key={ai} className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-100 text-[11px]">
                                           <div className="flex items-center gap-1.5">
@@ -3900,31 +3900,31 @@ export function TourFormPage({
                           {/* 2. LỊCH TRÌNH CHI TIẾT & CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY) */}
                           <div className="space-y-2">
                             <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
-                              <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                              <MapPin className="w-3.5 h-3.5 text-[#BD5E38]" />
                               LỊCH TRÌNH CHI TIẾT &amp; CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY)
                             </h4>
                             <div className="space-y-3">
                               {itinerary.map((d) => (
-                                <div key={d.id} className="border border-gray-200 rounded-xl p-3 bg-white space-y-2.5 shadow-2xs">
+                                <div key={d.id} className="border border-[#E8E4DC] rounded-2xl p-3 bg-white space-y-2.5 shadow-2xs">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center">
+                                    <div className="w-6 h-6 rounded-full bg-[#BD5E38] text-white text-xs font-bold flex items-center justify-center">
                                       {d.day}
                                     </div>
                                     <span className="font-bold text-gray-900 text-xs">Ngày {d.day}: {d.title}</span>
                                   </div>
                                   {d.description && (
-                                    <p className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-[11px] text-gray-600">
+                                    <p className="bg-[#FBF9F5] p-2.5 rounded-lg border border-gray-100 text-[11px] text-gray-600">
                                       {d.description}
                                     </p>
                                   )}
                                   <div className="space-y-1.5 pl-2">
                                     {d.locations.map((loc) => (
-                                      <div key={loc.id} className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-white">
+                                      <div key={loc.id} className="flex items-center justify-between p-2 rounded-lg border border-[#E8E4DC] bg-white">
                                         <div className="flex items-center gap-2 text-xs">
                                           <MapPin className="w-3 h-3 text-blue-500" />
                                           <span className="font-medium text-gray-900">{loc.name}</span>
                                         </div>
-                                        <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                        <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-[#E8E4DC]">
                                           Thay đổi
                                         </span>
                                       </div>
@@ -3940,9 +3940,9 @@ export function TourFormPage({
                                       </p>
                                       <div className="space-y-1.5">
                                         {d.meals.map((m, mi) => (
-                                          <div key={mi} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                          <div key={mi} className="border border-[#E8E4DC] rounded-lg overflow-hidden bg-white">
                                             <div className={`p-2 flex items-center justify-between border-b border-gray-100 ${
-                                              m.type === "breakfast" ? "bg-amber-50/50" : m.type === "lunch" ? "bg-emerald-50/50" : "bg-purple-50/50"
+                                              m.type === "breakfast" ? "bg-amber-50/50" : m.type === "lunch" ? "bg-emerald-50/50" : "bg-[#FBF9F5]/50"
                                             }`}>
                                               <div className="flex items-center gap-2">
                                                 {m.type === "breakfast" ? (
@@ -3954,12 +3954,12 @@ export function TourFormPage({
                                                   {m.type === "breakfast" ? "Ăn sáng" : m.type === "lunch" ? "Ăn trưa" : "Ăn tối"}: {m.serviceName}
                                                 </span>
                                               </div>
-                                              <span className="text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-600 font-medium">
+                                              <span className="text-[10px] bg-white border border-[#E8E4DC] px-1.5 py-0.5 rounded text-gray-600 font-medium">
                                                 {(m.alternativeMeals || []).length > 0 ? `${(m.alternativeMeals || []).length + 1} phương án ẩm thực` : "1 phương án ẩm thực tiêu chuẩn"}
                                               </span>
                                             </div>
                                             {(m.alternativeMeals || []).length > 0 && (
-                                              <div className="p-2 space-y-1 bg-gray-50/40">
+                                              <div className="p-2 space-y-1 bg-[#FBF9F5]/40">
                                                 {(m.alternativeMeals || []).map((alt, ai) => (
                                                   <div key={ai} className="flex items-center justify-between p-1.5 rounded bg-white border border-gray-100 text-[10px]">
                                                     <span className="font-medium text-gray-800">{alt.restaurantName}</span>
@@ -3987,8 +3987,8 @@ export function TourFormPage({
                         <div className="space-y-6">
                           {/* Thời gian hoạt động */}
                           {operationPeriod && (
-                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5">
-                              <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                            <div className="bg-[#FBF9F5] border border-blue-100 rounded-2xl p-3.5">
+                              <h4 className="text-xs font-bold text-[#15291E] uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                                 <Calendar className="w-3.5 h-3.5" />
                                 Thời gian hoạt động
                               </h4>
@@ -4024,11 +4024,11 @@ export function TourFormPage({
                               {itinerary.map((d) => {
                                 const isOpen = previewExpandedDays.has(d.id);
                                 return (
-                                  <div key={d.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                  <div key={d.id} className="border border-[#E8E4DC] rounded-2xl overflow-hidden bg-white shadow-2xs">
                                     <button
                                       type="button"
                                       onClick={() => togglePreviewDay(d.id)}
-                                      className="w-full flex items-center gap-3 px-3.5 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                                      className="w-full flex items-center gap-3 px-3.5 py-3 bg-[#FBF9F5] hover:bg-gray-100 transition-colors text-left"
                                     >
                                       <div className="w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-xs">
                                         {d.day}
@@ -4069,7 +4069,7 @@ export function TourFormPage({
                                             if (list.length === 1) {
                                               const [_, cName] = list[0];
                                               return (
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1 shadow-2xs">
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#15291E]/10 text-blue-800 border border-[#E8E4DC] flex items-center gap-1 shadow-2xs">
                                                   <Building2 className="w-3 h-3" />
                                                   Phụ trách: {cName}
                                                 </span>
@@ -4088,7 +4088,7 @@ export function TourFormPage({
                                               ? "text-amber-700 bg-amber-50 border border-amber-200"
                                               : isLunch
                                               ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-                                              : "text-purple-700 bg-purple-50 border border-purple-200";
+                                              : "text-[#A34C2A] bg-[#FBF9F5] border border-[#BD5E38]/30";
                                             const label = isBreakfast ? "Sáng" : isLunch ? "Trưa" : "Tối";
                                             return (
                                               <span key={mi} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${badgeColor}`}>
@@ -4121,7 +4121,7 @@ export function TourFormPage({
                                                   <span className="font-medium text-gray-900">{loc.name}</span>
                                                 </div>
                                                 {loc.createdByCompanyName && (
-                                                  <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.2 rounded">
+                                                  <span className="text-[10px] text-gray-500 bg-gray-100 border border-[#E8E4DC] px-1.5 py-0.2 rounded">
                                                     Tạo bởi: {loc.createdByCompanyName}
                                                   </span>
                                                 )}
@@ -4146,12 +4146,12 @@ export function TourFormPage({
                                                 return (
                                                   <div
                                                     key={mIdx}
-                                                    className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
+                                                    className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
                                                       isBreakfast
                                                         ? "bg-amber-50/60 border-amber-200/80"
                                                         : isLunch
                                                         ? "bg-emerald-50/60 border-emerald-200/80"
-                                                        : "bg-purple-50/60 border-purple-200/80"
+                                                        : "bg-[#FBF9F5]/60 border-[#BD5E38]/30/80"
                                                     }`}
                                                   >
                                                     <div
@@ -4160,7 +4160,7 @@ export function TourFormPage({
                                                           ? "bg-amber-100 text-amber-700"
                                                           : isLunch
                                                           ? "bg-emerald-100 text-emerald-700"
-                                                          : "bg-purple-100 text-purple-700"
+                                                          : "bg-[#BD5E38]/15 text-[#A34C2A]"
                                                       }`}
                                                     >
                                                       {isBreakfast ? <Sun className="w-3 h-3" /> : <Utensils className="w-3 h-3 text-emerald-600" />}
@@ -4196,7 +4196,7 @@ export function TourFormPage({
                       {previewActiveTab === "pricing" && (
                         <div className="space-y-3">
                           <h4 className="font-bold text-gray-900">BẢNG GIÁ THEO LỨA TUỔI:</h4>
-                          <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full border border-[#E8E4DC] rounded-lg overflow-hidden">
                             <thead className="bg-gray-100">
                               <tr>
                                 <th className="p-2 text-left">Phân loại</th>
@@ -4209,7 +4209,7 @@ export function TourFormPage({
                                 <tr key={idx}>
                                   <td className="p-2 font-medium">{p.ageGroupLabel}</td>
                                   <td className="p-2 text-gray-600">{p.ageRange}</td>
-                                  <td className="p-2 text-right font-bold text-blue-700">
+                                  <td className="p-2 text-right font-bold text-[#15291E]">
                                     {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                                   </td>
                                 </tr>
@@ -4248,7 +4248,7 @@ export function TourFormPage({
                         <div className="space-y-4">
                           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
                             <div className="text-center">
-                              <p className="text-4xl font-bold text-blue-700">5.0</p>
+                              <p className="text-4xl font-bold text-[#15291E]">5.0</p>
                               <div className="flex justify-center gap-0.5 mt-1">
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -4274,7 +4274,7 @@ export function TourFormPage({
                               ))}
                             </div>
                           </div>
-                          <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                          <div className="p-4 border border-dashed border-[#E8E4DC] rounded-2xl text-center text-xs text-gray-400">
                             Khách hàng sẽ để lại đánh giá và nhận xét sau khi hoàn thành chuyến đi.
                           </div>
                         </div>
@@ -4285,19 +4285,19 @@ export function TourFormPage({
 
                 {/* Right Booking Sidebar Preview */}
                 <div className="lg:col-span-1 space-y-4">
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 space-y-3 text-xs">
+                  <div className="bg-white border border-[#E8E4DC] rounded-2xl shadow-sm p-4 space-y-3 text-xs">
                     <div>
                       <p className="text-gray-400">Giá từ</p>
-                      <p className="text-2xl font-bold text-blue-700">{formatVND(price)}</p>
+                      <p className="text-2xl font-bold text-[#15291E]">{formatVND(price)}</p>
                       <p className="text-gray-400 text-[10px]">/ người lớn</p>
                     </div>
 
-                    <div className="bg-blue-50 rounded-xl p-2.5">
-                      <p className="text-[10px] text-blue-600 font-bold uppercase mb-0.5">Thời gian hoạt động</p>
+                    <div className="bg-[#FBF9F5] rounded-2xl p-2.5">
+                      <p className="text-[10px] text-[#15291E] font-bold uppercase mb-0.5">Thời gian hoạt động</p>
                       <p className="font-semibold text-gray-800">{operationPeriod}</p>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 space-y-1 text-gray-600">
+                    <div className="bg-[#FBF9F5] rounded-2xl p-2.5 space-y-1 text-gray-600">
                       <div className="flex justify-between">
                         <span>Thời lượng:</span>
                         <strong className="text-gray-900">{duration}</strong>
@@ -4312,7 +4312,7 @@ export function TourFormPage({
                       </div>
                     </div>
 
-                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 text-xs rounded-xl">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 text-xs rounded-2xl">
                       Đặt tour ngay (Khách tự chọn ngày)
                     </Button>
                   </div>
@@ -4323,7 +4323,7 @@ export function TourFormPage({
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200 px-6 py-3.5 flex items-center justify-between shadow-lg">
+      <div className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E8E4DC] px-6 py-3.5 flex items-center justify-between shadow-lg">
         <div className="text-xs text-gray-500 flex items-center gap-2">
           <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
           <span>{tour ? `Đang chỉnh sửa: ${tour.name}` : "Tạo tour mới chuẩn dữ liệu. Đảm bảo đã thiết lập đủ lịch trình và bảng giá."}</span>
@@ -4335,7 +4335,7 @@ export function TourFormPage({
           <Button
             disabled={!name.trim() || !destination.trim()}
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold"
           >
             <Check className="w-4 h-4 mr-1.5" />
             {tour ? "Lưu thay đổi Tour" : "Hoàn tất & Đăng Tour"}
@@ -4359,7 +4359,7 @@ export function TourFormPage({
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-gray-100">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shadow-xs">
+                <div className="w-9 h-9 rounded-2xl bg-[#BD5E38]/15 text-[#A34C2A] flex items-center justify-center font-bold shadow-xs">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
@@ -4382,7 +4382,7 @@ export function TourFormPage({
                 <select
                   value={newPartnerCompanyId}
                   onChange={(e) => setNewPartnerCompanyId(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                  className="w-full mt-1 px-3 py-2 text-xs border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#BD5E38] font-medium"
                 >
                   <option value="">-- Chọn công ty lữ hành đối tác --</option>
                   {mockTourCompanies
@@ -4444,7 +4444,7 @@ export function TourFormPage({
                 type="button"
                 disabled={!newPartnerCompanyId}
                 onClick={() => handleAddPartnerCoHost(newPartnerCompanyId, newPartnerSegment, newPartnerBudget, newPartnerNotes)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-xs"
+                className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-semibold text-xs shadow-xs"
               >
                 <UserPlus className="w-3.5 h-3.5 mr-1" />
                 Xác nhận mời vào liên minh

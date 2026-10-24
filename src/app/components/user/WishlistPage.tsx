@@ -1,4 +1,4 @@
-import {
+﻿import {
   Heart,
   MapPin,
   Star,
@@ -122,7 +122,7 @@ export function WishlistPage() {
                 </div>
 
                 <div className="p-6 space-y-4">
-                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#15291E] transition-colors">
                     {tour.name}
                   </h3>
 
@@ -150,7 +150,7 @@ export function WishlistPage() {
                       <div className="text-sm text-gray-600">
                         Giá từ
                       </div>
-                      <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-2xl font-bold text-[#15291E]">
                         {formatPrice(tour.price)}
                       </div>
                     </div>
@@ -164,7 +164,7 @@ export function WishlistPage() {
                         <Trash2 className="w-4 h-4" />
                         Xóa
                       </button>
-                      <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      <button className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors">
                         Đặt ngay
                       </button>
                     </div>
@@ -190,7 +190,7 @@ export function WishlistPage() {
               onClick={() =>
                 (window.location.href = "#book-tours")
               }
-              className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+              className="px-8 py-3 bg-[#15291E] text-white rounded-xl hover:bg-[#BD5E38] transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
             >
               <MapPin className="w-5 h-5" />
               Khám phá tour
@@ -200,7 +200,7 @@ export function WishlistPage() {
 
         {/* Tips */}
         {wishlist.length > 0 && (
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="mt-8 bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-6">
             <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
               <Heart className="w-5 h-5 fill-current" />
               Mẹo nhỏ

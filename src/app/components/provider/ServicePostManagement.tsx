@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { Service } from "@/app/types";
 import {
   Card,
@@ -141,8 +141,8 @@ export function ServicePostManagement({
     switch (category) {
       case "hotel":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-            <Hotel className="w-3.5 h-3.5 text-blue-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#FBF9F5] text-[#15291E] border border-[#E8E4DC]">
+            <Hotel className="w-3.5 h-3.5 text-[#15291E]" />
             Lưu trú
           </span>
         );
@@ -163,8 +163,8 @@ export function ServicePostManagement({
         );
       case "activity":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#FBF9F5] text-[#A34C2A] border border-[#BD5E38]/30">
+            <Sparkles className="w-3.5 h-3.5 text-[#BD5E38]" />
             Trải nghiệm
           </span>
         );
@@ -195,7 +195,7 @@ export function ServicePostManagement({
           <div className="font-bold text-gray-900 text-sm">
             {service.priceFrom.toLocaleString("vi-VN")}đ - {service.priceTo.toLocaleString("vi-VN")}đ
           </div>
-          <div className="text-xs text-blue-600 font-medium">/ {unitLabel} (ước lượng)</div>
+          <div className="text-xs text-[#15291E] font-medium">/ {unitLabel} (ước lượng)</div>
         </div>
       );
     }
@@ -205,7 +205,7 @@ export function ServicePostManagement({
           <div className="font-bold text-gray-900 text-sm">
             từ {service.priceFrom.toLocaleString("vi-VN")}đ
           </div>
-          <div className="text-xs text-blue-600 font-medium">/ {unitLabel}</div>
+          <div className="text-xs text-[#15291E] font-medium">/ {unitLabel}</div>
         </div>
       );
     }
@@ -249,7 +249,7 @@ export function ServicePostManagement({
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
               Quản lý Dịch vụ & Bài đăng
             </h1>
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Badge variant="outline" className="bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]">
               Provider Portal
             </Badge>
           </div>
@@ -279,7 +279,7 @@ export function ServicePostManagement({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm theo tên dịch vụ, địa chỉ, tỉnh thành..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:border-transparent transition-all"
               />
               {searchQuery && (
                 <button
@@ -357,7 +357,7 @@ export function ServicePostManagement({
                   onClick={() => setCategoryFilter(cat.id)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all ${
                     isActive
-                      ? "bg-blue-600 text-white font-semibold shadow-xs"
+                      ? "bg-[#15291E] text-white font-semibold shadow-xs"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -400,7 +400,7 @@ export function ServicePostManagement({
                       <Button
                         onClick={onCreateService}
                         size="sm"
-                        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
+                        className="mt-2 bg-[#15291E] hover:bg-[#BD5E38] text-white"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Đăng dịch vụ mới
@@ -414,7 +414,7 @@ export function ServicePostManagement({
                   return (
                     <tr
                       key={service.id}
-                      className="hover:bg-blue-50/40 transition-colors group"
+                      className="hover:bg-[#FBF9F5]/40 transition-colors group"
                     >
                       {/* Index */}
                       <td className="py-3.5 px-4 text-center text-xs text-gray-500 font-medium">
@@ -444,7 +444,7 @@ export function ServicePostManagement({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-gray-900 group-hover/item:text-blue-600 transition-colors line-clamp-1">
+                            <div className="font-semibold text-gray-900 group-hover/item:text-[#15291E] transition-colors line-clamp-1">
                               {service.name}
                             </div>
                             <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
@@ -496,7 +496,7 @@ export function ServicePostManagement({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#15291E] hover:bg-[#FBF9F5]"
                             onClick={() => onViewDetail ? onViewDetail(service) : setSelectedService(service)}
                             title="Xem chi tiết"
                           >
@@ -516,7 +516,7 @@ export function ServicePostManagement({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#BD5E38] hover:bg-[#FBF9F5]"
                             onClick={() => setImageManagementService(service)}
                             title="Quản lý thư viện ảnh"
                           >
@@ -649,15 +649,15 @@ export function ServicePostManagement({
               {/* Information Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Basic & Pricing Info */}
-                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2.5">
+                <div className="p-4 bg-[#FBF9F5]/50 rounded-xl border border-blue-100 space-y-2.5">
                   <h4 className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-blue-600" />
+                    <Layers className="w-4 h-4 text-[#15291E]" />
                     Thông tin bảng giá
                   </h4>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between py-1 border-b border-blue-100/60">
                       <span className="text-gray-600">Đơn giá niêm yết:</span>
-                      <strong className="text-blue-700 text-sm">
+                      <strong className="text-[#15291E] text-sm">
                         {selectedService.price?.toLocaleString("vi-VN")}đ
                       </strong>
                     </div>
@@ -665,7 +665,7 @@ export function ServicePostManagement({
                     {selectedService.priceFrom && selectedService.priceTo && (
                       <div className="flex justify-between py-1 border-b border-blue-100/60">
                         <span className="text-gray-600">Khoảng giá ước lượng:</span>
-                        <strong className="text-blue-700">
+                        <strong className="text-[#15291E]">
                           {selectedService.priceFrom.toLocaleString("vi-VN")}đ - {selectedService.priceTo.toLocaleString("vi-VN")}đ / {selectedService.category === "hotel" ? "phòng" : "người"}
                         </strong>
                       </div>
@@ -739,7 +739,7 @@ export function ServicePostManagement({
                           href={`https://www.google.com/maps?q=${selectedService.latitude},${selectedService.longitude}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 font-mono hover:underline inline-flex items-center gap-1"
+                          className="text-[#15291E] font-mono hover:underline inline-flex items-center gap-1"
                         >
                           <Compass className="w-3 h-3 text-blue-500" />
                           {selectedService.latitude.toFixed(4)}, {selectedService.longitude.toFixed(4)}
@@ -792,7 +792,7 @@ export function ServicePostManagement({
                         ? "Sức chứa phục vụ:"
                         : "Sức chứa tối đa:"}
                     </span>
-                    <strong className="text-blue-700">
+                    <strong className="text-[#15291E]">
                       {selectedService.capacity || selectedService.totalRooms || selectedService.seats || "—"}{" "}
                       {selectedService.category === "hotel"
                         ? "phòng"
@@ -865,7 +865,7 @@ export function ServicePostManagement({
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                  className="text-[#BD5E38] border-[#BD5E38]/30 hover:bg-[#FBF9F5]"
                   onClick={() => {
                     const svc = selectedService;
                     setSelectedService(null);
@@ -876,7 +876,7 @@ export function ServicePostManagement({
                   Quản lý ảnh
                 </Button>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-[#15291E] hover:bg-[#BD5E38] text-white"
                   onClick={() => {
                     const svc = selectedService;
                     setSelectedService(null);

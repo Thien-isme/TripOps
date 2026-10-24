@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Tour, User, GuideSchedule } from "@/app/types";
 import {
   Users,
@@ -205,7 +205,7 @@ export function CompanyGuideManagement({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Compass className="w-6 h-6 text-blue-600" />
+            <Compass className="w-6 h-6 text-[#15291E]" />
             Đội ngũ Hướng dẫn viên nội bộ
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -214,7 +214,7 @@ export function CompanyGuideManagement({
         </div>
         <Button
           onClick={handleOpenAddModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2"
+          className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-medium px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Thêm Hướng dẫn viên
@@ -224,7 +224,7 @@ export function CompanyGuideManagement({
       {/* Metrics Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-gray-200 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-lg bg-[#FBF9F5] text-[#15291E] flex items-center justify-center font-bold">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -418,7 +418,7 @@ export function CompanyGuideManagement({
                         {guide.languages.map((lang, idx) => (
                           <span
                             key={idx}
-                            className="bg-blue-50 text-blue-700 text-[11px] px-2 py-0.5 rounded-md font-medium"
+                            className="bg-[#FBF9F5] text-[#15291E] text-[11px] px-2 py-0.5 rounded-md font-medium"
                           >
                             {lang}
                           </span>
@@ -432,7 +432,7 @@ export function CompanyGuideManagement({
                         {guide.specialties.map((spec, idx) => (
                           <span
                             key={idx}
-                            className="bg-purple-50 text-purple-700 text-[11px] px-2 py-0.5 rounded-md font-medium"
+                            className="bg-[#FBF9F5] text-[#A34C2A] text-[11px] px-2 py-0.5 rounded-md font-medium"
                           >
                             {spec}
                           </span>
@@ -446,7 +446,7 @@ export function CompanyGuideManagement({
                 <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center justify-between text-xs">
                   <button
                     onClick={() => setViewHistoryGuide(guide)}
-                    className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                    className="text-[#15291E] hover:text-[#15291E] font-medium flex items-center gap-1"
                   >
                     <Package className="w-3.5 h-3.5" />
                     {schedules.length} tour đã giao
@@ -494,7 +494,7 @@ export function CompanyGuideManagement({
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-blue-600" />
+              <Plus className="w-5 h-5 text-[#15291E]" />
               Thêm Hướng dẫn viên mới
             </DialogTitle>
             <DialogDescription className="text-xs text-gray-500">
@@ -603,7 +603,7 @@ export function CompanyGuideManagement({
               />
             </div>
 
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-700">
+            <div className="bg-[#FBF9F5] p-3 rounded-lg border border-blue-100 text-xs text-[#15291E]">
               <span className="font-semibold">Mật khẩu mặc định:</span> <code>123456</code>. Hướng dẫn viên có thể dùng email này để đăng nhập vào Ứng dụng Di động chuyên dụng.
             </div>
 
@@ -611,7 +611,7 @@ export function CompanyGuideManagement({
               <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                 Hủy
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button type="submit" className="bg-[#15291E] hover:bg-[#BD5E38] text-white">
                 Lưu HDV
               </Button>
             </div>
@@ -704,7 +704,7 @@ export function CompanyGuideManagement({
                 <Button type="button" variant="outline" onClick={() => setEditingGuide(null)}>
                   Hủy
                 </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button type="submit" className="bg-[#15291E] hover:bg-[#BD5E38] text-white">
                   Cập nhật
                 </Button>
               </div>
@@ -718,7 +718,7 @@ export function CompanyGuideManagement({
         <DialogContent className="max-w-lg bg-white">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
+              <Calendar className="w-5 h-5 text-[#15291E]" />
               Lịch sử dẫn tour: {viewHistoryGuide?.name}
             </DialogTitle>
             <DialogDescription className="text-xs text-gray-500">
@@ -749,7 +749,7 @@ export function CompanyGuideManagement({
                     <span
                       className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                         schedule.booking.status === "completed"
-                          ? "bg-blue-100 text-blue-800"
+                          ? "bg-[#15291E]/10 text-blue-800"
                           : "bg-emerald-100 text-emerald-800"
                       }`}
                     >

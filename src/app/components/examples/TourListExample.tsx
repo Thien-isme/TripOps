@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Example Component: Tour List with API
  * Ví dụ sử dụng API services để fetch và hiển thị tours
  */
@@ -43,7 +43,7 @@ export function TourListWithHook() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#15291E]"></div>
       </div>
     );
   }
@@ -82,11 +82,11 @@ export function TourListWithHook() {
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
           placeholder="Tìm kiếm tour..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E]"
         />
         <button
           onClick={handleSearch}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] flex items-center gap-2"
         >
           <Search className="w-4 h-4" />
           Tìm
@@ -191,11 +191,11 @@ function TourCard({ tour }: { tour: Tour }) {
         <div className="pt-3 border-t flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500">Giá từ</p>
-            <p className="text-xl font-bold text-blue-600">
+            <p className="text-xl font-bold text-[#15291E]">
               {tour.price.toLocaleString("vi-VN")}đ
             </p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
+          <button className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors text-sm font-semibold">
             Đặt ngay
           </button>
         </div>
@@ -280,7 +280,7 @@ export function TourSearchExample() {
         </div>
         <button
           onClick={handleSearch}
-          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="mt-4 px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38]"
         >
           Tìm kiếm
         </button>

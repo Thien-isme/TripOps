@@ -1,4 +1,4 @@
-import { Service, User } from "@/app/types";
+﻿import { Service, User } from "@/app/types";
 import {
   Layers,
   Clock,
@@ -80,7 +80,7 @@ export function ProviderOverview({
           <div className="flex flex-wrap items-center gap-3">
             <Button
               onClick={onCreateService}
-              className="bg-white text-blue-700 hover:bg-blue-50 font-bold shadow-lg text-sm rounded-xl px-4 py-2.5 h-auto transition-transform active:scale-95"
+              className="bg-white text-[#15291E] hover:bg-[#FBF9F5] font-bold shadow-lg text-sm rounded-xl px-4 py-2.5 h-auto transition-transform active:scale-95"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               Đăng dịch vụ mới
@@ -108,14 +108,14 @@ export function ProviderOverview({
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Tổng dịch vụ
             </span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#FBF9F5] text-[#15291E] flex items-center justify-center">
               <Layers className="w-5 h-5" />
             </div>
           </div>
           <div className="text-3xl font-extrabold text-gray-900">
             {stats.total}
           </div>
-          <p className="text-xs text-blue-600 font-medium mt-1">
+          <p className="text-xs text-[#15291E] font-medium mt-1">
             Dịch vụ trên hệ thống
           </p>
         </div>
@@ -188,7 +188,7 @@ export function ProviderOverview({
             variant="ghost"
             size="sm"
             onClick={onNavigateToServices}
-            className="text-xs text-blue-600 hover:text-blue-700"
+            className="text-xs text-[#15291E] hover:text-[#15291E]"
           >
             Quản lý tất cả →
           </Button>
@@ -201,7 +201,7 @@ export function ProviderOverview({
               label: "Lưu trú & Khách sạn",
               count: categoriesCount.hotel,
               icon: Hotel,
-              bg: "bg-blue-50 text-blue-700 border-blue-200",
+              bg: "bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]",
             },
             {
               category: "fnb",
@@ -285,7 +285,7 @@ export function ProviderOverview({
               <div
                 key={service.id}
                 onClick={() => onViewDetail(service)}
-                className="p-4 flex items-center justify-between gap-4 hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                className="p-4 flex items-center justify-between gap-4 hover:bg-[#FBF9F5]/40 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <img
@@ -294,7 +294,7 @@ export function ProviderOverview({
                     className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-gray-200 group-hover:scale-105 transition-transform"
                   />
                   <div className="min-w-0">
-                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                    <h4 className="font-bold text-sm text-gray-900 group-hover:text-[#15291E] transition-colors truncate">
                       {service.name}
                     </h4>
                     <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
@@ -333,7 +333,7 @@ export function ProviderOverview({
                     )}
                   </div>
 
-                  <span className="text-gray-400 group-hover:text-blue-600 transition-colors">
+                  <span className="text-gray-400 group-hover:text-[#15291E] transition-colors">
                     →
                   </span>
                 </div>

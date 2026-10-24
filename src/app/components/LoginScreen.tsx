@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { User } from "@/app/types";
 import { login } from "@/app/services/authService";
-import { MapPin, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Compass, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 interface LoginScreenProps {
   onLogin: (user: User) => void;
@@ -14,7 +14,6 @@ export function LoginScreen({
   onLogin,
   onBack,
   onShowRegister,
-  onShowForgotPassword,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,9 +27,7 @@ export function LoginScreen({
     setIsLoading(true);
 
     try {
-      // Call API service
       const response = await login({ email, password });
-
       if (response.success && response.data) {
         onLogin(response.data.user);
       } else {
@@ -43,329 +40,176 @@ export function LoginScreen({
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate Google login - auto login as customer
-      const response = await login({
-        email: "customer@demo.com",
-        password: "1",
-      });
-
-      if (response.success && response.data) {
-        onLogin(response.data.user);
-      }
-    } catch (err) {
-      setError("Đăng nhập Google thất bại");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const demoAccounts = [
+    {
+      role: "Khách hàng cá nhân",
+      name: "Tập đoàn FPT",
+      email: "khachhang.fpt@gmail.com",
+      badge: "User",
+    },
+    {
+      role: "Đơn vị chủ trì tour",
+      name: "Viettravel",
+      email: "viettravel.tour@gmail.com",
+      badge: "Host",
+    },
+    {
+      role: "Đối tác liên minh",
+      name: "Hà Giang Discovery",
+      email: "hagiang.discovery@gmail.com",
+      badge: "Co-host",
+    },
+    {
+      role: "Đối tác lưu trú & DV",
+      name: "Heritage Resorts",
+      email: "provider.heritage@gmail.com",
+      badge: "Provider",
+    },
+    {
+      role: "Quản trị sàn TripOps",
+      name: "Admin Platform",
+      email: "admin.platform@gmail.com",
+      badge: "Admin",
+    },
+    {
+      role: "Hướng dẫn viên lữ hành",
+      name: "Trần Thị Bích",
+      email: "guide@demo.com",
+      badge: "Guide",
+    },
+  ];
 
   return (
-    <div className="py-20">
-      <div className="max-w-md w-full mx-auto px-4">
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Đăng nhập
+    <div className="min-h-screen bg-[#FBF9F5] text-[#191A19] font-sans antialiased py-28 px-4 flex items-center justify-center">
+      <div className="max-w-md w-full mx-auto space-y-6">
+        
+        {/* Brand Header */}
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-[#15291E] flex items-center justify-center text-white mx-auto shadow-sm">
+            <Compass className="w-6 h-6 text-[#BD5E38]" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-serif text-[#15291E]">
+            Chào mừng trở lại TripOps
           </h2>
+          <p className="text-xs text-[#686C67]">
+            Đăng nhập để quản lý hành trình và trải nghiệm dịch vụ du lịch chọn lọc
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Email
+        {/* Card */}
+        <div className="bg-white rounded-2xl p-8 border border-[#E8E4DC] shadow-[0_12px_40px_rgb(0,0,0,0.04)] space-y-5">
+          {error && (
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-[#15291E]">
+                Email tài khoản
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#686C67]" />
                 <input
-                  id="email"
                   type="email"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  placeholder="your.email@example.com"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl focus:outline-none focus:border-[#15291E]"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Mật khẩu
-              </label>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#15291E]">
+                  Mật khẩu
+                </label>
+                <a href="#" className="text-xs text-[#BD5E38] hover:underline">
+                  Quên mật khẩu?
+                </a>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#686C67]" />
                 <input
-                  id="password"
                   type={showPassword ? "text" : "password"}
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
+                  placeholder="Mật khẩu của bạn"
+                  className="w-full pl-10 pr-10 py-2.5 text-sm bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl focus:outline-none focus:border-[#15291E]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#686C67] hover:text-[#15291E]"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600 text-center">
-                  {error}
-                </p>
-              </div>
-            )}
-
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-gray-600">
-                  Ghi nhớ đăng nhập
-                </span>
-              </label>
-              <a
-                href="#"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Quên mật khẩu?
-              </a>
-            </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full py-3 rounded-full bg-[#15291E] text-white text-xs font-semibold tracking-wide hover:bg-[#BD5E38] disabled:opacity-40 transition-all duration-300 shadow-sm"
             >
-              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {isLoading ? "Đang xử lý đăng nhập..." : "Đăng nhập ngay"}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">
-                Hoặc đăng nhập với
-              </span>
+          {/* Demo Accounts List */}
+          <div className="pt-4 border-t border-[#E8E4DC] space-y-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#686C67] block">
+              Chọn nhanh tài khoản thử nghiệm (Mật khẩu: 1):
+            </span>
+            <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1">
+              {demoAccounts.map((acc, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    setEmail(acc.email);
+                    setPassword("1");
+                  }}
+                  className="p-2.5 rounded-xl border border-[#E8E4DC] hover:border-[#15291E] hover:bg-[#FBF9F5] cursor-pointer transition-all flex items-center justify-between"
+                >
+                  <div>
+                    <div className="text-xs font-semibold text-[#15291E]">{acc.name}</div>
+                    <div className="text-[10px] text-[#686C67]">{acc.email}</div>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#15291E]/5 text-[#15291E] font-medium">
+                    {acc.badge}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Google Login Button */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Đăng nhập bằng Google
-          </button>
-
-          {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Chưa có tài khoản?{" "}
-            <button
-              onClick={onShowRegister}
-              className="text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              Đăng ký ngay
-            </button>
-          </p>
-
-          {/* Back to Home */}
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="mt-4 w-full py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
-            >
-              ← Quay về trang chủ
-            </button>
-          )}
-
-          {/* Demo Info */}
-          <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl space-y-2.5">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-blue-950 font-bold flex items-center gap-1.5">
-                <span>🔑</span> Tài khoản mẫu thử nghiệm (Mật khẩu: <code>1</code>):
-              </p>
-              <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">
-                Bấm để điền nhanh
-              </span>
-            </div>
-
-            <div className="space-y-1.5 text-xs">
-              {/* Lead Company */}
-              <div
-                onClick={() => {
-                  setEmail("viettravel.tour@gmail.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border border-blue-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all flex items-center justify-between group"
+          <div className="text-center pt-2">
+            <p className="text-xs text-[#686C67]">
+              Chưa có tài khoản?{" "}
+              <button
+                onClick={onShowRegister}
+                className="text-[#BD5E38] font-semibold hover:underline"
               >
-                <div>
-                  <span className="font-bold text-gray-900 group-hover:text-blue-700 block">
-                    🏢 Viettravel (Đơn vị Chủ trì):
-                  </span>
-                  <code className="text-[11px] text-blue-600 font-mono">
-                    viettravel.tour@gmail.com
-                  </code>
-                </div>
-                <span className="text-[10px] text-gray-400 group-hover:text-blue-600 font-medium">
-                  Chọn ➔
-                </span>
-              </div>
-
-              {/* Partner Company */}
-              <div
-                onClick={() => {
-                  setEmail("hagiang.discovery@gmail.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border-2 border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
-              >
-                <div>
-                  <span className="font-bold text-emerald-950 group-hover:text-emerald-700 block">
-                    🏔️ Hà Giang Discovery (Đối tác Liên minh):
-                  </span>
-                  <code className="text-[11px] text-emerald-700 font-mono font-bold">
-                    hagiang.discovery@gmail.com
-                  </code>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-                  Test Báo giá &amp; Chặng
-                </span>
-              </div>
-
-              {/* Customer */}
-              <div
-                onClick={() => {
-                  setEmail("khachhang.fpt@gmail.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border border-purple-200 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <span className="font-bold text-gray-900 group-hover:text-purple-700 block">
-                    👤 Khách hàng (Tập đoàn FPT):
-                  </span>
-                  <code className="text-[11px] text-purple-600 font-mono">
-                    khachhang.fpt@gmail.com
-                  </code>
-                </div>
-                <span className="text-[10px] text-gray-400 group-hover:text-purple-600 font-medium">
-                  Xem Tour ➔
-                </span>
-              </div>
-
-              {/* Service Provider */}
-              <div
-                onClick={() => {
-                  setEmail("provider.heritage@gmail.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border border-teal-200 hover:border-teal-400 hover:bg-teal-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
-              >
-                <div>
-                  <span className="font-bold text-gray-900 group-hover:text-teal-700 block">
-                    🏨 Đối tác Cung cấp Dịch vụ (Heritage):
-                  </span>
-                  <code className="text-[11px] text-teal-600 font-mono font-bold">
-                    provider.heritage@gmail.com
-                  </code>
-                </div>
-                <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">
-                  Quản lý DV ➔
-                </span>
-              </div>
-
-              {/* Admin */}
-              <div
-                onClick={() => {
-                  setEmail("admin.platform@gmail.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 cursor-pointer transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <span className="font-bold text-gray-900 group-hover:text-amber-800 block">
-                    🛡️ Admin Sàn (Quyết toán Ký quỹ Escrow):
-                  </span>
-                  <code className="text-[11px] text-amber-700 font-mono">
-                    admin.platform@gmail.com
-                  </code>
-                </div>
-                <span className="text-[10px] text-gray-400 group-hover:text-amber-700 font-medium">
-                  Chia tiền ➔
-                </span>
-              </div>
-
-              {/* Tour Guide */}
-              <div
-                onClick={() => {
-                  setEmail("guide@demo.com");
-                  setPassword("1");
-                }}
-                className="p-2 bg-white rounded-lg border border-sky-200 hover:border-sky-400 hover:bg-sky-50/50 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
-              >
-                <div>
-                  <span className="font-bold text-gray-900 group-hover:text-sky-700 block">
-                    🚩 Hướng dẫn viên (Trần Thị Bích - Mobile UI):
-                  </span>
-                  <code className="text-[11px] text-sky-600 font-mono font-bold">
-                    guide@demo.com
-                  </code>
-                </div>
-                <span className="text-[10px] font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">
-                  Điểm danh &amp; Tour ➔
-                </span>
-              </div>
-            </div>
+                Đăng ký tài khoản mới
+              </button>
+            </p>
           </div>
         </div>
+
+        {onBack && (
+          <div className="text-center">
+            <button
+              onClick={onBack}
+              className="text-xs text-[#686C67] hover:text-[#15291E] transition-colors"
+            >
+              ← Quay về trang chủ TripOps
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

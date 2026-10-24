@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Tour } from "@/app/types";
 import {
-  Star,
   MapPin,
   Clock,
   Users,
+  Search,
   Sparkles,
+  ArrowRight,
+  SlidersHorizontal,
+  Compass,
 } from "lucide-react";
 
 interface TourListProps {
@@ -16,17 +19,8 @@ interface TourListProps {
 
 export function TourList({ tours, onBookTour, onViewTour }: TourListProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [showAISearch, setShowAISearch] = useState(false);
-  const [aiQuery, setAiQuery] = useState("");
-
-  const handleAISearch = () => {
-    // Simulate AI search
-    alert(
-      `Đang tìm kiếm tour phù hợp với yêu cầu: "${aiQuery}"\n\nKết quả sẽ được hiển thị dưới đây.`,
-    );
-    setShowAISearch(false);
-    setAiQuery("");
-  };
+  const [selectedDestination, setSelectedDestination] = useState("all");
+  const [selectedDuration, setSelectedDuration] = useState("all");
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -35,168 +29,160 @@ export function TourList({ tours, onBookTour, onViewTour }: TourListProps) {
     }).format(price);
   };
 
-  const filteredTours = tours.filter(
-    (tour) =>
-      tour.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      tour.destination
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
-  );
+  const destinations = ["all", ...Array.from(new Set(tours.map((t) => t.destination)))];
+
+  const filteredTours = tours.filter((tour) => {
+    const matchesSearch =
+      tour.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tour.destination.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesDest =
+      selectedDestination === "all" || tour.destination === selectedDestination;
+
+    return matchesSearch && matchesDest;
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Tìm kiếm tour
-        </h2>
+    <div className="space-y-8 font-sans">
+      {/* Editorial Filter Header */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E8E4DC] shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-xs uppercase font-semibold tracking-widest text-[#BD5E38] flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5" />
+              Bộ lọc hành trình có gu
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-serif text-[#15291E]">
+              Khám phá các điểm đến được tuyển chọn
+            </h2>
+            <p className="text-xs sm:text-sm text-[#686C67] font-light">
+              Tìm kiếm hành trình mang đậm dấu ấn bản địa, không gian tĩnh lặng và dịch vụ tận tâm.
+            </p>
+          </div>
 
-        <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo tên tour hoặc điểm đến..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="text-xs text-[#686C67] font-medium bg-[#FBF9F5] px-3 py-1.5 rounded-full border border-[#E8E4DC]">
+            Hiển thị <strong>{filteredTours.length}</strong> hành trình đạt chuẩn
+          </div>
+        </div>
 
-          <div className="relative">
-            {!showAISearch ? (
-              <button
-                onClick={() => setShowAISearch(true)}
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-5 h-5" />
-                Tìm kiếm bằng AI
-              </button>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  placeholder='Ví dụ: "Tôi muốn đi Đà Lạt với chi phí 5 triệu cho 3 người trong 3 ngày 2 đêm"'
-                  value={aiQuery}
-                  onChange={(e) => setAiQuery(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAISearch}
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    Tìm kiếm
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAISearch(false);
-                      setAiQuery("");
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            )}
+        {/* Search & Filter Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-2 border-t border-[#E8E4DC]">
+          <div className="md:col-span-8 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#686C67]" />
+            <input
+              type="text"
+              placeholder="Nhập tên tour, danh thắng hoặc trải nghiệm mong muốn..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl text-[#191A19] focus:outline-none focus:border-[#15291E] transition-all"
+            />
+          </div>
+
+          <div className="md:col-span-4">
+            <select
+              value={selectedDestination}
+              onChange={(e) => setSelectedDestination(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl text-[#191A19] focus:outline-none focus:border-[#15291E]"
+            >
+              <option value="all">Tất cả vùng miền & điểm đến</option>
+              {destinations
+                .filter((d) => d !== "all")
+                .map((dest) => (
+                  <option key={dest} value={dest}>
+                    {dest}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Tour Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredTours.map((tour) => (
-          <div
+          <article
             key={tour.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+            onClick={() => onViewTour?.(tour)}
+            className="group bg-white rounded-2xl overflow-hidden border border-[#E8E4DC] hover:border-[#15291E] hover:shadow-[0_12px_30px_rgb(0,0,0,0.06)] transition-all duration-300 cursor-pointer flex flex-col justify-between"
           >
-            <div className="relative">
-              <img
-                src={tour.image}
-                alt={tour.name}
-                className="w-full h-48 object-cover"
-              />
-              {tour.companyName && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2 flex items-center gap-2">
-                  {tour.companyLogo && (
-                    <img
-                      src={tour.companyLogo}
-                      alt={tour.companyName}
-                      className="w-5 h-5 rounded object-cover flex-shrink-0"
-                    />
-                  )}
-                  <span className="text-white text-xs font-medium truncate">
-                    {tour.companyName}
+            <div>
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#FBF9F5]">
+                <img
+                  src={tour.image}
+                  alt={tour.name}
+                  className="w-full h-full object-cover filter saturate-[0.92] group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute top-4 left-4 bg-[#FBF9F5]/90 backdrop-blur-md text-[#15291E] px-3 py-1 rounded-full text-xs font-medium border border-[#E8E4DC]">
+                  {tour.destination}
+                </div>
+                {tour.companyName && (
+                  <div className="absolute bottom-3 left-3 bg-[#15291E]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded text-[11px] font-light">
+                    Đối tác: {tour.companyName}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-4 text-xs text-[#686C67]">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#BD5E38]" />
+                    {tour.duration}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#BD5E38]" />
+                    Tối đa {tour.maxGuests} khách
                   </span>
                 </div>
-              )}
-            </div>
-            <div className="p-5 space-y-3">
-              <div className="flex items-start justify-between">
-                <h3 className="font-semibold text-lg text-gray-900">
+
+                <h3 className="text-xl font-serif text-[#15291E] group-hover:text-[#BD5E38] transition-colors leading-snug line-clamp-1">
                   {tour.name}
                 </h3>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  <Star className="w-4 h-4 fill-current" />
-                  <span className="text-sm font-medium">
-                    {tour.rating}
-                  </span>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-gray-600 text-sm">
-                  <MapPin className="w-4 h-4" />
-                  <span>{tour.destination}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600 text-sm">
-                  <Clock className="w-4 h-4" />
-                  <span>{tour.duration}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600 text-sm">
-                  <Users className="w-4 h-4" />
-                  <span>Tối đa {tour.maxGuests} người</span>
-                </div>
-              </div>
-
-              <p className="text-gray-600 text-sm line-clamp-2">
-                {tour.description}
-              </p>
-
-              <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-600">
-                    Giá từ
-                  </div>
-                  <div className="text-xl font-bold text-blue-600">
-                    {formatPrice(tour.price)}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {onViewTour && (
-                    <button
-                      onClick={() => onViewTour(tour)}
-                      className="px-3 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm"
-                    >
-                      Chi tiết
-                    </button>
-                  )}
-                  <button
-                    onClick={() => onBookTour(tour)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Đặt ngay
-                  </button>
-                </div>
+                <p className="text-xs text-[#686C67] line-clamp-2 leading-relaxed font-light">
+                  {tour.description}
+                </p>
               </div>
             </div>
-          </div>
+
+            <div className="px-6 pb-6 pt-4 border-t border-[#E8E4DC] flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Chi phí từ</span>
+                <span className="text-lg font-serif font-semibold text-[#15291E]">
+                  {formatPrice(tour.price)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {onViewTour && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewTour(tour);
+                    }}
+                    className="px-3.5 py-1.5 rounded-full border border-[#E8E4DC] text-xs font-medium text-[#15291E] hover:border-[#15291E] transition-colors"
+                  >
+                    Xem chi tiết
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBookTour(tour);
+                  }}
+                  className="px-4 py-1.5 rounded-full bg-[#15291E] text-white text-xs font-medium hover:bg-[#BD5E38] transition-all duration-300 shadow-sm"
+                >
+                  Đặt ngay
+                </button>
+              </div>
+            </div>
+          </article>
         ))}
       </div>
 
       {filteredTours.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">
-            Không tìm thấy tour phù hợp
-          </p>
+        <div className="text-center py-20 bg-white rounded-2xl border border-[#E8E4DC] space-y-2">
+          <p className="text-sm font-serif text-[#15291E]">Không tìm thấy hành trình phù hợp với tìm kiếm của bạn.</p>
+          <p className="text-xs text-[#686C67]">Hãy thử xóa bộ lọc hoặc tìm kiếm theo từ khóa địa danh khác.</p>
         </div>
       )}
     </div>

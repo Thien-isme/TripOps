@@ -2,3 +2,16 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import "tw-animate-css";
+
+@theme {
+  --color-brand-primary: #15291E;
+  --color-brand-primary-hover: #0E1B14;
+  --color-brand-accent: #BD5E38;
+  --color-brand-accent-hover: #A34C2A;
+
+  --color-surface-canvas: #FBF9F5;
+  --color-surface-card: #FFFFFF;
+  --color-surface-text: #191A19;
+  --color-surface-muted: #686C67;
+  --color-surface-border: #E8E4DC;
+}

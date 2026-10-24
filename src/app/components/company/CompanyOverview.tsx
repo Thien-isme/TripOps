@@ -1,4 +1,4 @@
-import {
+﻿import {
   Tour,
   Booking,
   User,
@@ -123,7 +123,7 @@ export function CompanyOverview({
               <Mail className="w-4 h-4" /> {company.email}
             </span>
             {company.website && (
-              <span className="flex items-center gap-1.5 text-blue-600">
+              <span className="flex items-center gap-1.5 text-[#15291E]">
                 <Globe className="w-4 h-4" /> {company.website}
               </span>
             )}
@@ -138,15 +138,15 @@ export function CompanyOverview({
             label: "Tổng Tour",
             value: tours.length,
             icon: Package,
-            color: "text-blue-600",
-            bg: "bg-blue-50",
+            color: "text-[#15291E]",
+            bg: "bg-[#FBF9F5]",
           },
           {
             label: "Đặt tour",
             value: bookings.length,
             icon: Calendar,
-            color: "text-purple-600",
-            bg: "bg-purple-50",
+            color: "text-[#BD5E38]",
+            bg: "bg-[#FBF9F5]",
           },
           {
             label: "Chờ xử lý",
@@ -203,9 +203,9 @@ export function CompanyOverview({
       </div>
 
       {/* Services Discovery Banner */}
-      <div className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+      <div className="bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-[#E8E4DC] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-[#15291E] text-white flex items-center justify-center flex-shrink-0 shadow-md">
             <Compass className="w-6 h-6" />
           </div>
           <div>
@@ -220,7 +220,7 @@ export function CompanyOverview({
         {onNavigate && (
           <Button
             onClick={() => onNavigate("services")}
-            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 flex-shrink-0 shadow-xs"
+            className="rounded-xl bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs font-semibold px-4 py-2.5 flex-shrink-0 shadow-xs"
           >
             Khám phá Dịch vụ Đối tác
             <ChevronRight className="w-4 h-4 ml-1" />

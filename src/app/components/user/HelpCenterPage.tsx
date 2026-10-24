@@ -1,4 +1,4 @@
-import {
+﻿import {
   HelpCircle,
   Search,
   Phone,
@@ -109,7 +109,7 @@ export function HelpCenterPage() {
               placeholder="Tìm kiếm câu hỏi..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:border-transparent text-lg"
             />
           </div>
         </div>
@@ -120,7 +120,7 @@ export function HelpCenterPage() {
             onClick={() => setSelectedCategory("all")}
             className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-colors ${
               selectedCategory === "all"
-                ? "bg-blue-600 text-white"
+                ? "bg-[#15291E] text-white"
                 : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
@@ -132,7 +132,7 @@ export function HelpCenterPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-colors ${
                 selectedCategory === category
-                  ? "bg-blue-600 text-white"
+                  ? "bg-[#15291E] text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -157,12 +157,12 @@ export function HelpCenterPage() {
                 className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-3 flex-1">
-                  <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <BookOpen className="w-5 h-5 text-[#15291E] mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">
                       {faq.question}
                     </h3>
-                    <span className="text-xs text-blue-600 mt-1 inline-block">
+                    <span className="text-xs text-[#15291E] mt-1 inline-block">
                       {faq.category}
                     </span>
                   </div>
@@ -200,8 +200,8 @@ export function HelpCenterPage() {
         {/* Contact Options */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-all">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <Phone className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-[#15291E]/10 rounded-lg flex items-center justify-center mb-4">
+              <Phone className="w-6 h-6 text-[#15291E]" />
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">
               Hotline 24/7
@@ -211,7 +211,7 @@ export function HelpCenterPage() {
             </p>
             <a
               href="tel:1900123456"
-              className="text-blue-600 font-semibold hover:underline"
+              className="text-[#15291E] font-semibold hover:underline"
             >
               1900 123 456
             </a>
@@ -228,16 +228,16 @@ export function HelpCenterPage() {
               Gửi email cho chúng tôi
             </p>
             <a
-              href="mailto:support@tourviet.com"
+              href="mailto:support@TripOps.com"
               className="text-green-600 font-semibold hover:underline text-sm"
             >
-              support@tourviet.com
+              support@TripOps.com
             </a>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-all">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <MessageCircle className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-[#BD5E38]/15 rounded-lg flex items-center justify-center mb-4">
+              <MessageCircle className="w-6 h-6 text-[#BD5E38]" />
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">
               Live Chat
@@ -245,7 +245,7 @@ export function HelpCenterPage() {
             <p className="text-gray-600 text-sm mb-3">
               Chat trực tuyến với tư vấn viên
             </p>
-            <button className="text-purple-600 font-semibold hover:underline">
+            <button className="text-[#BD5E38] font-semibold hover:underline">
               Bắt đầu chat
             </button>
           </div>

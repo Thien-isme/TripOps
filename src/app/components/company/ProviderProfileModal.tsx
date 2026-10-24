@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { User, Service } from "@/app/types";
 import {
   X,
@@ -170,7 +170,7 @@ export function ProviderProfileModal({
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#15291E] bg-[#FBF9F5] px-2 py-0.5 rounded border border-[#E8E4DC]">
                   Nhà cung cấp nền tảng
                 </span>
                 <h4 className="text-lg sm:text-xl font-black text-gray-900 mt-1">
@@ -205,25 +205,25 @@ export function ProviderProfileModal({
           {/* Contact Details with Quick Actions */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-blue-600" />
+              <Phone className="w-3.5 h-3.5 text-[#15291E]" />
               Kênh liên lạc trực tiếp B2B
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {/* Hotline B2B */}
-              <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl border border-[#E8E4DC] bg-[#FBF9F5]/50 flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-[11px] font-medium">Hotline B2B / Đặt đoàn:</p>
                   <a
                     href={`tel:${provider.businessPhone || provider.phone || "02633825444"}`}
-                    className="text-base font-extrabold text-blue-700 hover:text-blue-900 hover:underline block mt-0.5"
+                    className="text-base font-extrabold text-[#15291E] hover:text-blue-900 hover:underline block mt-0.5"
                   >
                     {provider.businessPhone || provider.phone || "0263 3825 444"}
                   </a>
                 </div>
                 <button
                   onClick={() => copyToClipboard(provider.businessPhone || provider.phone || "0263 3825 444", "phone")}
-                  className="p-2 rounded-lg bg-white hover:bg-blue-100 border border-blue-200 text-blue-700 transition-colors shadow-2xs"
+                  className="p-2 rounded-lg bg-white hover:bg-[#15291E]/10 border border-[#E8E4DC] text-[#15291E] transition-colors shadow-2xs"
                   title="Sao chép số điện thoại"
                 >
                   {copiedField === "phone" ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -231,19 +231,19 @@ export function ProviderProfileModal({
               </div>
 
               {/* Email B2B */}
-              <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/50 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl border border-[#BD5E38]/30 bg-[#FBF9F5]/50 flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-[11px] font-medium">Email đối soát &amp; Hợp đồng:</p>
                   <a
                     href={`mailto:${provider.businessEmail || provider.email || "contact@provider.com"}`}
-                    className="text-sm font-bold text-purple-700 hover:text-purple-900 hover:underline block mt-0.5 truncate max-w-[190px]"
+                    className="text-sm font-bold text-[#A34C2A] hover:text-purple-900 hover:underline block mt-0.5 truncate max-w-[190px]"
                   >
                     {provider.businessEmail || provider.email || "contact@provider.com"}
                   </a>
                 </div>
                 <button
                   onClick={() => copyToClipboard(provider.businessEmail || provider.email || "contact@provider.com", "email")}
-                  className="p-2 rounded-lg bg-white hover:bg-purple-100 border border-purple-200 text-purple-700 transition-colors shadow-2xs"
+                  className="p-2 rounded-lg bg-white hover:bg-[#BD5E38]/15 border border-[#BD5E38]/30 text-[#A34C2A] transition-colors shadow-2xs"
                   title="Sao chép email"
                 >
                   {copiedField === "email" ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -266,7 +266,7 @@ export function ProviderProfileModal({
                 href={googleMapsExternalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 flex-shrink-0"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#15291E] hover:text-blue-800 bg-[#FBF9F5] px-2.5 py-1.5 rounded-lg border border-[#E8E4DC] flex-shrink-0"
               >
                 <Navigation className="w-3 h-3" />
                 Mở Maps
@@ -278,7 +278,7 @@ export function ProviderProfileModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-gray-700 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                <MapPin className="w-3.5 h-3.5 text-[#15291E]" />
                 Vị trí toạ độ GPS của Đối tác:
               </span>
               <span className="text-gray-400 font-mono text-[11px]">
@@ -296,9 +296,9 @@ export function ProviderProfileModal({
           </div>
 
           {/* B2B Guidance note for company */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-900 space-y-1">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-[#E8E4DC] rounded-xl p-4 text-xs text-blue-900 space-y-1">
             <p className="font-bold flex items-center gap-1.5">
-              <Info className="w-4 h-4 text-blue-600" />
+              <Info className="w-4 h-4 text-[#15291E]" />
               Hướng dẫn thực hiện dành cho Công ty lữ hành:
             </p>
             <p className="text-blue-800 leading-relaxed pl-5">
@@ -317,7 +317,7 @@ export function ProviderProfileModal({
             variant="outline"
             size="sm"
             onClick={handleOpenNewTab}
-            className="gap-1.5 text-xs text-blue-700 border-blue-200 hover:bg-blue-50"
+            className="gap-1.5 text-xs text-[#15291E] border-[#E8E4DC] hover:bg-[#FBF9F5]"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Mở xem hồ sơ ở tab mới
@@ -325,7 +325,7 @@ export function ProviderProfileModal({
 
           <Button
             onClick={onClose}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-2 rounded-xl"
+            className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold text-xs px-5 py-2 rounded-xl"
           >
             Đã hiểu &amp; Đóng
           </Button>

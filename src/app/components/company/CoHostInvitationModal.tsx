@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { CustomTourRequest, Tour, TourCompany } from "@/app/types";
 import {
   Dialog,
@@ -127,7 +127,7 @@ export function CoHostInvitationModal({
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-700 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#BD5E38]/15 flex items-center justify-center text-[#A34C2A] shadow-xs">
               <Handshake className="w-5 h-5" />
             </div>
             <div>
@@ -143,10 +143,10 @@ export function CoHostInvitationModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-1 text-xs">
           {/* Tour/Request Context Banner */}
-          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-purple-50 border border-blue-200 rounded-xl p-3.5 space-y-1.5 shadow-2xs">
+          <div className="bg-gradient-to-r from-blue-50 via-indigo-50/60 to-purple-50 border border-[#E8E4DC] rounded-xl p-3.5 space-y-1.5 shadow-2xs">
             <div className="flex items-center justify-between">
               <span className="font-bold text-blue-950 text-sm flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-blue-600" />
+                <MapPin className="w-4 h-4 text-[#15291E]" />
                 {customRequest?.destinations || tour?.destination || "Hành trình liên tỉnh"}
               </span>
               <span className="bg-blue-200/80 text-blue-900 font-bold px-2.5 py-0.5 rounded text-[11px]">
@@ -168,7 +168,7 @@ export function CoHostInvitationModal({
           {/* Partner Selection */}
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-purple-600" />
+              <Building2 className="w-4 h-4 text-[#BD5E38]" />
               Chọn Công ty Lữ hành Đối tác muốn mời: <span className="text-red-500">*</span>
             </Label>
             <select
@@ -184,12 +184,12 @@ export function CoHostInvitationModal({
               ))}
             </select>
             {selectedPartner && (
-              <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-2.5 flex items-center gap-3">
+              <div className="bg-[#FBF9F5]/70 border border-[#BD5E38]/30 rounded-lg p-2.5 flex items-center gap-3">
                 {selectedPartner.logo ? (
                   <img
                     src={selectedPartner.logo}
                     alt={selectedPartner.name}
-                    className="w-10 h-10 rounded-lg object-cover border border-purple-200 flex-shrink-0"
+                    className="w-10 h-10 rounded-lg object-cover border border-[#BD5E38]/30 flex-shrink-0"
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-purple-200 flex items-center justify-center font-bold text-purple-800 flex-shrink-0">
@@ -201,7 +201,7 @@ export function CoHostInvitationModal({
                   <p className="text-[11px] text-gray-500">
                     Hotline: {selectedPartner.phone} · Email: {selectedPartner.email}
                   </p>
-                  <p className="text-[11px] text-purple-700 font-medium mt-0.5">
+                  <p className="text-[11px] text-[#A34C2A] font-medium mt-0.5">
                     Thế mạnh: Chuyên gia du lịch &amp; điều phối dịch vụ địa phương am hiểu bản địa
                   </p>
                 </div>
@@ -249,7 +249,7 @@ export function CoHostInvitationModal({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                <PhoneCall className="w-3.5 h-3.5 text-blue-600" />
+                <PhoneCall className="w-3.5 h-3.5 text-[#15291E]" />
                 Nội dung đã trao đổi ngoài hệ thống (Zalo / Điện thoại):
               </Label>
               <span className="text-[10px] text-gray-400">Không bắt buộc chọn trước buổi</span>
@@ -312,7 +312,7 @@ export function CoHostInvitationModal({
             <Button
               type="submit"
               size="sm"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold gap-1.5 shadow-xs"
+              className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-bold gap-1.5 shadow-xs"
             >
               <Handshake className="w-4 h-4" />
               Gửi lời mời hợp tác

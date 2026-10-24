@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import {
   Calendar,
   MapPin,
@@ -81,7 +81,7 @@ export function MyBookings({
         );
       case "completed":
         return (
-          <span className="px-2.5 py-1 bg-blue-100 text-blue-800 border border-blue-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+          <span className="px-2.5 py-1 bg-[#15291E]/10 text-blue-800 border border-blue-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
             <CheckCircle className="w-3 h-3" />
             Hoàn thành
           </span>
@@ -119,7 +119,7 @@ export function MyBookings({
         );
       case "refunded":
         return (
-          <span className="px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold">
+          <span className="px-2.5 py-1 bg-[#FBF9F5] text-[#A34C2A] border border-[#BD5E38]/30 rounded-full text-xs font-bold">
             Đã hoàn tiền
           </span>
         );
@@ -253,8 +253,8 @@ export function MyBookings({
                                   {b.tour?.destination}
                                 </span>
                                 {b.hasLocationCustomization && (
-                                  <span className="text-[10px] text-purple-700 font-bold bg-purple-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
-                                    <Sparkles className="w-2.5 h-2.5 text-purple-600" />
+                                  <span className="text-[10px] text-[#A34C2A] font-bold bg-[#BD5E38]/15 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                    <Sparkles className="w-2.5 h-2.5 text-[#BD5E38]" />
                                     Tùy chỉnh
                                   </span>
                                 )}
@@ -299,7 +299,7 @@ export function MyBookings({
 
                         {/* 5. Tổng tiền */}
                         <td className="py-4 px-4 text-right whitespace-nowrap">
-                          <p className="font-bold text-blue-700 text-sm">
+                          <p className="font-bold text-[#15291E] text-sm">
                             {formatVND(b.totalPrice)}
                           </p>
                           <p className="text-[10px] text-gray-400">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Service } from "@/app/types";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
@@ -112,7 +112,7 @@ export function ServicesAroundPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12">
+      <div className="bg-[#15291E] text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold mb-4">
             Dịch vụ xung quanh
@@ -305,7 +305,7 @@ export function ServicesAroundPage({
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="text-blue-600 font-bold text-lg">
+                        <div className="text-[#15291E] font-bold text-lg">
                           {service.price.toLocaleString(
                             "vi-VN",
                           )}
@@ -462,7 +462,7 @@ export function ServicesAroundPage({
                     <p className="text-gray-600 text-sm">
                       Giá từ
                     </p>
-                    <p className="text-3xl font-bold text-blue-600">
+                    <p className="text-3xl font-bold text-[#15291E]">
                       {selectedService.price.toLocaleString(
                         "vi-VN",
                       )}
@@ -471,7 +471,7 @@ export function ServicesAroundPage({
                   </div>
                   <Button
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#15291E] hover:bg-[#BD5E38]"
                   >
                     Liên hệ ngay
                   </Button>

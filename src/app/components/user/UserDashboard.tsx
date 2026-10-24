@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Tour, Booking, CustomTourRequest } from "@/app/types";
 import { TourList } from "./TourList";
 import { MyBookings } from "./MyBookings";
@@ -42,8 +42,8 @@ export function UserDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="flex border-b border-gray-200">
+      <div className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden shadow-sm">
+        <div className="flex border-b border-[#E8E4DC]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -52,14 +52,14 @@ export function UserDashboard({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 px-4 py-4 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm ${
                   activeTab === tab.id
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "text-[#15291E] font-semibold border-b-2 border-[#15291E]"
+                    : "text-[#686C67] hover:text-[#15291E]"
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
                 {"badge" in tab && (tab.badge ?? 0) > 0 && (
-                  <span className="bg-purple-600 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <span className="bg-[#BD5E38] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {tab.badge}
                   </span>
                 )}

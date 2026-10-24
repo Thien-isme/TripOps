@@ -1,4 +1,4 @@
-import { Tour } from "@/app/types";
+﻿import { Tour } from "@/app/types";
 import {
   X,
   MapPin,
@@ -64,8 +64,8 @@ export function TourDetailModal({
 
           {/* Tour Info Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-blue-600 mb-1">
+            <div className="bg-[#FBF9F5] rounded-xl p-4">
+              <div className="flex items-center gap-2 text-[#15291E] mb-1">
                 <MapPin className="w-5 h-5" />
                 <span className="font-semibold">Điểm đến</span>
               </div>
@@ -74,8 +74,8 @@ export function TourDetailModal({
               </p>
             </div>
 
-            <div className="bg-purple-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-purple-600 mb-1">
+            <div className="bg-[#FBF9F5] rounded-xl p-4">
+              <div className="flex items-center gap-2 text-[#BD5E38] mb-1">
                 <Clock className="w-5 h-5" />
                 <span className="font-semibold">Thời gian</span>
               </div>
@@ -143,9 +143,9 @@ export function TourDetailModal({
 
           {/* Created By Info */}
           {tour.createdByName && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border border-[#E8E4DC]">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600" />
+                <User className="w-5 h-5 text-[#15291E]" />
                 Người tạo tour
               </h4>
               <div className="space-y-2">
@@ -200,7 +200,7 @@ export function TourDetailModal({
                     className="border-2 border-gray-200 rounded-xl p-5"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      <div className="w-12 h-12 bg-[#15291E] rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {day.day}
                       </div>
                       <div>
@@ -227,7 +227,7 @@ export function TourDetailModal({
                               key={location.id}
                               className="flex items-start gap-2 bg-gray-50 rounded-lg p-3"
                             >
-                              <MapPin className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                              <MapPin className="w-4 h-4 text-[#15291E] flex-shrink-0 mt-0.5" />
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">
                                   {location.name}

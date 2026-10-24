@@ -1,4 +1,4 @@
-import { Tag, Copy, Check, Clock, Percent } from "lucide-react";
+﻿import { Tag, Copy, Check, Clock, Percent } from "lucide-react";
 import { useState } from "react";
 
 interface Promotion {
@@ -109,7 +109,7 @@ export function PromotionsPage() {
                 <p className="text-sm text-gray-600 mb-1">
                   Mã khả dụng
                 </p>
-                <p className="text-3xl font-bold text-blue-600">
+                <p className="text-3xl font-bold text-[#15291E]">
                   {mockPromotions.length}
                 </p>
               </div>
@@ -137,7 +137,7 @@ export function PromotionsPage() {
                 <p className="text-sm text-gray-600 mb-1">
                   Tiết kiệm
                 </p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold text-[#BD5E38]">
                   1.2M
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function PromotionsPage() {
                     <div
                       className={`px-4 py-2 rounded-lg font-bold text-lg ${
                         promo.type === "percentage"
-                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                          ? "bg-[#15291E] text-white"
                           : promo.type === "fixed"
                             ? "bg-gradient-to-r from-green-500 to-teal-500 text-white"
                             : "bg-gradient-to-r from-orange-500 to-pink-500 text-white"
@@ -219,7 +219,7 @@ export function PromotionsPage() {
                     className={`px-6 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                       copiedCode === promo.code
                         ? "bg-green-500 text-white"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-[#15291E] text-white hover:bg-[#BD5E38]"
                     }`}
                   >
                     {copiedCode === promo.code ? (

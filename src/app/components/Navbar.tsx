@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import {
   User,
   LogOut,
@@ -84,9 +84,9 @@ export function Navbar({
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
-            <MapPin className="w-8 h-8 text-blue-600" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              TourViet
+            <MapPin className="w-8 h-8 text-[#15291E]" />
+            <span className="text-2xl font-bold bg-[#15291E] bg-clip-text text-transparent">
+              TripOps
             </span>
           </div>
 
@@ -94,25 +94,25 @@ export function Navbar({
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#home"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+              className="text-gray-700 hover:text-[#15291E] transition-colors font-medium"
             >
               Trang chủ
             </a>
             <a
               href="#tours"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+              className="text-gray-700 hover:text-[#15291E] transition-colors font-medium"
             >
               Tour
             </a>
             <a
               href="#features"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+              className="text-gray-700 hover:text-[#15291E] transition-colors font-medium"
             >
               Tính năng
             </a>
             <a
               href="#about"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+              className="text-gray-700 hover:text-[#15291E] transition-colors font-medium"
             >
               Về chúng tôi
             </a>
@@ -166,7 +166,7 @@ export function Navbar({
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full inline-block">
+                  <div className="mt-2 px-2 py-1 bg-[#FBF9F5] text-[#15291E] text-xs font-medium rounded-full inline-block">
                     {roleLabels[currentUser.role]}
                   </div>
                 </div>

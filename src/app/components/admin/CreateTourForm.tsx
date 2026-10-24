@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Service,
   Tour,
@@ -199,7 +199,7 @@ export function CreateTourForm({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl flex items-center justify-between">
+        <div className="bg-[#15291E] text-white p-6 rounded-t-2xl flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Tạo Tour Mới</h2>
             <p className="text-blue-100 text-sm mt-1">
@@ -263,9 +263,9 @@ export function CreateTourForm({
           </div>
 
           {/* Basic Information */}
-          <div className="bg-blue-50 rounded-xl p-6 space-y-4">
+          <div className="bg-[#FBF9F5] rounded-xl p-6 space-y-4">
             <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-600" />
+              <FileText className="w-5 h-5 text-[#15291E]" />
               Thông tin cơ bản
             </h3>
 
@@ -285,7 +285,7 @@ export function CreateTourForm({
                       name: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: Hà Nội - Hạ Long 3N2Đ"
                 />
               </div>
@@ -305,7 +305,7 @@ export function CreateTourForm({
                       destination: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: Hạ Long, Quảng Ninh"
                 />
               </div>
@@ -326,7 +326,7 @@ export function CreateTourForm({
                       numberOfDays: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: 3"
                 />
               </div>
@@ -351,7 +351,7 @@ export function CreateTourForm({
                       setSelectedAccommodation("");
                     }
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: 2"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -374,7 +374,7 @@ export function CreateTourForm({
                       price: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: 3500000"
                 />
               </div>
@@ -395,7 +395,7 @@ export function CreateTourForm({
                       minGuests: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: 4"
                 />
               </div>
@@ -415,7 +415,7 @@ export function CreateTourForm({
                       maxGuests: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                   placeholder="VD: 20"
                 />
               </div>
@@ -435,7 +435,7 @@ export function CreateTourForm({
                   })
                 }
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
                 placeholder="Mô tả chi tiết về tour..."
               />
             </div>
@@ -492,16 +492,16 @@ export function CreateTourForm({
           </div>
 
           {/* Highlights */}
-          <div className="bg-purple-50 rounded-xl p-6 space-y-4">
+          <div className="bg-[#FBF9F5] rounded-xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
+                <Sparkles className="w-5 h-5 text-[#BD5E38]" />
                 Điểm nổi bật
               </h3>
               <button
                 type="button"
                 onClick={handleAddHighlight}
-                className="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm flex items-center gap-1"
+                className="px-3 py-1 bg-[#BD5E38] text-white rounded-lg hover:bg-[#A34C2A] transition-colors text-sm flex items-center gap-1"
               >
                 <Plus className="w-4 h-4" />
                 Thêm
@@ -520,7 +520,7 @@ export function CreateTourForm({
                         e.target.value,
                       )
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BD5E38] focus:border-transparent"
                     placeholder="VD: Tham quan Vịnh Hạ Long"
                   />
                   <button
@@ -630,7 +630,7 @@ export function CreateTourForm({
                           onClick={() =>
                             handleAddLocation(dayIndex)
                           }
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs flex items-center gap-1 hover:bg-blue-700"
+                          className="px-2 py-1 bg-[#15291E] text-white rounded text-xs flex items-center gap-1 hover:bg-[#BD5E38]"
                         >
                           <Plus className="w-3 h-3" />
                           Thêm địa điểm
@@ -782,7 +782,7 @@ export function CreateTourForm({
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold shadow-lg"
+              className="flex-1 px-6 py-3 bg-[#15291E] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold shadow-lg"
             >
               Tạo Tour
             </button>

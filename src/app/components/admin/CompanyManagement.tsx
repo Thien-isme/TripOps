@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { TourCompany, User } from "@/app/types";
 import {
   Building2,
@@ -114,8 +114,8 @@ export function CompanyManagement({
           {
             label: "Tổng cộng",
             value: stats.total,
-            color: "bg-blue-50 text-blue-700",
-            border: "border-blue-200",
+            color: "bg-[#FBF9F5] text-[#15291E]",
+            border: "border-[#E8E4DC]",
           },
           {
             label: "Đã duyệt",
@@ -162,7 +162,7 @@ export function CompanyManagement({
             onClick={() => setFilterStatus(tab.id)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               filterStatus === tab.id
-                ? "bg-blue-600 text-white shadow-sm"
+                ? "bg-[#15291E] text-white shadow-sm"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
             }`}
           >
@@ -317,7 +317,7 @@ export function CompanyManagement({
                         {company.address}
                       </p>
                       {company.website && (
-                        <p className="flex items-center gap-2 text-sm text-blue-600">
+                        <p className="flex items-center gap-2 text-sm text-[#15291E]">
                           <Globe className="w-4 h-4" />
                           {company.website}
                         </p>

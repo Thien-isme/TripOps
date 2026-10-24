@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 import { Booking } from "@/app/types";
 
@@ -100,7 +100,7 @@ export function CancelBookingModal({
                   key={item}
                   className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
                     selectedReason === item
-                      ? "border-blue-600 bg-blue-50"
+                      ? "border-[#15291E] bg-[#FBF9F5]"
                       : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
@@ -112,7 +112,7 @@ export function CancelBookingModal({
                     onChange={(e) =>
                       setSelectedReason(e.target.value)
                     }
-                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 text-[#15291E] focus:ring-[#15291E]"
                   />
                   <span className="text-gray-900">{item}</span>
                 </label>
@@ -131,14 +131,14 @@ export function CancelBookingModal({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Vui lòng mô tả chi tiết lý do hủy tour của bạn..."
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:border-transparent resize-none"
                 rows={4}
               />
             </div>
           )}
 
           {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-4">
             <p className="text-sm text-blue-900">
               <strong>Chính sách hoàn tiền:</strong>
               <br />

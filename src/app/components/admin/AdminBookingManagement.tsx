@@ -1,4 +1,4 @@
-import { Booking, User } from "@/app/types";
+﻿import { Booking, User } from "@/app/types";
 import {
   Check,
   X,
@@ -78,7 +78,7 @@ export function AdminBookingManagement({
     pending: "bg-yellow-100 text-yellow-800",
     confirmed: "bg-green-100 text-green-800",
     cancelled: "bg-red-100 text-red-800",
-    completed: "bg-blue-100 text-blue-800",
+    completed: "bg-[#15291E]/10 text-blue-800",
     rejected: "bg-gray-100 text-gray-800",
   };
 
@@ -93,7 +93,7 @@ export function AdminBookingManagement({
   const paymentStatusColors: Record<string, string> = {
     unpaid: "bg-orange-100 text-orange-800",
     paid: "bg-emerald-100 text-emerald-800",
-    refunded: "bg-purple-100 text-purple-800",
+    refunded: "bg-[#BD5E38]/15 text-purple-800",
   };
 
   const paymentStatusLabels: Record<string, string> = {
@@ -126,7 +126,7 @@ export function AdminBookingManagement({
     {
       value: "all",
       label: "Tất cả",
-      color: "bg-gray-500",
+      color: "bg-[#FBF9F5]0",
       icon: Users,
     },
     {
@@ -197,10 +197,10 @@ export function AdminBookingManagement({
                 setFilterStatus(option.value);
                 setCurrentPage(1);
               }}
-              className={`relative overflow-hidden p-4 rounded-xl text-left transition-all duration-200 border-2 ${
+              className={`relative overflow-hidden p-4 rounded-2xl text-left transition-all duration-200 border-2 ${
                 isSelected
                   ? "border-blue-500 shadow-md transform scale-105"
-                  : "border-transparent hover:bg-gray-50 bg-white shadow-sm"
+                  : "border-transparent hover:bg-[#FBF9F5] bg-white shadow-sm"
               }`}
             >
               <div
@@ -214,7 +214,7 @@ export function AdminBookingManagement({
                 </p>
                 <div className="flex items-end gap-2">
                   <span
-                    className={`text-2xl font-bold ${isSelected ? "text-blue-600" : "text-gray-900"}`}
+                    className={`text-2xl font-bold ${isSelected ? "text-[#15291E]" : "text-gray-900"}`}
                   >
                     {
                       counts[
@@ -240,7 +240,7 @@ export function AdminBookingManagement({
           return (
             <div
               key={booking.id}
-              className={`bg-white rounded-xl shadow-sm border transition-all duration-300 ${isExpanded ? "border-blue-300 ring-1 ring-blue-100" : "border-gray-200 hover:shadow-md"}`}
+              className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 ${isExpanded ? "border-blue-300 ring-1 ring-blue-100" : "border-[#E8E4DC] hover:shadow-md"}`}
             >
               <div className="p-6">
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -318,7 +318,7 @@ export function AdminBookingManagement({
                         <span className="text-gray-600">
                           Tổng giá:
                         </span>
-                        <span className="ml-2 font-bold text-blue-600">
+                        <span className="ml-2 font-bold text-[#15291E]">
                           {formatPrice(booking.totalPrice)}
                         </span>
                       </div>
@@ -388,11 +388,11 @@ export function AdminBookingManagement({
 
               {/* Expanded Content (Inline) */}
               {isExpanded && (
-                <div className="bg-gray-50 border-t border-gray-200 p-6 rounded-b-xl -mt-2 mx-0.5">
+                <div className="bg-[#FBF9F5] border-t border-[#E8E4DC] p-6 rounded-b-xl -mt-2 mx-0.5">
                   <div className="space-y-6">
                     {/* Guide Assignment Section */}
                     {booking.status === "confirmed" && (
-                      <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm">
+                      <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                           <h4 className="font-semibold text-blue-900 flex items-center gap-2">
                             <UserCheck className="w-5 h-5" />
@@ -511,10 +511,10 @@ export function AdminBookingManagement({
                           {booking.tour.itinerary.map((day) => (
                             <div
                               key={day.id}
-                              className="bg-white p-4 rounded-lg border border-gray-200"
+                              className="bg-white p-4 rounded-lg border border-[#E8E4DC]"
                             >
                               <div className="flex items-center gap-2 mb-3">
-                                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+                                <span className="bg-[#15291E] text-white text-xs font-bold px-2 py-1 rounded">
                                   Ngày {day.day}
                                 </span>
                                 <span className="font-semibold text-gray-900">
@@ -535,7 +535,7 @@ export function AdminBookingManagement({
                                         {loc.address}
                                       </div>
                                     </div>
-                                    <div className="text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded">
+                                    <div className="text-gray-500 font-mono bg-[#FBF9F5] px-2 py-1 rounded">
                                       {loc.time}
                                     </div>
                                   </div>
@@ -552,7 +552,7 @@ export function AdminBookingManagement({
                     </div>
 
                     {/* Customer Details Full */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-lg border border-[#E8E4DC]">
                       <h4 className="font-semibold text-gray-900 mb-3">
                         Thông tin chi tiết khách hàng
                       </h4>
@@ -608,7 +608,7 @@ export function AdminBookingManagement({
       </div>
 
       {filteredBookings.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E8E4DC] p-12 text-center">
           <p className="text-gray-500">
             Không có booking nào trong trạng thái này
           </p>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { User, Service } from "@/app/types";
 import {
   ArrowLeft,
@@ -513,7 +513,7 @@ export function ProviderCreateServicePage({
             onClick={() => setViewMode("form")}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               viewMode === "form"
-                ? "bg-white text-blue-700 shadow-sm"
+                ? "bg-white text-[#15291E] shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -525,7 +525,7 @@ export function ProviderCreateServicePage({
             onClick={() => setViewMode("preview")}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               viewMode === "preview"
-                ? "bg-blue-600 text-white shadow-sm"
+                ? "bg-[#15291E] text-white shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -544,7 +544,7 @@ export function ProviderCreateServicePage({
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                   1
                 </span>
                 Chọn loại hình dịch vụ
@@ -566,7 +566,7 @@ export function ProviderCreateServicePage({
                     onClick={() => handleSelectCategory(opt.value)}
                     className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col justify-between h-32 ${
                       isSelected
-                        ? "border-blue-600 bg-blue-50/70 shadow-sm ring-2 ring-blue-600/20"
+                        ? "border-[#15291E] bg-[#FBF9F5]/70 shadow-sm ring-2 ring-blue-600/20"
                         : "border-gray-200 bg-gray-50/50 hover:bg-white hover:border-gray-300"
                     }`}
                   >
@@ -594,7 +594,7 @@ export function ProviderCreateServicePage({
             <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                     2
                   </span>
                   Thông tin dịch vụ & Quy định đặc thù
@@ -603,7 +603,7 @@ export function ProviderCreateServicePage({
                   Các thông số vận hành và điều kiện phục vụ được lưu gộp trực tiếp vào mục Chính sách
                 </p>
               </div>
-              <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-semibold text-xs">
+              <Badge className="bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC] font-semibold text-xs">
                 <ActiveIcon className="w-3.5 h-3.5 mr-1" />
                 {currentConfig.label}
               </Badge>
@@ -620,7 +620,7 @@ export function ProviderCreateServicePage({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={`Ví dụ: ${currentConfig.defaultName}`}
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                   required
                 />
               </div>
@@ -633,7 +633,7 @@ export function ProviderCreateServicePage({
                 <select
                   value={subCategory}
                   onChange={(e) => setSubCategory(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                 >
                   {currentConfig.subCategories.map((sub) => (
                     <option key={sub} value={sub}>
@@ -655,7 +655,7 @@ export function ProviderCreateServicePage({
                     value={capacity}
                     onChange={(e) => setCapacity(e.target.value)}
                     placeholder={currentConfig.capacityPlaceholder}
-                    className="w-full pl-3.5 pr-14 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full pl-3.5 pr-14 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                     required
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium">
@@ -673,7 +673,7 @@ export function ProviderCreateServicePage({
                   <select
                     value={stars}
                     onChange={(e) => setStars(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                   >
                     <option value="5">5 Sao ⭐⭐⭐⭐⭐ (Sang trọng)</option>
                     <option value="4">4 Sao ⭐⭐⭐⭐ (Cao cấp)</option>
@@ -692,14 +692,14 @@ export function ProviderCreateServicePage({
                     <label className="text-xs font-bold text-blue-900">
                       Chính sách, điều kiện & Thông số phục vụ đặc thù *
                     </label>
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#15291E]/10 text-blue-800">
                       {policies.length} điều khoản
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleApplyTemplatePolicies}
-                    className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 hover:bg-blue-100/70 px-2.5 py-1 rounded-lg border border-blue-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#15291E] hover:text-blue-800 font-semibold bg-[#FBF9F5] hover:bg-[#15291E]/10/70 px-2.5 py-1 rounded-lg border border-[#E8E4DC] transition-colors"
                     title="Nạp mẫu gợi ý chuẩn mực cho loại hình này"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -724,12 +724,12 @@ export function ProviderCreateServicePage({
                       }
                     }}
                     placeholder={currentConfig.policyPlaceholder}
-                    className="flex-1 px-3.5 py-2.5 text-sm border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-blue-50/20 text-gray-800"
+                    className="flex-1 px-3.5 py-2.5 text-sm border border-[#E8E4DC] rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none bg-[#FBF9F5]/20 text-gray-800"
                   />
                   <Button
                     type="button"
                     onClick={() => handleAddPolicy()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 flex items-center gap-1.5 flex-shrink-0 text-xs font-semibold"
+                    className="bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-xl px-4 flex items-center gap-1.5 flex-shrink-0 text-xs font-semibold"
                   >
                     <Plus className="w-4 h-4" />
                     Thêm chính sách
@@ -742,10 +742,10 @@ export function ProviderCreateServicePage({
                     {policies.map((pol, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start justify-between gap-3 p-3 bg-blue-50/40 hover:bg-blue-50/70 rounded-xl border border-blue-200/60 transition-colors text-xs text-gray-800 group"
+                        className="flex items-start justify-between gap-3 p-3 bg-[#FBF9F5]/40 hover:bg-[#FBF9F5]/70 rounded-xl border border-[#E8E4DC]/60 transition-colors text-xs text-gray-800 group"
                       >
                         <div className="flex items-start gap-2.5 flex-1">
-                          <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="w-5 h-5 rounded-full bg-[#15291E] text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5">
                             {idx + 1}
                           </span>
                           <span className="leading-relaxed font-medium">{pol}</span>
@@ -789,7 +789,7 @@ export function ProviderCreateServicePage({
                           className={`text-[11px] px-2.5 py-1 rounded-lg border text-left transition-all flex items-center gap-1 ${
                             isAdded
                               ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-medium"
-                              : "bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 border-gray-200"
+                              : "bg-gray-50 hover:bg-[#FBF9F5] text-gray-600 hover:text-[#15291E] border-gray-200"
                           }`}
                         >
                           <span>{isAdded ? "✓" : "+"}</span>
@@ -811,7 +811,7 @@ export function ProviderCreateServicePage({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Giới thiệu đôi nét nổi bật về không gian, phong cảnh, chất lượng dịch vụ..."
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                 />
               </div>
             </div>
@@ -822,7 +822,7 @@ export function ProviderCreateServicePage({
             <div className="border-b border-gray-100 pb-3 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                     3
                   </span>
                   Tiện ích & Dịch vụ đi kèm
@@ -831,7 +831,7 @@ export function ProviderCreateServicePage({
                   Nhập thêm tiện ích mới hoặc chọn nhanh từ danh sách gợi ý sẵn có
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#15291E]/10 text-blue-800">
                 Đã chọn {amenities.length} tiện ích
               </span>
             </div>
@@ -849,12 +849,12 @@ export function ProviderCreateServicePage({
                   }
                 }}
                 placeholder="Nhập tiện ích/tiện nghi mới (VD: Ghế massage, Trạm sạc xe điện, Menu ăn kiêng...) rồi nhấn Thêm"
-                className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
               />
               <Button
                 type="button"
                 onClick={() => handleAddAmenity()}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 flex items-center gap-1.5 flex-shrink-0 text-xs font-semibold"
+                className="bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-xl px-4 flex items-center gap-1.5 flex-shrink-0 text-xs font-semibold"
               >
                 <Plus className="w-4 h-4" />
                 Thêm tiện ích
@@ -871,13 +871,13 @@ export function ProviderCreateServicePage({
                   {amenities.map((item, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-800 text-xs font-medium rounded-xl border border-blue-200"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FBF9F5] text-blue-800 text-xs font-medium rounded-xl border border-[#E8E4DC]"
                     >
                       <span>✓ {item}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveAmenity(item)}
-                        className="text-blue-400 hover:text-rose-600 ml-1 rounded-full hover:bg-blue-100 p-0.5 transition-colors"
+                        className="text-blue-400 hover:text-rose-600 ml-1 rounded-full hover:bg-[#15291E]/10 p-0.5 transition-colors"
                         title={`Xóa ${item}`}
                       >
                         <X className="w-3.5 h-3.5" />
@@ -903,7 +903,7 @@ export function ProviderCreateServicePage({
                       onClick={() => toggleAmenity(item)}
                       className={`px-3 py-2 rounded-xl text-xs font-medium text-left border flex items-center justify-between transition-all ${
                         checked
-                          ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                          ? "bg-[#15291E] text-white border-[#15291E] shadow-xs"
                           : "bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
                       }`}
                     >
@@ -920,7 +920,7 @@ export function ProviderCreateServicePage({
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                   4
                 </span>
                 {category === "hotel"
@@ -932,7 +932,7 @@ export function ProviderCreateServicePage({
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-100 space-y-4">
+            <div className="p-4 rounded-xl bg-[#FBF9F5]/70 border border-blue-100 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-blue-900 mb-1">
@@ -946,10 +946,10 @@ export function ProviderCreateServicePage({
                       value={priceFrom}
                       onChange={(e) => setPriceFrom(e.target.value)}
                       placeholder={category === "hotel" ? "VD: 600000" : "VD: 200000"}
-                      className="w-full pl-3 pr-20 py-2.5 text-base font-bold border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-blue-900"
+                      className="w-full pl-3 pr-20 py-2.5 text-base font-bold border border-[#E8E4DC] rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none bg-white text-blue-900"
                       required
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-600 font-bold">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#15291E] font-bold">
                       VNĐ / {category === "hotel" ? "phòng" : "người"}
                     </span>
                   </div>
@@ -967,20 +967,20 @@ export function ProviderCreateServicePage({
                       value={priceTo}
                       onChange={(e) => setPriceTo(e.target.value)}
                       placeholder={category === "hotel" ? "VD: 950000" : "VD: 350000"}
-                      className="w-full pl-3 pr-20 py-2.5 text-base font-bold border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-blue-900"
+                      className="w-full pl-3 pr-20 py-2.5 text-base font-bold border border-[#E8E4DC] rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none bg-white text-blue-900"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-600 font-bold">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#15291E] font-bold">
                       VNĐ / {category === "hotel" ? "phòng" : "người"}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white p-3 rounded-xl border border-blue-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div className="bg-white p-3 rounded-xl border border-[#E8E4DC] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <span className="text-xs text-gray-600">
                   Hiển thị niêm yết cho các công ty lữ hành:
                 </span>
-                <span className="text-base font-extrabold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">
+                <span className="text-base font-extrabold text-[#15291E] bg-[#FBF9F5] px-3 py-1 rounded-lg border border-blue-100">
                   {formatPriceRangeDisplay()}
                 </span>
               </div>
@@ -992,7 +992,7 @@ export function ProviderCreateServicePage({
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                     5
                   </span>
                   Bộ sưu tập hình ảnh & Chọn ảnh đại diện (Thumbnail)
@@ -1014,12 +1014,12 @@ export function ProviderCreateServicePage({
                 onChange={(e) => setNewImageUrl(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())}
                 placeholder="Dán đường dẫn ảnh (URL) và bấm Thêm ảnh..."
-                className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
               />
               <Button
                 type="button"
                 onClick={handleAddImage}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold"
+                className="bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-xl text-xs font-semibold"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Thêm ảnh
@@ -1035,7 +1035,7 @@ export function ProviderCreateServicePage({
                     key={idx}
                     className={`relative rounded-xl overflow-hidden border-2 transition-all group h-40 bg-gray-100 ${
                       isThumbnail
-                        ? "border-blue-600 ring-2 ring-blue-600/30 shadow-md"
+                        ? "border-[#15291E] ring-2 ring-blue-600/30 shadow-md"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
@@ -1075,7 +1075,7 @@ export function ProviderCreateServicePage({
 
                     {/* Badge if thumbnail */}
                     {isThumbnail && (
-                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs">
+                      <div className="absolute top-2 left-2 bg-[#15291E] text-white text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs">
                         <Star className="w-3 h-3 fill-white" />
                         Ảnh bìa
                       </div>
@@ -1090,7 +1090,7 @@ export function ProviderCreateServicePage({
           <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                <span className="w-6 h-6 rounded-full bg-[#15291E] text-white text-xs flex items-center justify-center font-bold">
                   6
                 </span>
                 Địa chỉ
@@ -1109,7 +1109,7 @@ export function ProviderCreateServicePage({
                 <select
                   value={province}
                   onChange={(e) => setProvince(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                   required
                 >
                   {allVietnamProvinces.map((p) => (
@@ -1127,7 +1127,7 @@ export function ProviderCreateServicePage({
                 <select
                   value={ward}
                   onChange={(e) => setWard(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                   required
                 >
                   {getWardsForProvince(province).map((w) => (
@@ -1147,7 +1147,7 @@ export function ProviderCreateServicePage({
                   value={street}
                   onChange={(e) => setStreet(e.target.value)}
                   placeholder="Ví dụ: 02 Trần Phú, Đèo Prenn, Bãi Dài..."
-                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
                 />
               </div>
             </div>
@@ -1178,7 +1178,7 @@ export function ProviderCreateServicePage({
               type="button"
               variant="outline"
               onClick={() => setViewMode("preview")}
-              className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50"
+              className="rounded-xl border-[#E8E4DC] text-[#15291E] hover:bg-[#FBF9F5]"
             >
               <Eye className="w-4 h-4 mr-1.5" />
               Mô phỏng bài đăng
@@ -1214,7 +1214,7 @@ export function ProviderCreateServicePage({
             <Button
               onClick={() => setViewMode("form")}
               size="sm"
-              className="bg-white text-blue-700 hover:bg-blue-50 font-bold rounded-xl"
+              className="bg-white text-[#15291E] hover:bg-[#FBF9F5] font-bold rounded-xl"
             >
               <Edit3 className="w-4 h-4 mr-1" />
               Quay lại chỉnh sửa
@@ -1232,7 +1232,7 @@ export function ProviderCreateServicePage({
                     alt={name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 left-4 bg-blue-600/90 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                  <div className="absolute top-4 left-4 bg-[#15291E]/90 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                     <ActiveIcon className="w-4 h-4" />
                     {currentConfig.label}
                   </div>
@@ -1248,12 +1248,12 @@ export function ProviderCreateServicePage({
                       <div
                         key={idx}
                         className={`w-20 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 relative ${
-                          thumbnailIndex === idx ? "border-blue-600 ring-2 ring-blue-600/20" : "border-gray-200"
+                          thumbnailIndex === idx ? "border-[#15291E] ring-2 ring-blue-600/20" : "border-gray-200"
                         }`}
                       >
                         <img src={img} alt="" className="w-full h-full object-cover" />
                         {thumbnailIndex === idx && (
-                          <div className="absolute top-1 left-1 bg-blue-600 text-white p-0.5 rounded-full">
+                          <div className="absolute top-1 left-1 bg-[#15291E] text-white p-0.5 rounded-full">
                             <Star className="w-2.5 h-2.5 fill-white" />
                           </div>
                         )}
@@ -1292,7 +1292,7 @@ export function ProviderCreateServicePage({
                         ? "Khoảng giá ước lượng tính theo phòng"
                         : "Khoảng giá ước lượng trên đầu người"}
                     </span>
-                    <div className="text-2xl font-extrabold text-blue-700">
+                    <div className="text-2xl font-extrabold text-[#15291E]">
                       {formatPriceRangeDisplay()}
                     </div>
                     <p className="text-[11px] text-gray-500">
@@ -1318,7 +1318,7 @@ export function ProviderCreateServicePage({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100 text-xs">
               <div className="p-4 bg-gray-50 rounded-xl space-y-2">
                 <h4 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-                  <Info className="w-4 h-4 text-blue-600" />
+                  <Info className="w-4 h-4 text-[#15291E]" />
                   Mô tả dịch vụ
                 </h4>
                 <p className="text-gray-700 leading-relaxed whitespace-pre-line">
@@ -1326,9 +1326,9 @@ export function ProviderCreateServicePage({
                 </p>
               </div>
 
-              <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-100 space-y-2.5">
+              <div className="p-4 bg-[#FBF9F5]/40 rounded-xl border border-blue-100 space-y-2.5">
                 <h4 className="font-bold text-blue-900 text-sm flex items-center gap-1.5">
-                  <ActiveIcon className="w-4 h-4 text-blue-600" />
+                  <ActiveIcon className="w-4 h-4 text-[#15291E]" />
                   Thông số chi tiết [{currentConfig.label}]
                 </h4>
                 <div className="space-y-1.5 text-gray-700">
@@ -1344,7 +1344,7 @@ export function ProviderCreateServicePage({
                     <div className="bg-white/80 p-2.5 rounded-lg border border-blue-100 space-y-1">
                       {policies.map((pol, i) => (
                         <div key={i} className="flex items-start gap-1.5 text-gray-800 text-[11px] leading-relaxed">
-                          <span className="text-blue-600 font-bold">•</span>
+                          <span className="text-[#15291E] font-bold">•</span>
                           <span>{pol}</span>
                         </div>
                       ))}
@@ -1355,7 +1355,7 @@ export function ProviderCreateServicePage({
                       <span className="font-semibold text-blue-950 block mb-1">Tiện ích đi kèm:</span>
                       <div className="flex flex-wrap gap-1">
                         {amenities.map((a, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-blue-100/70 text-blue-800 rounded text-[11px]">
+                          <span key={i} className="px-2 py-0.5 bg-[#15291E]/10/70 text-blue-800 rounded text-[11px]">
                             ✓ {a}
                           </span>
                         ))}
