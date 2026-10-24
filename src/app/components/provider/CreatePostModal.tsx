@@ -39,7 +39,7 @@ const categoryOptions = [
     description: "Khách sạn, Resort, Homestay, Villa nguyên căn",
     icon: Hotel,
     color: "from-blue-500 to-indigo-600",
-    bgHover: "hover:border-blue-500 hover:bg-[#FBF9F5]/60",
+    bgHover: "hover:border-blue-500 hover:bg-[#F0F9FF]/60",
   },
   {
     value: "fnb" as ServiceCategory,
@@ -63,7 +63,7 @@ const categoryOptions = [
     description: "Tour trải nghiệm, Chèo Sup, Trekking, Thể thao mạo hiểm",
     icon: Sparkles,
     color: "from-purple-500 to-pink-600",
-    bgHover: "hover:border-purple-500 hover:bg-[#FBF9F5]/60",
+    bgHover: "hover:border-purple-500 hover:bg-[#F0F9FF]/60",
   },
   {
     value: "transportation" as ServiceCategory,
@@ -368,7 +368,7 @@ export function CreatePostModal({
           {/* STEP 1: CATEGORY SELECTION */}
           {step === "category" && (
             <div className="space-y-4">
-              <div className="bg-[#FBF9F5]/70 border border-[#E8E4DC] rounded-xl p-4 text-xs text-blue-800">
+              <div className="bg-[#F0F9FF]/70 border border-[#CBD5E1] rounded-xl p-4 text-xs text-blue-800">
                 💡 <strong>Hệ thống mở:</strong> Bất kỳ Nhà cung cấp nào cũng có thể đăng nhiều loại dịch vụ khác nhau (Khách sạn, Nhà hàng ẩm thực, Điểm tham quan, Tour trải nghiệm, Vận chuyển) để kết nối trực tiếp với các đơn vị tổ chức Tour.
               </div>
 
@@ -394,7 +394,7 @@ export function CreatePostModal({
                           {option.description}
                         </p>
                       </div>
-                      <span className="text-xs font-semibold text-[#15291E] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                      <span className="text-xs font-semibold text-[#075985] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                         Chọn loại này →
                       </span>
                     </button>
@@ -421,7 +421,7 @@ export function CreatePostModal({
                 <button
                   type="button"
                   onClick={() => setStep("category")}
-                  className="text-xs text-[#15291E] hover:underline font-semibold"
+                  className="text-xs text-[#075985] hover:underline font-semibold"
                 >
                   Đổi loại hình khác
                 </button>
@@ -429,7 +429,7 @@ export function CreatePostModal({
 
               {/* 1. Basic Common Fields */}
               <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#15291E] flex items-center gap-2">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#075985] flex items-center gap-2">
                   <span>1. Thông tin giới thiệu chung</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -441,7 +441,7 @@ export function CreatePostModal({
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder={`Ví dụ: ${
                         category === "hotel"
                           ? "Khách sạn Sunrise Beach Resort & Spa"
@@ -465,7 +465,7 @@ export function CreatePostModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none resize-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none resize-none"
                       placeholder="Mô tả các điểm nổi bật, chất lượng phục vụ, không gian..."
                       required
                     />
@@ -486,7 +486,7 @@ export function CreatePostModal({
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="0"
                       required
                       min="0"
@@ -509,7 +509,7 @@ export function CreatePostModal({
                             ? setChildPrice(e.target.value)
                             : setPricePerPerson(e.target.value)
                         }
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Để trống nếu không áp dụng"
                         min="0"
                       />
@@ -533,7 +533,7 @@ export function CreatePostModal({
                           ? setSeats(e.target.value)
                           : setCapacity(e.target.value)
                       }
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="Ví dụ: 2, 4, 16, 50..."
                       min="1"
                     />
@@ -548,7 +548,7 @@ export function CreatePostModal({
                       type="url"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="https://images.unsplash.com/... (để trống sẽ dùng ảnh mẫu)"
                     />
                   </div>
@@ -568,7 +568,7 @@ export function CreatePostModal({
                     <select
                       value={province}
                       onChange={(e) => setProvince(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       required
                     >
                       {vietnamProvinces.map((p) => (
@@ -587,7 +587,7 @@ export function CreatePostModal({
                       type="text"
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="Ví dụ: TP. Đà Lạt, Quận 1, Huyện Phú Quốc..."
                       required
                     />
@@ -601,7 +601,7 @@ export function CreatePostModal({
                       type="text"
                       value={ward}
                       onChange={(e) => setWard(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="Ví dụ: Phường 1, Xã Gành Dầu..."
                     />
                   </div>
@@ -614,7 +614,7 @@ export function CreatePostModal({
                       type="text"
                       value={street}
                       onChange={(e) => setStreet(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       placeholder="Ví dụ: 12 Trần Phú, Bãi Dài..."
                     />
                   </div>
@@ -623,7 +623,7 @@ export function CreatePostModal({
 
               {/* 3. CATEGORY SPECIFIC FIELDS */}
               <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#A34C2A] flex items-center gap-2">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#EA580C] flex items-center gap-2">
                   <span>3. Thông số chuyên ngành [{selectedCategoryMeta?.label}]</span>
                 </h3>
 
@@ -638,7 +638,7 @@ export function CreatePostModal({
                         <select
                           value={stars}
                           onChange={(e) => setStars(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         >
                           <option value="1">1 Sao ⭐</option>
                           <option value="2">2 Sao ⭐⭐</option>
@@ -656,7 +656,7 @@ export function CreatePostModal({
                           type="text"
                           value={roomType}
                           onChange={(e) => setRoomType(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Deluxe, Superior, Suite..."
                         />
                       </div>
@@ -694,13 +694,13 @@ export function CreatePostModal({
                           value={amenityInput}
                           onChange={(e) => setAmenityInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAmenity())}
-                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Nhập tiện nghi (VD: Bể bơi vô cực, Buffet sáng, Gym...) rồi bấm Thêm"
                         />
                         <button
                           type="button"
                           onClick={handleAddAmenity}
-                          className="px-4 py-2 bg-[#15291E] text-white rounded-lg text-xs font-semibold hover:bg-[#BD5E38]"
+                          className="px-4 py-2 bg-[#075985] text-white rounded-lg text-xs font-semibold hover:bg-[#F97316]"
                         >
                           Thêm
                         </button>
@@ -709,7 +709,7 @@ export function CreatePostModal({
                         {amenities.map((item) => (
                           <span
                             key={item}
-                            className="px-2.5 py-1 bg-[#FBF9F5] text-[#15291E] rounded-lg text-xs flex items-center gap-1.5 border border-[#E8E4DC]"
+                            className="px-2.5 py-1 bg-[#F0F9FF] text-[#075985] rounded-lg text-xs flex items-center gap-1.5 border border-[#CBD5E1]"
                           >
                             {item}
                             <button
@@ -737,7 +737,7 @@ export function CreatePostModal({
                         <select
                           value={subCategory}
                           onChange={(e) => setSubCategory(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         >
                           <option value="restaurant">Nhà hàng ăn uống</option>
                           <option value="cafe">Quán Cà phê & Trà</option>
@@ -754,7 +754,7 @@ export function CreatePostModal({
                           type="text"
                           value={cuisineType}
                           onChange={(e) => setCuisineType(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Món Việt, Hải sản tươi sống, Món Á/Âu..."
                         />
                       </div>
@@ -767,7 +767,7 @@ export function CreatePostModal({
                           type="text"
                           value={openingHours}
                           onChange={(e) => setOpeningHours(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Ví dụ: 06:30 - 22:30"
                         />
                       </div>
@@ -784,7 +784,7 @@ export function CreatePostModal({
                           value={dietaryInput}
                           onChange={(e) => setDietaryInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddDietary())}
-                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Ví dụ: Có món chay, Thực đơn Halal, Set ăn gia đình..."
                         />
                         <button
@@ -827,7 +827,7 @@ export function CreatePostModal({
                         type="text"
                         value={openingHours}
                         onChange={(e) => setOpeningHours(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Ví dụ: 07:30 - 17:30 hàng ngày"
                       />
                     </div>
@@ -840,7 +840,7 @@ export function CreatePostModal({
                         type="text"
                         value={ticketIncludes}
                         onChange={(e) => setTicketIncludes(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Vé vào cổng, xe điện, quà lưu niệm..."
                       />
                     </div>
@@ -858,7 +858,7 @@ export function CreatePostModal({
                         type="text"
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Ví dụ: 2 giờ, Nửa ngày, 1 ngày..."
                       />
                     </div>
@@ -870,7 +870,7 @@ export function CreatePostModal({
                       <select
                         value={difficultyLevel}
                         onChange={(e) => setDifficultyLevel(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       >
                         <option value="Dễ dàng">Dễ dàng (Thích hợp mọi lứa tuổi)</option>
                         <option value="Trung bình">Trung bình (Cần thể lực cơ bản)</option>
@@ -887,7 +887,7 @@ export function CreatePostModal({
                         type="text"
                         value={ageRestriction}
                         onChange={(e) => setAgeRestriction(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Ví dụ: Từ 6 tuổi trở lên, Không dành cho trẻ dưới 10 tuổi..."
                       />
                     </div>
@@ -900,7 +900,7 @@ export function CreatePostModal({
                         type="text"
                         value={safetyGear}
                         onChange={(e) => setSafetyGear(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Áo phao, mũ bảo hiểm, dây bảo hiểm..."
                       />
                     </div>
@@ -917,7 +917,7 @@ export function CreatePostModal({
                       <select
                         value={vehicleType}
                         onChange={(e) => setVehicleType(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       >
                         <option value="Xe ô tô 4-7 chỗ">Xe ô tô 4 - 7 chỗ</option>
                         <option value="Xe 16 chỗ Limousine">Xe 16 chỗ Limousine VIP</option>
@@ -938,7 +938,7 @@ export function CreatePostModal({
                         onChange={(e) =>
                           setAmenities(e.target.value.split(",").map((s) => s.trim()))
                         }
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         placeholder="Ghế bọc da, máy lạnh, wifi, nước suối, cổng sạc..."
                       />
                     </div>

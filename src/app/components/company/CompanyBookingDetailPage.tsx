@@ -115,20 +115,20 @@ const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: "Chờ duyệt", color: "bg-amber-100 text-amber-800 border-amber-200" },
   confirmed: { label: "Đã xác nhận", color: "bg-emerald-100 text-emerald-800 border-emerald-200" },
   cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800 border-red-200" },
-  completed: { label: "Hoàn thành", color: "bg-[#15291E]/10 text-blue-800 border-[#E8E4DC]" },
+  completed: { label: "Hoàn thành", color: "bg-[#E0F2FE] text-blue-800 border-[#CBD5E1]" },
   rejected: { label: "Từ chối", color: "bg-gray-100 text-gray-800 border-gray-200" },
 };
 
 const paymentStatusMap: Record<string, { label: string; color: string }> = {
   unpaid: { label: "Chưa thanh toán", color: "bg-red-50 text-red-700 border-red-200" },
   paid: { label: "Đã thanh toán", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  refunded: { label: "Đã hoàn tiền", color: "bg-[#FBF9F5] text-[#A34C2A] border-[#BD5E38]/30" },
+  refunded: { label: "Đã hoàn tiền", color: "bg-[#F0F9FF] text-[#EA580C] border-[#F97316]/30" },
 };
 
 const MEAL_LABELS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   breakfast: { label: "Sáng", icon: Sun, color: "text-amber-700 bg-amber-50 border-amber-200" },
   lunch: { label: "Trưa", icon: Utensils, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  dinner: { label: "Tối", icon: UtensilsCrossed, color: "text-[#A34C2A] bg-[#FBF9F5] border-[#BD5E38]/30" },
+  dinner: { label: "Tối", icon: UtensilsCrossed, color: "text-[#EA580C] bg-[#F0F9FF] border-[#F97316]/30" },
 };
 
 function formatVND(n: number) {
@@ -1467,7 +1467,7 @@ export function CompanyBookingDetailPage({
           <div className="space-y-2">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#15291E] hover:text-blue-800 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#075985] hover:text-blue-800 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Quay lại danh sách booking
@@ -1483,7 +1483,7 @@ export function CompanyBookingDetailPage({
                 {pst.label}
               </span>
               {booking.hasLocationCustomization && (
-                <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#BD5E38]/15 text-purple-800 border border-[#BD5E38]/30 flex items-center gap-1">
+                <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#F97316]/15 text-purple-800 border border-[#F97316]/30 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" />
                   Có tùy chỉnh lịch trình
                 </span>
@@ -1508,8 +1508,8 @@ export function CompanyBookingDetailPage({
                     Duyệt Booking
                   </Button>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FBF9F5] text-purple-800 border border-[#BD5E38]/30">
-                    <Handshake className="w-4 h-4 text-[#BD5E38]" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#F0F9FF] text-purple-800 border border-[#F97316]/30">
+                    <Handshake className="w-4 h-4 text-[#F97316]" />
                     Đối tác liên minh (Chờ Chủ trì duyệt)
                   </span>
                 )}
@@ -1537,17 +1537,17 @@ export function CompanyBookingDetailPage({
               }}
               className="border-gray-300 text-gray-700 hover:bg-gray-50 gap-1.5 text-sm"
             >
-              <UserCheck className="w-4 h-4 text-[#15291E]" />
+              <UserCheck className="w-4 h-4 text-[#075985]" />
               Giao HDV ({assignedGuides.length})
             </Button>
 
             <Button
               variant="outline"
               onClick={handleOpenAssignAttractionsModal}
-              className="border-purple-300 text-[#A34C2A] hover:bg-[#FBF9F5] gap-1.5 text-sm font-semibold shadow-2xs"
+              className="border-purple-300 text-[#EA580C] hover:bg-[#F0F9FF] gap-1.5 text-sm font-semibold shadow-2xs"
               title="Phân công Hướng dẫn viên theo từng Điểm đến và Chặng tham quan (booking_attraction_checkins)"
             >
-              <Navigation className="w-4 h-4 text-[#BD5E38]" />
+              <Navigation className="w-4 h-4 text-[#F97316]" />
               Phân công lộ trình HDV
             </Button>
 
@@ -1572,7 +1572,7 @@ export function CompanyBookingDetailPage({
               onClick={() => setContractModalOpen(true)}
               className="border-gray-300 text-gray-700 hover:bg-gray-50 gap-1.5 text-sm"
             >
-              <FileText className="w-4 h-4 text-[#15291E]" />
+              <FileText className="w-4 h-4 text-[#075985]" />
               Xem Hợp đồng
             </Button>
           </div>
@@ -1594,7 +1594,7 @@ export function CompanyBookingDetailPage({
               Khách hàng đặt tour này <strong>không thanh toán ngay</strong>. Vì các dịch vụ như khách sạn lưu trú và chỗ ăn uống có thể có giá khác nhau theo thời điểm thực tế, nhân viên công ty cần chủ động liên hệ trực tiếp với các nhà cung ứng đối tác (provider) ở ngoài hệ thống để hỏi và chốt mức giá thực tế cho đoàn {booking.numberOfGuests} người.
             </p>
             <p className="font-semibold text-amber-900 pt-1">
-              → Sau khi chốt giá và kiểm tra chỗ thành công, bấm <span className="text-emerald-700 font-bold">Duyệt Booking</span> và sử dụng tính năng <span className="text-[#15291E] font-bold">Tạo yêu cầu thanh toán</span> để gửi thông tin thanh toán cho khách hàng.
+              → Sau khi chốt giá và kiểm tra chỗ thành công, bấm <span className="text-emerald-700 font-bold">Duyệt Booking</span> và sử dụng tính năng <span className="text-[#075985] font-bold">Tạo yêu cầu thanh toán</span> để gửi thông tin thanh toán cho khách hàng.
             </p>
           </div>
         </div>
@@ -1607,7 +1607,7 @@ export function CompanyBookingDetailPage({
           {/* TOUR OVERVIEW CARD */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <CompassIcon className="w-4 h-4 text-[#15291E]" />
+              <CompassIcon className="w-4 h-4 text-[#075985]" />
               Thông tin Tour cơ bản
             </h2>
             <div className="flex flex-col sm:flex-row gap-5 items-start">
@@ -1721,22 +1721,22 @@ export function CompanyBookingDetailPage({
                             </span>
                             <span className="text-[11px] font-semibold block">
                               {isLead ? (
-                                <span className="text-[#15291E]">{isMyAgency ? "🏢 Đơn vị của bạn (Chủ trì)" : "🏢 Đơn vị chủ trì điều phối"}</span>
+                                <span className="text-[#075985]">{isMyAgency ? "🏢 Đơn vị của bạn (Chủ trì)" : "🏢 Đơn vị chủ trì điều phối"}</span>
                               ) : (
-                                <span className="text-[#A34C2A]">{isMyAgency ? "🤝 Đơn vị của bạn (Đối tác)" : "🤝 Đối tác liên minh địa phương"}</span>
+                                <span className="text-[#EA580C]">{isMyAgency ? "🤝 Đơn vị của bạn (Đối tác)" : "🤝 Đối tác liên minh địa phương"}</span>
                               )}
                             </span>
                           </div>
                         </div>
 
                         {isLead ? (
-                          <span className="text-xs font-black px-3 py-1 rounded-full bg-[#15291E] text-white shadow-xs border border-blue-700 flex items-center gap-1.5 shrink-0">
+                          <span className="text-xs font-black px-3 py-1 rounded-full bg-[#075985] text-white shadow-xs border border-blue-700 flex items-center gap-1.5 shrink-0">
                             <Building2 className="w-3.5 h-3.5" />
                             ĐƠN VỊ CHỦ TRÌ (LEAD)
                           </span>
                         ) : (
-                          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#BD5E38]/15 text-purple-900 border border-purple-300 shadow-xs flex items-center gap-1.5 shrink-0">
-                            <Handshake className="w-3.5 h-3.5 text-[#A34C2A]" />
+                          <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#F97316]/15 text-purple-900 border border-purple-300 shadow-xs flex items-center gap-1.5 shrink-0">
+                            <Handshake className="w-3.5 h-3.5 text-[#EA580C]" />
                             ĐỐI TÁC ĐỒNG DẪN (PARTNER)
                           </span>
                         )}
@@ -1745,11 +1745,11 @@ export function CompanyBookingDetailPage({
                       {/* Role and segment clarification */}
                       <div className="text-xs text-gray-600 space-y-2 pt-1 border-t border-gray-100">
                         {isLead ? (
-                          <p className="text-[11px] text-blue-900 bg-[#15291E]/10/60 p-2.5 rounded-xl border border-[#E8E4DC]/80 leading-relaxed">
+                          <p className="text-[11px] text-blue-900 bg-[#E0F2FE]/60 p-2.5 rounded-xl border border-[#CBD5E1]/80 leading-relaxed">
                             🏢 <strong>Vai trò Đơn vị Chủ trì:</strong> Chịu trách nhiệm pháp lý hợp đồng, xe đưa đón, duyệt đơn booking và phát hành các đợt thanh toán cho khách hàng.
                           </p>
                         ) : (
-                          <p className="text-[11px] text-purple-900 bg-[#BD5E38]/15/60 p-2.5 rounded-xl border border-[#BD5E38]/30/80 leading-relaxed">
+                          <p className="text-[11px] text-purple-900 bg-[#F97316]/15/60 p-2.5 rounded-xl border border-[#F97316]/30/80 leading-relaxed">
                             🤝 <strong>Vai trò Đối tác Chuyên tuyến:</strong> Phụ trách vận hành và hướng dẫn viên chặng địa phương, rà soát và điều chỉnh thêm/giảm khách chặng phụ trách.
                           </p>
                         )}
@@ -1792,8 +1792,8 @@ export function CompanyBookingDetailPage({
                                 Đã duyệt tour &amp; Chốt biểu phí (Chủ trì)
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#15291E] bg-[#FBF9F5] px-2.5 py-1 rounded-full border border-[#E8E4DC]">
-                                <Info className="w-3.5 h-3.5 text-[#15291E]" />
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#075985] bg-[#F0F9FF] px-2.5 py-1 rounded-full border border-[#CBD5E1]">
+                                <Info className="w-3.5 h-3.5 text-[#075985]" />
                                 Tự động chốt khi Chủ trì bấm "Duyệt Booking"
                               </span>
                             )}
@@ -1807,8 +1807,8 @@ export function CompanyBookingDetailPage({
                                 Đã chốt theo biểu phí liên minh
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#15291E] bg-[#FBF9F5] px-2.5 py-1 rounded-full border border-[#E8E4DC]">
-                                <Info className="w-3.5 h-3.5 text-[#15291E]" />
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#075985] bg-[#F0F9FF] px-2.5 py-1 rounded-full border border-[#CBD5E1]">
+                                <Info className="w-3.5 h-3.5 text-[#075985]" />
                                 Theo thỏa thuận hợp tác liên minh
                               </span>
                             )}
@@ -1822,7 +1822,7 @@ export function CompanyBookingDetailPage({
 
               {/* Happy Case Action Notice if Booking is Pending */}
               {booking.status === "pending" && (
-                <div className="bg-[#FBF9F5]/90 border border-[#E8E4DC] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="bg-[#F0F9FF]/90 border border-[#CBD5E1] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-0.5">
                     <p className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
                       <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -1835,7 +1835,7 @@ export function CompanyBookingDetailPage({
                   {isCurrentCompanyLead && (
                     <Button
                       onClick={handleApproveHappyCase}
-                      className="bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs font-bold h-9 px-4 shrink-0 shadow-sm flex items-center gap-1.5 rounded-xl"
+                      className="bg-[#075985] hover:bg-[#F97316] text-white text-xs font-bold h-9 px-4 shrink-0 shadow-sm flex items-center gap-1.5 rounded-xl"
                     >
                       <Zap className="w-4 h-4 text-yellow-300" />
                       Duyệt Booking (Chủ trì)
@@ -1934,7 +1934,7 @@ export function CompanyBookingDetailPage({
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                        <Users className="w-4 h-4 text-[#15291E]" />
+                        <Users className="w-4 h-4 text-[#075985]" />
                         Danh sách hành khách tham gia đoàn ({visiblePassengers.length} người)
                       </h2>
                       <div className="flex items-center gap-1.5">
@@ -1963,7 +1963,7 @@ export function CompanyBookingDetailPage({
                       <Button
                         size="sm"
                         onClick={handleOpenAddPassenger}
-                        className="bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs h-8 px-3 rounded-lg flex items-center gap-1.5 shadow-2xs font-semibold"
+                        className="bg-[#075985] hover:bg-[#F97316] text-white text-xs h-8 px-3 rounded-lg flex items-center gap-1.5 shadow-2xs font-semibold"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
                         <span>Thêm khách vào đoàn</span>
@@ -2005,7 +2005,7 @@ export function CompanyBookingDetailPage({
                         }}
                         className="text-xs gap-1.5 h-8 border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold shadow-2xs"
                       >
-                        <Download className="w-3.5 h-3.5 text-[#15291E]" />
+                        <Download className="w-3.5 h-3.5 text-[#075985]" />
                         <span>Xuất Excel</span>
                       </Button>
                     )}
@@ -2014,8 +2014,8 @@ export function CompanyBookingDetailPage({
 
                 {/* Partner Company Privacy Notice */}
                 {!isLead && isCoHostedTour && (
-                  <div className="bg-[#FBF9F5] border border-[#BD5E38]/30 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-900">
-                    <ShieldCheck className="w-4 h-4 text-[#BD5E38] flex-shrink-0 mt-0.5" />
+                  <div className="bg-[#F0F9FF] border border-[#F97316]/30 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-900">
+                    <ShieldCheck className="w-4 h-4 text-[#F97316] flex-shrink-0 mt-0.5" />
                     <p className="leading-relaxed">
                       <strong>Phân quyền Đối tác Liên minh (booking_participants):</strong> Quý công ty đang xem danh sách <strong>{filteredPassengers.length}</strong> hành khách thuộc phạm vi chặng do <strong>{companyName}</strong> phụ trách đón tiếp. Chỉ Đơn vị Chủ trì mới có quyền xem toàn bộ đoàn và thêm khách mới vào đoàn.
                     </p>
@@ -2033,7 +2033,7 @@ export function CompanyBookingDetailPage({
                       onClick={() => setStageFilter("all")}
                       className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all ${
                         stageFilter === "all"
-                          ? "bg-[#15291E] text-white shadow-2xs"
+                          ? "bg-[#075985] text-white shadow-2xs"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                       }`}
                     >
@@ -2048,7 +2048,7 @@ export function CompanyBookingDetailPage({
                           onClick={() => setStageFilter(a.agencyId)}
                           className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
                             stageFilter === a.agencyId
-                              ? "bg-[#BD5E38] text-white shadow-2xs"
+                              ? "bg-[#F97316] text-white shadow-2xs"
                               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                         >
@@ -2095,7 +2095,7 @@ export function CompanyBookingDetailPage({
                                   <span className={isInactive ? "line-through text-gray-500" : ""}>
                                     {p.fullName}
                                   </span>
-                                  {p.phone && <span className="block text-[11px] font-normal text-[#15291E]">{p.phone}</span>}
+                                  {p.phone && <span className="block text-[11px] font-normal text-[#075985]">{p.phone}</span>}
                                 </td>
                                 <td className="px-3 py-2.5">
                                   {p.idNumber ? (
@@ -2120,10 +2120,10 @@ export function CompanyBookingDetailPage({
                                 <td className="px-3 py-2.5">
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                     p.ageGroup === "adult"
-                                      ? "bg-[#FBF9F5] text-[#15291E]"
+                                      ? "bg-[#F0F9FF] text-[#075985]"
                                       : p.ageGroup === "child_2_11"
                                       ? "bg-emerald-50 text-emerald-700"
-                                      : "bg-[#FBF9F5] text-[#A34C2A]"
+                                      : "bg-[#F0F9FF] text-[#EA580C]"
                                   }`}>
                                     {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                                   </span>
@@ -2157,7 +2157,7 @@ export function CompanyBookingDetailPage({
                                       <span className="block text-[10px] text-rose-600 font-bold">0đ (Đã khấu trừ)</span>
                                     </div>
                                   ) : (
-                                    <div className="font-bold text-[#15291E]">
+                                    <div className="font-bold text-[#075985]">
                                       {p.price === 0 ? "Miễn phí" : formatVND(p.price || 0)}
                                     </div>
                                   )}
@@ -2168,7 +2168,7 @@ export function CompanyBookingDetailPage({
                                     <button
                                       type="button"
                                       onClick={() => handleOpenEditPassenger(p)}
-                                      className="p-1 text-gray-400 hover:text-[#15291E] rounded transition-colors"
+                                      className="p-1 text-gray-400 hover:text-[#075985] rounded transition-colors"
                                       title="Chỉnh sửa thông tin"
                                     >
                                       <Edit className="w-3.5 h-3.5" />
@@ -2215,7 +2215,7 @@ export function CompanyBookingDetailPage({
                             <td colSpan={6} className="px-3 py-2.5 text-right text-gray-700">
                               Tổng cộng tiền vé ({filteredActiveCount} khách {stageFilter !== "all" ? "chặng này" : "đang tham gia"}):
                             </td>
-                            <td className="px-3 py-2.5 text-right text-[#15291E] text-sm font-extrabold">
+                            <td className="px-3 py-2.5 text-right text-[#075985] text-sm font-extrabold">
                               {formatVND(filteredTotalPrice)}
                             </td>
                             <td></td>
@@ -2226,7 +2226,7 @@ export function CompanyBookingDetailPage({
                   ) : (
                     <div className="bg-gray-50 rounded-lg p-6 text-center text-xs text-gray-500 space-y-2">
                       <p>Chưa có hành khách nào phù hợp với bộ lọc này.</p>
-                      <Button size="sm" onClick={handleOpenAddPassenger} className="text-xs bg-[#15291E] text-white">
+                      <Button size="sm" onClick={handleOpenAddPassenger} className="text-xs bg-[#075985] text-white">
                         <UserPlus className="w-3.5 h-3.5 mr-1" /> Thêm hành khách
                       </Button>
                     </div>
@@ -2313,7 +2313,7 @@ export function CompanyBookingDetailPage({
                 <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-[#15291E]" />
+                      <Building2 className="w-4 h-4 text-[#075985]" />
                       Khách sạn lưu trú
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -2325,9 +2325,9 @@ export function CompanyBookingDetailPage({
                 <div className="space-y-3">
                   {accommodationList.map((acc, aIdx) => (
                     <div key={aIdx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                      <div className="px-4 py-3 bg-[#FBF9F5]/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
+                      <div className="px-4 py-3 bg-[#F0F9FF]/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-[#15291E]/10 text-[#15291E] flex items-center justify-center flex-shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-[#E0F2FE] text-[#075985] flex items-center justify-center flex-shrink-0">
                             <Building2 className="w-4 h-4" />
                           </div>
                           <div>
@@ -2350,10 +2350,10 @@ export function CompanyBookingDetailPage({
                               setEditAddressOrNote(acc.address || "");
                               setServiceEditModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1 text-xs text-[#15291E] hover:text-blue-900 bg-white hover:bg-[#FBF9F5] border border-[#E8E4DC] px-2.5 py-1 rounded-lg font-semibold transition-colors shadow-2xs cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs text-[#075985] hover:text-blue-900 bg-white hover:bg-[#F0F9FF] border border-[#CBD5E1] px-2.5 py-1 rounded-lg font-semibold transition-colors shadow-2xs cursor-pointer"
                             title="Điều chỉnh thông tin hoặc đổi khách sạn khác"
                           >
-                            <Edit className="w-3.5 h-3.5 text-[#15291E]" />
+                            <Edit className="w-3.5 h-3.5 text-[#075985]" />
                             <span>Cập nhật khách sạn</span>
                           </button>
                           {acc.isChanged ? (
@@ -2372,7 +2372,7 @@ export function CompanyBookingDetailPage({
                               </span>
                             )
                           ) : (
-                            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-[#15291E] border border-[#E8E4DC]">
+                            <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-[#075985] border border-[#CBD5E1]">
                               Theo tour (Tiêu chuẩn 0đ)
                             </span>
                           )}
@@ -2399,7 +2399,7 @@ export function CompanyBookingDetailPage({
                           </div>
                         )}
                         {acc.note && (
-                          <div className="flex items-start justify-between text-[#A34C2A] pt-1 border-t border-purple-100 italic">
+                          <div className="flex items-start justify-between text-[#EA580C] pt-1 border-t border-purple-100 italic">
                             <span>Yêu cầu riêng của khách:</span>
                             <span className="text-right font-medium">{acc.note}</span>
                           </div>
@@ -2468,7 +2468,7 @@ export function CompanyBookingDetailPage({
                     HEALTH: { label: "Y tế & Sức khỏe", icon: "🏥", style: "bg-rose-50 text-rose-800 border-rose-200" },
                     VEHICLE: { label: "Phương tiện vận chuyển", icon: "🚗", style: "bg-amber-50 text-amber-800 border-amber-200" },
                     WEATHER: { label: "Thời tiết & Thiên tai", icon: "⛈️", style: "bg-sky-50 text-sky-800 border-sky-200" },
-                    CUSTOMER: { label: "Khách hàng & Thành viên", icon: "👥", style: "bg-[#FBF9F5] text-purple-800 border-[#BD5E38]/30" },
+                    CUSTOMER: { label: "Khách hàng & Thành viên", icon: "👥", style: "bg-[#F0F9FF] text-purple-800 border-[#F97316]/30" },
                     SECURITY: { label: "An ninh & Trật tự", icon: "🛡️", style: "bg-indigo-50 text-indigo-800 border-indigo-200" },
                     SCHEDULE: { label: "Lịch trình & Thời gian", icon: "⏰", style: "bg-orange-50 text-orange-800 border-orange-200" },
                     OTHER: { label: "Sự cố khác", icon: "📋", style: "bg-gray-50 text-gray-800 border-gray-200" },
@@ -2477,7 +2477,7 @@ export function CompanyBookingDetailPage({
 
                   const statusBadges = {
                     REPORTED: { label: "Mới báo cáo", color: "bg-amber-100 text-amber-800 border-amber-300" },
-                    IN_PROGRESS: { label: "Đang xử lý", color: "bg-[#15291E]/10 text-blue-800 border-blue-300" },
+                    IN_PROGRESS: { label: "Đang xử lý", color: "bg-[#E0F2FE] text-blue-800 border-blue-300" },
                     RESOLVED: { label: "Đã giải quyết", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
                   };
                   const st = statusBadges[inc.status];
@@ -2489,7 +2489,7 @@ export function CompanyBookingDetailPage({
                         inc.status === "RESOLVED"
                           ? "bg-white border-gray-200"
                           : inc.status === "IN_PROGRESS"
-                          ? "bg-[#FBF9F5]/30 border-[#E8E4DC] shadow-2xs"
+                          ? "bg-[#F0F9FF]/30 border-[#CBD5E1] shadow-2xs"
                           : "bg-amber-50/40 border-amber-300 shadow-2xs"
                       }`}
                     >
@@ -2518,7 +2518,7 @@ export function CompanyBookingDetailPage({
                       {inc.evidenceUrls && inc.evidenceUrls.length > 0 && (
                         <div className="space-y-1.5">
                           <span className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
-                            <Camera className="w-3.5 h-3.5 text-[#15291E]" />
+                            <Camera className="w-3.5 h-3.5 text-[#075985]" />
                             Ảnh minh chứng hiện trường ({inc.evidenceUrls.length}):
                           </span>
                           <div className="flex items-center gap-2 flex-wrap">
@@ -2568,7 +2568,7 @@ export function CompanyBookingDetailPage({
                       <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-[11px]">
                         <div className="text-gray-500">
                           Báo cáo bởi: <strong className="text-gray-800">{inc.reportedByName}</strong>
-                          {inc.agencyName && <> • Đơn vị: <strong className="text-[#A34C2A]">{inc.agencyName}</strong></>}
+                          {inc.agencyName && <> • Đơn vị: <strong className="text-[#EA580C]">{inc.agencyName}</strong></>}
                         </div>
 
                         <div className="flex items-center gap-1.5 ml-auto">
@@ -2578,7 +2578,7 @@ export function CompanyBookingDetailPage({
                             </span>
                           )}
                           {inc.status === "IN_PROGRESS" && (
-                            <span className="text-[11px] font-semibold text-[#15291E] bg-[#FBF9F5] px-2 py-0.5 rounded border border-[#E8E4DC]">
+                            <span className="text-[11px] font-semibold text-[#075985] bg-[#F0F9FF] px-2 py-0.5 rounded border border-[#CBD5E1]">
                               ⚙️ Đang xử lý tại hiện trường
                             </span>
                           )}
@@ -2603,7 +2603,7 @@ export function CompanyBookingDetailPage({
               <div className="border-b border-gray-200 pb-3 flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-[#BD5E38]" />
+                    <MapPin className="w-5 h-5 text-[#F97316]" />
                     <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
                       Tiến độ &amp; Lịch trình Tour
                     </h2>
@@ -2619,11 +2619,11 @@ export function CompanyBookingDetailPage({
                     onClick={() => setItinerarySubTab("standard")}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       itinerarySubTab === "standard"
-                        ? "bg-white text-[#15291E] shadow-2xs"
+                        ? "bg-white text-[#075985] shadow-2xs"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
-                    <FileText className="w-3.5 h-3.5 text-[#15291E]" />
+                    <FileText className="w-3.5 h-3.5 text-[#075985]" />
                     Lịch trình chi tiết chuẩn
                   </button>
                   <button
@@ -2631,13 +2631,13 @@ export function CompanyBookingDetailPage({
                     onClick={() => setItinerarySubTab("live_checkin")}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       itinerarySubTab === "live_checkin"
-                        ? "bg-white text-[#A34C2A] shadow-2xs"
+                        ? "bg-white text-[#EA580C] shadow-2xs"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
-                    <Navigation className="w-3.5 h-3.5 text-[#BD5E38]" />
+                    <Navigation className="w-3.5 h-3.5 text-[#F97316]" />
                     Tiến độ Check-in Trực tiếp
-                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-[#BD5E38]/15 text-purple-800">
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-[#F97316]/15 text-purple-800">
                       {attractionCheckins.filter((c) => c.attendanceStatus === "CHECKED_IN").length}/{attractionCheckins.length}
                     </span>
                   </button>
@@ -2667,16 +2667,16 @@ export function CompanyBookingDetailPage({
                 return (
                   <div className="space-y-4">
                     {/* Top Action Bar with Guide Filters & Settings */}
-                    <div className="bg-[#FBF9F5]/40 border border-[#BD5E38]/30 rounded-xl p-3.5 space-y-3">
+                    <div className="bg-[#F0F9FF]/40 border border-[#F97316]/30 rounded-xl p-3.5 space-y-3">
                       <div className="flex items-center gap-1.5 text-xs text-purple-900 font-bold">
-                        <SlidersHorizontal className="w-4 h-4 text-[#BD5E38]" />
+                        <SlidersHorizontal className="w-4 h-4 text-[#F97316]" />
                         Bộ lọc theo Dõi Tiến Độ:
                       </div>
 
                       {/* Filter by Tour Guide (STRICTLY NO BUS / XE!) */}
                       <div className="flex items-center gap-2 flex-wrap text-xs">
                         <span className="text-gray-500 font-semibold flex items-center gap-1">
-                          <UserCheck className="w-3.5 h-3.5 text-[#15291E]" />
+                          <UserCheck className="w-3.5 h-3.5 text-[#075985]" />
                           HDV dẫn đoàn:
                         </span>
                         <button
@@ -2684,7 +2684,7 @@ export function CompanyBookingDetailPage({
                           onClick={() => setTrackerGuideFilter("all")}
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                             trackerGuideFilter === "all"
-                              ? "bg-[#15291E] text-white shadow-2xs"
+                              ? "bg-[#075985] text-white shadow-2xs"
                               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                           }`}
                         >
@@ -2697,7 +2697,7 @@ export function CompanyBookingDetailPage({
                             onClick={() => setTrackerGuideFilter(g.guideId)}
                             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                               trackerGuideFilter === g.guideId
-                                ? "bg-[#BD5E38] text-white shadow-2xs"
+                                ? "bg-[#F97316] text-white shadow-2xs"
                                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                             }`}
                           >
@@ -2728,7 +2728,7 @@ export function CompanyBookingDetailPage({
                             {/* Day Header */}
                             <div className="bg-gray-50/90 px-4 py-3 border-b border-gray-200 flex items-center justify-between gap-2 flex-wrap">
                               <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 bg-[#BD5E38] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-2xs">
+                                <div className="w-7 h-7 bg-[#F97316] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-2xs">
                                   {day.day}
                                 </div>
                                 <div>
@@ -2741,8 +2741,8 @@ export function CompanyBookingDetailPage({
                               <div className="flex items-center gap-1.5">
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                                   isMyStage
-                                    ? "bg-[#BD5E38]/15 text-purple-800 border-purple-300"
-                                    : "bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]"
+                                    ? "bg-[#F97316]/15 text-purple-800 border-purple-300"
+                                    : "bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]"
                                 }`}>
                                   {isMyStage ? `Chặng của cty bạn: ${dayAgencyName}` : `Chặng đối tác: ${dayAgencyName}`}
                                 </span>
@@ -2840,9 +2840,9 @@ export function CompanyBookingDetailPage({
                                                 <PopoverTrigger asChild>
                                                   <button
                                                     type="button"
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-dashed border-purple-300 bg-[#FBF9F5]/70 text-[#A34C2A] hover:bg-[#BD5E38]/15 hover:border-purple-400 hover:shadow-2xs transition-all cursor-pointer group"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-dashed border-purple-300 bg-[#F0F9FF]/70 text-[#EA580C] hover:bg-[#F97316]/15 hover:border-purple-400 hover:shadow-2xs transition-all cursor-pointer group"
                                                   >
-                                                    <UserPlus className="w-3.5 h-3.5 text-[#BD5E38] group-hover:scale-110 transition-transform" />
+                                                    <UserPlus className="w-3.5 h-3.5 text-[#F97316] group-hover:scale-110 transition-transform" />
                                                     <span>+ Gán HDV cho điểm này</span>
                                                   </button>
                                                 </PopoverTrigger>
@@ -2855,7 +2855,7 @@ export function CompanyBookingDetailPage({
                                                   <div className="flex items-start justify-between gap-2 pb-2 border-b border-gray-100">
                                                     <div className="min-w-0">
                                                       <h5 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 truncate">
-                                                        <MapPin className="w-3.5 h-3.5 text-[#BD5E38] shrink-0" />
+                                                        <MapPin className="w-3.5 h-3.5 text-[#F97316] shrink-0" />
                                                         <span className="truncate">{loc.name}</span>
                                                       </h5>
                                                       <p className="text-[11px] text-gray-500 mt-0.5">
@@ -2874,7 +2874,7 @@ export function CompanyBookingDetailPage({
                                                           onClick={() => handleToggleGuideForAttraction(loc.id || loc.name, loc.name, day.day, g)}
                                                           className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none ${
                                                             isAssigned
-                                                              ? "bg-[#FBF9F5]/80 border-purple-300 shadow-2xs font-semibold"
+                                                              ? "bg-[#F0F9FF]/80 border-purple-300 shadow-2xs font-semibold"
                                                               : "bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200"
                                                           }`}
                                                         >
@@ -2886,7 +2886,7 @@ export function CompanyBookingDetailPage({
                                                                 className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
                                                               />
                                                             ) : (
-                                                              <div className="w-8 h-8 rounded-full bg-[#15291E] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                              <div className="w-8 h-8 rounded-full bg-[#075985] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                                 {g.guideName[0]}
                                                               </div>
                                                             )}
@@ -2899,7 +2899,7 @@ export function CompanyBookingDetailPage({
                                                           <div
                                                             className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
                                                               isAssigned
-                                                                ? "bg-[#BD5E38] border-purple-600 text-white shadow-2xs"
+                                                                ? "bg-[#F97316] border-purple-600 text-white shadow-2xs"
                                                                 : "border-gray-300 bg-white"
                                                             }`}
                                                           >
@@ -2913,7 +2913,7 @@ export function CompanyBookingDetailPage({
                                                   {/* Footer */}
                                                   <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
                                                     <span className="text-gray-500 font-medium">
-                                                      Đang gán: <strong className="text-[#A34C2A]">{locCheckins.length} HDV</strong>
+                                                      Đang gán: <strong className="text-[#EA580C]">{locCheckins.length} HDV</strong>
                                                     </span>
                                                     <span className="text-[10px] text-gray-400 italic">Bấm chọn để cập nhật</span>
                                                   </div>
@@ -2958,7 +2958,7 @@ export function CompanyBookingDetailPage({
                                                     ) : (
                                                       <div
                                                         title={`HDV: ${chk.guideName}`}
-                                                        className="w-7 h-7 rounded-full bg-[#15291E] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
+                                                        className="w-7 h-7 rounded-full bg-[#075985] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
                                                       >
                                                         {chk.guideName ? chk.guideName[0] : "H"}
                                                       </div>
@@ -2998,7 +2998,7 @@ export function CompanyBookingDetailPage({
                                                           });
                                                           setPreviewProofModalOpen(true);
                                                         }}
-                                                        className="text-[#15291E] hover:text-blue-800 text-[11px] font-semibold underline flex items-center gap-0.5 ml-0.5"
+                                                        className="text-[#075985] hover:text-blue-800 text-[11px] font-semibold underline flex items-center gap-0.5 ml-0.5"
                                                         title="Xem ảnh xác nhận check-in thực tế do HDV gửi lên"
                                                       >
                                                         <Camera className="w-3 h-3" />
@@ -3036,9 +3036,9 @@ export function CompanyBookingDetailPage({
                                                     <button
                                                       type="button"
                                                       title="Thêm hoặc đổi HDV cho điểm này"
-                                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-dashed border-slate-300 text-slate-600 hover:text-[#A34C2A] hover:border-purple-400 hover:bg-[#FBF9F5] transition-all cursor-pointer shadow-2xs"
+                                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border border-dashed border-slate-300 text-slate-600 hover:text-[#EA580C] hover:border-purple-400 hover:bg-[#F0F9FF] transition-all cursor-pointer shadow-2xs"
                                                     >
-                                                      <Plus className="w-3 h-3 text-[#BD5E38]" />
+                                                      <Plus className="w-3 h-3 text-[#F97316]" />
                                                       <span className="text-[11px]">Thêm HDV</span>
                                                     </button>
                                                   </PopoverTrigger>
@@ -3051,7 +3051,7 @@ export function CompanyBookingDetailPage({
                                                     <div className="flex items-start justify-between gap-2 pb-2 border-b border-gray-100">
                                                       <div className="min-w-0">
                                                         <h5 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 truncate">
-                                                          <MapPin className="w-3.5 h-3.5 text-[#BD5E38] shrink-0" />
+                                                          <MapPin className="w-3.5 h-3.5 text-[#F97316] shrink-0" />
                                                           <span className="truncate">{loc.name}</span>
                                                         </h5>
                                                         <p className="text-[11px] text-gray-500 mt-0.5">
@@ -3070,7 +3070,7 @@ export function CompanyBookingDetailPage({
                                                             onClick={() => handleToggleGuideForAttraction(loc.id || loc.name, loc.name, day.day, g)}
                                                             className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer select-none ${
                                                               isAssigned
-                                                                ? "bg-[#FBF9F5]/80 border-purple-300 shadow-2xs font-semibold"
+                                                                ? "bg-[#F0F9FF]/80 border-purple-300 shadow-2xs font-semibold"
                                                                 : "bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200"
                                                             }`}
                                                           >
@@ -3082,7 +3082,7 @@ export function CompanyBookingDetailPage({
                                                                   className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
                                                                 />
                                                               ) : (
-                                                                <div className="w-8 h-8 rounded-full bg-[#15291E] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                                <div className="w-8 h-8 rounded-full bg-[#075985] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                                   {g.guideName[0]}
                                                                 </div>
                                                               )}
@@ -3095,7 +3095,7 @@ export function CompanyBookingDetailPage({
                                                             <div
                                                               className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all shrink-0 ${
                                                                 isAssigned
-                                                                  ? "bg-[#BD5E38] border-purple-600 text-white shadow-2xs"
+                                                                  ? "bg-[#F97316] border-purple-600 text-white shadow-2xs"
                                                                   : "border-gray-300 bg-white"
                                                               }`}
                                                             >
@@ -3109,7 +3109,7 @@ export function CompanyBookingDetailPage({
                                                     {/* Footer */}
                                                     <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
                                                       <span className="text-gray-500 font-medium">
-                                                        Đang gán: <strong className="text-[#A34C2A]">{locCheckins.length} HDV</strong>
+                                                        Đang gán: <strong className="text-[#EA580C]">{locCheckins.length} HDV</strong>
                                                       </span>
                                                       <span className="text-[10px] text-gray-400 italic">Bấm chọn để cập nhật</span>
                                                     </div>
@@ -3160,7 +3160,7 @@ export function CompanyBookingDetailPage({
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 bg-[#BD5E38] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
+                          <div className="w-8 h-8 bg-[#F97316] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
                             {day.day}
                           </div>
                           <div>
@@ -3324,7 +3324,7 @@ export function CompanyBookingDetailPage({
                                           ? "bg-amber-50/60"
                                           : mealType === "lunch"
                                           ? "bg-emerald-50/60"
-                                          : "bg-[#FBF9F5]/60"
+                                          : "bg-[#F0F9FF]/60"
                                       }`}
                                     >
                                       <div className="flex items-center gap-2.5 min-w-0">
@@ -3334,7 +3334,7 @@ export function CompanyBookingDetailPage({
                                               ? "bg-amber-100 text-amber-700"
                                               : mealType === "lunch"
                                               ? "bg-emerald-100 text-emerald-700"
-                                              : "bg-[#BD5E38]/15 text-[#A34C2A]"
+                                              : "bg-[#F97316]/15 text-[#EA580C]"
                                           }`}
                                         >
                                           {mealType === "breakfast" ? (
@@ -3412,7 +3412,7 @@ export function CompanyBookingDetailPage({
           {/* CONTACT INFO CARD */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#15291E]" />
+              <Users className="w-4 h-4 text-[#075985]" />
               Thông tin Người đại diện
             </h3>
             <div className="space-y-3 text-xs">
@@ -3422,7 +3422,7 @@ export function CompanyBookingDetailPage({
               </div>
               <div>
                 <span className="text-gray-400 block text-[11px]">Số điện thoại liên hệ</span>
-                <span className="font-semibold text-[#15291E] flex items-center gap-1 mt-0.5">
+                <span className="font-semibold text-[#075985] flex items-center gap-1 mt-0.5">
                   <Phone className="w-3.5 h-3.5 text-gray-400" />
                   {booking.contactPhone || "—"}
                 </span>
@@ -3456,7 +3456,7 @@ export function CompanyBookingDetailPage({
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#15291E]" />
+                <CreditCard className="w-4 h-4 text-[#075985]" />
                 Tài chính & Thanh toán
               </h3>
               <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold border ${pst.color}`}>
@@ -3470,7 +3470,7 @@ export function CompanyBookingDetailPage({
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 font-medium">Tổng giá trị đơn ({booking.numberOfGuests} khách):</span>
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                    <span className="font-extrabold text-[#15291E] text-base">{formatVND(booking.totalPrice)}</span>
+                    <span className="font-extrabold text-[#075985] text-base">{formatVND(booking.totalPrice)}</span>
                     {onUpdateBookingPrice && (
                       <Button
                         size="sm"
@@ -3480,7 +3480,7 @@ export function CompanyBookingDetailPage({
                           setPriceNoteInput(booking.priceAdjustmentNote || "");
                           setPriceModalOpen(true);
                         }}
-                        className="h-7 px-2 text-xs text-[#15291E] hover:text-blue-800 hover:bg-[#15291E]/10 gap-1 font-semibold"
+                        className="h-7 px-2 text-xs text-[#075985] hover:text-blue-800 hover:bg-[#E0F2FE] gap-1 font-semibold"
                         title="Điều chỉnh giá tiền tour theo thỏa thuận"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -3536,7 +3536,7 @@ export function CompanyBookingDetailPage({
               {/* Payment status row */}
               <div className="flex justify-between items-center py-1 border-b border-gray-100">
                 <span className="text-gray-500">Trạng thái thanh toán:</span>
-                <span className={`font-bold ${booking.paymentStatus === "paid" ? "text-emerald-700" : booking.paymentStatus === "refunded" ? "text-[#A34C2A]" : "text-amber-700"}`}>
+                <span className={`font-bold ${booking.paymentStatus === "paid" ? "text-emerald-700" : booking.paymentStatus === "refunded" ? "text-[#EA580C]" : "text-amber-700"}`}>
                   {booking.paymentStatus === "paid"
                     ? "Đã thanh toán"
                     : booking.paymentStatus === "refunded"
@@ -3563,7 +3563,7 @@ export function CompanyBookingDetailPage({
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-gray-500">Tổng tiền đã tạo yêu cầu:</span>
-                      <span className="font-bold text-[#15291E]">{formatVND(totalRequested)} / {formatVND(booking.totalPrice)}</span>
+                      <span className="font-bold text-[#075985]">{formatVND(totalRequested)} / {formatVND(booking.totalPrice)}</span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-gray-500">Còn lại có thể yêu cầu thu:</span>
@@ -3584,15 +3584,15 @@ export function CompanyBookingDetailPage({
                   {booking.settledAt && <p className="text-gray-500">Ngày quyết toán: {booking.settledAt}</p>}
                 </div>
               ) : booking.status === "completed" ? (
-                <div className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-3 text-[11px] text-blue-900 space-y-1">
+                <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-3 text-[11px] text-blue-900 space-y-1">
                   <p className="font-bold flex items-center gap-1.5 text-blue-800">
-                    <Clock className="w-4 h-4 text-[#15291E]" />
+                    <Clock className="w-4 h-4 text-[#075985]" />
                     Tour đã hoàn thành:
                   </p>
                   <p>Hệ thống đang tạm giữ tiền. Admin sàn sẽ sớm đối soát và giải ngân chi trả cho Quý công ty.</p>
                 </div>
               ) : (
-                <div className="bg-[#FBF9F5]/70 p-2.5 rounded-lg border border-[#E8E4DC] text-blue-900 text-[11px] leading-relaxed">
+                <div className="bg-[#F0F9FF]/70 p-2.5 rounded-lg border border-[#CBD5E1] text-blue-900 text-[11px] leading-relaxed">
                   🛡️ <strong>Chính sách Escrow:</strong> Tiền thanh toán của khách sẽ vào Tài khoản Hệ thống. Khi tour kết thúc, Admin sàn sẽ đối soát và giải ngân 100% cho Quý công ty (chính sách miễn phí sàn hiện tại).
                 </div>
               )}
@@ -3626,7 +3626,7 @@ export function CompanyBookingDetailPage({
                       className={`w-full text-xs h-9 gap-1.5 font-bold ${
                         remainingToRequest <= 0
                           ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
-                          : "border-blue-500 text-[#15291E] hover:bg-[#FBF9F5]"
+                          : "border-blue-500 text-[#075985] hover:bg-[#F0F9FF]"
                       }`}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
@@ -3668,7 +3668,7 @@ export function CompanyBookingDetailPage({
                       </div>
                       <div className="flex justify-between items-center text-gray-500 pt-1">
                         <span>Hạn: {pr.dueDate}</span>
-                        <span className="font-bold text-[#15291E] text-sm">{formatVND(pr.amount)}</span>
+                        <span className="font-bold text-[#075985] text-sm">{formatVND(pr.amount)}</span>
                       </div>
                       {pr.paidAt && (
                         <p className="text-[10px] text-emerald-600 font-medium">
@@ -3686,7 +3686,7 @@ export function CompanyBookingDetailPage({
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-[#15291E]" />
+                <UserCheck className="w-4 h-4 text-[#075985]" />
                 Hướng dẫn viên phụ trách ({assignedGuides.length})
               </h3>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -3694,10 +3694,10 @@ export function CompanyBookingDetailPage({
                   size="sm"
                   variant="outline"
                   onClick={handleOpenAssignAttractionsModal}
-                  className="h-7 px-2 text-xs text-[#A34C2A] hover:text-purple-900 hover:bg-[#FBF9F5] border-[#BD5E38]/30 font-semibold gap-1 shadow-2xs"
+                  className="h-7 px-2 text-xs text-[#EA580C] hover:text-purple-900 hover:bg-[#F0F9FF] border-[#F97316]/30 font-semibold gap-1 shadow-2xs"
                   title="Phân công HDV theo từng điểm đến (booking_attraction_checkins)"
                 >
-                  <Navigation className="w-3 h-3 text-[#BD5E38]" />
+                  <Navigation className="w-3 h-3 text-[#F97316]" />
                   Gán điểm
                 </Button>
                 <Button
@@ -3709,7 +3709,7 @@ export function CompanyBookingDetailPage({
                     setSelectedGuideNotes("");
                     setAssignModalOpen(true);
                   }}
-                  className="h-7 px-2 text-xs text-[#15291E] hover:text-blue-800 hover:bg-[#FBF9F5] border-[#E8E4DC] font-semibold gap-1"
+                  className="h-7 px-2 text-xs text-[#075985] hover:text-blue-800 hover:bg-[#F0F9FF] border-[#CBD5E1] font-semibold gap-1"
                   title="Phân công thêm HDV của công ty bạn vào đoàn"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -3729,7 +3729,7 @@ export function CompanyBookingDetailPage({
                     setSelectedGuideNotes("");
                     setAssignModalOpen(true);
                   }}
-                  className="bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs h-8"
+                  className="bg-[#075985] hover:bg-[#F97316] text-white text-xs h-8"
                 >
                   <UserCheck className="w-3.5 h-3.5 mr-1" />
                   Giao hướng dẫn viên
@@ -3755,16 +3755,16 @@ export function CompanyBookingDetailPage({
 
                   const roleBadgeClass =
                     ag.role === "lead_guide"
-                      ? "bg-[#15291E]/10 text-blue-800 border-[#E8E4DC]"
+                      ? "bg-[#E0F2FE] text-blue-800 border-[#CBD5E1]"
                       : ag.role === "stage_guide"
-                      ? "bg-[#BD5E38]/15 text-purple-800 border-[#BD5E38]/30"
+                      ? "bg-[#F97316]/15 text-purple-800 border-[#F97316]/30"
                       : "bg-gray-100 text-gray-700 border-gray-200";
 
                   return (
                     <div
                       key={ag.id}
                       className={`p-3 rounded-xl border transition-all ${
-                        isMyGuide ? "bg-white border-[#E8E4DC] shadow-2xs" : "bg-gray-50/80 border-gray-200"
+                        isMyGuide ? "bg-white border-[#CBD5E1] shadow-2xs" : "bg-gray-50/80 border-gray-200"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -3775,7 +3775,7 @@ export function CompanyBookingDetailPage({
                             className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-xs shrink-0"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#15291E] text-white font-bold flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-[#075985] text-white font-bold flex items-center justify-center shrink-0">
                             {ag.guideName ? ag.guideName[0] : "H"}
                           </div>
                         )}
@@ -3794,14 +3794,14 @@ export function CompanyBookingDetailPage({
                                 Của cty bạn
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.2 rounded bg-[#FBF9F5] text-[#A34C2A] border border-[#BD5E38]/30 text-[10px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-[#F0F9FF] text-[#EA580C] border border-[#F97316]/30 text-[10px] font-bold">
                                 Đối tác
                               </span>
                             )}
                           </div>
 
                           {ag.guidePhone && (
-                            <p className="text-[#15291E] flex items-center gap-1 text-[11px]">
+                            <p className="text-[#075985] flex items-center gap-1 text-[11px]">
                               <Phone className="w-3 h-3" />
                               {ag.guidePhone}
                             </p>
@@ -3825,7 +3825,7 @@ export function CompanyBookingDetailPage({
                                     setNewReplacementGuideId(otherGuides[0]?.id || "");
                                     setReplaceModalOpen(true);
                                   }}
-                                  className="text-[#15291E] hover:text-blue-800 font-semibold hover:underline flex items-center gap-1"
+                                  className="text-[#075985] hover:text-blue-800 font-semibold hover:underline flex items-center gap-1"
                                 >
                                   <RotateCcw className="w-3 h-3" />
                                   Thay thế
@@ -3896,14 +3896,14 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-[#15291E]" />
+              <UserCheck className="w-5 h-5 text-[#075985]" />
               Phân công Hướng dẫn viên cho đoàn
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2 text-xs">
-            <div className="bg-[#FBF9F5]/70 p-3 rounded-xl border border-[#E8E4DC] text-blue-900 space-y-1">
+            <div className="bg-[#F0F9FF]/70 p-3 rounded-xl border border-[#CBD5E1] text-blue-900 space-y-1">
               <p className="font-bold flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#15291E]" />
+                <Building2 className="w-3.5 h-3.5 text-[#075985]" />
                 Đơn vị phân công: {companyName || currentAgency?.agencyName || "Công ty của bạn"}
               </p>
               <p className="text-[11px] text-blue-800 leading-relaxed">
@@ -3940,14 +3940,14 @@ export function CompanyBookingDetailPage({
                             isAlreadyAssigned
                               ? "opacity-50 border-gray-200 bg-gray-50 cursor-not-allowed"
                               : isSelected
-                              ? "border-blue-500 bg-[#FBF9F5]/70 ring-2 ring-blue-400/30 cursor-pointer"
+                              ? "border-blue-500 bg-[#F0F9FF]/70 ring-2 ring-blue-400/30 cursor-pointer"
                               : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
                           }`}
                         >
                           {g.avatar ? (
                             <img src={g.avatar} alt={g.name} className="w-10 h-10 rounded-full object-cover border" />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-[#15291E] text-white font-bold flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-[#075985] text-white font-bold flex items-center justify-center">
                               {g.name[0]}
                             </div>
                           )}
@@ -3975,7 +3975,7 @@ export function CompanyBookingDetailPage({
                   <select
                     value={selectedGuideRole}
                     onChange={(e) => setSelectedGuideRole(e.target.value as any)}
-                    className="w-full text-xs p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#15291E] bg-white"
+                    className="w-full text-xs p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#075985] bg-white"
                   >
                     <option value="lead_guide">HDV Trưởng đoàn (Điều phối chung)</option>
                     <option value="stage_guide">HDV Chặng (Phụ trách chặng địa phương)</option>
@@ -4001,7 +4001,7 @@ export function CompanyBookingDetailPage({
               <Button variant="outline" onClick={() => setAssignModalOpen(false)}>Hủy</Button>
               <Button
                 disabled={guides.length === 0 || !selectedGuideToAdd}
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold"
+                className="bg-[#075985] hover:bg-[#F97316] text-white font-bold"
                 onClick={handleConfirmAddGuide}
               >
                 Xác nhận phân công
@@ -4016,7 +4016,7 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <RotateCcw className="w-5 h-5 text-[#15291E]" />
+              <RotateCcw className="w-5 h-5 text-[#075985]" />
               Thay thế Hướng dẫn viên
             </DialogTitle>
           </DialogHeader>
@@ -4052,14 +4052,14 @@ export function CompanyBookingDetailPage({
                           isAlreadyAssigned
                             ? "opacity-50 border-gray-200 bg-gray-50 cursor-not-allowed"
                             : isSelected
-                            ? "border-blue-500 bg-[#FBF9F5]/70 ring-2 ring-blue-400/30 cursor-pointer"
+                            ? "border-blue-500 bg-[#F0F9FF]/70 ring-2 ring-blue-400/30 cursor-pointer"
                             : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
                         }`}
                       >
                         {g.avatar ? (
                           <img src={g.avatar} alt={g.name} className="w-10 h-10 rounded-full object-cover border" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#15291E] text-white font-bold flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-[#075985] text-white font-bold flex items-center justify-center">
                             {g.name[0]}
                           </div>
                         )}
@@ -4068,7 +4068,7 @@ export function CompanyBookingDetailPage({
                           <p className="text-[11px] text-gray-500">{g.phone || g.email}</p>
                         </div>
                         {isSelected && (
-                          <span className="text-xs font-bold text-[#15291E]">Đã chọn</span>
+                          <span className="text-xs font-bold text-[#075985]">Đã chọn</span>
                         )}
                       </div>
                     );
@@ -4080,7 +4080,7 @@ export function CompanyBookingDetailPage({
               <Button variant="outline" onClick={() => setReplaceModalOpen(false)}>Hủy</Button>
               <Button
                 disabled={!newReplacementGuideId}
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold"
+                className="bg-[#075985] hover:bg-[#F97316] text-white font-bold"
                 onClick={handleConfirmReplaceGuide}
               >
                 Xác nhận thay thế
@@ -4105,22 +4105,22 @@ export function CompanyBookingDetailPage({
               <div className="space-y-4 pt-1 text-xs">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-base">
-                    <CreditCard className="w-5 h-5 text-[#15291E]" />
+                    <CreditCard className="w-5 h-5 text-[#075985]" />
                     Tạo Yêu cầu Thanh toán Đợt tiếp theo
                   </DialogTitle>
                 </DialogHeader>
 
                 {/* Booking & financial balance summary */}
-                <div className="bg-[#FBF9F5]/70 rounded-xl p-3.5 border border-[#E8E4DC] space-y-1.5 text-xs text-blue-950">
+                <div className="bg-[#F0F9FF]/70 rounded-xl p-3.5 border border-[#CBD5E1] space-y-1.5 text-xs text-blue-950">
                   <div className="flex justify-between items-center">
                     <span>Mã Booking: <strong>#{booking.id}</strong></span>
                     <span>Khách: <strong>{booking.userName}</strong></span>
                   </div>
-                  <div className="flex justify-between items-center pt-1 border-t border-[#E8E4DC]/60">
+                  <div className="flex justify-between items-center pt-1 border-t border-[#CBD5E1]/60">
                     <span>Tổng tiền tour: <strong className="text-gray-900">{formatVND(booking.totalPrice)}</strong></span>
-                    <span>Đã tạo yêu cầu: <strong className="text-[#15291E]">{formatVND(totalRequested)}</strong></span>
+                    <span>Đã tạo yêu cầu: <strong className="text-[#075985]">{formatVND(totalRequested)}</strong></span>
                   </div>
-                  <div className="flex justify-between items-center pt-1 border-t border-[#E8E4DC]/60 font-bold">
+                  <div className="flex justify-between items-center pt-1 border-t border-[#CBD5E1]/60 font-bold">
                     <span>Số tiền còn lại có thể yêu cầu:</span>
                     <span className="text-sm text-amber-700">{formatVND(remainingToRequest)}</span>
                   </div>
@@ -4156,7 +4156,7 @@ export function CompanyBookingDetailPage({
                       <button
                         type="button"
                         onClick={() => setPaymentAmount(remainingToRequest.toString())}
-                        className="text-[10px] px-2 py-0.5 rounded bg-[#15291E]/10 text-blue-800 hover:bg-blue-200 font-semibold"
+                        className="text-[10px] px-2 py-0.5 rounded bg-[#E0F2FE] text-blue-800 hover:bg-blue-200 font-semibold"
                       >
                         100% còn lại ({formatVND(remainingToRequest)})
                       </button>
@@ -4250,7 +4250,7 @@ export function CompanyBookingDetailPage({
                       !paymentDescription ||
                       !paymentDueDate
                     }
-                    className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold"
+                    className="bg-[#075985] hover:bg-[#F97316] text-white font-bold"
                     onClick={() => {
                       onCreatePaymentRequest(booking.id, {
                         amount: requestedAmount,
@@ -4277,14 +4277,14 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
-              <Edit3 className="w-5 h-5 text-[#15291E]" />
+              <Edit3 className="w-5 h-5 text-[#075985]" />
               Điều chỉnh Giá Tour Tổng Thể
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-1 text-xs">
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-1">
               <p className="text-gray-600">Đơn booking: <strong>#{booking.id}</strong> ({booking.userName})</p>
-              <p className="text-gray-600">Giá hiện tại: <strong className="text-[#15291E]">{formatVND(booking.totalPrice)}</strong></p>
+              <p className="text-gray-600">Giá hiện tại: <strong className="text-[#075985]">{formatVND(booking.totalPrice)}</strong></p>
               {booking.originalTotalPrice && (
                 <p className="text-gray-400 text-[11px]">Giá gốc ban đầu: {formatVND(booking.originalTotalPrice)}</p>
               )}
@@ -4299,7 +4299,7 @@ export function CompanyBookingDetailPage({
                 value={newPriceInput}
                 onChange={(e) => setNewPriceInput(e.target.value)}
                 placeholder={booking.totalPrice.toString()}
-                className="mt-1 text-xs font-bold text-[#15291E]"
+                className="mt-1 text-xs font-bold text-[#075985]"
               />
               {parseInt(newPriceInput) > 0 && (
                 <p className="text-[11px] text-gray-500 pt-0.5">
@@ -4333,7 +4333,7 @@ export function CompanyBookingDetailPage({
               </Button>
               <Button
                 disabled={!newPriceInput || parseInt(newPriceInput) <= 0}
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold"
+                className="bg-[#075985] hover:bg-[#F97316] text-white font-bold"
                 onClick={() => {
                   if (onUpdateBookingPrice && newPriceInput) {
                     const parsed = parseInt(newPriceInput);
@@ -4365,7 +4365,7 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#15291E]" />
+              <FileText className="w-5 h-5 text-[#075985]" />
               Hợp đồng Dịch vụ Du lịch – {contractNo}
             </DialogTitle>
           </DialogHeader>
@@ -4399,7 +4399,7 @@ export function CompanyBookingDetailPage({
 
             <div>
               <p className="font-bold text-gray-900 mb-1">ĐIỀU 2: GIÁ TRỊ VÀ PHƯƠNG THỨC THANH TOÁN</p>
-              <p>Tổng giá trị hợp đồng: <strong className="text-[#15291E]">{formatVND(booking.totalPrice)}</strong></p>
+              <p>Tổng giá trị hợp đồng: <strong className="text-[#075985]">{formatVND(booking.totalPrice)}</strong></p>
               <p>Trạng thái thanh toán: <strong>{booking.paymentStatus === "paid" ? "Đã thanh toán" : booking.paymentStatus === "refunded" ? "Đã hoàn tiền" : "Chưa thanh toán"}</strong></p>
               {booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
                 <p>Số tiền còn lại: <strong className="text-amber-700">{formatVND(booking.remainingAmount)}</strong></p>
@@ -4407,7 +4407,7 @@ export function CompanyBookingDetailPage({
             </div>
 
             {booking.hasLocationCustomization && (
-              <div className="bg-[#FBF9F5] p-2.5 rounded-lg border border-[#BD5E38]/30">
+              <div className="bg-[#F0F9FF] p-2.5 rounded-lg border border-[#F97316]/30">
                 <p className="font-bold text-purple-900 mb-1">ĐIỀU KHOẢN TÙY CHỈNH LỊCH TRÌNH:</p>
                 <p>Các điều chỉnh về khách sạn và điểm đến theo thỏa thuận đính kèm trong phụ lục booking.</p>
               </div>
@@ -4416,7 +4416,7 @@ export function CompanyBookingDetailPage({
 
           <div className="flex justify-end gap-2 pt-3 border-t">
             <Button variant="outline" onClick={() => setContractModalOpen(false)}>Đóng</Button>
-            <Button className="bg-[#15291E] hover:bg-[#BD5E38] text-white gap-1.5" onClick={() => window.print()}>
+            <Button className="bg-[#075985] hover:bg-[#F97316] text-white gap-1.5" onClick={() => window.print()}>
               <Printer className="w-4 h-4" />
               In hợp đồng
             </Button>
@@ -4429,7 +4429,7 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
-              <Users className="w-5 h-5 text-[#15291E]" />
+              <Users className="w-5 h-5 text-[#075985]" />
               {passengerModalMode === "add" ? "Thêm hành khách vào đoàn" : "Chỉnh sửa thông tin hành khách"}
             </DialogTitle>
           </DialogHeader>
@@ -4519,7 +4519,7 @@ export function CompanyBookingDetailPage({
                       const p = calculatePassengerPrice(grp, sel);
                       setPassengerCustomPrice(p.toString());
                     }}
-                    className="w-full h-9 px-3 rounded-lg border border-purple-300 bg-[#FBF9F5]/50 text-xs font-semibold focus:border-purple-500 focus:outline-hidden"
+                    className="w-full h-9 px-3 rounded-lg border border-purple-300 bg-[#F0F9FF]/50 text-xs font-semibold focus:border-purple-500 focus:outline-hidden"
                   >
                     <option value="all">Toàn bộ tour (100% tất cả các chặng)</option>
                     {agenciesList.map((a) => (
@@ -4538,7 +4538,7 @@ export function CompanyBookingDetailPage({
             </div>
 
             {/* Price Box with Auto-calculation Explanation & Editable Input */}
-            <div className="bg-[#FBF9F5]/70 p-3.5 rounded-xl border border-[#E8E4DC] space-y-2">
+            <div className="bg-[#F0F9FF]/70 p-3.5 rounded-xl border border-[#CBD5E1] space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <span className="text-gray-800 font-bold text-xs block">Giá vé áp dụng theo độ tuổi:</span>
@@ -4565,11 +4565,11 @@ export function CompanyBookingDetailPage({
 
               {/* Informative Note Explaining Price Origin */}
               <div className="text-[11px] text-blue-900 bg-white/90 p-2.5 rounded-lg border border-blue-100 flex items-start gap-2 leading-relaxed">
-                <Info className="w-4 h-4 text-[#15291E] flex-shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-[#075985] flex-shrink-0 mt-0.5" />
                 <div>
                   <span>
                     <strong>Cơ sở tính giá vé:</strong> Giá vé đoàn thực tế của booking này là{" "}
-                    <strong className="text-[#15291E]">{formatVND(calculatePassengerPrice("adult"))}</strong>/khách người lớn
+                    <strong className="text-[#075985]">{formatVND(calculatePassengerPrice("adult"))}</strong>/khách người lớn
                     {booking.tour?.price && booking.tour.price !== calculatePassengerPrice("adult") ? (
                       <> (đã bao gồm tùy chỉnh nâng cấp dịch vụ &amp; phụ thu theo đơn của khách so với giá niêm yết ban đầu {formatVND(booking.tour.price)})</>
                     ) : null}.
@@ -4601,13 +4601,13 @@ export function CompanyBookingDetailPage({
                         type="checkbox"
                         checked={autoUpdateTourPrice}
                         onChange={(e) => setAutoUpdateTourPrice(e.target.checked)}
-                        className="mt-0.5 rounded border-gray-300 text-[#15291E] focus:ring-[#15291E] w-4 h-4"
+                        className="mt-0.5 rounded border-gray-300 text-[#075985] focus:ring-[#075985] w-4 h-4"
                       />
                       <div>
                         <span>Tự động cập nhật tổng giá tour (+{formatVND(effectivePrice)})</span>
                         <span className="block text-[11px] font-normal text-gray-500 mt-0.5">
                           Tổng đơn sẽ tự động tăng từ <strong>{formatVND(booking.totalPrice)}</strong> lên{" "}
-                          <strong className="text-[#15291E]">{formatVND(booking.totalPrice + effectivePrice)}</strong>
+                          <strong className="text-[#075985]">{formatVND(booking.totalPrice + effectivePrice)}</strong>
                         </span>
                       </div>
                     </label>
@@ -4618,7 +4618,7 @@ export function CompanyBookingDetailPage({
                           type="checkbox"
                           checked={createExtraPaymentRequest}
                           onChange={(e) => setCreateExtraPaymentRequest(e.target.checked)}
-                          className="mt-0.5 rounded border-gray-300 text-[#15291E] focus:ring-[#15291E] w-4 h-4"
+                          className="mt-0.5 rounded border-gray-300 text-[#075985] focus:ring-[#075985] w-4 h-4"
                         />
                         <div>
                           <span>Tạo đợt thu (Payment Request) gửi đến khách hàng</span>
@@ -4664,7 +4664,7 @@ export function CompanyBookingDetailPage({
             <Button variant="outline" size="sm" onClick={() => setPassengerModalOpen(false)}>
               Hủy
             </Button>
-            <Button size="sm" onClick={handleSavePassengerModal} className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold">
+            <Button size="sm" onClick={handleSavePassengerModal} className="bg-[#075985] hover:bg-[#F97316] text-white font-bold">
               {passengerModalMode === "add" ? "✓ Thêm vào danh sách đoàn" : "✓ Cập nhật thông tin"}
             </Button>
           </div>
@@ -4771,7 +4771,7 @@ export function CompanyBookingDetailPage({
                             #{logOrder}
                           </span>
                           {isLatest && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#15291E]/10 text-blue-800 border border-[#E8E4DC]">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#E0F2FE] text-blue-800 border border-[#CBD5E1]">
                               Mới nhất
                             </span>
                           )}
@@ -4799,7 +4799,7 @@ export function CompanyBookingDetailPage({
                         <div>
                           <span className="text-gray-400 block">Biến động giá:</span>
                           <span className="font-medium text-gray-700">
-                            {formatVND(adj.previousTotalPrice)} ➔ <strong className="text-[#15291E]">{formatVND(adj.newTotalPrice)}</strong>
+                            {formatVND(adj.previousTotalPrice)} ➔ <strong className="text-[#075985]">{formatVND(adj.newTotalPrice)}</strong>
                           </span>
                         </div>
                         <div>
@@ -4813,7 +4813,7 @@ export function CompanyBookingDetailPage({
                           </span>
                         </div>
                         {adj.agencyName && (
-                          <div className="sm:col-span-3 pt-1 border-t border-gray-100 flex items-center gap-1.5 text-[#A34C2A] font-bold">
+                          <div className="sm:col-span-3 pt-1 border-t border-gray-100 flex items-center gap-1.5 text-[#EA580C] font-bold">
                             <Tag className="w-3 h-3 text-purple-500" />
                             <span>Chặng áp dụng: {adj.agencyName}</span>
                           </div>
@@ -4849,16 +4849,16 @@ export function CompanyBookingDetailPage({
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
-              <Navigation className="w-5 h-5 text-[#BD5E38]" />
+              <Navigation className="w-5 h-5 text-[#F97316]" />
               Phân công Hướng dẫn viên theo Điểm đến &amp; Chặng (`booking_attraction_checkins`)
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 pt-2 text-xs">
             {/* Context / Alliance Permission Banner */}
-            <div className="bg-[#FBF9F5]/70 p-3.5 rounded-xl border border-[#BD5E38]/30 text-purple-900 space-y-1.5">
+            <div className="bg-[#F0F9FF]/70 p-3.5 rounded-xl border border-[#F97316]/30 text-purple-900 space-y-1.5">
               <p className="font-bold flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-[#A34C2A]" />
+                <Building2 className="w-4 h-4 text-[#EA580C]" />
                 Đơn vị điều phối: {companyName || currentAgency?.agencyName || "Công ty của bạn"}
                 {isCoHostedTour && (
                   <span className="ml-2 text-[10px] bg-purple-200 text-purple-900 font-extrabold px-2 py-0.5 rounded-full">
@@ -4884,7 +4884,7 @@ export function CompanyBookingDetailPage({
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/60"
                 }`}
               >
-                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-[#A34C2A]">
+                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-[#EA580C]">
                   <Zap className="w-3.5 h-3.5" />
                   1. Gán 1 HDV Toàn bộ
                 </div>
@@ -4902,7 +4902,7 @@ export function CompanyBookingDetailPage({
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/60"
                 }`}
               >
-                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-[#15291E]">
+                <div className="flex items-center gap-1.5 text-xs font-bold mb-1 text-[#075985]">
                   <Users className="w-3.5 h-3.5" />
                   2. Gán 2+ HDV (Song hành)
                 </div>
@@ -4932,7 +4932,7 @@ export function CompanyBookingDetailPage({
 
             {/* PRESET 1 CONTENT: SINGLE GUIDE */}
             {assignPresetMode === "single" && (
-              <div className="p-4 bg-[#FBF9F5]/30 rounded-xl border border-[#BD5E38]/30 space-y-3">
+              <div className="p-4 bg-[#F0F9FF]/30 rounded-xl border border-[#F97316]/30 space-y-3">
                 <div className="space-y-1">
                   <Label className="text-xs font-bold text-gray-800">
                     Chọn 1 Hướng dẫn viên phụ trách toàn bộ ({allItineraryAttractions.filter(a => a.isMyAgencyAttraction).length} điểm đến của công ty):
@@ -4951,14 +4951,14 @@ export function CompanyBookingDetailPage({
                         onClick={() => setSelectedSingleGuideId(g.guideId)}
                         className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                           isSelected
-                            ? "bg-[#BD5E38]/15/70 border-purple-400 ring-2 ring-purple-400/30 font-bold"
+                            ? "bg-[#F97316]/15/70 border-purple-400 ring-2 ring-purple-400/30 font-bold"
                             : "bg-white border-gray-200 hover:bg-gray-50"
                         }`}
                       >
                         {g.guideAvatar ? (
                           <img src={g.guideAvatar} alt={g.guideName} className="w-9 h-9 rounded-full object-cover border shrink-0" />
                         ) : (
-                          <div className="w-9 h-9 rounded-full bg-[#BD5E38] text-white font-bold flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-[#F97316] text-white font-bold flex items-center justify-center shrink-0">
                             {g.guideName[0]}
                           </div>
                         )}
@@ -4966,7 +4966,7 @@ export function CompanyBookingDetailPage({
                           <p className="text-xs text-gray-900 truncate">{g.guideName}</p>
                           <p className="text-[11px] text-gray-500">{g.guidePhone || "Chưa có SĐT"}</p>
                         </div>
-                        {isSelected && <Check className="w-4 h-4 text-[#A34C2A] shrink-0" />}
+                        {isSelected && <Check className="w-4 h-4 text-[#EA580C] shrink-0" />}
                       </div>
                     );
                   })}
@@ -4976,13 +4976,13 @@ export function CompanyBookingDetailPage({
 
             {/* PRESET 2 CONTENT: MULTI GUIDES DUPLICATION */}
             {assignPresetMode === "co_guides" && (
-              <div className="p-4 bg-[#FBF9F5]/30 rounded-xl border border-[#E8E4DC] space-y-3">
+              <div className="p-4 bg-[#F0F9FF]/30 rounded-xl border border-[#CBD5E1] space-y-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-bold text-gray-800">
                       Chọn các Hướng dẫn viên cùng song hành phụ trách đoàn đông:
                     </Label>
-                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded bg-[#15291E]/10 text-blue-800">
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded bg-[#E0F2FE] text-blue-800">
                       {selectedMultiGuideIds.length} HDV được chọn
                     </span>
                   </div>
@@ -5006,7 +5006,7 @@ export function CompanyBookingDetailPage({
                         }}
                         className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                           isChecked
-                            ? "bg-[#15291E]/10/70 border-blue-400 ring-2 ring-blue-400/30 font-bold"
+                            ? "bg-[#E0F2FE]/70 border-blue-400 ring-2 ring-blue-400/30 font-bold"
                             : "bg-white border-gray-200 hover:bg-gray-50"
                         }`}
                       >
@@ -5014,12 +5014,12 @@ export function CompanyBookingDetailPage({
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {}}
-                          className="rounded border-gray-300 text-[#15291E] focus:ring-[#15291E] w-4 h-4 shrink-0"
+                          className="rounded border-gray-300 text-[#075985] focus:ring-[#075985] w-4 h-4 shrink-0"
                         />
                         {g.guideAvatar ? (
                           <img src={g.guideAvatar} alt={g.guideName} className="w-8 h-8 rounded-full object-cover border shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-[#15291E] text-white font-bold flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#075985] text-white font-bold flex items-center justify-center shrink-0">
                             {g.guideName[0]}
                           </div>
                         )}
@@ -5033,7 +5033,7 @@ export function CompanyBookingDetailPage({
                 </div>
 
                 {/* Calculation formula explanation */}
-                <div className="p-2.5 bg-[#15291E]/10/60 rounded-lg text-[11px] text-blue-900 space-y-0.5">
+                <div className="p-2.5 bg-[#E0F2FE]/60 rounded-lg text-[11px] text-blue-900 space-y-0.5">
                   <p className="font-bold">
                     💡 Quy tắc nhân bản bảng `booking_attraction_checkins`:
                   </p>
@@ -5127,7 +5127,7 @@ export function CompanyBookingDetailPage({
                   {allItineraryAttractions.filter(a => !a.isMyAgencyAttraction).map((pAtt, pIdx) => (
                     <div key={pIdx} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200 text-gray-500">
                       <span>• {pAtt.location.name} (Ngày {pAtt.dayNumber})</span>
-                      <span className="font-semibold text-[#A34C2A] text-[10px]">
+                      <span className="font-semibold text-[#EA580C] text-[10px]">
                         Do {pAtt.responsibleAgencyName} phân công
                       </span>
                     </div>
@@ -5142,7 +5142,7 @@ export function CompanyBookingDetailPage({
               </Button>
               <Button
                 onClick={handleSaveAttractionAssignment}
-                className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-bold"
+                className="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold"
               >
                 Xác nhận &amp; Lưu phân công
               </Button>
@@ -5177,14 +5177,14 @@ export function CompanyBookingDetailPage({
                 <p className="font-bold text-gray-900 text-sm">{proofPreviewData.title}</p>
                 {proofPreviewData.time && (
                   <p className="text-gray-500 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#BD5E38]" />
+                    <Clock className="w-3.5 h-3.5 text-[#F97316]" />
                     Thời gian ghi nhận: <strong className="text-gray-800">{proofPreviewData.time}</strong>
                   </p>
                 )}
                 {proofPreviewData.guideName && (
                   <p className="text-gray-500 flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-[#15291E]" />
-                    HDV thực hiện: <strong className="text-[#15291E]">{proofPreviewData.guideName}</strong>
+                    <UserCheck className="w-3.5 h-3.5 text-[#075985]" />
+                    HDV thực hiện: <strong className="text-[#075985]">{proofPreviewData.guideName}</strong>
                   </p>
                 )}
                 {proofPreviewData.note && (
@@ -5225,7 +5225,7 @@ export function CompanyBookingDetailPage({
             <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
               {serviceEditType === "hotel" ? (
                 <>
-                  <Building2 className="w-5 h-5 text-[#15291E]" />
+                  <Building2 className="w-5 h-5 text-[#075985]" />
                   Cập nhật Khách sạn lưu trú
                 </>
               ) : serviceEditType === "meal" ? (
@@ -5243,7 +5243,7 @@ export function CompanyBookingDetailPage({
           </DialogHeader>
 
           <div className="space-y-4 pt-1 text-xs">
-            <div className="p-3 bg-[#FBF9F5]/70 rounded-xl border border-[#E8E4DC] text-blue-900 space-y-1">
+            <div className="p-3 bg-[#F0F9FF]/70 rounded-xl border border-[#CBD5E1] text-blue-900 space-y-1">
               <p className="font-semibold flex items-center gap-1.5 text-xs text-blue-950">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 Cập nhật thông tin dịch vụ theo thỏa thuận với khách hàng
@@ -5361,7 +5361,7 @@ export function CompanyBookingDetailPage({
               <Button
                 size="sm"
                 onClick={handleSaveServiceEdit}
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold cursor-pointer"
+                className="bg-[#075985] hover:bg-[#F97316] text-white font-bold cursor-pointer"
               >
                 ✓ Lưu &amp; Cập nhật hệ thống
               </Button>

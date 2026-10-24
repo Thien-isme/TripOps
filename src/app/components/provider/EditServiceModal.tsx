@@ -283,14 +283,14 @@ export function EditServiceModal({
   const getCategoryMeta = () => {
     switch (service.category) {
       case "hotel":
-        return { label: "Lưu trú & Khách sạn", icon: Hotel, color: "text-[#15291E] bg-[#FBF9F5]" };
+        return { label: "Lưu trú & Khách sạn", icon: Hotel, color: "text-[#075985] bg-[#F0F9FF]" };
       case "fnb":
       case "restaurant":
         return { label: "Ẩm thực & Nhà hàng", icon: Utensils, color: "text-amber-600 bg-amber-50" };
       case "attraction":
         return { label: "Điểm tham quan & Vé", icon: Compass, color: "text-teal-600 bg-teal-50" };
       case "activity":
-        return { label: "Hoạt động & Trải nghiệm", icon: Sparkles, color: "text-[#BD5E38] bg-[#FBF9F5]" };
+        return { label: "Hoạt động & Trải nghiệm", icon: Sparkles, color: "text-[#F97316] bg-[#F0F9FF]" };
       case "transportation":
         return { label: "Phương tiện & Vận chuyển", icon: Car, color: "text-cyan-600 bg-cyan-50" };
       default:
@@ -338,7 +338,7 @@ export function EditServiceModal({
 
               {/* 1. Basic Common Fields */}
               <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#15291E]">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#075985]">
                   1. Thông tin chung & Đơn giá
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,7 +350,7 @@ export function EditServiceModal({
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       required
                     />
                   </div>
@@ -363,7 +363,7 @@ export function EditServiceModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none resize-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none resize-none"
                       required
                     />
                   </div>
@@ -380,7 +380,7 @@ export function EditServiceModal({
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       required
                       min="0"
                     />
@@ -401,7 +401,7 @@ export function EditServiceModal({
                             ? setChildPrice(e.target.value)
                             : setPricePerPerson(e.target.value)
                         }
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         min="0"
                       />
                     </div>
@@ -421,7 +421,7 @@ export function EditServiceModal({
                           ? setSeats(e.target.value)
                           : setCapacity(e.target.value)
                       }
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       min="1"
                     />
                   </div>
@@ -434,7 +434,7 @@ export function EditServiceModal({
                       type="url"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export function EditServiceModal({
                     <select
                       value={province}
                       onChange={(e) => setProvince(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       required
                     >
                       {vietnamProvinces.map((p) => (
@@ -472,7 +472,7 @@ export function EditServiceModal({
                       type="text"
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       required
                     />
                   </div>
@@ -485,7 +485,7 @@ export function EditServiceModal({
                       type="text"
                       value={ward}
                       onChange={(e) => setWard(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                     />
                   </div>
 
@@ -497,7 +497,7 @@ export function EditServiceModal({
                       type="text"
                       value={street}
                       onChange={(e) => setStreet(e.target.value)}
-                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -505,7 +505,7 @@ export function EditServiceModal({
 
               {/* 3. Category Specific Fields */}
               <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-2xs space-y-4">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#A34C2A]">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#EA580C]">
                   3. Thông số chuyên ngành [{meta.label}]
                 </h3>
 
@@ -520,7 +520,7 @@ export function EditServiceModal({
                         <select
                           value={stars}
                           onChange={(e) => setStars(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         >
                           <option value="1">1 Sao ⭐</option>
                           <option value="2">2 Sao ⭐⭐</option>
@@ -538,7 +538,7 @@ export function EditServiceModal({
                           type="text"
                           value={roomType}
                           onChange={(e) => setRoomType(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         />
                       </div>
 
@@ -574,13 +574,13 @@ export function EditServiceModal({
                           value={amenityInput}
                           onChange={(e) => setAmenityInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddAmenity())}
-                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Nhập tiện nghi..."
                         />
                         <button
                           type="button"
                           onClick={handleAddAmenity}
-                          className="px-4 py-2 bg-[#15291E] text-white rounded-lg text-xs font-semibold hover:bg-[#BD5E38]"
+                          className="px-4 py-2 bg-[#075985] text-white rounded-lg text-xs font-semibold hover:bg-[#F97316]"
                         >
                           Thêm
                         </button>
@@ -589,7 +589,7 @@ export function EditServiceModal({
                         {amenities.map((item) => (
                           <span
                             key={item}
-                            className="px-2.5 py-1 bg-[#FBF9F5] text-[#15291E] rounded-lg text-xs flex items-center gap-1.5 border border-[#E8E4DC]"
+                            className="px-2.5 py-1 bg-[#F0F9FF] text-[#075985] rounded-lg text-xs flex items-center gap-1.5 border border-[#CBD5E1]"
                           >
                             {item}
                             <button
@@ -617,7 +617,7 @@ export function EditServiceModal({
                         <select
                           value={subCategory}
                           onChange={(e) => setSubCategory(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         >
                           <option value="restaurant">Nhà hàng ăn uống</option>
                           <option value="cafe">Quán Cà phê & Trà</option>
@@ -634,7 +634,7 @@ export function EditServiceModal({
                           type="text"
                           value={cuisineType}
                           onChange={(e) => setCuisineType(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         />
                       </div>
 
@@ -646,7 +646,7 @@ export function EditServiceModal({
                           type="text"
                           value={openingHours}
                           onChange={(e) => setOpeningHours(e.target.value)}
-                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -661,7 +661,7 @@ export function EditServiceModal({
                           value={dietaryInput}
                           onChange={(e) => setDietaryInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddDietary())}
-                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                          className="flex-1 px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                           placeholder="Thêm tùy chọn thực đơn..."
                         />
                         <button
@@ -704,7 +704,7 @@ export function EditServiceModal({
                         type="text"
                         value={openingHours}
                         onChange={(e) => setOpeningHours(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -715,7 +715,7 @@ export function EditServiceModal({
                         type="text"
                         value={ticketIncludes}
                         onChange={(e) => setTicketIncludes(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -732,7 +732,7 @@ export function EditServiceModal({
                         type="text"
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -742,7 +742,7 @@ export function EditServiceModal({
                       <select
                         value={difficultyLevel}
                         onChange={(e) => setDifficultyLevel(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       >
                         <option value="Dễ dàng">Dễ dàng</option>
                         <option value="Trung bình">Trung bình</option>
@@ -758,7 +758,7 @@ export function EditServiceModal({
                         type="text"
                         value={ageRestriction}
                         onChange={(e) => setAgeRestriction(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                     <div>
@@ -769,7 +769,7 @@ export function EditServiceModal({
                         type="text"
                         value={safetyGear}
                         onChange={(e) => setSafetyGear(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -785,7 +785,7 @@ export function EditServiceModal({
                       <select
                         value={vehicleType}
                         onChange={(e) => setVehicleType(e.target.value)}
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       >
                         <option value="Xe ô tô 4-7 chỗ">Xe ô tô 4 - 7 chỗ</option>
                         <option value="Xe 16 chỗ Limousine">Xe 16 chỗ Limousine VIP</option>
@@ -805,7 +805,7 @@ export function EditServiceModal({
                         onChange={(e) =>
                           setAmenities(e.target.value.split(",").map((s) => s.trim()))
                         }
-                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none"
                       />
                     </div>
                   </div>

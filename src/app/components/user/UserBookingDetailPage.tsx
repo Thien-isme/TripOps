@@ -62,14 +62,14 @@ const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: "Chờ xác nhận & chốt giá", color: "bg-amber-100 text-amber-800 border-amber-300" },
   confirmed: { label: "Đã xác nhận", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
   cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800 border-red-300" },
-  completed: { label: "Đã hoàn thành", color: "bg-[#15291E]/10 text-blue-800 border-blue-300" },
+  completed: { label: "Đã hoàn thành", color: "bg-[#E0F2FE] text-blue-800 border-blue-300" },
   rejected: { label: "Đã từ chối", color: "bg-gray-100 text-gray-800 border-gray-300" },
 };
 
 const paymentStatusMap: Record<string, { label: string; color: string }> = {
   unpaid: { label: "Chưa thanh toán (Thanh toán sau)", color: "bg-amber-50 text-amber-800 border-amber-200" },
   paid: { label: "Đã thanh toán", color: "bg-emerald-50 text-emerald-800 border-emerald-200" },
-  refunded: { label: "Đã hoàn tiền", color: "bg-[#FBF9F5] text-purple-800 border-[#BD5E38]/30" },
+  refunded: { label: "Đã hoàn tiền", color: "bg-[#F0F9FF] text-purple-800 border-[#F97316]/30" },
 };
 
 function formatVND(n: number) {
@@ -370,7 +370,7 @@ export function UserBookingDetailPage({
                   {pst.label}
                 </span>
                 {booking.hasLocationCustomization && (
-                  <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#BD5E38]/15 text-purple-800 border border-[#BD5E38]/30 flex items-center gap-1">
+                  <span className="text-xs px-3 py-1 rounded-full font-bold bg-[#F97316]/15 text-purple-800 border border-[#F97316]/30 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5" />
                     Có tùy chỉnh theo yêu cầu
                   </span>
@@ -384,7 +384,7 @@ export function UserBookingDetailPage({
                 onClick={() => setContractModalOpen(true)}
                 className="text-xs h-9 gap-1.5 border-gray-300 hover:bg-gray-100 font-semibold"
               >
-                <FileText className="w-4 h-4 text-[#15291E]" />
+                <FileText className="w-4 h-4 text-[#075985]" />
                 Xem hợp đồng dịch vụ
               </Button>
 
@@ -416,7 +416,7 @@ export function UserBookingDetailPage({
                 />
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-mono font-bold bg-[#15291E]/10 text-blue-800 px-2.5 py-0.5 rounded-full">
+                    <span className="text-xs font-mono font-bold bg-[#E0F2FE] text-blue-800 px-2.5 py-0.5 rounded-full">
                       {booking.tour.tourCode}
                     </span>
                     {isCoHosted ? (
@@ -485,16 +485,16 @@ export function UserBookingDetailPage({
                         key={ch.id}
                         className={`rounded-xl p-4 border transition-all ${
                           isLead
-                            ? "bg-white border-[#E8E4DC] shadow-xs"
-                            : "bg-white border-[#BD5E38]/30 shadow-xs"
+                            ? "bg-white border-[#CBD5E1] shadow-xs"
+                            : "bg-white border-[#F97316]/30 shadow-xs"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <span
                             className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider ${
                               isLead
-                                ? "bg-[#15291E]/10 text-blue-800 border border-[#E8E4DC]"
-                                : "bg-[#BD5E38]/15 text-purple-800 border border-[#BD5E38]/30"
+                                ? "bg-[#E0F2FE] text-blue-800 border border-[#CBD5E1]"
+                                : "bg-[#F97316]/15 text-purple-800 border border-[#F97316]/30"
                             }`}
                           >
                             {isLead ? "🏢 Đơn vị Chủ trì (Điều hành chính)" : "🤝 Đối tác Địa phương (Chuyên tuyến)"}
@@ -587,10 +587,10 @@ export function UserBookingDetailPage({
             {((booking.customHotelChanges && booking.customHotelChanges.length > 0) ||
               (booking.locationChanges && booking.locationChanges.length > 0) ||
               (booking.customMealChanges && booking.customMealChanges.length > 0)) && (
-              <div className="bg-[#FBF9F5]/60 rounded-2xl border border-[#BD5E38]/30 p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#BD5E38]/30/80 pb-3">
+              <div className="bg-[#F0F9FF]/60 rounded-2xl border border-[#F97316]/30 p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F97316]/30/80 pb-3">
                   <h3 className="text-sm font-bold text-purple-900 uppercase tracking-wide flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#BD5E38]" />
+                    <Sparkles className="w-4 h-4 text-[#F97316]" />
                     Lịch trình tùy chỉnh theo yêu cầu của bạn
                   </h3>
                   <span className="text-xs bg-purple-200 text-purple-800 font-bold px-2 py-0.5 rounded">
@@ -601,16 +601,16 @@ export function UserBookingDetailPage({
                 <div className="space-y-3 text-xs">
                   {/* Hotel change */}
                   {booking.customHotelChanges && booking.customHotelChanges.length > 0 && (
-                    <div className="bg-white rounded-xl p-3.5 border border-[#BD5E38]/30 space-y-1.5">
+                    <div className="bg-white rounded-xl p-3.5 border border-[#F97316]/30 space-y-1.5">
                       <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-[#BD5E38]" />
+                        <Building2 className="w-3.5 h-3.5 text-[#F97316]" />
                         Chỗ ở / Khách sạn yêu cầu:
                       </p>
                       {booking.customHotelChanges.map((hc, idx) => (
                         <div key={idx} className="pl-5 space-y-0.5">
                           <p className="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
                             <span>{hc.destination}:</span>
-                            <span className="text-[#A34C2A]">{hc.newHotelName}</span>
+                            <span className="text-[#EA580C]">{hc.newHotelName}</span>
                             {hc.stars && (
                               <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                                 {hc.stars} ★
@@ -632,7 +632,7 @@ export function UserBookingDetailPage({
                                 href={`https://www.google.com/maps?q=${hc.latitude},${hc.longitude}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] text-[#15291E] hover:text-blue-800 underline font-medium"
+                                className="inline-flex items-center gap-1 text-[11px] text-[#075985] hover:text-blue-800 underline font-medium"
                               >
                                 <MapPin className="w-3 h-3 text-red-500" />
                                 Xem vị trí trên Google Maps
@@ -640,7 +640,7 @@ export function UserBookingDetailPage({
                               </a>
                             </div>
                           )}
-                          {hc.note && <p className="text-[#BD5E38] italic">Ghi chú: {hc.note}</p>}
+                          {hc.note && <p className="text-[#F97316] italic">Ghi chú: {hc.note}</p>}
                         </div>
                       ))}
                     </div>
@@ -648,9 +648,9 @@ export function UserBookingDetailPage({
 
                   {/* Location changes */}
                   {booking.locationChanges && booking.locationChanges.length > 0 && (
-                    <div className="bg-white rounded-xl p-3.5 border border-[#BD5E38]/30 space-y-1.5">
+                    <div className="bg-white rounded-xl p-3.5 border border-[#F97316]/30 space-y-1.5">
                       <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#BD5E38]" />
+                        <MapPin className="w-3.5 h-3.5 text-[#F97316]" />
                         Thay đổi điểm tham quan:
                       </p>
                       {booking.locationChanges.map((lc, idx) => (
@@ -675,9 +675,9 @@ export function UserBookingDetailPage({
 
                   {/* Meal changes */}
                   {booking.customMealChanges && booking.customMealChanges.length > 0 && (
-                    <div className="bg-white rounded-xl p-3.5 border border-[#BD5E38]/30 space-y-1.5">
+                    <div className="bg-white rounded-xl p-3.5 border border-[#F97316]/30 space-y-1.5">
                       <p className="font-bold text-purple-900 flex items-center gap-1.5">
-                        <Utensils className="w-3.5 h-3.5 text-[#BD5E38]" />
+                        <Utensils className="w-3.5 h-3.5 text-[#F97316]" />
                         Thay đổi thực đơn / Nhà hàng:
                       </p>
                       {booking.customMealChanges.map((mc, idx) => (
@@ -686,7 +686,7 @@ export function UserBookingDetailPage({
                             <span>
                               Ngày {mc.dayNumber} ({mc.mealType === "breakfast" ? "Bữa sáng" : mc.mealType === "lunch" ? "Bữa trưa" : "Bữa tối"}):
                             </span>
-                            <span className="text-[#A34C2A] font-bold">{mc.newMealName}</span>
+                            <span className="text-[#EA580C] font-bold">{mc.newMealName}</span>
                             {mc.isProviderService || mc.mode === "provider" ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
                                 <Sparkles className="w-3 h-3 text-amber-500" />
@@ -703,7 +703,7 @@ export function UserBookingDetailPage({
                                 href={`https://www.google.com/maps?q=${mc.latitude},${mc.longitude}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-[11px] text-[#15291E] hover:text-blue-800 underline font-medium"
+                                className="inline-flex items-center gap-1 text-[11px] text-[#075985] hover:text-blue-800 underline font-medium"
                               >
                                 <MapPin className="w-3 h-3 text-red-500" />
                                 Xem vị trí trên Google Maps
@@ -776,7 +776,7 @@ export function UserBookingDetailPage({
                                 <span className={p.status === "INACTIVE" ? "line-through text-gray-500" : ""}>
                                   {p.fullName}
                                 </span>
-                                {p.phone && <span className="block text-[11px] font-normal text-[#15291E]">{p.phone}</span>}
+                                {p.phone && <span className="block text-[11px] font-normal text-[#075985]">{p.phone}</span>}
                                 {p.status === "INACTIVE" && (
                                   <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full w-fit">
                                     ❌ Đã rút khỏi toàn bộ tour
@@ -818,7 +818,7 @@ export function UserBookingDetailPage({
                                 p.ageGroup === "adult"
                                   ? "bg-teal-50 text-teal-700"
                                   : p.ageGroup === "child_2_11"
-                                  ? "bg-[#FBF9F5] text-[#15291E]"
+                                  ? "bg-[#F0F9FF] text-[#075985]"
                                   : "bg-emerald-50 text-emerald-700"
                               }`}>
                                 {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
@@ -833,7 +833,7 @@ export function UserBookingDetailPage({
                                 <span className="text-gray-400 italic">—</span>
                               )}
                             </td>
-                            <td className="px-3 py-2.5 text-right font-bold text-[#15291E]">
+                            <td className="px-3 py-2.5 text-right font-bold text-[#075985]">
                               {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
                             </td>
                             <td className="px-3 py-2.5 text-center">
@@ -842,7 +842,7 @@ export function UserBookingDetailPage({
                                   type="button"
                                   title="Chỉnh sửa thông tin"
                                   onClick={() => handleOpenEditPassenger(p)}
-                                  className="p-1.5 text-gray-500 hover:text-[#15291E] hover:bg-[#FBF9F5] rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-500 hover:text-[#075985] hover:bg-[#F0F9FF] rounded-lg transition-colors"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
@@ -865,7 +865,7 @@ export function UserBookingDetailPage({
                         <td colSpan={7} className="px-3 py-2.5 text-right text-gray-700">
                           Tổng cộng ({displayPassengers.filter(p => p.status !== "INACTIVE").length} khách tham gia thực tế):
                         </td>
-                        <td className="px-3 py-2.5 text-right text-[#15291E] text-sm font-extrabold">
+                        <td className="px-3 py-2.5 text-right text-[#075985] text-sm font-extrabold">
                           {formatVND(booking.totalPrice)}
                         </td>
                         <td></td>
@@ -968,7 +968,7 @@ export function UserBookingDetailPage({
                   <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-[#15291E]" />
+                        <Building2 className="w-4 h-4 text-[#075985]" />
                         Khách sạn lưu trú
                       </h3>
                       <p className="text-xs text-gray-500 mt-0.5">
@@ -980,9 +980,9 @@ export function UserBookingDetailPage({
                   <div className="space-y-3">
                     {accommodationList.map((acc, aIdx) => (
                       <div key={aIdx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                        <div className="px-4 py-3 bg-[#FBF9F5]/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
+                        <div className="px-4 py-3 bg-[#F0F9FF]/70 border-b border-blue-100 flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-[#15291E]/10 text-[#15291E] flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-xl bg-[#E0F2FE] text-[#075985] flex items-center justify-center flex-shrink-0">
                               <Building2 className="w-4 h-4" />
                             </div>
                             <div>
@@ -1009,7 +1009,7 @@ export function UserBookingDetailPage({
                                 </span>
                               )
                             ) : (
-                              <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-[#15291E] border border-[#E8E4DC]">
+                              <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white text-[#075985] border border-[#CBD5E1]">
                                 Theo tour (Tiêu chuẩn 0đ)
                               </span>
                             )}
@@ -1036,7 +1036,7 @@ export function UserBookingDetailPage({
                             </div>
                           )}
                           {acc.note && (
-                            <div className="flex items-start justify-between text-[#A34C2A] pt-1 border-t border-purple-100 italic">
+                            <div className="flex items-start justify-between text-[#EA580C] pt-1 border-t border-purple-100 italic">
                               <span>Yêu cầu riêng của bạn:</span>
                               <span className="text-right font-medium">{acc.note}</span>
                             </div>
@@ -1054,7 +1054,7 @@ export function UserBookingDetailPage({
               <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-4">
                 <div className="border-b border-gray-100 pb-3">
                   <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#BD5E38]" />
+                    <MapPin className="w-4 h-4 text-[#F97316]" />
                     Lịch trình chi tiết (Lộ trình tham quan cơ bản của công ty)
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -1087,7 +1087,7 @@ export function UserBookingDetailPage({
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 bg-[#BD5E38] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
+                            <div className="w-8 h-8 bg-[#F97316] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-xs">
                               {day.day}
                             </div>
                             <div>
@@ -1230,7 +1230,7 @@ export function UserBookingDetailPage({
                                             ? "bg-amber-50/60"
                                             : mealType === "lunch"
                                             ? "bg-emerald-50/60"
-                                            : "bg-[#FBF9F5]/60"
+                                            : "bg-[#F0F9FF]/60"
                                         }`}
                                       >
                                         <div className="flex items-center gap-2.5 min-w-0">
@@ -1240,7 +1240,7 @@ export function UserBookingDetailPage({
                                                 ? "bg-amber-100 text-amber-700"
                                                 : mealType === "lunch"
                                                 ? "bg-emerald-100 text-emerald-700"
-                                                : "bg-[#BD5E38]/15 text-[#A34C2A]"
+                                                : "bg-[#F97316]/15 text-[#EA580C]"
                                             }`}
                                           >
                                             {mealType === "breakfast" ? (
@@ -1311,7 +1311,7 @@ export function UserBookingDetailPage({
                 </div>
                 <div>
                   <span className="text-gray-400 block text-[11px]">Số điện thoại liên hệ</span>
-                  <span className="font-semibold text-[#15291E] flex items-center gap-1 mt-0.5">
+                  <span className="font-semibold text-[#075985] flex items-center gap-1 mt-0.5">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
                     {booking.contactPhone || "—"}
                   </span>
@@ -1359,7 +1359,7 @@ export function UserBookingDetailPage({
                   <div className="flex justify-between items-center flex-wrap gap-2">
                     <span className="text-gray-500 font-medium">Tổng giá trị tour ({booking.numberOfGuests} khách):</span>
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                      <span className="font-extrabold text-[#15291E] text-base">{formatVND(booking.totalPrice)}</span>
+                      <span className="font-extrabold text-[#075985] text-base">{formatVND(booking.totalPrice)}</span>
                       {booking.priceAdjustments && booking.priceAdjustments.length > 0 && (
                         <Button
                           size="sm"
@@ -1426,7 +1426,7 @@ export function UserBookingDetailPage({
                                 {agency.quoteConfirmed ? " • ✓ Đã chốt chi phí" : " • ⏳ Đang rà soát"}
                               </span>
                             </div>
-                            <span className="font-bold text-[#15291E]">{formatVND(agency.finalAmount)}</span>
+                            <span className="font-bold text-[#075985]">{formatVND(agency.finalAmount)}</span>
                           </div>
                         ))}
                       </div>
@@ -1515,7 +1515,7 @@ export function UserBookingDetailPage({
 
                           <div className="flex justify-between items-center text-gray-500 pt-0.5">
                             <span>Hạn chót: <strong>{pr.dueDate}</strong></span>
-                            <span className="font-extrabold text-[#15291E] text-sm">{formatVND(pr.amount)}</span>
+                            <span className="font-extrabold text-[#075985] text-sm">{formatVND(pr.amount)}</span>
                           </div>
 
                           {isPaid ? (
@@ -1548,7 +1548,7 @@ export function UserBookingDetailPage({
                 Hướng dẫn viên đồng hành
               </h3>
               {booking.guideName ? (
-                <div className="bg-[#FBF9F5]/70 rounded-xl p-3.5 border border-blue-100 flex items-center gap-3">
+                <div className="bg-[#F0F9FF]/70 rounded-xl p-3.5 border border-blue-100 flex items-center gap-3">
                   {booking.guideAvatar ? (
                     <img
                       src={booking.guideAvatar}
@@ -1556,16 +1556,16 @@ export function UserBookingDetailPage({
                       className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-xs"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-[#15291E] text-white font-bold flex items-center justify-center shadow-xs">
+                    <div className="w-12 h-12 rounded-full bg-[#075985] text-white font-bold flex items-center justify-center shadow-xs">
                       {booking.guideName[0]}
                     </div>
                   )}
                   <div className="flex-1 min-w-0 text-xs">
-                    <span className="text-[10px] font-bold text-[#15291E] uppercase block">HDV phụ trách đoàn</span>
+                    <span className="text-[10px] font-bold text-[#075985] uppercase block">HDV phụ trách đoàn</span>
                     <p className="font-bold text-gray-900 text-sm">{booking.guideName}</p>
                     {booking.guidePhone && (
-                      <p className="text-[#15291E] font-semibold flex items-center gap-1 mt-0.5">
-                        <Phone className="w-3 h-3 text-[#15291E]" />
+                      <p className="text-[#075985] font-semibold flex items-center gap-1 mt-0.5">
+                        <Phone className="w-3 h-3 text-[#075985]" />
                         {booking.guidePhone}
                       </p>
                     )}
@@ -1652,16 +1652,16 @@ export function UserBookingDetailPage({
                   </div>
                 )}
 
-                <div className="p-2.5 rounded-xl border border-[#E8E4DC] bg-[#FBF9F5]/60 flex items-center justify-between">
+                <div className="p-2.5 rounded-xl border border-[#CBD5E1] bg-[#F0F9FF]/60 flex items-center justify-between">
                   <div>
                     <p className="font-bold text-blue-950 text-xs">Sàn Du Lịch Việt Nam</p>
-                    <p className="text-[10px] text-[#15291E]">Tổng đài bảo vệ & Ký quỹ 24/7</p>
+                    <p className="text-[10px] text-[#075985]">Tổng đài bảo vệ & Ký quỹ 24/7</p>
                   </div>
                   <a
                     href="tel:19006868"
-                    className="font-bold text-blue-800 bg-[#15291E]/10/80 px-2.5 py-1 rounded-lg border border-blue-300 hover:bg-blue-200 flex items-center gap-1 text-xs flex-shrink-0"
+                    className="font-bold text-blue-800 bg-[#E0F2FE]/80 px-2.5 py-1 rounded-lg border border-blue-300 hover:bg-blue-200 flex items-center gap-1 text-xs flex-shrink-0"
                   >
-                    <Phone className="w-3 h-3 text-[#15291E]" />
+                    <Phone className="w-3 h-3 text-[#075985]" />
                     1900 6868
                   </a>
                 </div>
@@ -1689,7 +1689,7 @@ export function UserBookingDetailPage({
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#15291E]" />
+              <FileText className="w-5 h-5 text-[#075985]" />
               Hợp đồng Dịch vụ Du lịch – {contractNo}
             </DialogTitle>
           </DialogHeader>
@@ -1734,7 +1734,7 @@ export function UserBookingDetailPage({
 
             <div>
               <p className="font-bold text-gray-900 mb-1">ĐIỀU 2: GIÁ TRỊ VÀ PHƯƠNG THỨC THANH TOÁN</p>
-              <p>Tổng giá trị hợp đồng: <strong className="text-[#15291E]">{formatVND(booking.totalPrice)}</strong></p>
+              <p>Tổng giá trị hợp đồng: <strong className="text-[#075985]">{formatVND(booking.totalPrice)}</strong></p>
               <p>Trạng thái thanh toán: <strong>{booking.paymentStatus === "paid" ? "Đã thanh toán" : booking.paymentStatus === "refunded" ? "Đã hoàn tiền" : "Chưa thanh toán"}</strong></p>
               {booking.remainingAmount !== undefined && booking.remainingAmount > 0 && (
                 <p>Số tiền còn lại cần nộp: <strong className="text-amber-700">{formatVND(booking.remainingAmount)}</strong></p>
@@ -1751,7 +1751,7 @@ export function UserBookingDetailPage({
             )}
 
             {booking.hasLocationCustomization && (
-              <div className="bg-[#FBF9F5] p-2.5 rounded-lg border border-[#BD5E38]/30">
+              <div className="bg-[#F0F9FF] p-2.5 rounded-lg border border-[#F97316]/30">
                 <p className="font-bold text-purple-900 mb-1">ĐIỀU KHOẢN TÙY CHỈNH LỊCH TRÌNH:</p>
                 <p>Các điều chỉnh về khách sạn, địa điểm tham quan và thực đơn theo thỏa thuận phụ lục booking.</p>
               </div>
@@ -1760,7 +1760,7 @@ export function UserBookingDetailPage({
 
           <div className="flex justify-end gap-2 pt-3 border-t">
             <Button variant="outline" onClick={() => setContractModalOpen(false)}>Đóng</Button>
-            <Button className="bg-[#15291E] hover:bg-[#BD5E38] text-white gap-1.5" onClick={() => window.print()}>
+            <Button className="bg-[#075985] hover:bg-[#F97316] text-white gap-1.5" onClick={() => window.print()}>
               <Printer className="w-4 h-4" />
               In hợp đồng
             </Button>
@@ -1778,28 +1778,28 @@ export function UserBookingDetailPage({
             <div className="space-y-4 pt-1 text-xs text-gray-700">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-base text-gray-900">
-                  <Landmark className="w-5 h-5 text-[#15291E]" />
+                  <Landmark className="w-5 h-5 text-[#075985]" />
                   Thanh toán qua Tài khoản Hệ thống
                 </DialogTitle>
               </DialogHeader>
 
               {/* Booking & Stage Summary */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-[#E8E4DC] space-y-2">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-[#CBD5E1] space-y-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-[#15291E] tracking-wide block">
+                    <span className="text-[10px] uppercase font-bold text-[#075985] tracking-wide block">
                       Đơn hàng #{booking.id}
                     </span>
                     <p className="font-bold text-gray-900 text-sm">{booking.tour.name}</p>
                   </div>
-                  <span className="bg-[#15291E]/10 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-[#E0F2FE] text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
                     Hạn: {selectedPaymentRequest.dueDate}
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-[#E8E4DC]/60 flex justify-between items-center">
+                <div className="pt-2 border-t border-[#CBD5E1]/60 flex justify-between items-center">
                   <span className="font-medium text-gray-700">Mục đích: <strong>{selectedPaymentRequest.description}</strong></span>
-                  <span className="text-base font-extrabold text-[#15291E]">{formatVND(selectedPaymentRequest.amount)}</span>
+                  <span className="text-base font-extrabold text-[#075985]">{formatVND(selectedPaymentRequest.amount)}</span>
                 </div>
               </div>
 
@@ -1840,7 +1840,7 @@ export function UserBookingDetailPage({
                       setCopiedAccount(true);
                       setTimeout(() => setCopiedAccount(false), 2000);
                     }}
-                    className="flex items-center gap-1 text-[11px] bg-[#15291E] hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-1 text-[11px] bg-[#075985] hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
                   >
                     {copiedAccount ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedAccount ? "Đã chép" : "Sao chép"}
@@ -1875,7 +1875,7 @@ export function UserBookingDetailPage({
                       setCopiedContent(true);
                       setTimeout(() => setCopiedContent(false), 2000);
                     }}
-                    className="flex items-center gap-1 text-[11px] bg-[#15291E] hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-1 text-[11px] bg-[#075985] hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
                   >
                     {copiedContent ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedContent ? "Đã chép" : "Sao chép"}
@@ -1886,7 +1886,7 @@ export function UserBookingDetailPage({
               {/* VietQR Code Display */}
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-center space-y-2">
                 <p className="font-bold text-gray-800 flex items-center justify-center gap-1.5">
-                  <QrCode className="w-4 h-4 text-[#15291E]" />
+                  <QrCode className="w-4 h-4 text-[#075985]" />
                   Quét mã VietQR chuyển khoản nhanh:
                 </p>
                 <div className="inline-block p-2 bg-white rounded-xl border border-gray-200 shadow-xs">
@@ -2151,7 +2151,7 @@ export function UserBookingDetailPage({
                         <div>
                           <span className="text-gray-400 block">Biến động giá tour:</span>
                           <span className="font-medium text-gray-700">
-                            {formatVND(adj.previousTotalPrice)} ➔ <strong className="text-[#15291E]">{formatVND(adj.newTotalPrice)}</strong>
+                            {formatVND(adj.previousTotalPrice)} ➔ <strong className="text-[#075985]">{formatVND(adj.newTotalPrice)}</strong>
                           </span>
                         </div>
                         <div>

@@ -78,8 +78,8 @@ export function ServiceBlogDetailModal({
         {/* Top Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-white to-purple-50/40">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#15291E]/10 text-blue-800 border border-[#E8E4DC]">
-              <Sparkles className="w-3.5 h-3.5 text-[#15291E]" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E0F2FE] text-blue-800 border border-[#CBD5E1]">
+              <Sparkles className="w-3.5 h-3.5 text-[#075985]" />
               Đối tác Nền tảng Du lịch
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -152,7 +152,7 @@ export function ServiceBlogDetailModal({
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
                     className={`relative w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                      activeImageIndex === idx ? "border-[#15291E] ring-2 ring-blue-300" : "border-gray-200 opacity-70 hover:opacity-100"
+                      activeImageIndex === idx ? "border-[#075985] ring-2 ring-blue-300" : "border-gray-200 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
@@ -176,8 +176,8 @@ export function ServiceBlogDetailModal({
               </div>
 
               {/* Price card */}
-              <div className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-3.5 text-right flex-shrink-0 min-w-[200px]">
-                <p className="text-xs font-semibold text-[#15291E] uppercase tracking-wide">
+              <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-3.5 text-right flex-shrink-0 min-w-[200px]">
+                <p className="text-xs font-semibold text-[#075985] uppercase tracking-wide">
                   {isHotel ? "Giá tham khảo / đêm" : "Đơn giá tham khảo / suất"}
                 </p>
                 <p className="text-xl sm:text-2xl font-black text-blue-900 mt-0.5">
@@ -213,7 +213,7 @@ export function ServiceBlogDetailModal({
               onClick={() => setActiveTab("blog")}
               className={`pb-3 border-b-2 flex items-center gap-2 transition-colors ${
                 activeTab === "blog"
-                  ? "border-[#15291E] text-[#15291E] font-bold"
+                  ? "border-[#075985] text-[#075985] font-bold"
                   : "border-transparent text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -224,7 +224,7 @@ export function ServiceBlogDetailModal({
               onClick={() => setActiveTab("map")}
               className={`pb-3 border-b-2 flex items-center gap-2 transition-colors ${
                 activeTab === "map"
-                  ? "border-[#15291E] text-[#15291E] font-bold"
+                  ? "border-[#075985] text-[#075985] font-bold"
                   : "border-transparent text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -235,7 +235,7 @@ export function ServiceBlogDetailModal({
               onClick={() => setActiveTab("policies")}
               className={`pb-3 border-b-2 flex items-center gap-2 transition-colors ${
                 activeTab === "policies"
-                  ? "border-[#15291E] text-[#15291E] font-bold"
+                  ? "border-[#075985] text-[#075985] font-bold"
                   : "border-transparent text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -291,10 +291,10 @@ export function ServiceBlogDetailModal({
           {/* Tab 2: Map & Location */}
           {activeTab === "map" && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#FBF9F5] border border-[#E8E4DC] p-4 rounded-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#F0F9FF] border border-[#CBD5E1] p-4 rounded-xl">
                 <div>
                   <p className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#15291E]" />
+                    <MapPin className="w-4 h-4 text-[#075985]" />
                     Địa chỉ chính xác đã được gắn toạ độ GPS:
                   </p>
                   <p className="text-sm font-semibold text-gray-900 mt-0.5">
@@ -309,7 +309,7 @@ export function ServiceBlogDetailModal({
                   href={googleMapsExternalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-lg text-xs font-bold shadow-xs transition-colors flex-shrink-0"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#075985] hover:bg-[#F97316] text-white rounded-lg text-xs font-bold shadow-xs transition-colors flex-shrink-0"
                 >
                   <Navigation className="w-3.5 h-3.5" />
                   Mở trên Google Maps
@@ -360,7 +360,7 @@ export function ServiceBlogDetailModal({
               {/* Policies */}
               <div className="space-y-3">
                 <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#15291E]" />
+                  <ShieldCheck className="w-4 h-4 text-[#075985]" />
                   Quy định &amp; Chính sách phục vụ
                 </h4>
                 <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-800">
@@ -415,7 +415,7 @@ export function ServiceBlogDetailModal({
                 className={`flex-1 sm:flex-initial font-bold text-xs sm:text-sm shadow-md transition-all ${
                   isSelected
                     ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                    : "bg-[#15291E] hover:bg-[#BD5E38] text-white"
+                    : "bg-[#075985] hover:bg-[#F97316] text-white"
                 }`}
               >
                 {isSelected ? (

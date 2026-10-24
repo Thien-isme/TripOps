@@ -235,7 +235,7 @@ export function AITourRecommenderModal({
                 {/* Group type */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-[#15291E]" />
+                    <Users className="w-3.5 h-3.5 text-[#075985]" />
                     Đặc thù đoàn & Mục đích chuyến đi
                   </label>
                   <select
@@ -253,7 +253,7 @@ export function AITourRecommenderModal({
                 {/* Duration */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#BD5E38]" />
+                    <Calendar className="w-3.5 h-3.5 text-[#F97316]" />
                     Thời lượng tour
                   </label>
                   <select
@@ -388,7 +388,7 @@ export function AITourRecommenderModal({
                       <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 block">Giá từ</span>
-                          <span className="text-sm font-extrabold text-[#15291E]">
+                          <span className="text-sm font-extrabold text-[#075985]">
                             {tour.price.toLocaleString("vi-VN")}đ
                           </span>
                         </div>

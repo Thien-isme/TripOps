@@ -81,7 +81,7 @@ export function AdminDashboardOverview({
     const styles = {
       pending: "bg-yellow-100 text-yellow-800",
       confirmed: "bg-green-100 text-green-800",
-      completed: "bg-[#15291E]/10 text-blue-800",
+      completed: "bg-[#E0F2FE] text-blue-800",
       cancelled: "bg-red-100 text-red-800",
     };
     const labels = {
@@ -102,7 +102,7 @@ export function AdminDashboardOverview({
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-[#15291E] rounded-2xl p-8 text-white">
+      <div className="bg-[#075985] rounded-2xl p-8 text-white">
         <h1 className="text-3xl font-bold mb-2">
           Chào mừng Admin!
         </h1>
@@ -115,8 +115,8 @@ export function AdminDashboardOverview({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-[#15291E]/10 rounded-xl flex items-center justify-center">
-              <Package className="w-6 h-6 text-[#15291E]" />
+            <div className="w-12 h-12 bg-[#E0F2FE] rounded-xl flex items-center justify-center">
+              <Package className="w-6 h-6 text-[#075985]" />
             </div>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
@@ -158,8 +158,8 @@ export function AdminDashboardOverview({
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-[#BD5E38]/15 rounded-xl flex items-center justify-center">
-              <Users className="w-6 h-6 text-[#BD5E38]" />
+            <div className="w-12 h-12 bg-[#F97316]/15 rounded-xl flex items-center justify-center">
+              <Users className="w-6 h-6 text-[#F97316]" />
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 mb-1">
@@ -176,7 +176,7 @@ export function AdminDashboardOverview({
         {/* Booking Status */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#15291E]" />
+            <Calendar className="w-5 h-5 text-[#075985]" />
             Trạng thái Booking
           </h3>
           <div className="space-y-3">
@@ -209,7 +209,7 @@ export function AdminDashboardOverview({
                   Hoàn thành
                 </span>
               </div>
-              <span className="font-bold text-[#15291E]">
+              <span className="font-bold text-[#075985]">
                 {completedBookings}
               </span>
             </div>
@@ -273,11 +273,11 @@ export function AdminDashboardOverview({
         {/* Active Tours */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Map className="w-5 h-5 text-[#BD5E38]" />
+            <Map className="w-5 h-5 text-[#F97316]" />
             Tour đang diễn ra
           </h3>
           <div className="text-center py-4">
-            <p className="text-5xl font-bold text-[#BD5E38] mb-2">
+            <p className="text-5xl font-bold text-[#F97316] mb-2">
               {activeTours}
             </p>
             <p className="text-sm text-gray-600">
@@ -290,7 +290,7 @@ export function AdminDashboardOverview({
       {/* Recent Bookings */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#15291E]" />
+          <Calendar className="w-5 h-5 text-[#075985]" />
           Booking gần đây
         </h3>
         <div className="overflow-x-auto">

@@ -109,7 +109,7 @@ export function HelpCenterPage() {
               placeholder="Tìm kiếm câu hỏi..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:border-transparent text-lg"
+              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:border-transparent text-lg"
             />
           </div>
         </div>
@@ -120,7 +120,7 @@ export function HelpCenterPage() {
             onClick={() => setSelectedCategory("all")}
             className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-colors ${
               selectedCategory === "all"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
@@ -132,7 +132,7 @@ export function HelpCenterPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-colors ${
                 selectedCategory === category
-                  ? "bg-[#15291E] text-white"
+                  ? "bg-[#075985] text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -157,12 +157,12 @@ export function HelpCenterPage() {
                 className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-3 flex-1">
-                  <BookOpen className="w-5 h-5 text-[#15291E] mt-0.5 flex-shrink-0" />
+                  <BookOpen className="w-5 h-5 text-[#075985] mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">
                       {faq.question}
                     </h3>
-                    <span className="text-xs text-[#15291E] mt-1 inline-block">
+                    <span className="text-xs text-[#075985] mt-1 inline-block">
                       {faq.category}
                     </span>
                   </div>
@@ -200,8 +200,8 @@ export function HelpCenterPage() {
         {/* Contact Options */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-all">
-            <div className="w-12 h-12 bg-[#15291E]/10 rounded-lg flex items-center justify-center mb-4">
-              <Phone className="w-6 h-6 text-[#15291E]" />
+            <div className="w-12 h-12 bg-[#E0F2FE] rounded-lg flex items-center justify-center mb-4">
+              <Phone className="w-6 h-6 text-[#075985]" />
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">
               Hotline 24/7
@@ -211,7 +211,7 @@ export function HelpCenterPage() {
             </p>
             <a
               href="tel:1900123456"
-              className="text-[#15291E] font-semibold hover:underline"
+              className="text-[#075985] font-semibold hover:underline"
             >
               1900 123 456
             </a>
@@ -236,8 +236,8 @@ export function HelpCenterPage() {
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg transition-all">
-            <div className="w-12 h-12 bg-[#BD5E38]/15 rounded-lg flex items-center justify-center mb-4">
-              <MessageCircle className="w-6 h-6 text-[#BD5E38]" />
+            <div className="w-12 h-12 bg-[#F97316]/15 rounded-lg flex items-center justify-center mb-4">
+              <MessageCircle className="w-6 h-6 text-[#F97316]" />
             </div>
             <h3 className="font-semibold text-gray-900 mb-2">
               Live Chat
@@ -245,7 +245,7 @@ export function HelpCenterPage() {
             <p className="text-gray-600 text-sm mb-3">
               Chat trực tuyến với tư vấn viên
             </p>
-            <button className="text-[#BD5E38] font-semibold hover:underline">
+            <button className="text-[#F97316] font-semibold hover:underline">
               Bắt đầu chat
             </button>
           </div>

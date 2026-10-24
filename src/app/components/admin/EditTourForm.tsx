@@ -215,9 +215,9 @@ export function EditTourForm({
           className="p-6 space-y-6 max-h-[70vh] overflow-y-auto"
         >
           {/* Basic Information */}
-          <div className="bg-[#FBF9F5] rounded-xl p-6 space-y-4">
+          <div className="bg-[#F0F9FF] rounded-xl p-6 space-y-4">
             <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#15291E]" />
+              <FileText className="w-5 h-5 text-[#075985]" />
               Thông tin cơ bản
             </h3>
 
@@ -384,16 +384,16 @@ export function EditTourForm({
           </div>
 
           {/* Highlights */}
-          <div className="bg-[#FBF9F5] rounded-xl p-6 space-y-4">
+          <div className="bg-[#F0F9FF] rounded-xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#BD5E38]" />
+                <Sparkles className="w-5 h-5 text-[#F97316]" />
                 Điểm nổi bật
               </h3>
               <button
                 type="button"
                 onClick={handleAddHighlight}
-                className="px-3 py-1 bg-[#BD5E38] text-white rounded-lg hover:bg-[#A34C2A] transition-colors text-sm flex items-center gap-1"
+                className="px-3 py-1 bg-[#F97316] text-white rounded-lg hover:bg-[#EA580C] transition-colors text-sm flex items-center gap-1"
               >
                 <Plus className="w-4 h-4" />
                 Thêm
@@ -412,7 +412,7 @@ export function EditTourForm({
                         e.target.value,
                       )
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#BD5E38] focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent"
                     placeholder="VD: Tham quan Vịnh Hạ Long"
                   />
                   <button
@@ -522,7 +522,7 @@ export function EditTourForm({
                           onClick={() =>
                             handleAddLocation(dayIndex)
                           }
-                          className="px-2 py-1 bg-[#15291E] text-white rounded text-xs flex items-center gap-1 hover:bg-[#BD5E38]"
+                          className="px-2 py-1 bg-[#075985] text-white rounded text-xs flex items-center gap-1 hover:bg-[#F97316]"
                         >
                           <Plus className="w-3 h-3" />
                           Thêm địa điểm

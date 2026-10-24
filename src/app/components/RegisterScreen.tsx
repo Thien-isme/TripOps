@@ -542,8 +542,8 @@ export function RegisterScreen({
             <>
               {/* OTP Verification */}
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-[#15291E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-8 h-8 text-[#BD5E38]" />
+                <div className="w-16 h-16 bg-[#E0F2FE] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-[#F97316]" />
                 </div>
                 <p className="text-gray-600">
                   Mã OTP đã được gửi đến email:
@@ -611,7 +611,7 @@ export function RegisterScreen({
                   <button
                     type="button"
                     onClick={handleSendOTP}
-                    className="text-sm text-[#BD5E38] hover:underline"
+                    className="text-sm text-[#F97316] hover:underline"
                   >
                     Gửi lại mã OTP
                   </button>
@@ -635,7 +635,7 @@ export function RegisterScreen({
               Đã có tài khoản?{" "}
               <button
                 onClick={onBack}
-                className="text-[#BD5E38] hover:underline font-semibold"
+                className="text-[#F97316] hover:underline font-semibold"
               >
                 Đăng nhập ngay
               </button>

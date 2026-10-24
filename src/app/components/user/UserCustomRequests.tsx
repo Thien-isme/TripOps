@@ -37,8 +37,8 @@ const STATUS_CONFIG: Record<
   { label: string; color: string; icon: React.ReactNode }
 > = {
   pending: { label: "Chờ xử lý", color: "bg-gray-100 text-gray-600 border-gray-200", icon: <Clock className="w-3.5 h-3.5" /> },
-  reviewing: { label: "Đang xem xét", color: "bg-[#15291E]/10 text-[#15291E] border-[#E8E4DC]", icon: <Clock className="w-3.5 h-3.5" /> },
-  designed: { label: "Đã có Tour thiết kế", color: "bg-[#BD5E38]/15 text-[#A34C2A] border-[#BD5E38]/30", icon: <Sparkles className="w-3.5 h-3.5 text-[#BD5E38]" /> },
+  reviewing: { label: "Đang xem xét", color: "bg-[#E0F2FE] text-[#075985] border-[#CBD5E1]", icon: <Clock className="w-3.5 h-3.5" /> },
+  designed: { label: "Đã có Tour thiết kế", color: "bg-[#F97316]/15 text-[#EA580C] border-[#F97316]/30", icon: <Sparkles className="w-3.5 h-3.5 text-[#F97316]" /> },
   quoted: { label: "Đã báo giá", color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: <CheckCircle className="w-3.5 h-3.5" /> },
   accepted: { label: "Đã chấp nhận", color: "bg-teal-100 text-teal-700 border-teal-200", icon: <CheckCircle className="w-3.5 h-3.5" /> },
   rejected: { label: "Không phù hợp", color: "bg-red-100 text-red-600 border-red-200", icon: <XCircle className="w-3.5 h-3.5" /> },
@@ -71,14 +71,14 @@ export function UserCustomRequests({
   if (requests.length === 0) {
     return (
       <div className="text-center py-16 space-y-4 bg-white rounded-xl border border-gray-200">
-        <div className="w-16 h-16 bg-[#FBF9F5] rounded-full flex items-center justify-center mx-auto">
+        <div className="w-16 h-16 bg-[#F0F9FF] rounded-full flex items-center justify-center mx-auto">
           <Sparkles className="w-8 h-8 text-purple-500" />
         </div>
         <p className="text-gray-700 font-semibold">Bạn chưa có yêu cầu thiết kế tour nào.</p>
         <p className="text-xs text-gray-500 max-w-md mx-auto">
           Không tìm thấy tour phù hợp? Bạn có thể gửi yêu cầu để công ty du lịch thiết kế lịch trình riêng theo sở thích và ngân sách của bạn.
         </p>
-        <Button onClick={onNavigateToForm} className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-semibold">
+        <Button onClick={onNavigateToForm} className="bg-[#F97316] hover:bg-[#EA580C] text-white font-semibold">
           Gửi yêu cầu thiết kế tour riêng
         </Button>
       </div>
@@ -91,7 +91,7 @@ export function UserCustomRequests({
         <p className="text-sm text-gray-500">
           {requests.length} yêu cầu thiết kế tour của bạn
         </p>
-        <Button size="sm" onClick={onNavigateToForm} className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white gap-1.5 font-semibold">
+        <Button size="sm" onClick={onNavigateToForm} className="bg-[#F97316] hover:bg-[#EA580C] text-white gap-1.5 font-semibold">
           <Sparkles className="w-4 h-4" />
           Gửi yêu cầu thiết kế mới
         </Button>
@@ -135,7 +135,7 @@ export function UserCustomRequests({
                     {req.destinations}
                   </p>
                   {matchingTour && (
-                    <span className="bg-[#BD5E38]/15 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="bg-[#F97316]/15 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
                       Phiên bản v{matchingTour.version || req.currentVersion || 1}
                     </span>
                   )}
@@ -155,7 +155,7 @@ export function UserCustomRequests({
                     <Users className="w-3 h-3 text-gray-400" />
                     {req.numberOfPeople} người
                   </span>
-                  <span className="text-[#A34C2A] font-medium">
+                  <span className="text-[#EA580C] font-medium">
                     {req.targetCompanyName}
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export function UserCustomRequests({
                       <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15 space-y-2">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="bg-[#BD5E38]/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
+                            <span className="bg-[#F97316]/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase flex items-center gap-1">
                               <Handshake className="w-3.5 h-3.5 text-amber-300" />
                               Tour Liên Minh Đối Tác
                             </span>
@@ -252,7 +252,7 @@ export function UserCustomRequests({
                     ) : (
                       <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15 flex items-center justify-between text-xs flex-wrap gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="bg-[#15291E]/80 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                          <span className="bg-[#075985]/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase">
                             🏢 Đơn vị tổ chức độc lập
                           </span>
                           <span className="font-bold text-white text-sm">
@@ -371,7 +371,7 @@ export function UserCustomRequests({
                           }}
                           className="w-full sm:w-auto bg-white hover:bg-gray-100 text-purple-950 font-bold gap-2 text-xs shadow-sm"
                         >
-                          <Eye className="w-4 h-4 text-[#A34C2A]" />
+                          <Eye className="w-4 h-4 text-[#EA580C]" />
                           Xem chi tiết Lịch trình &amp; Dịch vụ Tour
                         </Button>
                       )}
@@ -392,7 +392,7 @@ export function UserCustomRequests({
                 ) : (
                   <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-[#15291E]" />
+                      <Clock className="w-5 h-5 text-[#075985]" />
                       <div>
                         <p className="text-sm font-semibold text-gray-800">
                           Công ty đang tiến hành thiết kế tour cho bạn
@@ -407,7 +407,7 @@ export function UserCustomRequests({
 
                 {/* Co-Hosting Alliance Information for Customer (when pending / reviewing) */}
                 {!matchingTour && req.isCoHosted && (
-                  <div className="bg-gradient-to-r from-purple-50 via-indigo-50/60 to-blue-50 border border-[#BD5E38]/30 rounded-xl p-4.5 space-y-3">
+                  <div className="bg-gradient-to-r from-purple-50 via-indigo-50/60 to-blue-50 border border-[#F97316]/30 rounded-xl p-4.5 space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="bg-purple-700 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
                         <Handshake className="w-3.5 h-3.5 text-amber-300" />
@@ -442,8 +442,8 @@ export function UserCustomRequests({
                             <span
                               className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                                 ch.role === "lead"
-                                  ? "bg-[#15291E]/10 text-blue-800"
-                                  : "bg-[#BD5E38]/15 text-purple-800"
+                                  ? "bg-[#E0F2FE] text-blue-800"
+                                  : "bg-[#F97316]/15 text-purple-800"
                               }`}
                             >
                               {ch.role === "lead" ? "Đơn vị Chủ trì" : "Đối tác Bản địa"}
@@ -500,8 +500,8 @@ export function UserCustomRequests({
 
                 {/* Company text response */}
                 {(req.companyNote || req.quotedPricePerPerson) && (
-                  <div className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-4 space-y-2">
-                    <p className="text-xs font-bold text-[#15291E] flex items-center gap-1.5">
+                  <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-4 space-y-2">
+                    <p className="text-xs font-bold text-[#075985] flex items-center gap-1.5">
                       <MessageSquare className="w-3.5 h-3.5" />
                       Phản hồi từ {req.targetCompanyName}
                     </p>

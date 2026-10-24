@@ -65,7 +65,7 @@ export function TourVersionHistoryModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-2 text-[#15291E] mb-1">
+          <div className="flex items-center gap-2 text-[#075985] mb-1">
             <History className="w-5 h-5" />
             <span className="text-xs font-bold uppercase tracking-wider">
               Lịch sử phiên bản &amp; Sao lưu (Version Control)
@@ -87,8 +87,8 @@ export function TourVersionHistoryModal({
         </DialogHeader>
 
         <div className="space-y-4 my-2">
-          <div className="bg-[#FBF9F5]/70 border border-[#E8E4DC] rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
-            <Info className="w-4 h-4 text-[#15291E] flex-shrink-0 mt-0.5" />
+          <div className="bg-[#F0F9FF]/70 border border-[#CBD5E1] rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-[#075985] flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Cơ chế bảo toàn &amp; Khôi phục (Backup &amp; Rollback):</p>
               <p className="text-blue-800 text-[11px] mt-0.5">
@@ -178,7 +178,7 @@ export function TourVersionHistoryModal({
                   return (
                     <div
                       key={v.version}
-                      className="border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[#E8E4DC] transition-all shadow-2xs"
+                      className="border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-[#CBD5E1] transition-all shadow-2xs"
                     >
                       <div className="p-3.5 flex items-center justify-between flex-wrap gap-2 bg-gray-50/70">
                         <div className="flex items-center gap-2.5">
@@ -234,7 +234,7 @@ export function TourVersionHistoryModal({
                                 onClose();
                               }
                             }}
-                            className="bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs h-7 px-2.5 gap-1 font-semibold"
+                            className="bg-[#075985] hover:bg-[#F97316] text-white text-xs h-7 px-2.5 gap-1 font-semibold"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             Khôi phục bản này
@@ -271,7 +271,7 @@ export function TourVersionHistoryModal({
 
                           <div>
                             <p className="font-bold text-gray-900 text-xs mb-1.5 flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-[#15291E]" />
+                              <MapPin className="w-3.5 h-3.5 text-[#075985]" />
                               Lộ trình các ngày trong bản v{v.version}:
                             </p>
                             <div className="space-y-1.5 pl-2">

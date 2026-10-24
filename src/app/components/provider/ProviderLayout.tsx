@@ -45,9 +45,9 @@ export function ProviderLayout({
     currentUser.businessName || currentUser.name || "Nhà cung cấp";
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white border-r border-[#E8E4DC]">
+    <div className="flex flex-col h-full bg-white border-r border-[#CBD5E1]">
       {/* Header / Brand */}
-      <div className="p-4 border-b border-[#E8E4DC]">
+      <div className="p-4 border-b border-[#CBD5E1]">
         <div className="flex items-center justify-between gap-2">
           {!collapsed && (
             <div className="flex items-center gap-3 min-w-0">
@@ -55,7 +55,7 @@ export function ProviderLayout({
                 <img
                   src={currentUser.avatar}
                   alt={businessDisplayName}
-                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-[#E8E4DC] shadow-2xs"
+                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0 border border-[#CBD5E1] shadow-2xs"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
@@ -128,7 +128,7 @@ export function ProviderLayout({
               title={collapsed ? item.label : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                 isActive
-                  ? "bg-[#BD5E38] text-white shadow-md shadow-blue-600/20 font-semibold"
+                  ? "bg-[#F97316] text-white shadow-md shadow-blue-600/20 font-semibold"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 font-medium"
               } ${collapsed ? "justify-center px-0" : ""}`}
             >
@@ -156,7 +156,7 @@ export function ProviderLayout({
           <p className="text-gray-600 text-[11px] leading-relaxed mb-2">
             Đăng dịch vụ để liên kết cùng các đơn vị lữ hành thiết kế tour.
           </p>
-          <div className="text-[11px] text-[#15291E] font-medium">
+          <div className="text-[11px] text-[#075985] font-medium">
             Hotline: 1900 6868
           </div>
         </div>
@@ -164,7 +164,7 @@ export function ProviderLayout({
 
       {/* User / Logout Footer */}
       {onLogout && (
-        <div className="p-3 border-t border-[#E8E4DC]">
+        <div className="p-3 border-t border-[#CBD5E1]">
           <button
             onClick={onLogout}
             title={collapsed ? "Đăng xuất" : undefined}
@@ -217,7 +217,7 @@ export function ProviderLayout({
         }`}
       >
         {/* Mobile Top Sub-Header */}
-        <header className="lg:hidden sticky top-16 z-20 bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center justify-between">
+        <header className="lg:hidden sticky top-16 z-20 bg-white border-b border-[#CBD5E1] px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
@@ -233,7 +233,7 @@ export function ProviderLayout({
             <Button
               size="sm"
               onClick={onCreateService}
-              className="bg-[#BD5E38] hover:bg-[#BD5E38] text-white text-xs"
+              className="bg-[#F97316] hover:bg-[#F97316] text-white text-xs"
             >
               <Plus className="w-4 h-4 mr-1" />
               Đăng dịch vụ

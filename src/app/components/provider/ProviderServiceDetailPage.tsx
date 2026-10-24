@@ -115,7 +115,7 @@ export function ProviderServiceDetailPage({
         return {
           label: "Lưu trú & Khách sạn",
           icon: Hotel,
-          color: "bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]",
+          color: "bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]",
           unit: "/ phòng",
           capacityLabel: "Tổng số phòng",
           capacityUnit: "phòng",
@@ -236,7 +236,7 @@ export function ProviderServiceDetailPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-[#BD5E38] border-[#BD5E38]/30 hover:bg-[#FBF9F5] rounded-xl"
+                className="text-[#F97316] border-[#F97316]/30 hover:bg-[#F0F9FF] rounded-xl"
                 onClick={() => setShowImageManager(true)}
               >
                 <ImageIcon className="w-4 h-4 mr-1.5" />
@@ -245,7 +245,7 @@ export function ProviderServiceDetailPage({
 
               <Button
                 size="sm"
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-xl shadow-xs"
+                className="bg-[#075985] hover:bg-[#F97316] text-white rounded-xl shadow-xs"
                 onClick={() => onEdit?.(service)}
               >
                 <Edit className="w-4 h-4 mr-1.5" />
@@ -338,7 +338,7 @@ export function ProviderServiceDetailPage({
             />
             <div className="absolute top-4 left-4">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md bg-white/90 border border-gray-200 shadow-sm`}>
-                <Icon className="w-4 h-4 text-[#15291E]" />
+                <Icon className="w-4 h-4 text-[#075985]" />
                 {meta.label}
               </span>
             </div>
@@ -357,7 +357,7 @@ export function ProviderServiceDetailPage({
                   onClick={() => setActiveImageIndex(idx)}
                   className={`relative flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all ${
                     activeImageIndex === idx
-                      ? "border-[#15291E] ring-2 ring-blue-600/30 scale-102"
+                      ? "border-[#075985] ring-2 ring-blue-600/30 scale-102"
                       : "border-gray-200 opacity-75 hover:opacity-100"
                   }`}
                 >
@@ -401,10 +401,10 @@ export function ProviderServiceDetailPage({
               {service.priceFrom && service.priceTo ? (
                 <div>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl sm:text-3xl font-extrabold text-[#15291E]">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-[#075985]">
                       {service.priceFrom.toLocaleString("vi-VN")}đ - {service.priceTo.toLocaleString("vi-VN")}đ
                     </span>
-                    <span className="text-xs font-semibold text-[#15291E]">
+                    <span className="text-xs font-semibold text-[#075985]">
                       / {service.category === "hotel" ? "phòng" : "người"}
                     </span>
                   </div>
@@ -416,7 +416,7 @@ export function ProviderServiceDetailPage({
                 </div>
               ) : (
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl font-extrabold text-[#15291E]">
+                  <span className="text-3xl font-extrabold text-[#075985]">
                     {service.price?.toLocaleString("vi-VN")}đ
                   </span>
                   <span className="text-xs font-medium text-gray-600">
@@ -426,7 +426,7 @@ export function ProviderServiceDetailPage({
               )}
 
               {service.pricePerPerson && !service.priceFrom && (
-                <div className="mt-2 pt-2 border-t border-[#E8E4DC]/50 flex justify-between text-xs text-gray-700">
+                <div className="mt-2 pt-2 border-t border-[#CBD5E1]/50 flex justify-between text-xs text-gray-700">
                   <span>Giá tính theo người:</span>
                   <strong>{service.pricePerPerson.toLocaleString("vi-VN")}đ/người</strong>
                 </div>
@@ -486,7 +486,7 @@ export function ProviderServiceDetailPage({
           {/* 1. Description */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-3">
             <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-              <Info className="w-5 h-5 text-[#15291E]" />
+              <Info className="w-5 h-5 text-[#075985]" />
               Mô tả chi tiết dịch vụ
             </h3>
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50/60 p-4 rounded-xl border border-gray-100">
@@ -497,7 +497,7 @@ export function ProviderServiceDetailPage({
           {/* 2. Category-Specific Details */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
             <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-              <Icon className="w-5 h-5 text-[#15291E]" />
+              <Icon className="w-5 h-5 text-[#075985]" />
               Thông số & Quy mô dịch vụ [{meta.label}]
             </h3>
 
@@ -518,7 +518,7 @@ export function ProviderServiceDetailPage({
 
               <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                 <span className="text-gray-500 block mb-0.5">{meta.capacityLabel}:</span>
-                <span className="font-bold text-[#15291E] text-sm">
+                <span className="font-bold text-[#075985] text-sm">
                   {service.capacity || service.totalRooms || service.seats || "Đang cập nhật"} {meta.capacityUnit}
                 </span>
               </div>
@@ -588,14 +588,14 @@ export function ProviderServiceDetailPage({
           {service.amenities && service.amenities.length > 0 && (
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-3">
               <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#15291E]" />
+                <ShieldCheck className="w-5 h-5 text-[#075985]" />
                 Tiện nghi & Dịch vụ đi kèm
               </h3>
               <div className="flex flex-wrap gap-2 pt-1">
                 {service.amenities.map((amenity, idx) => (
                   <span
                     key={idx}
-                    className="px-3 py-1.5 bg-[#FBF9F5]/80 text-blue-800 text-xs font-semibold rounded-xl border border-[#E8E4DC] flex items-center gap-1.5"
+                    className="px-3 py-1.5 bg-[#F0F9FF]/80 text-blue-800 text-xs font-semibold rounded-xl border border-[#CBD5E1] flex items-center gap-1.5"
                   >
                     ✓ {amenity}
                   </span>
@@ -643,7 +643,7 @@ export function ProviderServiceDetailPage({
               <div className="pt-3 border-t border-gray-100 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-gray-700 flex items-center gap-1">
-                    <Compass className="w-3.5 h-3.5 text-[#15291E]" />
+                    <Compass className="w-3.5 h-3.5 text-[#075985]" />
                     Tọa độ GPS:
                   </span>
                   <span className="font-mono text-gray-800 font-semibold">
@@ -666,7 +666,7 @@ export function ProviderServiceDetailPage({
                   href={`https://www.google.com/maps?q=${service.latitude || 11.9404},${service.longitude || 108.4583}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E]/10 font-medium text-xs border border-[#E8E4DC] transition-colors"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#F0F9FF] text-[#075985] hover:bg-[#E0F2FE] font-medium text-xs border border-[#CBD5E1] transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Mở vị trí trên Google Maps
@@ -704,11 +704,11 @@ export function ProviderServiceDetailPage({
           <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
             {isAdmin ? (
               <div className="space-y-2">
-                <div className="p-2.5 bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl text-xs text-blue-900">
+                <div className="p-2.5 bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl text-xs text-blue-900">
                   <p className="font-semibold flex items-center gap-1.5 text-blue-950 mb-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#15291E]" /> Giám sát bài đăng (Admin)
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#075985]" /> Giám sát bài đăng (Admin)
                   </p>
-                  <p className="text-[11px] text-[#15291E] leading-relaxed">
+                  <p className="text-[11px] text-[#075985] leading-relaxed">
                     Bạn đang xem toàn bộ thông tin bài đăng dịch vụ do nhà cung cấp đăng tải.
                   </p>
                 </div>
@@ -753,7 +753,7 @@ export function ProviderServiceDetailPage({
             ) : (
               <>
                 <Button
-                  className="w-full bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-xl"
+                  className="w-full bg-[#075985] hover:bg-[#F97316] text-white rounded-xl"
                   onClick={() => onEdit?.(service)}
                 >
                   <Edit className="w-4 h-4 mr-2" />
@@ -761,7 +761,7 @@ export function ProviderServiceDetailPage({
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full text-[#BD5E38] border-[#BD5E38]/30 hover:bg-[#FBF9F5] rounded-xl"
+                  className="w-full text-[#F97316] border-[#F97316]/30 hover:bg-[#F0F9FF] rounded-xl"
                   onClick={() => setShowImageManager(true)}
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />

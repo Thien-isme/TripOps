@@ -1,4 +1,4 @@
-import { Compass, ArrowRight } from "lucide-react";
+﻿import { Compass, ArrowRight } from "lucide-react";
 
 interface PublicHeaderProps {
   onShowLogin: () => void;
@@ -21,7 +21,7 @@ export function PublicHeader({
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#E8E4DC] z-50 transition-all duration-300">
+    <header className="fixed top-0 left-0 right-0 bg-[#F0F9FF]/90 backdrop-blur-md border-b border-[#CBD5E1] z-50 transition-all duration-300">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Brand Logo */}
@@ -29,14 +29,14 @@ export function PublicHeader({
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onNavigate?.("home")}
           >
-            <div className="w-10 h-10 rounded-full bg-[#15291E] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
-              <Compass className="w-5 h-5 text-[#E8E4DC]" />
+            <div className="w-10 h-10 rounded-full bg-[#075985] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+              <Compass className="w-5 h-5 text-[#CBD5E1]" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-semibold tracking-tight text-[#15291E]">
+              <span className="text-xl font-semibold tracking-tight text-[#075985]">
                 TripOps
               </span>
-              <span className="text-[10px] tracking-widest uppercase text-[#686C67] -mt-1 font-medium">
+              <span className="text-[10px] tracking-widest uppercase text-[#475569] -mt-1 font-medium">
                 Curated Travel
               </span>
             </div>
@@ -52,13 +52,13 @@ export function PublicHeader({
                   onClick={() => onNavigate?.(item.id)}
                   className={`relative text-sm tracking-wide transition-colors py-1 ${
                     isActive
-                      ? "text-[#15291E] font-medium"
-                      : "text-[#686C67] hover:text-[#15291E]"
+                      ? "text-[#075985] font-medium"
+                      : "text-[#475569] hover:text-[#075985]"
                   }`}
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#BD5E38] rounded-full" />
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#F97316] rounded-full" />
                   )}
                 </button>
               );
@@ -69,14 +69,14 @@ export function PublicHeader({
           <div className="flex items-center gap-4">
             <button
               onClick={onShowLogin}
-              className="text-sm font-medium text-[#15291E] hover:text-[#BD5E38] transition-colors px-3 py-2"
+              className="text-sm font-medium text-[#075985] hover:text-[#F97316] transition-colors px-3 py-2"
             >
               Đăng nhập
             </button>
 
             <button
               onClick={() => onNavigate?.("book-tours")}
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#15291E] text-[#FBF9F5] text-sm font-medium tracking-wide hover:bg-[#BD5E38] transition-all duration-300 shadow-sm"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#075985] text-[#F0F9FF] text-sm font-medium tracking-wide hover:bg-[#F97316] transition-all duration-300 shadow-sm"
             >
               <span>Khám phá ngay</span>
               <ArrowRight className="w-4 h-4" />

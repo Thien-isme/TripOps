@@ -105,10 +105,10 @@ export function ActiveToursManagement({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-blue-100 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Map className="w-24 h-24 text-[#15291E]" />
+            <Map className="w-24 h-24 text-[#075985]" />
           </div>
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 bg-[#15291E]/10 rounded-full flex items-center justify-center text-[#15291E]">
+            <div className="w-12 h-12 bg-[#E0F2FE] rounded-full flex items-center justify-center text-[#075985]">
               <Map className="w-6 h-6" />
             </div>
             <div>
@@ -143,10 +143,10 @@ export function ActiveToursManagement({
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-purple-100 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <MapPin className="w-24 h-24 text-[#BD5E38]" />
+            <MapPin className="w-24 h-24 text-[#F97316]" />
           </div>
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 bg-[#BD5E38]/15 rounded-full flex items-center justify-center text-[#BD5E38]">
+            <div className="w-12 h-12 bg-[#F97316]/15 rounded-full flex items-center justify-center text-[#F97316]">
               <MapPin className="w-6 h-6" />
             </div>
             <div>
@@ -192,7 +192,7 @@ export function ActiveToursManagement({
         <CardHeader className="bg-white border-b border-gray-100 pb-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <Map className="w-5 h-5 text-[#15291E]" />
+              <Map className="w-5 h-5 text-[#075985]" />
               Danh sách Tour đang hoạt động
             </CardTitle>
 
@@ -202,7 +202,7 @@ export function ActiveToursManagement({
               <input
                 type="text"
                 placeholder="Tìm theo tên tour, mã tour..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075985] focus:border-transparent transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -344,13 +344,13 @@ export function ActiveToursManagement({
                         <td className="px-6 py-4">
                           <div className="w-32">
                             <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-medium text-[#15291E]">
+                              <span className="text-xs font-medium text-[#075985]">
                                 {progress}%
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5">
                               <div
-                                className="bg-[#15291E] h-1.5 rounded-full"
+                                className="bg-[#075985] h-1.5 rounded-full"
                                 style={{
                                   width: `${progress}%`,
                                 }}
@@ -370,7 +370,7 @@ export function ActiveToursManagement({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-[#15291E] hover:text-blue-800 hover:bg-[#FBF9F5] font-medium border border-[#E8E4DC]"
+                            className="text-[#075985] hover:text-blue-800 hover:bg-[#F0F9FF] font-medium border border-[#CBD5E1]"
                             onClick={() =>
                               setSelectedSchedule(schedule)
                             }
@@ -404,7 +404,7 @@ export function ActiveToursManagement({
                   <DialogDescription className="flex items-center gap-4">
                     <Badge
                       variant="outline"
-                      className="bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]"
+                      className="bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]"
                     >
                       {selectedSchedule.booking.tour.tourCode ||
                         "NO-CODE"}
@@ -489,7 +489,7 @@ export function ActiveToursManagement({
                     <span className="text-sm font-semibold text-gray-700">
                       Tiến độ chuyến đi
                     </span>
-                    <span className="text-sm font-bold text-[#15291E]">
+                    <span className="text-sm font-bold text-[#075985]">
                       {getProgress(selectedSchedule)}%
                     </span>
                   </div>
@@ -517,7 +517,7 @@ export function ActiveToursManagement({
                         className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                       >
                         <div className="bg-gray-50 p-4 border-b border-gray-100 flex items-center gap-3">
-                          <div className="w-8 h-8 bg-[#15291E] text-white rounded-lg flex items-center justify-center font-bold text-sm">
+                          <div className="w-8 h-8 bg-[#075985] text-white rounded-lg flex items-center justify-center font-bold text-sm">
                             D{dayIndex + 1}
                           </div>
                           <div>
@@ -577,7 +577,7 @@ export function ActiveToursManagement({
                                       </p>
 
                                       <div className="flex flex-wrap items-center gap-3 text-xs mt-2">
-                                        <span className="bg-[#15291E]/10 text-[#15291E] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <span className="bg-[#E0F2FE] text-[#075985] px-2 py-0.5 rounded-full flex items-center gap-1">
                                           <Clock className="w-3 h-3" />
                                           Dự kiến:{" "}
                                           {location.time ||

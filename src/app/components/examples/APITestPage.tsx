@@ -112,7 +112,7 @@ export function APITestPage() {
         </Tabs>
 
         {/* Info Box */}
-        <div className="mt-8 bg-[#FBF9F5] border-2 border-[#E8E4DC] rounded-lg p-6">
+        <div className="mt-8 bg-[#F0F9FF] border-2 border-[#CBD5E1] rounded-lg p-6">
           <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
             💡 Thông tin
           </h3>
@@ -120,14 +120,14 @@ export function APITestPage() {
             <p>
               <strong>Tất cả data</strong> trong trang này đến
               từ{" "}
-              <code className="bg-[#15291E]/10 px-2 py-0.5 rounded">
+              <code className="bg-[#E0F2FE] px-2 py-0.5 rounded">
                 /src/app/services/
               </code>
             </p>
             <p>
               <strong>Loading states</strong> được quản lý tự
               động bởi{" "}
-              <code className="bg-[#15291E]/10 px-2 py-0.5 rounded">
+              <code className="bg-[#E0F2FE] px-2 py-0.5 rounded">
                 useApi
               </code>{" "}
               hook

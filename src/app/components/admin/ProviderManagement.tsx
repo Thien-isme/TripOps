@@ -285,7 +285,7 @@ export function ProviderManagement({
           <input
             type="text"
             placeholder="Tìm kiếm theo tên, email, tên doanh nghiệp..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075985] focus:border-transparent transition-all"
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
@@ -424,7 +424,7 @@ export function ProviderManagement({
                     <td className="px-6 py-4 text-center">
                       <Badge
                         variant="secondary"
-                        className="bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E]/10"
+                        className="bg-[#F0F9FF] text-[#075985] hover:bg-[#E0F2FE]"
                       >
                         {
                           services.filter(
@@ -441,7 +441,7 @@ export function ProviderManagement({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[#15291E] hover:text-blue-800 hover:bg-[#FBF9F5] font-medium"
+                        className="text-[#075985] hover:text-blue-800 hover:bg-[#F0F9FF] font-medium"
                         onClick={() =>
                           setSelectedProvider(provider)
                         }
@@ -559,13 +559,13 @@ export function ProviderManagement({
                   <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 mb-6 space-x-6">
                     <TabsTrigger
                       value="info"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#15291E] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-2 font-medium"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#075985] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-2 font-medium"
                     >
                       Thông tin hồ sơ
                     </TabsTrigger>
                     <TabsTrigger
                       value="services"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#15291E] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-2 font-medium"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#075985] data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 py-2 font-medium"
                     >
                       Dịch vụ / Bài đăng (
                       {
@@ -833,7 +833,7 @@ export function ProviderManagement({
                                           )}
                                         </Badge>
                                       </td>
-                                      <td className="px-6 py-4 font-medium text-[#15291E]">
+                                      <td className="px-6 py-4 font-medium text-[#075985]">
                                         {service.price.toLocaleString(
                                           "vi-VN",
                                         )}

@@ -112,7 +112,7 @@ export function PaymentCardsPage() {
             </div>
             <button
               onClick={() => setShowAddCard(true)}
-              className="px-6 py-3 bg-[#15291E] text-white rounded-xl hover:bg-[#BD5E38] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+              className="px-6 py-3 bg-[#075985] text-white rounded-xl hover:bg-[#F97316] transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               Thêm thẻ mới
@@ -121,8 +121,8 @@ export function PaymentCardsPage() {
         </div>
 
         {/* Security Notice */}
-        <div className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-4 mb-6 flex items-start gap-3">
-          <Shield className="w-6 h-6 text-[#15291E] flex-shrink-0 mt-0.5" />
+        <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-4 mb-6 flex items-start gap-3">
+          <Shield className="w-6 h-6 text-[#075985] flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-semibold text-blue-900 mb-1">
               Bảo mật & An toàn
@@ -242,7 +242,7 @@ export function PaymentCardsPage() {
             </p>
             <button
               onClick={() => setShowAddCard(true)}
-              className="px-8 py-3 bg-[#15291E] text-white rounded-xl hover:bg-[#BD5E38] transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
+              className="px-8 py-3 bg-[#075985] text-white rounded-xl hover:bg-[#F97316] transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               Thêm thẻ mới
@@ -266,7 +266,7 @@ export function PaymentCardsPage() {
                   <input
                     type="text"
                     placeholder="1234 5678 9012 3456"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                   />
                 </div>
 
@@ -277,7 +277,7 @@ export function PaymentCardsPage() {
                   <input
                     type="text"
                     placeholder="NGUYEN VAN A"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                   />
                 </div>
 
@@ -289,7 +289,7 @@ export function PaymentCardsPage() {
                     <input
                       type="text"
                       placeholder="MM/YY"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -299,7 +299,7 @@ export function PaymentCardsPage() {
                     <input
                       type="text"
                       placeholder="123"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export function PaymentCardsPage() {
                 </button>
                 <button
                   onClick={handleAddCard}
-                  className="flex-1 px-6 py-3 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors font-semibold"
+                  className="flex-1 px-6 py-3 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] transition-colors font-semibold"
                 >
                   Thêm thẻ
                 </button>

@@ -141,8 +141,8 @@ export function ServicePostManagement({
     switch (category) {
       case "hotel":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#FBF9F5] text-[#15291E] border border-[#E8E4DC]">
-            <Hotel className="w-3.5 h-3.5 text-[#15291E]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#F0F9FF] text-[#075985] border border-[#CBD5E1]">
+            <Hotel className="w-3.5 h-3.5 text-[#075985]" />
             Lưu trú
           </span>
         );
@@ -163,8 +163,8 @@ export function ServicePostManagement({
         );
       case "activity":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#FBF9F5] text-[#A34C2A] border border-[#BD5E38]/30">
-            <Sparkles className="w-3.5 h-3.5 text-[#BD5E38]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#F0F9FF] text-[#EA580C] border border-[#F97316]/30">
+            <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
             Trải nghiệm
           </span>
         );
@@ -195,7 +195,7 @@ export function ServicePostManagement({
           <div className="font-bold text-gray-900 text-sm">
             {service.priceFrom.toLocaleString("vi-VN")}đ - {service.priceTo.toLocaleString("vi-VN")}đ
           </div>
-          <div className="text-xs text-[#15291E] font-medium">/ {unitLabel} (ước lượng)</div>
+          <div className="text-xs text-[#075985] font-medium">/ {unitLabel} (ước lượng)</div>
         </div>
       );
     }
@@ -205,7 +205,7 @@ export function ServicePostManagement({
           <div className="font-bold text-gray-900 text-sm">
             từ {service.priceFrom.toLocaleString("vi-VN")}đ
           </div>
-          <div className="text-xs text-[#15291E] font-medium">/ {unitLabel}</div>
+          <div className="text-xs text-[#075985] font-medium">/ {unitLabel}</div>
         </div>
       );
     }
@@ -249,7 +249,7 @@ export function ServicePostManagement({
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
               Quản lý Dịch vụ & Bài đăng
             </h1>
-            <Badge variant="outline" className="bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]">
+            <Badge variant="outline" className="bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]">
               Provider Portal
             </Badge>
           </div>
@@ -279,7 +279,7 @@ export function ServicePostManagement({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm theo tên dịch vụ, địa chỉ, tỉnh thành..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#075985] focus:border-transparent transition-all"
               />
               {searchQuery && (
                 <button
@@ -357,7 +357,7 @@ export function ServicePostManagement({
                   onClick={() => setCategoryFilter(cat.id)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all ${
                     isActive
-                      ? "bg-[#15291E] text-white font-semibold shadow-xs"
+                      ? "bg-[#075985] text-white font-semibold shadow-xs"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -400,7 +400,7 @@ export function ServicePostManagement({
                       <Button
                         onClick={onCreateService}
                         size="sm"
-                        className="mt-2 bg-[#15291E] hover:bg-[#BD5E38] text-white"
+                        className="mt-2 bg-[#075985] hover:bg-[#F97316] text-white"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Đăng dịch vụ mới
@@ -414,7 +414,7 @@ export function ServicePostManagement({
                   return (
                     <tr
                       key={service.id}
-                      className="hover:bg-[#FBF9F5]/40 transition-colors group"
+                      className="hover:bg-[#F0F9FF]/40 transition-colors group"
                     >
                       {/* Index */}
                       <td className="py-3.5 px-4 text-center text-xs text-gray-500 font-medium">
@@ -444,7 +444,7 @@ export function ServicePostManagement({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-gray-900 group-hover/item:text-[#15291E] transition-colors line-clamp-1">
+                            <div className="font-semibold text-gray-900 group-hover/item:text-[#075985] transition-colors line-clamp-1">
                               {service.name}
                             </div>
                             <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
@@ -496,7 +496,7 @@ export function ServicePostManagement({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#15291E] hover:bg-[#FBF9F5]"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#075985] hover:bg-[#F0F9FF]"
                             onClick={() => onViewDetail ? onViewDetail(service) : setSelectedService(service)}
                             title="Xem chi tiết"
                           >
@@ -516,7 +516,7 @@ export function ServicePostManagement({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#BD5E38] hover:bg-[#FBF9F5]"
+                            className="h-8 w-8 p-0 text-gray-600 hover:text-[#F97316] hover:bg-[#F0F9FF]"
                             onClick={() => setImageManagementService(service)}
                             title="Quản lý thư viện ảnh"
                           >
@@ -649,15 +649,15 @@ export function ServicePostManagement({
               {/* Information Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Basic & Pricing Info */}
-                <div className="p-4 bg-[#FBF9F5]/50 rounded-xl border border-blue-100 space-y-2.5">
+                <div className="p-4 bg-[#F0F9FF]/50 rounded-xl border border-blue-100 space-y-2.5">
                   <h4 className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
-                    <Layers className="w-4 h-4 text-[#15291E]" />
+                    <Layers className="w-4 h-4 text-[#075985]" />
                     Thông tin bảng giá
                   </h4>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between py-1 border-b border-blue-100/60">
                       <span className="text-gray-600">Đơn giá niêm yết:</span>
-                      <strong className="text-[#15291E] text-sm">
+                      <strong className="text-[#075985] text-sm">
                         {selectedService.price?.toLocaleString("vi-VN")}đ
                       </strong>
                     </div>
@@ -665,7 +665,7 @@ export function ServicePostManagement({
                     {selectedService.priceFrom && selectedService.priceTo && (
                       <div className="flex justify-between py-1 border-b border-blue-100/60">
                         <span className="text-gray-600">Khoảng giá ước lượng:</span>
-                        <strong className="text-[#15291E]">
+                        <strong className="text-[#075985]">
                           {selectedService.priceFrom.toLocaleString("vi-VN")}đ - {selectedService.priceTo.toLocaleString("vi-VN")}đ / {selectedService.category === "hotel" ? "phòng" : "người"}
                         </strong>
                       </div>
@@ -739,7 +739,7 @@ export function ServicePostManagement({
                           href={`https://www.google.com/maps?q=${selectedService.latitude},${selectedService.longitude}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#15291E] font-mono hover:underline inline-flex items-center gap-1"
+                          className="text-[#075985] font-mono hover:underline inline-flex items-center gap-1"
                         >
                           <Compass className="w-3 h-3 text-blue-500" />
                           {selectedService.latitude.toFixed(4)}, {selectedService.longitude.toFixed(4)}
@@ -792,7 +792,7 @@ export function ServicePostManagement({
                         ? "Sức chứa phục vụ:"
                         : "Sức chứa tối đa:"}
                     </span>
-                    <strong className="text-[#15291E]">
+                    <strong className="text-[#075985]">
                       {selectedService.capacity || selectedService.totalRooms || selectedService.seats || "—"}{" "}
                       {selectedService.category === "hotel"
                         ? "phòng"
@@ -865,7 +865,7 @@ export function ServicePostManagement({
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-[#BD5E38] border-[#BD5E38]/30 hover:bg-[#FBF9F5]"
+                  className="text-[#F97316] border-[#F97316]/30 hover:bg-[#F0F9FF]"
                   onClick={() => {
                     const svc = selectedService;
                     setSelectedService(null);
@@ -876,7 +876,7 @@ export function ServicePostManagement({
                   Quản lý ảnh
                 </Button>
                 <Button
-                  className="bg-[#15291E] hover:bg-[#BD5E38] text-white"
+                  className="bg-[#075985] hover:bg-[#F97316] text-white"
                   onClick={() => {
                     const svc = selectedService;
                     setSelectedService(null);

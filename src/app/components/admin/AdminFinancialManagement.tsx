@@ -164,7 +164,7 @@ export function AdminFinancialManagement({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#15291E]/10 text-[#15291E] flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#E0F2FE] text-[#075985] flex items-center justify-center shadow-xs">
                 <Landmark className="w-5 h-5" />
               </div>
               <div>
@@ -209,7 +209,7 @@ export function AdminFinancialManagement({
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-5">
           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-[#15291E]" />
+              <CreditCard className="w-5 h-5 text-[#075985]" />
               <h2 className="text-base font-bold text-gray-900">
                 Cấu hình Tài khoản Ngân hàng Sàn (Hệ thống)
               </h2>
@@ -249,7 +249,7 @@ export function AdminFinancialManagement({
                   onChange={(e) => setAccountNumber(e.target.value.replace(/\s+/g, ""))}
                   placeholder="Ví dụ: 9888666888"
                   required
-                  className="font-mono font-bold text-[#15291E] text-xs"
+                  className="font-mono font-bold text-[#075985] text-xs"
                 />
               </div>
 
@@ -281,7 +281,7 @@ export function AdminFinancialManagement({
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-gray-700 flex items-center justify-between">
                   <span>Phí hoa hồng sàn mặc định (%)</span>
-                  <span className="text-[11px] text-[#15291E] font-bold">Khấu trừ khi kết thúc tour</span>
+                  <span className="text-[11px] text-[#075985] font-bold">Khấu trừ khi kết thúc tour</span>
                 </Label>
                 <div className="relative">
                   <Input
@@ -313,7 +313,7 @@ export function AdminFinancialManagement({
             <div className="flex justify-end pt-2">
               <Button
                 type="submit"
-                className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-bold text-xs h-9 gap-1.5 shadow-sm"
+                className="bg-[#075985] hover:bg-[#F97316] text-white font-bold text-xs h-9 gap-1.5 shadow-sm"
               >
                 <Check className="w-4 h-4" />
                 Lưu cấu hình tài khoản Hệ thống
@@ -360,9 +360,9 @@ export function AdminFinancialManagement({
           </div>
 
           {/* Escrow Mechanism Explanation */}
-          <div className="bg-[#FBF9F5]/70 border border-[#E8E4DC] rounded-2xl p-4 text-xs space-y-2 text-blue-950">
+          <div className="bg-[#F0F9FF]/70 border border-[#CBD5E1] rounded-2xl p-4 text-xs space-y-2 text-blue-950">
             <p className="font-bold flex items-center gap-1.5 text-blue-900">
-              <Info className="w-4 h-4 text-[#15291E] flex-shrink-0" />
+              <Info className="w-4 h-4 text-[#075985] flex-shrink-0" />
               Quy trình Dòng tiền Hệ thống:
             </p>
             <ol className="list-decimal pl-4 space-y-1 text-gray-700 text-[11px] leading-relaxed">
@@ -384,7 +384,7 @@ export function AdminFinancialManagement({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-1">
           <span className="text-xs text-gray-500 font-medium">Tiền đang tạm giữ tại Sàn</span>
-          <p className="text-2xl font-extrabold text-[#15291E]">{formatVND(totalHeldInEscrow)}</p>
+          <p className="text-2xl font-extrabold text-[#075985]">{formatVND(totalHeldInEscrow)}</p>
           <p className="text-[11px] text-gray-400">Các tour chưa quyết toán</p>
         </div>
 
@@ -411,10 +411,10 @@ export function AdminFinancialManagement({
 
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-1">
           <span className="text-xs text-gray-500 font-medium">Hoa hồng sàn đã thu</span>
-          <p className="text-2xl font-extrabold text-[#A34C2A]">
+          <p className="text-2xl font-extrabold text-[#EA580C]">
             {formatVND(totalPlatformFeesCollected)}
           </p>
-          <p className="text-[11px] text-[#BD5E38] font-medium">Doanh thu sàn thực tế</p>
+          <p className="text-[11px] text-[#F97316] font-medium">Doanh thu sàn thực tế</p>
         </div>
       </div>
 
@@ -488,7 +488,7 @@ export function AdminFinancialManagement({
                   return (
                     <tr key={b.id} className="hover:bg-gray-50/80 transition-colors">
                       <td className="py-3 px-4">
-                        <span className="font-mono font-bold text-[#15291E] block">#{b.id}</span>
+                        <span className="font-mono font-bold text-[#075985] block">#{b.id}</span>
                         <span className="font-semibold text-gray-900 block max-w-xs truncate">
                           {b.tour.name}
                         </span>
@@ -503,19 +503,19 @@ export function AdminFinancialManagement({
                       <td className="py-3 px-4">
                         {b.isCoHosted || b.tour?.isCoHosted ? (
                           <div className="space-y-1">
-                            <span className="inline-flex items-center gap-1 bg-[#BD5E38]/15 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#BD5E38]/30">
-                              <Handshake className="w-3 h-3 text-[#BD5E38]" />
+                            <span className="inline-flex items-center gap-1 bg-[#F97316]/15 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#F97316]/30">
+                              <Handshake className="w-3 h-3 text-[#F97316]" />
                               Tour Liên Minh (2 Cty)
                             </span>
                             <div className="space-y-0.5 text-[11px]">
                               <p className="font-bold text-gray-900 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#15291E] flex-shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#075985] flex-shrink-0"></span>
                                 <span className="truncate">
                                   {b.coHosts?.find((c) => c.role === "lead")?.companyName || b.companyName} ({b.coHosts?.find((c) => c.role === "lead")?.revenueSharePercentage ?? 40}%)
                                 </span>
                               </p>
                               <p className="font-bold text-purple-900 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#BD5E38] flex-shrink-0"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#F97316] flex-shrink-0"></span>
                                 <span className="truncate">
                                   {b.coHosts?.find((c) => c.role === "partner")?.companyName || "Đối tác"} ({b.coHosts?.find((c) => c.role === "partner")?.revenueSharePercentage ?? 60}%)
                                 </span>
@@ -535,7 +535,7 @@ export function AdminFinancialManagement({
                       </td>
 
                       <td className="py-3 px-4 text-right">
-                        <span className="font-extrabold text-[#15291E] text-sm block">
+                        <span className="font-extrabold text-[#075985] text-sm block">
                           {formatVND(paid)}
                         </span>
                         <span className="text-[10px] text-emerald-600 font-medium">Trong TK Sàn</span>
@@ -545,7 +545,7 @@ export function AdminFinancialManagement({
                         <span
                           className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                             b.status === "completed"
-                              ? "bg-[#15291E]/10 text-blue-800"
+                              ? "bg-[#E0F2FE] text-blue-800"
                               : b.status === "confirmed"
                               ? "bg-emerald-100 text-emerald-800"
                               : "bg-amber-100 text-amber-800"
@@ -577,7 +577,7 @@ export function AdminFinancialManagement({
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">
-                            <ShieldCheck className="w-3 h-3 text-[#15291E]" />
+                            <ShieldCheck className="w-3 h-3 text-[#075985]" />
                             Đang tạm giữ Escrow
                           </span>
                         )}
@@ -700,7 +700,7 @@ export function AdminFinancialManagement({
                   <div className="flex justify-between text-gray-600">
                     <span>
                       Công ty thụ hưởng:{" "}
-                      <strong className="text-[#15291E]">
+                      <strong className="text-[#075985]">
                         {isCoHosted && agencyShares.length > 0
                           ? agencyShares.map((c) => c.agencyName).join(" + ")
                           : b.companyName || b.tour.companyName}
@@ -711,7 +711,7 @@ export function AdminFinancialManagement({
                 </div>
 
                 {/* Calculation breakdown */}
-                <div className="bg-[#FBF9F5]/60 rounded-xl p-4 border border-[#E8E4DC] space-y-2.5">
+                <div className="bg-[#F0F9FF]/60 rounded-xl p-4 border border-[#CBD5E1] space-y-2.5">
                   <h4 className="font-bold text-blue-900 text-xs uppercase tracking-wide">
                     Bảng Kê Chi Tiết Dòng Tiền Escrow Sàn:
                   </h4>
@@ -724,7 +724,7 @@ export function AdminFinancialManagement({
                       <span>2. Khấu trừ Phí hoa hồng sàn ({feeRate}%):</span>
                       <span className="font-bold">{feeRate === 0 ? "0đ (Miễn phí sàn)" : `- ${formatVND(platformFee)}`}</span>
                     </div>
-                    <div className="border-t border-[#E8E4DC] pt-2 flex justify-between items-center text-sm">
+                    <div className="border-t border-[#CBD5E1] pt-2 flex justify-between items-center text-sm">
                       <span className="font-bold text-gray-900">
                         3. Tổng tiền chuyển cho các đơn vị tổ chức:
                       </span>
@@ -737,10 +737,10 @@ export function AdminFinancialManagement({
 
                 {/* CO-HOSTED SPLIT BREAKDOWN */}
                 {isCoHosted && agencyShares.length > 0 && (
-                  <div className="bg-[#FBF9F5]/80 rounded-xl p-3.5 border border-[#BD5E38]/30 space-y-2.5">
+                  <div className="bg-[#F0F9FF]/80 rounded-xl p-3.5 border border-[#F97316]/30 space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-purple-950 text-xs flex items-center gap-1.5 uppercase">
-                        <Handshake className="w-4 h-4 text-[#BD5E38]" />
+                        <Handshake className="w-4 h-4 text-[#F97316]" />
                         Phân Chia Quyết Toán Cho {agencyShares.length} Công Ty Liên Minh:
                       </span>
                       <span className="text-[10px] font-bold bg-purple-200 text-purple-900 px-2 py-0.5 rounded">
@@ -757,7 +757,7 @@ export function AdminFinancialManagement({
                               <span className="font-bold text-gray-900 text-xs truncate max-w-[150px]">
                                 {agency.agencyName}
                               </span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${agency.isHost ? "bg-[#15291E]/10 text-blue-800" : "bg-[#BD5E38]/15 text-purple-800"}`}>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${agency.isHost ? "bg-[#E0F2FE] text-blue-800" : "bg-[#F97316]/15 text-purple-800"}`}>
                                 {agency.isHost ? "🏢 Chủ trì (Lead)" : "🤝 Đối tác (Partner)"}
                               </span>
                             </div>
@@ -797,7 +797,7 @@ export function AdminFinancialManagement({
                                     );
                                     setSettlementTransactionCode(`UNC-${Date.now().toString().slice(-6)}`);
                                   }}
-                                  className="w-full bg-[#BD5E38] hover:bg-[#A34C2A] text-white text-[11px] h-7 font-bold gap-1 shadow-2xs"
+                                  className="w-full bg-[#F97316] hover:bg-[#EA580C] text-white text-[11px] h-7 font-bold gap-1 shadow-2xs"
                                 >
                                   <DollarSign className="w-3 h-3" />
                                   Giải ngân riêng chặng này ({formatVND(agency.netPayout)})

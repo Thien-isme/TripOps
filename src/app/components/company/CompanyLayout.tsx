@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -51,18 +51,18 @@ export function CompanyLayout({
   const SidebarContent = () => (
     <>
       {/* Brand & User Profile Header */}
-      <div className="p-4 border-b border-[#E8E4DC]">
+      <div className="p-4 border-b border-[#CBD5E1]">
         <div className="flex items-center justify-between gap-2">
           {!collapsed && (
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#15291E] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#075985] text-white flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
                 {company.name ? company.name.substring(0, 2).toUpperCase() : "TO"}
               </div>
               <div className="min-w-0">
-                <p className="font-serif font-semibold text-[#15291E] text-sm truncate">
+                <p className="font-serif font-semibold text-[#075985] text-sm truncate">
                   {company.name}
                 </p>
-                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block -mt-0.5 font-medium truncate">
+                <span className="text-[10px] uppercase tracking-wider text-[#475569] block -mt-0.5 font-medium truncate">
                   {currentUser.name}
                 </span>
               </div>
@@ -70,7 +70,7 @@ export function CompanyLayout({
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 hover:bg-[#FBF9F5] rounded-lg transition-colors hidden lg:flex items-center justify-center border border-[#E8E4DC] text-[#686C67]"
+            className="p-1.5 hover:bg-[#F0F9FF] rounded-lg transition-colors hidden lg:flex items-center justify-center border border-[#CBD5E1] text-[#475569]"
             title={collapsed ? "Mở rộng menu" : "Thu gọn"}
           >
             {collapsed ? (
@@ -81,7 +81,7 @@ export function CompanyLayout({
           </button>
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-2 hover:bg-[#FBF9F5] rounded-lg transition-colors lg:hidden text-[#686C67]"
+            className="p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors lg:hidden text-[#475569]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -102,20 +102,20 @@ export function CompanyLayout({
               }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-xs font-medium ${
                 isActive
-                  ? "bg-[#15291E] text-white shadow-sm font-semibold"
-                  : "text-[#686C67] hover:text-[#15291E] hover:bg-[#FBF9F5]"
+                  ? "bg-[#075985] text-white shadow-sm font-semibold"
+                  : "text-[#475569] hover:text-[#075985] hover:bg-[#F0F9FF]"
               }`}
             >
               <Icon
                 className={`w-4 h-4 flex-shrink-0 ${
-                  isActive ? "text-[#BD5E38]" : "text-[#686C67]"
+                  isActive ? "text-[#F97316]" : "text-[#475569]"
                 }`}
               />
               {!collapsed && (
                 <div className="flex items-center justify-between flex-1 min-w-0">
                   <span className="truncate">{item.label}</span>
                   {item.badge && item.badge > 0 ? (
-                    <span className="bg-[#BD5E38] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">
+                    <span className="bg-[#F97316] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">
                       {item.badge}
                     </span>
                   ) : null}
@@ -128,7 +128,7 @@ export function CompanyLayout({
 
       {/* Logout */}
       {onLogout && (
-        <div className="p-3 border-t border-[#E8E4DC]">
+        <div className="p-3 border-t border-[#CBD5E1]">
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -142,10 +142,10 @@ export function CompanyLayout({
   );
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] flex font-sans antialiased text-[#191A19]">
+    <div className="min-h-screen bg-[#F0F9FF] flex font-sans antialiased text-[#0F172A]">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-white border-r border-[#E8E4DC] transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
+        className={`hidden lg:flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
           collapsed ? "w-16" : "w-64"
         }`}
       >
@@ -155,12 +155,12 @@ export function CompanyLayout({
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-[#15291E]/50 z-40 backdrop-blur-xs"
+          className="lg:hidden fixed inset-0 bg-[#075985]/50 z-40 backdrop-blur-xs"
           onClick={() => setMobileOpen(false)}
         />
       )}
       <aside
-        className={`lg:hidden fixed top-0 bottom-0 left-0 w-64 bg-white z-50 transform transition-transform duration-300 flex flex-col border-r border-[#E8E4DC] ${
+        className={`lg:hidden fixed top-0 bottom-0 left-0 w-64 bg-white z-50 transform transition-transform duration-300 flex flex-col border-r border-[#CBD5E1] ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -174,15 +174,15 @@ export function CompanyLayout({
         }`}
       >
         {/* Mobile Header Bar */}
-        <div className="lg:hidden bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center justify-between sticky top-0 z-20">
+        <div className="lg:hidden bg-white border-b border-[#CBD5E1] px-4 py-3 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileOpen(true)}
-              className="p-1.5 hover:bg-[#FBF9F5] rounded-lg border border-[#E8E4DC]"
+              className="p-1.5 hover:bg-[#F0F9FF] rounded-lg border border-[#CBD5E1]"
             >
-              <Menu className="w-5 h-5 text-[#15291E]" />
+              <Menu className="w-5 h-5 text-[#075985]" />
             </button>
-            <span className="font-serif font-semibold text-[#15291E] text-sm">
+            <span className="font-serif font-semibold text-[#075985] text-sm">
               {company.name}
             </span>
           </div>

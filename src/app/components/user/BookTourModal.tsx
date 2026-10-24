@@ -132,7 +132,7 @@ export function BookTourModal({
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
               currentStep === "info"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-green-600 text-white"
             }`}
           >
@@ -149,7 +149,7 @@ export function BookTourModal({
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
               currentStep === "confirm"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : currentStep === "success"
                 ? "bg-green-600 text-white"
                 : "bg-gray-300 text-gray-600"
@@ -195,7 +195,7 @@ export function BookTourModal({
   const renderInfoStep = () => (
     <div className="space-y-6">
       {/* Tour Summary Card */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border-2 border-[#E8E4DC]">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border-2 border-[#CBD5E1]">
         <div className="flex gap-4">
           <img
             src={tour.image}
@@ -206,11 +206,11 @@ export function BookTourModal({
             <h3 className="text-xl font-bold text-gray-900 mb-2">{tour.name}</h3>
             <div className="space-y-1 text-sm">
               <div className="flex items-center gap-2 text-gray-700">
-                <MapPin className="w-4 h-4 text-[#15291E]" />
+                <MapPin className="w-4 h-4 text-[#075985]" />
                 <span>{tour.destination}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
-                <Clock className="w-4 h-4 text-[#BD5E38]" />
+                <Clock className="w-4 h-4 text-[#F97316]" />
                 <span>{tour.duration}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
@@ -235,7 +235,7 @@ export function BookTourModal({
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             min={getMinDate()}
-            className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent ${
+            className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent ${
               errors.startDate ? "border-red-500" : "border-gray-300"
             }`}
           />
@@ -259,7 +259,7 @@ export function BookTourModal({
             onChange={(e) => setNumberOfGuests(parseInt(e.target.value) || tour.minGuests)}
             min={tour.minGuests}
             max={tour.maxGuests}
-            className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent ${
+            className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent ${
               errors.numberOfGuests ? "border-red-500" : "border-gray-300"
             }`}
           />
@@ -291,7 +291,7 @@ export function BookTourModal({
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Nguyễn Văn A"
-              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent ${
+              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent ${
                 errors.fullName ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -314,7 +314,7 @@ export function BookTourModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@example.com"
-              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent ${
+              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent ${
                 errors.email ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -337,7 +337,7 @@ export function BookTourModal({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0912345678"
-              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent ${
+              className={`w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent ${
                 errors.phone ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -359,7 +359,7 @@ export function BookTourModal({
               onChange={(e) => setNote(e.target.value)}
               placeholder="Yêu cầu đặc biệt, thời gian đón, v.v..."
               rows={3}
-              className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent resize-none"
+              className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent resize-none"
             />
           </div>
         </div>
@@ -379,7 +379,7 @@ export function BookTourModal({
           </div>
           <div className="border-t pt-2 flex justify-between items-center">
             <span className="font-bold text-gray-900">Tổng cộng</span>
-            <span className="text-2xl font-bold text-[#15291E]">
+            <span className="text-2xl font-bold text-[#075985]">
               {formatPrice(totalPrice)}
             </span>
           </div>
@@ -391,9 +391,9 @@ export function BookTourModal({
   const renderConfirmStep = () => (
     <div className="space-y-6">
       {/* Important Notice */}
-      <div className="bg-[#FBF9F5] border-2 border-blue-300 rounded-xl p-5">
+      <div className="bg-[#F0F9FF] border-2 border-blue-300 rounded-xl p-5">
         <div className="flex items-start gap-3">
-          <Info className="w-6 h-6 text-[#15291E] mt-0.5 flex-shrink-0" />
+          <Info className="w-6 h-6 text-[#075985] mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="font-bold text-blue-900 mb-1">Xác nhận thông tin đặt tour</h4>
             <p className="text-blue-800 text-sm">
@@ -488,7 +488,7 @@ export function BookTourModal({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-2xl sm:text-3xl font-bold text-[#15291E]">
+            <p className="text-2xl sm:text-3xl font-bold text-[#075985]">
               {formatPrice(totalPrice)}
             </p>
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">
@@ -535,7 +535,7 @@ export function BookTourModal({
         </div>
         <div className="flex justify-between border-t border-teal-200/60 pt-2">
           <span className="text-gray-600 font-bold">Tổng tiền dự tính:</span>
-          <span className="font-bold text-[#15291E] text-sm">{formatPrice(totalPrice)}</span>
+          <span className="font-bold text-[#075985] text-sm">{formatPrice(totalPrice)}</span>
         </div>
       </div>
 
@@ -600,7 +600,7 @@ export function BookTourModal({
             
             <button
               onClick={currentStep === "info" ? handleNext : handleConfirm}
-              className="px-8 py-3 bg-[#15291E] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2"
+              className="px-8 py-3 bg-[#075985] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2"
             >
               {currentStep === "info" ? (
                 <>

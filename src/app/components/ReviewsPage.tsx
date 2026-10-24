@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Star, MapPin, Calendar, Quote, CheckCircle2 } from "lucide-react";
 
 interface ReviewsPageProps {
@@ -54,18 +54,18 @@ export function ReviewsPage({ onShowLogin }: ReviewsPageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] text-[#191A19] font-sans antialiased">
+    <div className="min-h-screen bg-[#F0F9FF] text-[#0F172A] font-sans antialiased">
       {/* Header */}
-      <section className="pt-32 pb-16 border-b border-[#E8E4DC] bg-white">
+      <section className="pt-32 pb-16 border-b border-[#CBD5E1] bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-3">
-            <span className="text-xs uppercase font-semibold tracking-widest text-[#BD5E38]">
+            <span className="text-xs uppercase font-semibold tracking-widest text-[#F97316]">
               Trải nghiệm thực tế
             </span>
-            <h1 className="text-3xl sm:text-5xl font-serif text-[#15291E] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-serif text-[#075985] tracking-tight">
               Những cảm nhận chân thực từ du khách TripOps
             </h1>
-            <p className="text-base text-[#686C67] font-light leading-relaxed">
+            <p className="text-base text-[#475569] font-light leading-relaxed">
               Mỗi chia sẻ là động lực để chúng tôi tiếp tục duy trì chuẩn mực dịch vụ tinh tế và bảo tồn giá trị nguyên bản của du lịch.
             </p>
           </div>
@@ -77,16 +77,16 @@ export function ReviewsPage({ onShowLogin }: ReviewsPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           {/* Destination tabs */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-[#E8E4DC] pb-4">
-            <span className="text-xs text-[#686C67] mr-2">Lọc theo điểm đến:</span>
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#CBD5E1] pb-4">
+            <span className="text-xs text-[#475569] mr-2">Lọc theo điểm đến:</span>
             {destinations.map((dest) => (
               <button
                 key={dest}
                 onClick={() => setSelectedDestination(dest)}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                   selectedDestination === dest
-                    ? "bg-[#15291E] text-white"
-                    : "bg-white text-[#686C67] border border-[#E8E4DC] hover:border-[#15291E]"
+                    ? "bg-[#075985] text-white"
+                    : "bg-white text-[#475569] border border-[#CBD5E1] hover:border-[#075985]"
                 }`}
               >
                 {dest === "all" ? "Tất cả phản hồi" : dest}
@@ -99,34 +99,34 @@ export function ReviewsPage({ onShowLogin }: ReviewsPageProps) {
             {filteredReviews.map((rev) => (
               <div
                 key={rev.id}
-                className="bg-white p-8 rounded-2xl border border-[#E8E4DC] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:border-[#15291E] transition-all duration-300 flex flex-col justify-between space-y-6"
+                className="bg-white p-8 rounded-2xl border border-[#CBD5E1] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:border-[#075985] transition-all duration-300 flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] uppercase tracking-wider text-[#BD5E38] font-semibold">
+                    <span className="text-[11px] uppercase tracking-wider text-[#F97316] font-semibold">
                       {rev.destination}
                     </span>
-                    <span className="text-xs text-[#686C67] font-light">{rev.date}</span>
+                    <span className="text-xs text-[#475569] font-light">{rev.date}</span>
                   </div>
 
-                  <p className="text-xs text-[#15291E] font-medium">
+                  <p className="text-xs text-[#075985] font-medium">
                     Hành trình: <span className="font-serif italic text-sm">{rev.tour}</span>
                   </p>
 
-                  <p className="text-xs text-[#686C67] font-light leading-relaxed">
+                  <p className="text-xs text-[#475569] font-light leading-relaxed">
                     &ldquo;{rev.comment}&rdquo;
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#E8E4DC] flex items-center gap-3">
+                <div className="pt-4 border-t border-[#CBD5E1] flex items-center gap-3">
                   <img
                     src={rev.avatar}
                     alt={rev.name}
                     className="w-10 h-10 rounded-full object-cover filter saturate-[0.9]"
                   />
                   <div>
-                    <h4 className="text-xs font-semibold text-[#15291E]">{rev.name}</h4>
-                    <p className="text-[10px] text-[#686C67]">{rev.role}</p>
+                    <h4 className="text-xs font-semibold text-[#075985]">{rev.name}</h4>
+                    <p className="text-[10px] text-[#475569]">{rev.role}</p>
                   </div>
                 </div>
               </div>

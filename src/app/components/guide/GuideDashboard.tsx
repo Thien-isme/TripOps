@@ -1244,7 +1244,7 @@ export function GuideDashboard({
                                 {p.phone ? (
                                   <a
                                     href={`tel:${p.phone}`}
-                                    className="text-[#BD5E38] font-semibold text-[11px] flex items-center gap-1 hover:underline mt-0.5"
+                                    className="text-[#F97316] font-semibold text-[11px] flex items-center gap-1 hover:underline mt-0.5"
                                   >
                                     <Phone className="w-3 h-3" />
                                     <span>{p.phone}</span>
@@ -1730,14 +1730,14 @@ export function GuideDashboard({
           <div className="grid grid-cols-2 gap-2 pt-2">
             <a
               href="tel:0909123456"
-              className="bg-[#BD5E38]/10 hover:bg-[#15291E]/10 p-2.5 rounded-xl border border-[#E8E4DC] text-left transition-colors flex items-center gap-2"
+              className="bg-[#F97316]/10 hover:bg-[#E0F2FE] p-2.5 rounded-xl border border-[#CBD5E1] text-left transition-colors flex items-center gap-2"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#BD5E38] text-white flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#F97316] text-white flex items-center justify-center shrink-0">
                 <Phone className="w-4 h-4" />
               </div>
               <div className="text-xs">
                 <span className="font-bold text-blue-900 block">Điều hành Tour</span>
-                <span className="text-[11px] text-[#BD5E38] font-mono">0909 123 456</span>
+                <span className="text-[11px] text-[#F97316] font-mono">0909 123 456</span>
               </div>
             </a>
 

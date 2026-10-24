@@ -135,7 +135,7 @@ export function ServicePostApproval({
           label: "Lưu trú & Khách sạn",
           shortLabel: "Khách sạn",
           icon: Hotel,
-          badgeColor: "bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]",
+          badgeColor: "bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]",
         };
       case "fnb":
       case "restaurant":
@@ -225,7 +225,7 @@ export function ServicePostApproval({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-7 h-7 text-[#15291E]" />
+            <FileText className="w-7 h-7 text-[#075985]" />
             Quản Lý Bài Đăng Dịch Vụ
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -266,15 +266,15 @@ export function ServicePostApproval({
           }}
           className={`cursor-pointer rounded-2xl p-5 border transition-all ${
             selectedStatus === "all" && selectedCategory === "all"
-              ? "bg-[#FBF9F5]/70 border-blue-300 ring-2 ring-blue-500/20 shadow-xs"
-              : "bg-white border-gray-200 hover:border-[#E8E4DC]"
+              ? "bg-[#F0F9FF]/70 border-blue-300 ring-2 ring-blue-500/20 shadow-xs"
+              : "bg-white border-gray-200 hover:border-[#CBD5E1]"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#15291E] uppercase tracking-wider">Tổng bài đăng</span>
-            <Layers className="w-5 h-5 text-[#15291E]" />
+            <span className="text-xs font-bold text-[#075985] uppercase tracking-wider">Tổng bài đăng</span>
+            <Layers className="w-5 h-5 text-[#075985]" />
           </div>
-          <p className="text-3xl font-extrabold text-[#15291E] mt-3">{totalCount}</p>
+          <p className="text-3xl font-extrabold text-[#075985] mt-3">{totalCount}</p>
           <p className="text-[12px] text-gray-500 mt-1">Toàn bộ dịch vụ từ các đối tác cung ứng</p>
         </div>
 
@@ -319,7 +319,7 @@ export function ServicePostApproval({
             onClick={() => setSelectedCategory("all")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCategory === "all"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -329,7 +329,7 @@ export function ServicePostApproval({
             onClick={() => setSelectedCategory("hotel")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === "hotel"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -340,7 +340,7 @@ export function ServicePostApproval({
             onClick={() => setSelectedCategory("fnb")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === "fnb" || selectedCategory === "restaurant"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -351,7 +351,7 @@ export function ServicePostApproval({
             onClick={() => setSelectedCategory("transportation")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === "transportation"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -362,7 +362,7 @@ export function ServicePostApproval({
             onClick={() => setSelectedCategory("attraction")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedCategory === "attraction" || selectedCategory === "activity"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -382,7 +382,7 @@ export function ServicePostApproval({
               placeholder="Tìm theo tên bài đăng, nhà cung cấp, địa chỉ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-[#15291E] focus:bg-white transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-[#075985] focus:bg-white transition-all"
             />
             {searchQuery && (
               <button
@@ -456,7 +456,7 @@ export function ServicePostApproval({
                   {/* Category Pill */}
                   <div className="absolute top-3 left-3">
                     <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/95 backdrop-blur-xs text-gray-800 shadow-xs flex items-center gap-1">
-                      <CatIcon className="w-3.5 h-3.5 text-[#15291E]" />
+                      <CatIcon className="w-3.5 h-3.5 text-[#075985]" />
                       {meta.shortLabel}
                     </span>
                   </div>
@@ -491,7 +491,7 @@ export function ServicePostApproval({
                 {/* Content Details */}
                 <div className="p-4 space-y-2.5">
                   <div>
-                    <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-[#15291E] transition-colors">
+                    <h3 className="font-bold text-gray-900 text-base leading-snug line-clamp-2 group-hover:text-[#075985] transition-colors">
                       {service.name}
                     </h3>
                     <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 truncate">
@@ -528,7 +528,7 @@ export function ServicePostApproval({
                     setSelectedServiceForDetail(service);
                     setActiveImageIndex(0);
                   }}
-                  className="flex-1 rounded-xl text-xs font-semibold gap-1.5 hover:bg-[#FBF9F5] hover:text-[#15291E] hover:border-[#E8E4DC]"
+                  className="flex-1 rounded-xl text-xs font-semibold gap-1.5 hover:bg-[#F0F9FF] hover:text-[#075985] hover:border-[#CBD5E1]"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   Xem chi tiết
@@ -622,7 +622,7 @@ export function ServicePostApproval({
                 </button>
 
                 <div className="absolute top-4 left-4 flex gap-2">
-                  <Badge className="bg-[#15291E] text-white border-none font-bold">
+                  <Badge className="bg-[#075985] text-white border-none font-bold">
                     {getCategoryMeta(selectedServiceForDetail.category).label}
                   </Badge>
                   {selectedServiceForDetail.status === "hidden" ? (
@@ -656,7 +656,7 @@ export function ServicePostApproval({
                       onClick={() => setActiveImageIndex(idx)}
                       className={`relative w-16 h-12 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
                         activeImageIndex === idx
-                          ? "border-[#15291E] ring-2 ring-blue-500/30"
+                          ? "border-[#075985] ring-2 ring-blue-500/30"
                           : "border-transparent opacity-70 hover:opacity-100"
                       }`}
                     >
@@ -685,7 +685,7 @@ export function ServicePostApproval({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-gray-400 block mb-0.5">Khoảng giá tham khảo:</span>
-                    <strong className="text-[#15291E] text-sm font-extrabold">
+                    <strong className="text-[#075985] text-sm font-extrabold">
                       {formatPriceSummary(selectedServiceForDetail)}
                     </strong>
                   </div>
@@ -756,11 +756,11 @@ export function ServicePostApproval({
                   <div className="space-y-2">
                     <h4 className="font-bold text-sm text-gray-900">Tiện nghi & Dịch vụ đi kèm</h4>
                     {selectedServiceForDetail.amenities && selectedServiceForDetail.amenities.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5 p-3 bg-[#FBF9F5]/50 rounded-xl border border-[#E8E4DC]/60">
+                      <div className="flex flex-wrap gap-1.5 p-3 bg-[#F0F9FF]/50 rounded-xl border border-[#CBD5E1]/60">
                         {selectedServiceForDetail.amenities.map((am, aIdx) => (
                           <span
                             key={aIdx}
-                            className="px-2.5 py-1 bg-white text-blue-800 border border-[#E8E4DC] rounded-lg text-[11px] font-medium"
+                            className="px-2.5 py-1 bg-white text-blue-800 border border-[#CBD5E1] rounded-lg text-[11px] font-medium"
                           >
                             ✓ {am}
                           </span>
@@ -786,7 +786,7 @@ export function ServicePostApproval({
                     }`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-[#15291E] hover:text-blue-800 font-semibold"
+                    className="inline-flex items-center gap-1 text-xs text-[#075985] hover:text-blue-800 font-semibold"
                   >
                     Xem vị trí trên Google Maps <ExternalLink className="w-3.5 h-3.5" />
                   </a>

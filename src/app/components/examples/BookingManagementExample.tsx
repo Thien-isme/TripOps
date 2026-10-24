@@ -172,7 +172,7 @@ export function AdminBookingManagementExample() {
         <h2 className="text-2xl font-bold">Quản lý Bookings</h2>
         <button
           onClick={() => execute()}
-          className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38]"
+          className="px-4 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316]"
         >
           Làm mới
         </button>
@@ -192,7 +192,7 @@ export function AdminBookingManagementExample() {
             onClick={() => setFilterStatus(status)}
             className={`px-4 py-2 rounded-lg ${
               filterStatus === status
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -273,7 +273,7 @@ export function AdminBookingManagementExample() {
                           onClick={() =>
                             handleAssignGuide(booking.id)
                           }
-                          className="px-3 py-1 bg-[#15291E] text-white rounded hover:bg-[#BD5E38]"
+                          className="px-3 py-1 bg-[#075985] text-white rounded hover:bg-[#F97316]"
                         >
                           Phân công HDV
                         </button>
@@ -345,7 +345,7 @@ function BookingCard({
       <div className="mt-4 pt-4 border-t flex justify-between items-center">
         <div>
           <p className="text-sm text-gray-500">Tổng tiền</p>
-          <p className="text-2xl font-bold text-[#15291E]">
+          <p className="text-2xl font-bold text-[#075985]">
             {booking.totalPrice.toLocaleString("vi-VN")}đ
           </p>
         </div>
@@ -383,7 +383,7 @@ function StatusBadge({
     pending: "bg-yellow-100 text-yellow-800",
     confirmed: "bg-green-100 text-green-800",
     cancelled: "bg-gray-100 text-gray-800",
-    completed: "bg-[#15291E]/10 text-blue-800",
+    completed: "bg-[#E0F2FE] text-blue-800",
     rejected: "bg-red-100 text-red-800",
   };
 
@@ -411,7 +411,7 @@ function StatusBadge({
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center p-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#15291E]"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#075985]"></div>
     </div>
   );
 }

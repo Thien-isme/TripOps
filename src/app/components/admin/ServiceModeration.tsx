@@ -290,7 +290,7 @@ export function ServiceModeration({
                     ).toLocaleDateString("vi-VN")}
                   </span>
                 </div>
-                <div className="text-[#15291E] font-bold">
+                <div className="text-[#075985] font-bold">
                   {service.price
                     ? formatPrice(service.price)
                     : "Liên hệ"}
@@ -373,7 +373,7 @@ export function ServiceModeration({
                         }
                         className={`flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border-2 transition-all ${
                           (selectedImageIndex[service.id] || 0) === idx
-                            ? "border-[#15291E] ring-2 ring-blue-200"
+                            ? "border-[#075985] ring-2 ring-blue-200"
                             : "border-gray-300 hover:border-blue-400"
                         }`}
                       >
@@ -419,7 +419,7 @@ export function ServiceModeration({
                         (amenity, index) => (
                           <span
                             key={index}
-                            className="px-3 py-1 bg-[#15291E]/10 text-[#15291E] rounded-full text-sm"
+                            className="px-3 py-1 bg-[#E0F2FE] text-[#075985] rounded-full text-sm"
                           >
                             {amenity}
                           </span>
@@ -518,7 +518,7 @@ export function ServiceModeration({
             onClick={() => setFilterStatus("all")}
             className={`px-4 py-2 ${
               filterStatus === "all"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >
@@ -567,7 +567,7 @@ export function ServiceModeration({
             onClick={() => setFilterCategory("all")}
             className={`px-4 py-2 ${
               filterCategory === "all"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >
@@ -577,7 +577,7 @@ export function ServiceModeration({
             onClick={() => setFilterCategory("hotel")}
             className={`px-4 py-2 ${
               filterCategory === "hotel"
-                ? "bg-[#15291E] text-white"
+                ? "bg-[#075985] text-white"
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >
@@ -587,7 +587,7 @@ export function ServiceModeration({
             onClick={() => setFilterCategory("fnb")}
             className={`px-4 py-2 ${
               filterCategory === "fnb"
-                ? "bg-[#BD5E38] text-white"
+                ? "bg-[#F97316] text-white"
                 : "bg-gray-100 text-gray-700"
             } rounded-lg hover:bg-gray-200 transition-colors font-semibold`}
           >

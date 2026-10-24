@@ -61,7 +61,7 @@ export function UserManagement({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-[#15291E] rounded-2xl p-6 text-white">
+      <div className="bg-[#075985] rounded-2xl p-6 text-white">
         <h1 className="text-3xl font-bold mb-2">Quản lý tài khoản khách hàng</h1>
         <p className="text-blue-100">
           Quản lý và giám sát tài khoản người dùng trên hệ thống
@@ -78,8 +78,8 @@ export function UserManagement({
                 {customerUsers.length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-[#15291E]/10 rounded-xl flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-[#15291E]" />
+            <div className="w-12 h-12 bg-[#E0F2FE] rounded-xl flex items-center justify-center">
+              <UserIcon className="w-6 h-6 text-[#075985]" />
             </div>
           </div>
         </div>
@@ -213,10 +213,10 @@ export function UserManagement({
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleViewDetail(user)}
-                          className="p-2 hover:bg-[#FBF9F5] rounded-lg transition-colors group"
+                          className="p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors group"
                           title="Xem chi tiết"
                         >
-                          <Eye className="w-5 h-5 text-[#15291E] group-hover:scale-110 transition-transform" />
+                          <Eye className="w-5 h-5 text-[#075985] group-hover:scale-110 transition-transform" />
                         </button>
                         <button
                           onClick={() => handleToggleLock(user.id)}
@@ -272,7 +272,7 @@ export function UserManagement({
             {/* Modal Content */}
             <div className="p-6 space-y-6">
               {/* User Avatar & Name */}
-              <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-[#E8E4DC]">
+              <div className="flex items-center gap-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-[#CBD5E1]">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
                   {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
@@ -306,8 +306,8 @@ export function UserManagement({
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#15291E]/10 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-[#15291E]" />
+                    <div className="w-10 h-10 bg-[#E0F2FE] rounded-lg flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-[#075985]" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Email</p>
@@ -339,7 +339,7 @@ export function UserManagement({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Vai trò</p>
-                    <span className="px-3 py-1 bg-[#15291E]/10 text-[#15291E] rounded-full text-sm font-semibold">
+                    <span className="px-3 py-1 bg-[#E0F2FE] text-[#075985] rounded-full text-sm font-semibold">
                       Khách hàng
                     </span>
                   </div>

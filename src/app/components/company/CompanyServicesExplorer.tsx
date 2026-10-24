@@ -43,7 +43,7 @@ const getCategoryMeta = (category: Service["category"]) => {
         label: "Lưu trú & Khách sạn",
         shortLabel: "Khách sạn",
         icon: Hotel,
-        color: "bg-[#FBF9F5] text-[#15291E] border-[#E8E4DC]",
+        color: "bg-[#F0F9FF] text-[#075985] border-[#CBD5E1]",
         pinBg: "#2563eb",
         pinBorder: "#1d4ed8",
         unit: "/ phòng",
@@ -238,7 +238,7 @@ function ServiceDetailOsmMap({
     });
 
     const marker = L.marker([lat, lng], { icon }).addTo(map);
-    marker.bindPopup(`<div class="p-1 font-sans text-xs"><strong class="font-bold text-gray-900">${serviceName}</strong>${priceText ? `<div class="mt-1 font-extrabold text-[#15291E]">${priceText}</div>` : ""}</div>`).openPopup();
+    marker.bindPopup(`<div class="p-1 font-sans text-xs"><strong class="font-bold text-gray-900">${serviceName}</strong>${priceText ? `<div class="mt-1 font-extrabold text-[#075985]">${priceText}</div>` : ""}</div>`).openPopup();
 
     mapInstanceRef.current = map;
 
@@ -400,17 +400,17 @@ function ExplorerOsmMap({
              style="transform: translate(-50%, -100%); cursor: pointer;">
           <div class="relative flex flex-col items-center">
             <div style="border-color: ${meta.pinBorder};" 
-                 class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-gray-900 shadow-md border-2 group-hover:border-[#15291E] group-hover:shadow-xl transition-all duration-150 ring-2 ring-black/5">
+                 class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-gray-900 shadow-md border-2 group-hover:border-[#075985] group-hover:shadow-xl transition-all duration-150 ring-2 ring-black/5">
               <div style="background-color: ${meta.pinBg};" 
                    class="w-5 h-5 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-2xs">
                 ${iconSvg}
               </div>
-              <span class="text-[12px] font-extrabold tracking-tight text-gray-900 group-hover:text-[#15291E] whitespace-nowrap">
+              <span class="text-[12px] font-extrabold tracking-tight text-gray-900 group-hover:text-[#075985] whitespace-nowrap">
                 ${mapPrice}
               </span>
             </div>
             <div style="border-color: ${meta.pinBorder};" 
-                 class="w-2.5 h-2.5 bg-white border-r-2 border-b-2 rotate-45 -mt-1 shadow-xs group-hover:border-[#15291E] transition-colors"></div>
+                 class="w-2.5 h-2.5 bg-white border-r-2 border-b-2 rotate-45 -mt-1 shadow-xs group-hover:border-[#075985] transition-colors"></div>
           </div>
         </div>
       `;
@@ -442,11 +442,11 @@ function ExplorerOsmMap({
           </p>
           <div class="pt-1 border-t border-gray-100 flex items-baseline justify-between">
             <span class="text-[10px] text-gray-500">Giá tham khảo:</span>
-            <span class="font-bold text-[#15291E] text-xs">${formatPriceSummary(service)} ${meta.unit}</span>
+            <span class="font-bold text-[#075985] text-xs">${formatPriceSummary(service)} ${meta.unit}</span>
           </div>
           <div class="pt-2 flex gap-1.5">
             <button id="view-detail-btn-${service.id}" 
-              class="w-full py-1.5 px-2 bg-[#15291E] hover:bg-[#BD5E38] text-white rounded-lg font-semibold text-center text-xs transition-colors flex items-center justify-center gap-1 shadow-xs">
+              class="w-full py-1.5 px-2 bg-[#075985] hover:bg-[#F97316] text-white rounded-lg font-semibold text-center text-xs transition-colors flex items-center justify-center gap-1 shadow-xs">
               Xem bài đăng chi tiết →
             </button>
           </div>
@@ -523,7 +523,7 @@ function ExplorerOsmMap({
           onClick={() => setMapType("google")}
           className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
             mapType === "google"
-              ? "bg-[#15291E] text-white shadow-xs"
+              ? "bg-[#075985] text-white shadow-xs"
               : "text-gray-700 hover:bg-gray-100"
           }`}
           title="Google Maps Bản đồ đường phố"
@@ -534,7 +534,7 @@ function ExplorerOsmMap({
           onClick={() => setMapType("satellite")}
           className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
             mapType === "satellite"
-              ? "bg-[#15291E] text-white shadow-xs"
+              ? "bg-[#075985] text-white shadow-xs"
               : "text-gray-700 hover:bg-gray-100"
           }`}
           title="Ảnh Vệ tinh Google"
@@ -545,7 +545,7 @@ function ExplorerOsmMap({
           onClick={() => setMapType("osm")}
           className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
             mapType === "osm"
-              ? "bg-[#15291E] text-white shadow-xs"
+              ? "bg-[#075985] text-white shadow-xs"
               : "text-gray-700 hover:bg-gray-100"
           }`}
           title="OpenStreetMap tốc độ cao"
@@ -663,7 +663,7 @@ export function CompanyServicesExplorer({
                 setContactingService(selectedService);
                 setInquirySent(false);
               }}
-              className="rounded-xl bg-[#15291E] hover:bg-[#BD5E38] text-white shadow-xs flex-1 sm:flex-initial"
+              className="rounded-xl bg-[#075985] hover:bg-[#F97316] text-white shadow-xs flex-1 sm:flex-initial"
             >
               <Phone className="w-4 h-4 mr-1.5" />
               Liên hệ Đối tác
@@ -710,7 +710,7 @@ export function CompanyServicesExplorer({
                     onClick={() => setActiveImageIndex(idx)}
                     className={`relative flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all ${
                       activeImageIndex === idx
-                        ? "border-[#15291E] ring-2 ring-blue-600/30 scale-102"
+                        ? "border-[#075985] ring-2 ring-blue-600/30 scale-102"
                         : "border-gray-200 opacity-75 hover:opacity-100"
                     }`}
                   >
@@ -758,11 +758,11 @@ export function CompanyServicesExplorer({
                 {selectedService.priceFrom && selectedService.priceTo ? (
                   <div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl sm:text-3xl font-extrabold text-[#15291E]">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-[#075985]">
                         {selectedService.priceFrom.toLocaleString("vi-VN")}đ -{" "}
                         {selectedService.priceTo.toLocaleString("vi-VN")}đ
                       </span>
-                      <span className="text-xs font-semibold text-[#15291E]">
+                      <span className="text-xs font-semibold text-[#075985]">
                         / {selectedService.category === "hotel" ? "phòng" : "người"}
                       </span>
                     </div>
@@ -774,7 +774,7 @@ export function CompanyServicesExplorer({
                   </div>
                 ) : (
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl font-extrabold text-[#15291E]">
+                    <span className="text-3xl font-extrabold text-[#075985]">
                       {selectedService.price?.toLocaleString("vi-VN")}đ
                     </span>
                     <span className="text-xs font-medium text-gray-600">
@@ -784,7 +784,7 @@ export function CompanyServicesExplorer({
                 )}
 
                 {selectedService.pricePerPerson && !selectedService.priceFrom && (
-                  <div className="mt-2 pt-2 border-t border-[#E8E4DC]/50 flex justify-between text-xs text-gray-700">
+                  <div className="mt-2 pt-2 border-t border-[#CBD5E1]/50 flex justify-between text-xs text-gray-700">
                     <span>Giá tính theo người:</span>
                     <strong>{selectedService.pricePerPerson.toLocaleString("vi-VN")}đ/người</strong>
                   </div>
@@ -835,7 +835,7 @@ export function CompanyServicesExplorer({
             {/* 1. Description */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-3">
               <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-                <Info className="w-5 h-5 text-[#15291E]" />
+                <Info className="w-5 h-5 text-[#075985]" />
                 Mô tả chi tiết dịch vụ
               </h3>
               <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50/60 p-4 rounded-xl border border-gray-100">
@@ -846,7 +846,7 @@ export function CompanyServicesExplorer({
             {/* 2. Category-Specific Details */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
               <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-                <CategoryIcon className="w-5 h-5 text-[#15291E]" />
+                <CategoryIcon className="w-5 h-5 text-[#075985]" />
                 Thông số & Quy mô dịch vụ [{meta.label}]
               </h3>
 
@@ -867,7 +867,7 @@ export function CompanyServicesExplorer({
 
                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <span className="text-gray-500 block mb-0.5">{meta.capacityLabel}:</span>
-                  <span className="font-bold text-[#15291E] text-sm">
+                  <span className="font-bold text-[#075985] text-sm">
                     {selectedService.capacity || selectedService.totalRooms || selectedService.seats || "Đang cập nhật"}{" "}
                     {meta.capacityUnit}
                   </span>
@@ -955,14 +955,14 @@ export function CompanyServicesExplorer({
             {selectedService.amenities && selectedService.amenities.length > 0 && (
               <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-3">
                 <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[#15291E]" />
+                  <ShieldCheck className="w-5 h-5 text-[#075985]" />
                   Tiện nghi & Dịch vụ đi kèm
                 </h3>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {selectedService.amenities.map((amenity, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1.5 bg-[#FBF9F5]/80 text-blue-800 text-xs font-semibold rounded-xl border border-[#E8E4DC] flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-[#F0F9FF]/80 text-blue-800 text-xs font-semibold rounded-xl border border-[#CBD5E1] flex items-center gap-1.5"
                     >
                       ✓ {amenity}
                     </span>
@@ -1011,7 +1011,7 @@ export function CompanyServicesExplorer({
                 <div className="pt-3 border-t border-gray-100 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-gray-700 flex items-center gap-1">
-                      <Compass className="w-3.5 h-3.5 text-[#15291E]" />
+                      <Compass className="w-3.5 h-3.5 text-[#075985]" />
                       Tọa độ GPS (WGS84):
                     </span>
                     <span className="font-mono text-gray-800 font-semibold bg-gray-100 px-2 py-0.5 rounded text-[11px]">
@@ -1033,7 +1033,7 @@ export function CompanyServicesExplorer({
                     href={`https://www.google.com/maps?q=${lat},${lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E]/10 font-semibold text-xs border border-[#E8E4DC] transition-colors shadow-2xs"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#F0F9FF] text-[#075985] hover:bg-[#E0F2FE] font-semibold text-xs border border-[#CBD5E1] transition-colors shadow-2xs"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Mở vị trí trên Google Maps (Điều hướng)
@@ -1045,13 +1045,13 @@ export function CompanyServicesExplorer({
             {/* Provider Credentials Card */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
               <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[#BD5E38]" />
+                <Building2 className="w-4 h-4 text-[#F97316]" />
                 Thông tin Nhà cung cấp đối tác
               </h3>
 
-              <div className="p-3.5 rounded-xl bg-[#FBF9F5]/50 border border-purple-100 space-y-2">
+              <div className="p-3.5 rounded-xl bg-[#F0F9FF]/50 border border-purple-100 space-y-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#BD5E38]/15 text-[#A34C2A] flex items-center justify-center font-bold text-sm shadow-xs">
+                  <div className="w-10 h-10 rounded-xl bg-[#F97316]/15 text-[#EA580C] flex items-center justify-center font-bold text-sm shadow-xs">
                     {selectedService.providerName.charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -1078,7 +1078,7 @@ export function CompanyServicesExplorer({
                     setContactingService(selectedService);
                     setInquirySent(false);
                   }}
-                  className="w-full rounded-xl bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-semibold py-2.5 text-xs shadow-xs"
+                  className="w-full rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-semibold py-2.5 text-xs shadow-xs"
                 >
                   <MessageCircle className="w-4 h-4 mr-1.5" />
                   Gửi yêu cầu Báo giá & Hợp đồng
@@ -1094,7 +1094,7 @@ export function CompanyServicesExplorer({
             <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 border border-gray-100 shadow-2xl">
               <div className="flex items-center justify-between border-b pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-[#FBF9F5] text-[#15291E]">
+                  <div className="p-2 rounded-xl bg-[#F0F9FF] text-[#075985]">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
@@ -1128,7 +1128,7 @@ export function CompanyServicesExplorer({
                   </p>
                   <Button
                     onClick={() => setContactingService(null)}
-                    className="rounded-xl bg-[#15291E] text-white text-xs px-6"
+                    className="rounded-xl bg-[#075985] text-white text-xs px-6"
                   >
                     Đóng cửa sổ
                   </Button>
@@ -1154,7 +1154,7 @@ export function CompanyServicesExplorer({
                     <textarea
                       rows={3}
                       defaultValue={`Kính gửi ${contactingService.providerName},\nCông ty chúng tôi dự kiến có đoàn khách cần sử dụng dịch vụ "${contactingService.name}". Xin vui lòng gửi bảng giá chiết khấu đại lý và chính sách hợp tác qua email của chúng tôi.`}
-                      className="w-full p-2.5 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
+                      className="w-full p-2.5 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#075985] focus:outline-hidden"
                     />
                   </div>
 
@@ -1168,7 +1168,7 @@ export function CompanyServicesExplorer({
                     </Button>
                     <Button
                       onClick={() => setInquirySent(true)}
-                      className="flex-1 rounded-xl bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs"
+                      className="flex-1 rounded-xl bg-[#075985] hover:bg-[#F97316] text-white text-xs"
                     >
                       Gửi yêu cầu liên hệ
                     </Button>
@@ -1198,7 +1198,7 @@ export function CompanyServicesExplorer({
               placeholder="Tìm kiếm khách sạn, nhà hàng, điểm tham quan, nhà xe hoặc nhà cung cấp..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#15291E] focus:outline-hidden bg-gray-50/50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm focus:ring-2 focus:ring-[#075985] focus:outline-hidden bg-gray-50/50"
             />
           </div>
 
@@ -1208,7 +1208,7 @@ export function CompanyServicesExplorer({
             <select
               value={selectedProvince}
               onChange={(e) => setSelectedProvince(e.target.value)}
-              className="py-2.5 px-3 rounded-xl border border-gray-200 text-xs sm:text-sm bg-white font-medium text-gray-700 focus:ring-2 focus:ring-[#15291E] focus:outline-hidden"
+              className="py-2.5 px-3 rounded-xl border border-gray-200 text-xs sm:text-sm bg-white font-medium text-gray-700 focus:ring-2 focus:ring-[#075985] focus:outline-hidden"
             >
               <option value="all">Tất cả Tỉnh / Thành phố ({provincesList.length})</option>
               {provincesList.map((p) => (
@@ -1224,7 +1224,7 @@ export function CompanyServicesExplorer({
                 onClick={() => setViewMode("split")}
                 className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                   viewMode === "split"
-                    ? "bg-white text-[#15291E] shadow-xs"
+                    ? "bg-white text-[#075985] shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 title="Bản đồ & Danh sách song song"
@@ -1237,7 +1237,7 @@ export function CompanyServicesExplorer({
                 onClick={() => setViewMode("map")}
                 className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                   viewMode === "map"
-                    ? "bg-white text-[#15291E] shadow-xs"
+                    ? "bg-white text-[#075985] shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 title="Bản đồ OpenStreetMap toàn cảnh"
@@ -1250,7 +1250,7 @@ export function CompanyServicesExplorer({
                 onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
                   viewMode === "grid"
-                    ? "bg-white text-[#15291E] shadow-xs"
+                    ? "bg-white text-[#075985] shadow-xs"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
                 title="Lưới bài đăng"
@@ -1265,7 +1265,7 @@ export function CompanyServicesExplorer({
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs border-t border-gray-100 pt-3">
           <span className="text-gray-500 font-medium flex items-center gap-1 flex-shrink-0 mr-1">
-            <Filter className="w-3.5 h-3.5 text-[#15291E]" />
+            <Filter className="w-3.5 h-3.5 text-[#075985]" />
             Danh mục:
           </span>
 
@@ -1273,7 +1273,7 @@ export function CompanyServicesExplorer({
             onClick={() => setSelectedCategory("all")}
             className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap ${
               selectedCategory === "all"
-                ? "bg-[#15291E] text-white shadow-xs"
+                ? "bg-[#075985] text-white shadow-xs"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -1284,8 +1284,8 @@ export function CompanyServicesExplorer({
             onClick={() => setSelectedCategory("hotel")}
             className={`px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
               selectedCategory === "hotel"
-                ? "bg-[#15291E] text-white shadow-xs"
-                : "bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E]/10 border border-[#E8E4DC]"
+                ? "bg-[#075985] text-white shadow-xs"
+                : "bg-[#F0F9FF] text-[#075985] hover:bg-[#E0F2FE] border border-[#CBD5E1]"
             }`}
           >
             <Hotel className="w-3.5 h-3.5" />
@@ -1436,7 +1436,7 @@ export function CompanyServicesExplorer({
                       </div>
 
                       <h4
-                        className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 h-10 group-hover:text-[#15291E] transition-colors"
+                        className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 h-10 group-hover:text-[#075985] transition-colors"
                         title={service.name}
                       >
                         {service.name}
@@ -1456,7 +1456,7 @@ export function CompanyServicesExplorer({
                         <span className="text-[10px] text-gray-400 block font-medium">
                           Giá tham khảo:
                         </span>
-                        <strong className="text-[#15291E] text-xs sm:text-sm font-extrabold truncate block">
+                        <strong className="text-[#075985] text-xs sm:text-sm font-extrabold truncate block">
                           {formatPriceSummary(service)}
                         </strong>
                       </div>
@@ -1468,7 +1468,7 @@ export function CompanyServicesExplorer({
                           setSelectedService(service);
                           setActiveImageIndex(0);
                         }}
-                        className="rounded-xl bg-[#FBF9F5] text-[#15291E] hover:bg-[#15291E] hover:text-white border border-[#E8E4DC] text-xs px-2.5 py-1 transition-all flex-shrink-0 font-medium"
+                        className="rounded-xl bg-[#F0F9FF] text-[#075985] hover:bg-[#075985] hover:text-white border border-[#CBD5E1] text-xs px-2.5 py-1 transition-all flex-shrink-0 font-medium"
                       >
                         Xem bài đăng
                         <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
@@ -1572,7 +1572,7 @@ export function CompanyServicesExplorer({
                     </p>
 
                     <h3
-                      className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 h-10 group-hover:text-[#15291E] transition-colors"
+                      className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 h-10 group-hover:text-[#075985] transition-colors"
                       title={service.name}
                     >
                       {service.name}
@@ -1592,7 +1592,7 @@ export function CompanyServicesExplorer({
                       <span className="text-[10px] text-gray-400 block font-medium">
                         Giá tham khảo:
                       </span>
-                      <strong className="text-[#15291E] text-sm font-extrabold truncate block">
+                      <strong className="text-[#075985] text-sm font-extrabold truncate block">
                         {formatPriceSummary(service)}
                       </strong>
                     </div>
@@ -1604,7 +1604,7 @@ export function CompanyServicesExplorer({
                         setSelectedService(service);
                         setActiveImageIndex(0);
                       }}
-                      className="rounded-xl bg-[#15291E] hover:bg-[#BD5E38] text-white text-xs px-3.5 py-1.5 shadow-xs flex-shrink-0 font-semibold"
+                      className="rounded-xl bg-[#075985] hover:bg-[#F97316] text-white text-xs px-3.5 py-1.5 shadow-xs flex-shrink-0 font-semibold"
                     >
                       Chi tiết
                     </Button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { CustomTourRequest, Tour, TourCompany, TourCoHost } from "@/app/types";
 import { mockTourCompanies } from "@/app/data/mockData";
 import {
@@ -34,8 +34,8 @@ interface CompanyCustomRequestsProps {
 
 const STATUS_CONFIG: Record<CustomTourRequest["status"], { label: string; bg: string; text: string }> = {
   pending: { label: "Chờ xử lý", bg: "bg-amber-50 border-amber-200", text: "text-amber-800" },
-  reviewing: { label: "Đang xem xét", bg: "bg-[#15291E]/5 border-[#15291E]/15", text: "text-[#15291E]" },
-  designed: { label: "Đã thiết kế Tour", bg: "bg-[#BD5E38]/10 border-[#BD5E38]/30", text: "text-[#BD5E38]" },
+  reviewing: { label: "Đang xem xét", bg: "bg-[#E0F2FE] border-[#075985]/15", text: "text-[#075985]" },
+  designed: { label: "Đã thiết kế Tour", bg: "bg-[#F97316]/10 border-[#F97316]/30", text: "text-[#F97316]" },
   quoted: { label: "Đã báo giá", bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-800" },
   accepted: { label: "Khách chốt tour", bg: "bg-teal-50 border-teal-200", text: "text-teal-800" },
   rejected: { label: "Từ chối", bg: "bg-red-50 border-red-200", text: "text-red-700" },
@@ -141,32 +141,32 @@ export function CompanyCustomRequests({
   return (
     <div className="space-y-8 font-sans">
       {/* Editorial Header */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E8E4DC] shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-4">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#CBD5E1] shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-xs uppercase font-semibold tracking-widest text-[#BD5E38]">
+            <span className="text-xs uppercase font-semibold tracking-widest text-[#F97316]">
               Điều phối hành trình riêng
             </span>
-            <h2 className="text-2xl sm:text-3xl font-serif text-[#15291E] mt-1">
+            <h2 className="text-2xl sm:text-3xl font-serif text-[#075985] mt-1">
               Yêu cầu thiết kế tour từ khách hàng
             </h2>
-            <p className="text-xs text-[#686C67] font-light mt-0.5">
+            <p className="text-xs text-[#475569] font-light mt-0.5">
               Tiếp nhận, phân tích nhu cầu và xây dựng lịch trình may đo riêng biệt cho khách đoàn & doanh nghiệp.
             </p>
           </div>
         </div>
 
         {/* Status Metrics Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-[#E8E4DC]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-[#CBD5E1]">
           {(["pending", "reviewing", "designed", "quoted"] as const).map((s) => {
             const count = requests.filter((r) => r.status === s).length;
             const cfg = STATUS_CONFIG[s];
             return (
-              <div key={s} className="bg-[#FBF9F5] border border-[#E8E4DC] rounded-xl p-3.5 space-y-1">
-                <span className="text-[10px] uppercase tracking-wider text-[#686C67] block font-medium">
+              <div key={s} className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-3.5 space-y-1">
+                <span className="text-[10px] uppercase tracking-wider text-[#475569] block font-medium">
                   {cfg.label}
                 </span>
-                <span className="text-2xl font-serif font-bold text-[#15291E]">
+                <span className="text-2xl font-serif font-bold text-[#075985]">
                   {count}
                 </span>
               </div>
@@ -260,10 +260,10 @@ function RequestGroupSection({
 }: RequestGroupSectionProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between pb-2 border-b border-[#E8E4DC]">
-        <h3 className="text-base font-serif font-semibold text-[#15291E] flex items-center gap-2">
+      <div className="flex items-center justify-between pb-2 border-b border-[#CBD5E1]">
+        <h3 className="text-base font-serif font-semibold text-[#075985] flex items-center gap-2">
           <span>{title}</span>
-          <span className="text-xs bg-[#15291E]/10 text-[#15291E] px-2 py-0.5 rounded-full font-sans">
+          <span className="text-xs bg-[#E0F2FE] text-[#075985] px-2 py-0.5 rounded-full font-sans">
             {requests.length}
           </span>
         </h3>
@@ -280,7 +280,7 @@ function RequestGroupSection({
           return (
             <div
               key={req.id}
-              className="bg-white rounded-2xl border border-[#E8E4DC] hover:border-[#15291E] shadow-sm transition-all overflow-hidden"
+              className="bg-white rounded-2xl border border-[#CBD5E1] hover:border-[#075985] shadow-sm transition-all overflow-hidden"
             >
               {/* Header Card Row */}
               <div
@@ -293,25 +293,25 @@ function RequestGroupSection({
                     <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${cfg.bg} ${cfg.text}`}>
                       {cfg.label}
                     </span>
-                    <h4 className="text-base font-serif font-semibold text-[#15291E] truncate">
+                    <h4 className="text-base font-serif font-semibold text-[#075985] truncate">
                       {req.destinations}
                     </h4>
                     {matchingTour && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#15291E]/5 text-[#15291E] font-medium border border-[#E8E4DC]">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#E0F2FE] text-[#075985] font-medium border border-[#CBD5E1]">
                         Phiên bản v{matchingTour.version || 1}
                       </span>
                     )}
                     {req.isCoHosted && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#BD5E38]/10 text-[#BD5E38] font-medium border border-[#BD5E38]/20 flex items-center gap-1">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F97316]/10 text-[#F97316] font-medium border border-[#F97316]/20 flex items-center gap-1">
                         <Handshake className="w-3 h-3" />
                         Liên minh lữ hành
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-[#686C67] flex-wrap">
-                    <span className="flex items-center gap-1 font-medium text-[#15291E]">
-                      <Users className="w-3.5 h-3.5 text-[#BD5E38]" />
+                  <div className="flex items-center gap-4 text-xs text-[#475569] flex-wrap">
+                    <span className="flex items-center gap-1 font-medium text-[#075985]">
+                      <Users className="w-3.5 h-3.5 text-[#F97316]" />
                       {req.contactName} ({req.contactPhone})
                     </span>
                     <span className="flex items-center gap-1">
@@ -323,7 +323,7 @@ function RequestGroupSection({
                       {req.numberOfPeople} khách
                     </span>
                     {req.businessName && (
-                      <span className="flex items-center gap-1 text-[#15291E] font-medium">
+                      <span className="flex items-center gap-1 text-[#075985] font-medium">
                         <Building2 className="w-3.5 h-3.5" />
                         {req.businessName}
                       </span>
@@ -335,14 +335,14 @@ function RequestGroupSection({
                 <div className="flex items-center gap-4 self-end md:self-center">
                   {(req.quotedPricePerPerson || matchingTour?.price) && (
                     <div className="text-right">
-                      <span className="text-[10px] uppercase tracking-wider text-[#686C67] block">Định mức / Khách</span>
-                      <span className="text-base font-serif font-semibold text-[#15291E]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#475569] block">Định mức / Khách</span>
+                      <span className="text-base font-serif font-semibold text-[#075985]">
                         {formatVND(matchingTour?.price ?? req.quotedPricePerPerson ?? 0)}
                       </span>
                     </div>
                   )}
 
-                  <div className="w-7 h-7 rounded-full border border-[#E8E4DC] flex items-center justify-center text-[#686C67]">
+                  <div className="w-7 h-7 rounded-full border border-[#CBD5E1] flex items-center justify-center text-[#475569]">
                     {isExp ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </div>
                 </div>
@@ -350,13 +350,13 @@ function RequestGroupSection({
 
               {/* Collapsible Details */}
               {isExp && (
-                <div className="p-6 bg-[#FBF9F5] border-t border-[#E8E4DC] space-y-6">
+                <div className="p-6 bg-[#F0F9FF] border-t border-[#CBD5E1] space-y-6">
                   {req.specialRequirements && (
-                    <div className="space-y-1 bg-white p-4 rounded-xl border border-[#E8E4DC]">
-                      <span className="text-xs uppercase font-semibold tracking-wider text-[#BD5E38]">
+                    <div className="space-y-1 bg-white p-4 rounded-xl border border-[#CBD5E1]">
+                      <span className="text-xs uppercase font-semibold tracking-wider text-[#F97316]">
                         Yêu cầu & Ghi chú từ khách hàng:
                       </span>
-                      <p className="text-xs text-[#191A19]/80 font-light leading-relaxed">
+                      <p className="text-xs text-[#0F172A]/80 font-light leading-relaxed">
                         {req.specialRequirements}
                       </p>
                     </div>
@@ -367,7 +367,7 @@ function RequestGroupSection({
                       {matchingTour && onViewTour && (
                         <button
                           onClick={() => onViewTour(matchingTour)}
-                          className="px-4 py-2 rounded-full border border-[#E8E4DC] bg-white text-xs font-medium text-[#15291E] hover:border-[#15291E] transition-colors"
+                          className="px-4 py-2 rounded-full border border-[#CBD5E1] bg-white text-xs font-medium text-[#075985] hover:border-[#075985] transition-colors"
                         >
                           Xem demo tour
                         </button>
@@ -375,14 +375,14 @@ function RequestGroupSection({
                       {matchingTour && onOpenVersionHistory && (
                         <button
                           onClick={() => onOpenVersionHistory(matchingTour)}
-                          className="px-4 py-2 rounded-full border border-[#E8E4DC] bg-white text-xs font-medium text-[#15291E] hover:border-[#15291E] transition-colors"
+                          className="px-4 py-2 rounded-full border border-[#CBD5E1] bg-white text-xs font-medium text-[#075985] hover:border-[#075985] transition-colors"
                         >
                           Lịch sử phiên bản
                         </button>
                       )}
                       <button
                         onClick={() => onOpenInviteCoHost(req)}
-                        className="px-4 py-2 rounded-full border border-[#BD5E38]/30 bg-[#BD5E38]/10 text-xs font-medium text-[#BD5E38] hover:bg-[#BD5E38]/20 transition-colors"
+                        className="px-4 py-2 rounded-full border border-[#F97316]/30 bg-[#F97316]/10 text-xs font-medium text-[#F97316] hover:bg-[#F97316]/20 transition-colors"
                       >
                         Mời liên minh đối tác
                       </button>
@@ -390,7 +390,7 @@ function RequestGroupSection({
 
                     <button
                       onClick={() => onStartDesignTour(req, matchingTour)}
-                      className="px-6 py-2.5 rounded-full bg-[#15291E] text-white text-xs font-semibold hover:bg-[#BD5E38] transition-all duration-300 flex items-center gap-2 shadow-sm"
+                      className="px-6 py-2.5 rounded-full bg-[#075985] text-white text-xs font-semibold hover:bg-[#F97316] transition-all duration-300 flex items-center gap-2 shadow-sm"
                     >
                       <span>{matchingTour ? "Chỉnh sửa thiết kế tour" : "Bắt đầu thiết kế hành trình"}</span>
                       <ArrowRight className="w-3.5 h-3.5" />

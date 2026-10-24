@@ -42,8 +42,8 @@ export function UserDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-[#E8E4DC] overflow-hidden shadow-sm">
-        <div className="flex border-b border-[#E8E4DC]">
+      <div className="bg-white rounded-2xl border border-[#CBD5E1] overflow-hidden shadow-sm">
+        <div className="flex border-b border-[#CBD5E1]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -52,14 +52,14 @@ export function UserDashboard({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 px-4 py-4 text-center font-medium transition-colors flex items-center justify-center gap-2 text-sm ${
                   activeTab === tab.id
-                    ? "text-[#15291E] font-semibold border-b-2 border-[#15291E]"
-                    : "text-[#686C67] hover:text-[#15291E]"
+                    ? "text-[#075985] font-semibold border-b-2 border-[#075985]"
+                    : "text-[#475569] hover:text-[#075985]"
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
                 {"badge" in tab && (tab.badge ?? 0) > 0 && (
-                  <span className="bg-[#BD5E38] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <span className="bg-[#F97316] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {tab.badge}
                   </span>
                 )}

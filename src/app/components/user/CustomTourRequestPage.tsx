@@ -82,7 +82,7 @@ export function CustomTourRequestPage({
           </p>
           <div className="flex gap-3 justify-center">
             <Button onClick={onBack} variant="outline">Về trang chủ</Button>
-            <Button onClick={() => setSubmitted(false)} className="bg-[#15291E] hover:bg-[#BD5E38]">
+            <Button onClick={() => setSubmitted(false)} className="bg-[#075985] hover:bg-[#F97316]">
               Gửi yêu cầu khác
             </Button>
           </div>
@@ -110,7 +110,7 @@ export function CustomTourRequestPage({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Company selector */}
-        <Section icon={<Building2 className="w-4 h-4 text-[#15291E]" />} title="CHỌN CÔNG TY DU LỊCH">
+        <Section icon={<Building2 className="w-4 h-4 text-[#075985]" />} title="CHỌN CÔNG TY DU LỊCH">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {companies.map((c) => {
               const isSel = form.targetCompanyId === c.id;
@@ -120,7 +120,7 @@ export function CustomTourRequestPage({
                   type="button"
                   onClick={() => setForm((p) => ({ ...p, targetCompanyId: c.id }))}
                   className={`text-left p-3 rounded-xl border-2 transition-all ${
-                    isSel ? "border-blue-500 bg-[#FBF9F5]" : "border-gray-200 bg-white hover:border-[#E8E4DC]"
+                    isSel ? "border-blue-500 bg-[#F0F9FF]" : "border-gray-200 bg-white hover:border-[#CBD5E1]"
                   }`}
                 >
                   <p className="font-semibold text-gray-900 text-sm">{c.name}</p>
@@ -197,7 +197,7 @@ export function CustomTourRequestPage({
         </Section>
 
         {/* Additional info */}
-        <Section icon={<FileText className="w-4 h-4 text-[#BD5E38]" />} title="THÔNG TIN BỔ SUNG THÊM">
+        <Section icon={<FileText className="w-4 h-4 text-[#F97316]" />} title="THÔNG TIN BỔ SUNG THÊM">
           <textarea
             value={form.additionalInfo}
             onChange={set("additionalInfo")}

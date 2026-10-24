@@ -82,7 +82,7 @@ export function AdminLayout({
   const SidebarContent = () => (
     <>
       {/* Logo/Header */}
-      <div className="p-6 border-b border-[#E8E4DC]">
+      <div className="p-6 border-b border-[#CBD5E1]">
         <div className="flex items-center justify-between">
           {!collapsed && (
             <div>
@@ -127,7 +127,7 @@ export function AdminLayout({
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 isActive
-                  ? "bg-[#BD5E38] text-white shadow-lg shadow-blue-600/30"
+                  ? "bg-[#F97316] text-white shadow-lg shadow-blue-600/30"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -143,7 +143,7 @@ export function AdminLayout({
                     <span
                       className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
                         isActive
-                          ? "bg-white text-[#15291E]"
+                          ? "bg-white text-[#075985]"
                           : "bg-amber-100 text-amber-800"
                       }`}
                     >
@@ -174,7 +174,7 @@ export function AdminLayout({
     <div className="min-h-screen bg-gray-50 flex">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:block bg-white border-r border-[#E8E4DC] transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
+        className={`hidden lg:block bg-white border-r border-[#CBD5E1] transition-all duration-300 fixed left-0 top-0 bottom-0 z-30 ${
           collapsed ? "w-20" : "w-64"
         }`}
       >
@@ -193,7 +193,7 @@ export function AdminLayout({
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-[#E8E4DC] z-50 transform transition-transform ${
+        className={`lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-[#CBD5E1] z-50 transform transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -205,7 +205,7 @@ export function AdminLayout({
         className={`flex-1 overflow-auto transition-all duration-300 ${collapsed ? "lg:ml-20" : "lg:ml-64"}`}
       >
         {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b border-[#E8E4DC] px-4 py-3 sticky top-0 z-30">
+        <div className="lg:hidden bg-white border-b border-[#CBD5E1] px-4 py-3 sticky top-0 z-30">
           <button
             onClick={() => setMobileOpen(true)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

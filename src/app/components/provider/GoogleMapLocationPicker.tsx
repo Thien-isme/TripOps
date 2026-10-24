@@ -111,7 +111,7 @@ export function GoogleMapLocationPicker({
           href={googleMapsExternalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-[#15291E] hover:text-[#15291E] font-semibold px-2.5 py-1 rounded-lg bg-[#FBF9F5] hover:bg-[#15291E]/10/70 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-[#075985] hover:text-[#075985] font-semibold px-2.5 py-1 rounded-lg bg-[#F0F9FF] hover:bg-[#E0F2FE]/70 transition-colors"
         >
           <ExternalLink className="w-3.5 h-3.5" />
           Mở trên Google Maps
@@ -129,7 +129,7 @@ export function GoogleMapLocationPicker({
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSearchHotspot(searchQuery))}
               placeholder="Tìm nhanh địa danh (Đà Lạt, Nha Trang, Phú Quốc...)"
-              className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+              className="w-full pl-9 pr-3 py-1.5 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
             />
           </div>
 
@@ -158,7 +158,7 @@ export function GoogleMapLocationPicker({
               key={h.name}
               type="button"
               onClick={() => handleUpdateCoords(h.lat, h.lng)}
-              className="px-2 py-0.5 rounded-lg bg-gray-100 hover:bg-[#FBF9F5] hover:text-[#15291E] text-gray-600 text-[11px] font-medium whitespace-nowrap transition-colors"
+              className="px-2 py-0.5 rounded-lg bg-gray-100 hover:bg-[#F0F9FF] hover:text-[#075985] text-gray-600 text-[11px] font-medium whitespace-nowrap transition-colors"
             >
               {h.name.split(" ")[0]}
             </button>
@@ -207,7 +207,7 @@ export function GoogleMapLocationPicker({
             value={latInput}
             onChange={(e) => setLatInput(e.target.value)}
             onBlur={handleManualInputBlur}
-            className="w-full px-3 py-1.5 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none disabled:bg-gray-100"
+            className="w-full px-3 py-1.5 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none disabled:bg-gray-100"
             placeholder="11.9404"
           />
         </div>
@@ -223,7 +223,7 @@ export function GoogleMapLocationPicker({
             value={lngInput}
             onChange={(e) => setLngInput(e.target.value)}
             onBlur={handleManualInputBlur}
-            className="w-full px-3 py-1.5 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:outline-none disabled:bg-gray-100"
+            className="w-full px-3 py-1.5 text-xs font-mono border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:outline-none disabled:bg-gray-100"
             placeholder="108.4583"
           />
         </div>

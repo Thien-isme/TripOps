@@ -181,12 +181,12 @@ export function AdminTourManagement({
             placeholder="Tìm kiếm tour theo tên, điểm đến hoặc mã tour..."
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
           />
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="px-6 py-4 bg-[#15291E] text-white rounded-xl hover:bg-[#BD5E38] transition-colors flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
+          className="px-6 py-4 bg-[#075985] text-white rounded-xl hover:bg-[#F97316] transition-colors flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
         >
           <Plus className="w-5 h-5" />
           Tạo tour mới
@@ -196,7 +196,7 @@ export function AdminTourManagement({
       {/* Tours List */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <Package className="w-6 h-6 text-[#15291E]" />
+          <Package className="w-6 h-6 text-[#075985]" />
           Danh sách tour ({filteredTours.length})
         </h2>
 
@@ -234,7 +234,7 @@ export function AdminTourManagement({
                             {tour.name}
                           </h3>
                           {tour.tourCode && (
-                            <span className="px-3 py-1 bg-[#15291E]/10 text-[#15291E] rounded-full text-xs font-bold">
+                            <span className="px-3 py-1 bg-[#E0F2FE] text-[#075985] rounded-full text-xs font-bold">
                               {tour.tourCode}
                             </span>
                           )}
@@ -260,7 +260,7 @@ export function AdminTourManagement({
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 text-sm">
                         <DollarSign className="w-4 h-4" />
-                        <span className="font-semibold text-[#15291E]">
+                        <span className="font-semibold text-[#075985]">
                           {formatPrice(tour.price)}
                         </span>
                       </div>
@@ -268,7 +268,7 @@ export function AdminTourManagement({
 
                     {tour.itinerary &&
                       tour.itinerary.length > 0 && (
-                        <div className="text-sm text-gray-600 bg-[#FBF9F5] px-3 py-2 rounded-lg">
+                        <div className="text-sm text-gray-600 bg-[#F0F9FF] px-3 py-2 rounded-lg">
                           <span className="font-semibold">
                             Lịch trình:
                           </span>{" "}
@@ -285,9 +285,9 @@ export function AdminTourManagement({
 
                     {/* Admin Creator Info */}
                     {tour.createdByName && (
-                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-lg border border-[#BD5E38]/30">
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 rounded-lg border border-[#F97316]/30">
                         <div className="flex items-center gap-3">
-                          <User className="w-4 h-4 text-[#BD5E38] flex-shrink-0" />
+                          <User className="w-4 h-4 text-[#F97316] flex-shrink-0" />
                           <div className="flex-1">
                             <p className="text-xs text-gray-500 font-medium">
                               Người tạo tour
@@ -309,7 +309,7 @@ export function AdminTourManagement({
                     <div className="flex gap-2 pt-3 border-t border-gray-200">
                       <button
                         onClick={() => setEditingTour(tour)}
-                        className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors flex items-center gap-2 font-semibold"
+                        className="px-4 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] transition-colors flex items-center gap-2 font-semibold"
                       >
                         <Edit className="w-4 h-4" />
                         Chỉnh sửa

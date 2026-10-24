@@ -118,7 +118,7 @@ export function BookingDetails({
                 booking.paymentStatus === "paid"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                   : booking.paymentStatus === "refunded"
-                  ? "bg-[#FBF9F5] text-[#A34C2A] border-[#BD5E38]/30"
+                  ? "bg-[#F0F9FF] text-[#EA580C] border-[#F97316]/30"
                   : "bg-amber-50 text-amber-800 border-amber-200"
               }`}>
                 {booking.paymentStatus === "paid"
@@ -130,7 +130,7 @@ export function BookingDetails({
             </div>
             <div className="flex justify-between items-center border-t border-gray-200 pt-2">
               <span className="text-gray-700 font-bold">Tổng giá tour dự kiến:</span>
-              <span className="font-bold text-xl text-[#15291E]">
+              <span className="font-bold text-xl text-[#075985]">
                 {formatPrice(booking.totalPrice)}
               </span>
             </div>
@@ -228,7 +228,7 @@ export function BookingDetails({
                       className="border border-gray-200 rounded-lg p-4"
                     >
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-12 h-12 rounded-full bg-[#15291E]/10 text-[#15291E] flex items-center justify-center font-bold flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-[#E0F2FE] text-[#075985] flex items-center justify-center font-bold flex-shrink-0">
                           {day.day}
                         </div>
                         <div className="flex-1">
@@ -311,7 +311,7 @@ export function BookingDetails({
                         key={index}
                         className="flex items-start gap-2 text-gray-700"
                       >
-                        <span className="text-[#15291E] mt-1">
+                        <span className="text-[#075985] mt-1">
                           •
                         </span>
                         <span>{highlight}</span>

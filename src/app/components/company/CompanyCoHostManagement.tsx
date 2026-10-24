@@ -211,11 +211,11 @@ export function CompanyCoHostManagement({
             <span className="text-xs font-semibold text-gray-500">
               Lời mời bạn đã gửi đi
             </span>
-            <div className="w-8 h-8 rounded-lg bg-[#15291E]/10 flex items-center justify-center text-[#15291E]">
+            <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] flex items-center justify-center text-[#075985]">
               <Send className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-[#15291E] mt-2">
+          <p className="text-2xl font-extrabold text-[#075985] mt-2">
             {outgoingRequestInvites.length + outgoingTourInvites.length}
           </p>
           <p className="text-[11px] text-gray-400 mt-1">
@@ -230,7 +230,7 @@ export function CompanyCoHostManagement({
           onClick={() => setActiveTab("incoming")}
           className={`pb-3 px-4 text-xs font-bold transition-all relative flex items-center gap-2 ${
             activeTab === "incoming"
-              ? "text-[#A34C2A] border-b-2 border-purple-600"
+              ? "text-[#EA580C] border-b-2 border-purple-600"
               : "text-gray-500 hover:text-gray-900"
           }`}
         >
@@ -246,7 +246,7 @@ export function CompanyCoHostManagement({
           onClick={() => setActiveTab("active")}
           className={`pb-3 px-4 text-xs font-bold transition-all relative flex items-center gap-2 ${
             activeTab === "active"
-              ? "text-[#A34C2A] border-b-2 border-purple-600"
+              ? "text-[#EA580C] border-b-2 border-purple-600"
               : "text-gray-500 hover:text-gray-900"
           }`}
         >
@@ -257,7 +257,7 @@ export function CompanyCoHostManagement({
           onClick={() => setActiveTab("outgoing")}
           className={`pb-3 px-4 text-xs font-bold transition-all relative flex items-center gap-2 ${
             activeTab === "outgoing"
-              ? "text-[#A34C2A] border-b-2 border-purple-600"
+              ? "text-[#EA580C] border-b-2 border-purple-600"
               : "text-gray-500 hover:text-gray-900"
           }`}
         >
@@ -270,7 +270,7 @@ export function CompanyCoHostManagement({
         <div className="space-y-4">
           {totalIncomingPending === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#FBF9F5] flex items-center justify-center mx-auto text-[#BD5E38]">
+              <div className="w-12 h-12 rounded-full bg-[#F0F9FF] flex items-center justify-center mx-auto text-[#F97316]">
                 <Handshake className="w-6 h-6" />
               </div>
               <p className="font-bold text-gray-800 text-sm">
@@ -291,7 +291,7 @@ export function CompanyCoHostManagement({
                 return (
                   <div
                     key={req.id}
-                    className="bg-white border-2 border-[#BD5E38]/30 rounded-2xl p-5 shadow-sm space-y-4 hover:shadow-md transition-all"
+                    className="bg-white border-2 border-[#F97316]/30 rounded-2xl p-5 shadow-sm space-y-4 hover:shadow-md transition-all"
                   >
                     {/* Header Row */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
@@ -300,10 +300,10 @@ export function CompanyCoHostManagement({
                           <img
                             src={leadHost.companyLogo}
                             alt={leadHost.companyName}
-                            className="w-12 h-12 rounded-xl object-cover border border-[#BD5E38]/30"
+                            className="w-12 h-12 rounded-xl object-cover border border-[#F97316]/30"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-xl bg-[#15291E]/10 flex items-center justify-center font-bold text-[#15291E]">
+                          <div className="w-12 h-12 rounded-xl bg-[#E0F2FE] flex items-center justify-center font-bold text-[#075985]">
                             {leadHost?.companyName?.slice(0, 2).toUpperCase() || "C"}
                           </div>
                         )}
@@ -336,18 +336,18 @@ export function CompanyCoHostManagement({
                     </div>
 
                     {/* Customer & Tour details */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FBF9F5]/50 p-3.5 rounded-xl border border-purple-100 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#F0F9FF]/50 p-3.5 rounded-xl border border-purple-100 text-xs">
                       <div>
                         <span className="text-gray-500 font-medium block">Điểm đến &amp; Tuyến đường</span>
                         <p className="font-bold text-gray-900 mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-[#BD5E38] flex-shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-[#F97316] flex-shrink-0" />
                           {req.destinations}
                         </p>
                       </div>
                       <div>
                         <span className="text-gray-500 font-medium block">Thời gian &amp; Đoàn khách</span>
                         <p className="font-bold text-gray-900 mt-0.5 flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-[#15291E] flex-shrink-0" />
+                          <Calendar className="w-3.5 h-3.5 text-[#075985] flex-shrink-0" />
                           {formatDate(req.departureDate)} – {formatDate(req.returnDate)} ({req.numberOfPeople} người)
                         </p>
                       </div>
@@ -364,7 +364,7 @@ export function CompanyCoHostManagement({
                     <div className="space-y-2 bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-gray-800 flex items-center gap-1.5">
-                          <Sparkles className="w-4 h-4 text-[#BD5E38]" />
+                          <Sparkles className="w-4 h-4 text-[#F97316]" />
                           Chặng được giao cho công ty bạn phụ trách:
                         </span>
                         {myInvite?.estimatedBudgetPerGuest && (
@@ -431,7 +431,7 @@ export function CompanyCoHostManagement({
                 return (
                   <div
                     key={t.id}
-                    className="bg-white border-2 border-[#BD5E38]/30 rounded-2xl p-5 shadow-sm space-y-4 hover:shadow-md transition-all"
+                    className="bg-white border-2 border-[#F97316]/30 rounded-2xl p-5 shadow-sm space-y-4 hover:shadow-md transition-all"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
                       <div>
@@ -512,7 +512,7 @@ export function CompanyCoHostManagement({
                 return (
                   <div
                     key={req.id}
-                    className="bg-white border border-[#BD5E38]/30 rounded-2xl p-5 shadow-xs space-y-4 hover:shadow-sm transition-all"
+                    className="bg-white border border-[#F97316]/30 rounded-2xl p-5 shadow-xs space-y-4 hover:shadow-sm transition-all"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
@@ -520,8 +520,8 @@ export function CompanyCoHostManagement({
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                               isMeLead
-                                ? "bg-[#15291E]/10 text-blue-800"
-                                : "bg-[#BD5E38]/15 text-purple-800"
+                                ? "bg-[#E0F2FE] text-blue-800"
+                                : "bg-[#F97316]/15 text-purple-800"
                             }`}
                           >
                             {isMeLead ? "Bạn là Đơn vị Chủ trì (Lead)" : "Bạn là Đối tác Chuyên môn (Partner)"}
@@ -559,7 +559,7 @@ export function CompanyCoHostManagement({
                           <div
                             key={host.id || hIdx}
                             className={`border rounded-xl p-3.5 space-y-2 ${
-                              isLead ? "bg-[#FBF9F5]/70 border-[#E8E4DC]" : "bg-[#FBF9F5]/70 border-[#BD5E38]/30"
+                              isLead ? "bg-[#F0F9FF]/70 border-[#CBD5E1]" : "bg-[#F0F9FF]/70 border-[#F97316]/30"
                             }`}
                           >
                             <div className="flex items-center justify-between">
@@ -579,7 +579,7 @@ export function CompanyCoHostManagement({
                                   <p className="font-bold text-gray-900 text-xs">
                                     {host.companyName} {isMe ? "(Bạn)" : ""}
                                   </p>
-                                  <span className={`text-[10px] font-semibold ${isLead ? "text-[#15291E]" : "text-[#A34C2A]"}`}>
+                                  <span className={`text-[10px] font-semibold ${isLead ? "text-[#075985]" : "text-[#EA580C]"}`}>
                                     {isLead ? "Đơn vị chủ trì" : "Đối tác liên minh"}
                                   </span>
                                 </div>
@@ -606,7 +606,7 @@ export function CompanyCoHostManagement({
                         <Button
                           size="sm"
                           onClick={() => onEditTourSegment(req)}
-                          className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-bold text-xs gap-1.5 shadow-xs"
+                          className="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs gap-1.5 shadow-xs"
                         >
                           <Edit className="w-3.5 h-3.5" />
                           ✏️ Lên lịch trình, khách sạn &amp; nhà ăn chặng phụ trách
@@ -626,7 +626,7 @@ export function CompanyCoHostManagement({
                 return (
                   <div
                     key={t.id}
-                    className="bg-white border border-[#BD5E38]/30 rounded-2xl p-5 shadow-xs space-y-4 hover:shadow-sm transition-all"
+                    className="bg-white border border-[#F97316]/30 rounded-2xl p-5 shadow-xs space-y-4 hover:shadow-sm transition-all"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
@@ -634,13 +634,13 @@ export function CompanyCoHostManagement({
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                               isMeLead
-                                ? "bg-[#15291E]/10 text-blue-800"
-                                : "bg-[#BD5E38]/15 text-purple-800"
+                                ? "bg-[#E0F2FE] text-blue-800"
+                                : "bg-[#F97316]/15 text-purple-800"
                             }`}
                           >
                             {isMeLead ? "Bạn là Đơn vị Chủ trì (Lead)" : "Bạn là Đối tác Chuyên môn (Partner)"}
                           </span>
-                          <span className="bg-[#BD5E38]/15 text-purple-900 text-xs font-mono font-bold px-2 py-0.5 rounded">
+                          <span className="bg-[#F97316]/15 text-purple-900 text-xs font-mono font-bold px-2 py-0.5 rounded">
                             v{t.version || 1}
                           </span>
                         </div>
@@ -658,7 +658,7 @@ export function CompanyCoHostManagement({
                           <Button
                             size="sm"
                             onClick={() => onEditTourSegment(t)}
-                            className="bg-[#BD5E38] hover:bg-[#A34C2A] text-white font-bold text-xs gap-1.5 shadow-xs"
+                            className="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs gap-1.5 shadow-xs"
                           >
                             <Edit className="w-3.5 h-3.5" />
                             ✏️ Điều chỉnh chặng của bạn
@@ -669,7 +669,7 @@ export function CompanyCoHostManagement({
                             size="sm"
                             variant="outline"
                             onClick={() => onViewTour(t)}
-                            className="text-[#A34C2A] border-[#BD5E38]/30 hover:bg-[#FBF9F5] text-xs gap-1.5"
+                            className="text-[#EA580C] border-[#F97316]/30 hover:bg-[#F0F9FF] text-xs gap-1.5"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             Xem chi tiết tour
@@ -686,14 +686,14 @@ export function CompanyCoHostManagement({
                           <div
                             key={host.id || hIdx}
                             className={`border rounded-xl p-3.5 space-y-1.5 ${
-                              isLead ? "bg-[#FBF9F5]/70 border-[#E8E4DC]" : "bg-[#FBF9F5]/70 border-[#BD5E38]/30"
+                              isLead ? "bg-[#F0F9FF]/70 border-[#CBD5E1]" : "bg-[#F0F9FF]/70 border-[#F97316]/30"
                             }`}
                           >
                             <p className="font-bold text-gray-900 text-xs flex items-center justify-between">
                               <span>
                                 {host.companyName} {isMe ? "(Bạn)" : ""}
                               </span>
-                              <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${isLead ? "text-[#15291E] bg-[#15291E]/10" : "text-[#A34C2A] bg-[#BD5E38]/15"}`}>
+                              <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${isLead ? "text-[#075985] bg-[#E0F2FE]" : "text-[#EA580C] bg-[#F97316]/15"}`}>
                                 {host.revenueSharePercentage ?? Math.round(100 / (t.coHosts?.length || 1))}% chia
                               </span>
                             </p>
@@ -722,7 +722,7 @@ export function CompanyCoHostManagement({
         <div className="space-y-4">
           {outgoingRequestInvites.length === 0 && outgoingTourInvites.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#FBF9F5] flex items-center justify-center mx-auto text-[#15291E]">
+              <div className="w-12 h-12 rounded-full bg-[#F0F9FF] flex items-center justify-center mx-auto text-[#075985]">
                 <Send className="w-6 h-6" />
               </div>
               <p className="font-bold text-gray-800 text-sm">
@@ -774,7 +774,7 @@ export function CompanyCoHostManagement({
                       </div>
 
                       <div className="text-right">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A34C2A] bg-[#FBF9F5] px-2.5 py-1 rounded-full border border-[#BD5E38]/30">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#EA580C] bg-[#F0F9FF] px-2.5 py-1 rounded-full border border-[#F97316]/30">
                           Chờ đối tác báo giá chặng
                         </span>
                       </div>

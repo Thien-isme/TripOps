@@ -202,7 +202,7 @@ export function MessagesPage() {
                     onClick={() => setSelectedMessage(msg)}
                     className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
                       selectedMessage?.id === msg.id
-                        ? "bg-[#FBF9F5] border-l-4 border-[#15291E]"
+                        ? "bg-[#F0F9FF] border-l-4 border-[#075985]"
                         : ""
                     }`}
                   >
@@ -216,7 +216,7 @@ export function MessagesPage() {
                             {msg.providerName}
                           </h4>
                           {msg.unread > 0 && (
-                            <span className="px-2 py-1 bg-[#15291E] text-white text-xs font-bold rounded-full">
+                            <span className="px-2 py-1 bg-[#075985] text-white text-xs font-bold rounded-full">
                               {msg.unread}
                             </span>
                           )}
@@ -269,7 +269,7 @@ export function MessagesPage() {
                         <div
                           className={`max-w-[70%] rounded-2xl px-4 py-3 ${
                             chat.sender === "user"
-                              ? "bg-[#15291E] text-white"
+                              ? "bg-[#075985] text-white"
                               : "bg-gray-100 text-gray-900"
                           }`}
                         >
@@ -310,12 +310,12 @@ export function MessagesPage() {
                           handleSendMessage()
                         }
                         placeholder="Nhập tin nhắn..."
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                       />
                       <button
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim()}
-                        className="px-6 py-3 bg-[#15291E] text-white rounded-xl hover:bg-[#BD5E38] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-6 py-3 bg-[#075985] text-white rounded-xl hover:bg-[#F97316] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
                         <Send className="w-5 h-5" />
                         <span className="hidden sm:inline">

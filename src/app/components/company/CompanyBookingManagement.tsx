@@ -50,14 +50,14 @@ const statusMap: Record<string, { label: string; bg: string; text: string; borde
   pending: { label: "Chờ chốt giá & duyệt", bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-300" },
   confirmed: { label: "Đã xác nhận", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
   cancelled: { label: "Đã hủy", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
-  completed: { label: "Hoàn thành", bg: "bg-[#FBF9F5]", text: "text-[#15291E]", border: "border-[#E8E4DC]" },
-  rejected: { label: "Từ chối", bg: "bg-gray-100", text: "text-gray-700", border: "border-[#E8E4DC]" },
+  completed: { label: "Hoàn thành", bg: "bg-[#F0F9FF]", text: "text-[#075985]", border: "border-[#CBD5E1]" },
+  rejected: { label: "Từ chối", bg: "bg-gray-100", text: "text-gray-700", border: "border-[#CBD5E1]" },
 };
 
 const paymentStatusMap: Record<string, { label: string; color: string; badgeBg: string }> = {
   unpaid: { label: "Chưa thanh toán (Thanh toán sau)", color: "text-amber-800", badgeBg: "bg-amber-50 border-amber-200" },
   paid: { label: "Đã thanh toán", color: "text-emerald-700", badgeBg: "bg-emerald-50 border-emerald-200" },
-  refunded: { label: "Đã hoàn tiền", color: "text-[#A34C2A]", badgeBg: "bg-[#FBF9F5] border-[#BD5E38]/30" },
+  refunded: { label: "Đã hoàn tiền", color: "text-[#EA580C]", badgeBg: "bg-[#F0F9FF] border-[#F97316]/30" },
 };
 
 function formatVND(n: number) {
@@ -83,7 +83,7 @@ function ContractModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-[#15291E]" />
+            <FileText className="w-5 h-5 text-[#075985]" />
             Hợp đồng Dịch vụ Tour – {contractNo}
           </DialogTitle>
         </DialogHeader>
@@ -96,7 +96,7 @@ function ContractModal({
             <p className="text-xs text-gray-500">Số: {contractNo} – Ngày lập: {today}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-xs bg-[#FBF9F5] p-3 rounded-lg border">
+          <div className="grid grid-cols-2 gap-4 text-xs bg-[#F0F9FF] p-3 rounded-lg border">
             <div>
               <p className="font-bold text-gray-800 uppercase mb-1">BÊN CUNG CẤP (BÊN A):</p>
               <p className="font-semibold text-gray-900">{companyName}</p>
@@ -117,7 +117,7 @@ function ContractModal({
               <li>Thời gian: <strong>{booking.tour.duration}</strong></li>
               <li>Ngày khởi hành: <strong>{booking.tourStartDate || "Theo thỏa thuận"}</strong></li>
               <li>Số lượng khách: <strong>{booking.numberOfGuests} người</strong></li>
-              <li>Tổng giá trị hợp đồng: <strong className="text-[#15291E] font-bold">{formatVND(booking.totalPrice)}</strong></li>
+              <li>Tổng giá trị hợp đồng: <strong className="text-[#075985] font-bold">{formatVND(booking.totalPrice)}</strong></li>
               <li>Phương thức thanh toán: <strong>Thanh toán trực tiếp theo các đợt yêu cầu từ công ty</strong></li>
             </ul>
           </div>
@@ -136,7 +136,7 @@ function ContractModal({
 
         <div className="flex gap-2 justify-end mt-2">
           <Button variant="outline" onClick={onClose}>Đóng</Button>
-          <Button className="bg-[#15291E] hover:bg-[#BD5E38] text-white gap-2" onClick={() => window.print()}>
+          <Button className="bg-[#075985] hover:bg-[#F97316] text-white gap-2" onClick={() => window.print()}>
             <Printer className="w-4 h-4" />
             In hợp đồng
           </Button>
@@ -187,11 +187,11 @@ export function CompanyBookingManagement({
   return (
     <div className="space-y-6">
       {/* Control bar: Search & Filters */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DC] p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-[#CBD5E1] p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            className="w-full pl-9 pr-4 py-2 bg-[#FBF9F5] border border-[#E8E4DC] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#15291E] focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-[#F0F9FF] border border-[#CBD5E1] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#075985] focus:bg-white transition-all"
             placeholder="Tìm theo mã đơn, tên khách, SĐT, tên tour..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -214,7 +214,7 @@ export function CompanyBookingManagement({
               onClick={() => setFilterStatus(tab.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 filterStatus === tab.id
-                  ? "bg-[#15291E] text-white shadow-sm"
+                  ? "bg-[#075985] text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
@@ -230,7 +230,7 @@ export function CompanyBookingManagement({
       </div>
 
       {/* Main Bookings Table */}
-      <div className="bg-white rounded-2xl border border-[#E8E4DC] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#CBD5E1] shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="p-12 text-center">
             <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -240,7 +240,7 @@ export function CompanyBookingManagement({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-[#FBF9F5]/80 text-xs font-bold text-gray-600 uppercase border-b border-[#E8E4DC] tracking-wider">
+              <thead className="bg-[#F0F9FF]/80 text-xs font-bold text-gray-600 uppercase border-b border-[#CBD5E1] tracking-wider">
                 <tr>
                   <th scope="col" className="px-4 py-3.5">Mã đơn & Ngày đặt</th>
                   <th scope="col" className="px-4 py-3.5">Khách hàng</th>
@@ -257,7 +257,7 @@ export function CompanyBookingManagement({
                     label: booking.status,
                     bg: "bg-gray-100",
                     text: "text-gray-700",
-                    border: "border-[#E8E4DC]",
+                    border: "border-[#CBD5E1]",
                   };
                   const pst = paymentStatusMap[booking.paymentStatus ?? "unpaid"] ?? paymentStatusMap["unpaid"];
                   const assignedGuide = guides.find((g) => g.id === booking.guideId);
@@ -266,11 +266,11 @@ export function CompanyBookingManagement({
                   return (
                     <tr
                       key={booking.id}
-                      className="hover:bg-[#FBF9F5]/40 transition-colors group"
+                      className="hover:bg-[#F0F9FF]/40 transition-colors group"
                     >
                       {/* Mã đơn */}
                       <td className="px-4 py-4 align-top whitespace-nowrap">
-                        <span className="font-mono text-xs font-bold text-[#15291E] bg-[#FBF9F5] px-2 py-0.5 rounded border border-[#E8E4DC]">
+                        <span className="font-mono text-xs font-bold text-[#075985] bg-[#F0F9FF] px-2 py-0.5 rounded border border-[#CBD5E1]">
                           {booking.id.toUpperCase()}
                         </span>
                         <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
@@ -300,12 +300,12 @@ export function CompanyBookingManagement({
 
                       {/* Tour & Khởi hành */}
                       <td className="px-4 py-4 align-top max-w-[260px]">
-                        <p className="font-semibold text-gray-900 text-sm line-clamp-1 group-hover:text-[#15291E] transition-colors">
+                        <p className="font-semibold text-gray-900 text-sm line-clamp-1 group-hover:text-[#075985] transition-colors">
                           {booking.tour.name}
                         </p>
                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
-                          <span className="inline-flex items-center gap-1 text-blue-800 font-medium bg-[#FBF9F5] px-2 py-0.5 rounded border border-blue-100">
-                            <Calendar className="w-3 h-3 text-[#15291E]" />
+                          <span className="inline-flex items-center gap-1 text-blue-800 font-medium bg-[#F0F9FF] px-2 py-0.5 rounded border border-blue-100">
+                            <Calendar className="w-3 h-3 text-[#075985]" />
                             Khởi hành: {booking.tourStartDate || "Chưa chọn"}
                           </span>
                           <span className="text-gray-400">· {booking.tour.duration}</span>
@@ -314,8 +314,8 @@ export function CompanyBookingManagement({
                         {/* Customization Badge */}
                         {hasCustom && (
                           <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-[#BD5E38]/15 text-purple-800 px-2 py-0.5 rounded-full border border-[#BD5E38]/30">
-                              <Sparkles className="w-3 h-3 text-[#BD5E38]" />
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-[#F97316]/15 text-purple-800 px-2 py-0.5 rounded-full border border-[#F97316]/30">
+                              <Sparkles className="w-3 h-3 text-[#F97316]" />
                               Lịch trình có tùy chỉnh
                             </span>
                             {(booking.customHotelChanges?.some((h) => h.mode === "provider" || h.isProviderService) ||
@@ -373,7 +373,7 @@ export function CompanyBookingManagement({
                                 className="w-7 h-7 rounded-full object-cover border"
                               />
                             ) : (
-                              <div className="w-7 h-7 rounded-full bg-[#15291E]/10 text-[#15291E] flex items-center justify-center text-xs font-bold">
+                              <div className="w-7 h-7 rounded-full bg-[#E0F2FE] text-[#075985] flex items-center justify-center text-xs font-bold">
                                 {assignedGuide.name.charAt(0)}
                               </div>
                             )}
@@ -385,7 +385,7 @@ export function CompanyBookingManagement({
                         ) : booking.status === "confirmed" ? (
                           <button
                             onClick={() => setAssignTarget(booking.id)}
-                            className="text-xs font-medium text-[#15291E] hover:text-blue-800 hover:underline flex items-center gap-1 bg-[#FBF9F5] px-2 py-1 rounded border border-[#E8E4DC]"
+                            className="text-xs font-medium text-[#075985] hover:text-blue-800 hover:underline flex items-center gap-1 bg-[#F0F9FF] px-2 py-1 rounded border border-[#CBD5E1]"
                           >
                             <UserCheck className="w-3.5 h-3.5" />
                             + Gán HDV
@@ -401,7 +401,7 @@ export function CompanyBookingManagement({
                           {/* Nút Xem chi tiết chuyển sang PAGE RIÊNG */}
                           <Button
                             size="sm"
-                            className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-medium text-xs h-8 px-3 shadow-sm flex items-center gap-1.5"
+                            className="bg-[#075985] hover:bg-[#F97316] text-white font-medium text-xs h-8 px-3 shadow-sm flex items-center gap-1.5"
                             onClick={() => onViewBookingDetail?.(booking)}
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -453,7 +453,7 @@ export function CompanyBookingManagement({
         )}
 
         {/* Footer info */}
-        <div className="px-4 py-3 bg-[#FBF9F5] border-t border-[#E8E4DC] flex items-center justify-between text-xs text-gray-500">
+        <div className="px-4 py-3 bg-[#F0F9FF] border-t border-[#CBD5E1] flex items-center justify-between text-xs text-gray-500">
           <span>Hiển thị <strong>{filtered.length}</strong> / {bookings.length} đặt tour</span>
           <span>Bấm <strong>"Xem chi tiết"</strong> để mở toàn trang chi tiết đầy đủ thông tin hành khách, lịch trình thay đổi, khách sạn & hợp đồng</span>
         </div>
@@ -504,12 +504,12 @@ export function CompanyBookingManagement({
                       setAssignTarget(null);
                     }
                   }}
-                  className="w-full flex items-center gap-3 p-3 rounded-2xl border border-[#E8E4DC] hover:border-blue-300 hover:bg-[#FBF9F5] transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl border border-[#CBD5E1] hover:border-blue-300 hover:bg-[#F0F9FF] transition-colors text-left"
                 >
                   {guide.avatar ? (
                     <img src={guide.avatar} alt={guide.name} className="w-9 h-9 rounded-full object-cover" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-[#15291E]/10 text-[#15291E] flex items-center justify-center font-bold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-[#E0F2FE] text-[#075985] flex items-center justify-center font-bold text-sm">
                       {guide.name.charAt(0)}
                     </div>
                   )}
@@ -530,7 +530,7 @@ export function CompanyBookingManagement({
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-[#15291E]" />
+              <CreditCard className="w-5 h-5 text-[#075985]" />
               Tạo yêu cầu thanh toán
             </DialogTitle>
           </DialogHeader>
@@ -539,9 +539,9 @@ export function CompanyBookingManagement({
             if (!b) return null;
             return (
               <div className="space-y-3">
-                <div className="bg-[#FBF9F5] rounded-lg p-3 text-sm">
+                <div className="bg-[#F0F9FF] rounded-lg p-3 text-sm">
                   <p className="text-gray-600">Booking: <strong>{b.contactName || b.userName}</strong></p>
-                  <p className="text-gray-600">Tổng giá tour: <strong className="text-[#15291E]">{formatVND(b.totalPrice)}</strong></p>
+                  <p className="text-gray-600">Tổng giá tour: <strong className="text-[#075985]">{formatVND(b.totalPrice)}</strong></p>
                   {(() => {
                     const totalPaid = (b.paymentRequests ?? [])
                       .filter((pr) => pr.status === "paid")
@@ -583,7 +583,7 @@ export function CompanyBookingManagement({
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={() => setPaymentTarget(null)}>Hủy</Button>
                   <Button
-                    className="bg-[#15291E] hover:bg-[#BD5E38] text-white"
+                    className="bg-[#075985] hover:bg-[#F97316] text-white"
                     disabled={!paymentAmount || !paymentDescription || !paymentDueDate}
                     onClick={() => {
                       if (paymentTarget && paymentAmount && paymentDescription && paymentDueDate) {

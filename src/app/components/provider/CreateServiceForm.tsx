@@ -266,7 +266,7 @@ export function CreateServiceForm({
           {step === "form" && category && !showSuccess && (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Common Fields */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-[#E8E4DC]">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-[#CBD5E1]">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">
                   Thông tin cơ bản
                 </h3>
@@ -426,7 +426,7 @@ export function CreateServiceForm({
                         <button
                           type="button"
                           onClick={handleAddAmenity}
-                          className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors"
+                          className="px-4 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] transition-colors"
                         >
                           Thêm
                         </button>
@@ -435,7 +435,7 @@ export function CreateServiceForm({
                         {amenities.map((amenity) => (
                           <span
                             key={amenity}
-                            className="px-3 py-1 bg-[#15291E]/10 text-[#15291E] rounded-full text-sm flex items-center gap-2"
+                            className="px-3 py-1 bg-[#E0F2FE] text-[#075985] rounded-full text-sm flex items-center gap-2"
                           >
                             {amenity}
                             <button
@@ -652,7 +652,7 @@ export function CreateServiceForm({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-[#15291E] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold"
+                  className="flex-1 px-6 py-3 bg-[#075985] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors font-semibold"
                 >
                   Gửi dịch vụ để kiểm duyệt
                 </button>

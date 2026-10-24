@@ -103,7 +103,7 @@ export function ProviderProfilePage({
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#15291E]" />
+            <Building2 className="w-5 h-5 text-[#075985]" />
             Hồ sơ Doanh nghiệp & Nhà cung cấp
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -129,8 +129,8 @@ export function ProviderProfilePage({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 1. Legal and Business Information */}
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#15291E] flex items-center gap-2 border-b border-gray-100 pb-3">
-            <Building2 className="w-4 h-4 text-[#15291E]" />
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide text-[#075985] flex items-center gap-2 border-b border-gray-100 pb-3">
+            <Building2 className="w-4 h-4 text-[#075985]" />
             1. Thông tin định danh & Pháp lý
           </h3>
 
@@ -144,7 +144,7 @@ export function ProviderProfilePage({
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
 
@@ -157,7 +157,7 @@ export function ProviderProfilePage({
                 required
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
 
@@ -170,7 +170,7 @@ export function ProviderProfilePage({
                 required
                 value={taxCode}
                 onChange={(e) => setTaxCode(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm font-mono border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm font-mono border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
 
@@ -183,7 +183,7 @@ export function ProviderProfilePage({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
 
@@ -196,7 +196,7 @@ export function ProviderProfilePage({
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
 
@@ -208,7 +208,7 @@ export function ProviderProfilePage({
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none resize-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none resize-none"
               />
             </div>
           </div>
@@ -229,7 +229,7 @@ export function ProviderProfilePage({
               <select
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
                 required
               >
                 {allVietnamProvinces.map((p) => (
@@ -247,7 +247,7 @@ export function ProviderProfilePage({
               <select
                 value={ward}
                 onChange={(e) => setWard(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
                 required
               >
                 {getWardsForProvince(province).map((w) => (
@@ -266,7 +266,7 @@ export function ProviderProfilePage({
                 type="text"
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#15291E] focus:outline-none"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#075985] focus:outline-none"
               />
             </div>
           </div>
@@ -287,7 +287,7 @@ export function ProviderProfilePage({
         <div className="flex justify-end bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
           <Button
             type="submit"
-            className="bg-[#15291E] hover:bg-[#BD5E38] text-white font-semibold rounded-xl text-sm px-8 py-2.5 h-auto shadow-md"
+            className="bg-[#075985] hover:bg-[#F97316] text-white font-semibold rounded-xl text-sm px-8 py-2.5 h-auto shadow-md"
           >
             <Save className="w-4 h-4 mr-2" />
             Lưu thay đổi hồ sơ

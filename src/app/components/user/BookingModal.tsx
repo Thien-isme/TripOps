@@ -103,7 +103,7 @@ export function BookingModal({
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E] focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985] focus:border-transparent"
                 required
               />
             </div>
@@ -144,7 +144,7 @@ export function BookingModal({
               </div>
             </div>
 
-            <div className="bg-[#FBF9F5] rounded-lg p-4">
+            <div className="bg-[#F0F9FF] rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-3">
                 Điểm nổi bật
               </h4>
@@ -154,7 +154,7 @@ export function BookingModal({
                     key={index}
                     className="flex items-start gap-2 text-sm text-gray-700"
                   >
-                    <span className="text-[#15291E]">•</span>
+                    <span className="text-[#075985]">•</span>
                     <span>{highlight}</span>
                   </li>
                 ))}
@@ -180,7 +180,7 @@ export function BookingModal({
               </div>
               <div className="flex items-center justify-between text-lg font-bold">
                 <span>Tổng cộng</span>
-                <span className="text-[#15291E]">
+                <span className="text-[#075985]">
                   {formatPrice(totalPrice)}
                 </span>
               </div>
@@ -196,7 +196,7 @@ export function BookingModal({
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-3 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors"
+                className="flex-1 px-4 py-3 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] transition-colors"
               >
                 Xác nhận đặt tour
               </button>

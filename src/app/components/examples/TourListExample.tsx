@@ -43,7 +43,7 @@ export function TourListWithHook() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#15291E]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#075985]"></div>
       </div>
     );
   }
@@ -82,11 +82,11 @@ export function TourListWithHook() {
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
           placeholder="Tìm kiếm tour..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#15291E]"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#075985]"
         />
         <button
           onClick={handleSearch}
-          className="px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] flex items-center gap-2"
+          className="px-6 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] flex items-center gap-2"
         >
           <Search className="w-4 h-4" />
           Tìm
@@ -191,11 +191,11 @@ function TourCard({ tour }: { tour: Tour }) {
         <div className="pt-3 border-t flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500">Giá từ</p>
-            <p className="text-xl font-bold text-[#15291E]">
+            <p className="text-xl font-bold text-[#075985]">
               {tour.price.toLocaleString("vi-VN")}đ
             </p>
           </div>
-          <button className="px-4 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38] transition-colors text-sm font-semibold">
+          <button className="px-4 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316] transition-colors text-sm font-semibold">
             Đặt ngay
           </button>
         </div>
@@ -280,7 +280,7 @@ export function TourSearchExample() {
         </div>
         <button
           onClick={handleSearch}
-          className="mt-4 px-6 py-2 bg-[#15291E] text-white rounded-lg hover:bg-[#BD5E38]"
+          className="mt-4 px-6 py-2 bg-[#075985] text-white rounded-lg hover:bg-[#F97316]"
         >
           Tìm kiếm
         </button>
