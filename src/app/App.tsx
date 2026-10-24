@@ -1184,57 +1184,31 @@ function App() {
   // Show register screen
   if (showRegister) {
     return (
-      <>
-        <UnifiedHeader
-          currentUser={currentUser}
-          onShowLogin={() => setShowLogin(true)}
-          onLogout={handleLogout}
-          onNavigate={(page) => {
+      <div className="min-h-screen bg-[#F0F9FF]">
+        <RegisterScreen
+          onRegisterSuccess={() => {
             setShowRegister(false);
-            handleNavigate(page);
+            setShowLogin(true);
           }}
-          currentPage={currentPage}
+          onBack={() => setShowRegister(false)}
         />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          <RegisterScreen
-            onRegisterSuccess={() => {
-              setShowRegister(false);
-              setShowLogin(true);
-            }}
-            onBack={() => setShowRegister(false)}
-          />
-        </div>
-        <PublicFooter />
-      </>
+      </div>
     );
   }
 
   // Show login screen
   if (showLogin) {
     return (
-      <>
-        <UnifiedHeader
-          currentUser={currentUser}
-          onShowLogin={() => setShowLogin(true)}
-          onLogout={handleLogout}
-          onNavigate={(page) => {
+      <div className="min-h-screen bg-[#F0F9FF]">
+        <LoginScreen
+          onLogin={handleLogin}
+          onBack={() => setShowLogin(false)}
+          onShowRegister={() => {
             setShowLogin(false);
-            handleNavigate(page);
+            setShowRegister(true);
           }}
-          currentPage={currentPage}
         />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          <LoginScreen
-            onLogin={handleLogin}
-            onBack={() => setShowLogin(false)}
-            onShowRegister={() => {
-              setShowLogin(false);
-              setShowRegister(true);
-            }}
-          />
-        </div>
-        <PublicFooter />
-      </>
+      </div>
     );
   }
 
@@ -1479,13 +1453,13 @@ function App() {
           // Not logged in, show public home page
           <HomePage
             onShowLogin={() => setShowLogin(true)}
-            popularTours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
+            popularTours={tours.filter((t) => t.tourType !== "custom_request" && ((t.status === "completed" || t.status === "published" || !t.status) && (t.visibility === "public" || !t.visibility)))}
             onNavigate={handleNavigate}
             onViewTour={handleViewTour}
           />
         ) : currentPage === "book-tours" ? (
           <BookToursPage
-            tours={tours.filter((t) => t.tourType !== "custom_request" && (t.status === "published" || !t.status))}
+            tours={tours.filter((t) => t.tourType !== "custom_request" && ((t.status === "completed" || t.status === "published" || !t.status) && (t.visibility === "public" || !t.visibility)))}
             currentUser={currentUser}
             onShowLogin={() => setShowLogin(true)}
             onBookTour={(tourId) => {

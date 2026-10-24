@@ -390,8 +390,10 @@ export interface Tour {
   coHosts?: TourCoHost[];
   platformFeeRate?: number; // Tỷ lệ phí sàn ký quỹ Escrow (mặc định 8%)
   pricingStatus?: "draft" | "pending_partner_quote" | "quoted" | "approved_by_customer";
-  // Tour publication & moderation status
-  status?: "draft" | "pending_approval" | "published" | "rejected" | "hidden";
+  // Database schema alignment (tours table: status, visibility, is_request)
+  status?: "draft" | "completed" | "published" | "deleted" | "pending_approval" | "rejected" | "hidden";
+  visibility?: "public" | "hidden";
+  is_request?: boolean;
   rejectionReason?: string;
   hiddenReason?: string; // Lý do Admin tạm ẩn tour (thông tin sai lệch, nhảm nhí...)
 }
