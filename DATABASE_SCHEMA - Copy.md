@@ -82,6 +82,7 @@ Table tours {
   tour_code varchar(50)
   name varchar(255)
   destination text
+  departure_location text
   duration_tour text
   operation_period varchar(255)
   duration_days int

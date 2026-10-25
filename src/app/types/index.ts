@@ -1,4 +1,4 @@
-export type UserRole = "user" | "guide" | "admin" | "provider" | "company_admin";
+export type UserRole = "user" | "guide" | "admin" | "provider" | "agency" | "company_admin";
 
 export type ProviderType =
   | "accommodation" // Dịch vụ lưu trú
@@ -29,7 +29,24 @@ export interface TourCompany {
   totalBookings?: number;
 }
 
+
+export interface BusinessProfile {
+  id?: number | string;
+  userId: string;
+  businessName: string;
+  taxCode: string;
+  businessAddress: string;
+  businessLicenseUrl?: string;
+  description?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  approvedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface User {
+  businessProfile?: BusinessProfile;
   id: string;
   name: string;
   email: string;
@@ -458,7 +475,7 @@ export interface Booking {
   userEmail: string;
   numberOfGuests: number;
   totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
+  status: "pending" | "deposited" | "confirmed" | "paid" | "in_progress" | "completed" | "cancelled" | "rejected";
   bookingDate: string;
   tourStartDate: string;
   companyId?: string;
@@ -469,7 +486,7 @@ export interface Booking {
   guidePhone?: string;
   assignedGuides?: BookingAssignedGuide[]; // Danh sách nhiều HDV cho tour đoàn đông hoặc tour liên minh
   // Payment
-  paymentStatus?: "unpaid" | "paid" | "refunded";
+  paymentStatus?: "unpaid" | "partially_paid" | "paid" | "refunded";
   depositAmount?: number;
   depositPaid?: boolean;
   remainingAmount?: number;
@@ -713,4 +730,63 @@ export interface CustomTourRequest {
   // Multi-company co-hosting / B2B partnership
   isCoHosted?: boolean;
   coHosts?: TourCoHost[];
+}
+
+// ============================================================================
+// REFUND REQUESTS (Theo DATABASE_SCHEMA - Copy.md: Table refund_requests)
+// ============================================================================
+export type RefundReasonType =
+  | "CUSTOMER_REQUEST"
+  | "TOUR_CANCELLED"
+  | "SERVICE_QUALITY"
+  | "WEATHER_FORCE_MAJEURE"
+  | "DUPLICATE_PAYMENT"
+  | "OTHER";
+
+export type RefundStatus =
+  | "PENDING"
+  | "REVIEWING"
+  | "APPROVED"
+  | "REJECTED"
+  | "COMPLETED";
+
+export interface RefundRequest {
+  id: string;
+  bookingId: string;
+  bookingCode?: string;
+  tourId?: string;
+  tourName: string;
+  tourStartDate?: string;
+  requestedBy: string; // user id
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+
+  reason: RefundReasonType;
+  reasonDetail: string;
+  evidenceUrls?: string[];
+
+  // Tiền tệ theo quy định & chính sách hoàn hủy
+  originalPaidAmount: number;
+  approvedRefundAmount: number;
+  refundFee: number;
+  refundPercentage: number; // 100, 50, 0...
+
+  // Tài khoản ngân hàng nhận tiền hoàn
+  refundBankName: string;
+  refundAccountNumber: string;
+  refundAccountHolder: string;
+
+  // Trạng thái xử lý
+  status: RefundStatus;
+
+  reviewedBy?: string;
+  reviewerName?: string;
+  reviewNote?: string;
+  rejectionReason?: string;
+  bankTransactionCode?: string; // Mã tham chiếu ủy nhiệm chi / giao dịch ngân hàng
+
+  createdAt: string;
+  reviewedAt?: string;
+  completedAt?: string;
 }

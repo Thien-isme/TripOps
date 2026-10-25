@@ -79,10 +79,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/components/ui/dialog";
-import { TourVersionHistoryModal } from "@/app/components/company/TourVersionHistoryModal";
+import { TourVersionHistoryModal } from "@/app/components/agency/TourVersionHistoryModal";
 import { AIItineraryPlannerModal } from "@/app/components/ai/AIItineraryPlannerModal";
 
-interface CompanyTourManagementProps {
+export interface AgencyTourManagementProps {
   tours: Tour[];
   company: TourCompany;
   onCreateTour: (tour: Omit<Tour, "id">) => void;
@@ -99,14 +99,14 @@ interface PendingAction {
   tour: Tour;
 }
 
-export function CompanyTourManagement({
+export function AgencyTourManagement({
   tours,
   company,
   onCreateTour,
   onEditTour,
   onDeleteTour,
   onRestoreTourVersion,
-}: CompanyTourManagementProps) {
+}: AgencyTourManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [copiedNotice, setCopiedNotice] = useState<string | null>(null);
@@ -949,12 +949,20 @@ export function CompanyTourManagement({
 // =========================================================================
 
 export interface TourFormPageProps {
-  tour: Tour | null;
-  company: TourCompany;
-  onBack: () => void;
-  onSubmit: (data: Partial<Tour>) => void;
+  tour?: Tour | null;
+  company?: TourCompany;
+  onBack?: () => void;
+  onSubmit?: (data: Partial<Tour>) => void;
   customRequest?: CustomTourRequest | null;
   isCustomTour?: boolean;
+  companyId?: string;
+  companyName?: string;
+  companyLogo?: string;
+  onSave?: (data: Partial<Tour>) => void;
+  onCancel?: () => void;
+  isCustomDesign?: boolean;
+  customRequestData?: any;
+  initialTour?: Tour;
 }
 
 type TabType = "general" | "itinerary" | "pricing" | "regulations" | "preview";
@@ -963,14 +971,24 @@ function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
 }
 
-export function TourFormPage({
-  tour,
-  company,
-  onBack,
-  onSubmit,
-  customRequest,
-  isCustomTour,
-}: TourFormPageProps) {
+export function TourFormPage(props: TourFormPageProps) {
+  const tour = props.tour ?? props.initialTour ?? null;
+  const company: TourCompany = props.company || {
+    id: props.companyId || "company-1",
+    name: props.companyName || "Công ty Lữ hành",
+    logo: props.companyLogo || "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=100",
+    email: "contact@agency.vn",
+    phone: "1900 1234",
+    address: "Việt Nam",
+    status: "approved",
+    rating: 5,
+    totalTours: 10,
+    activeBookings: 5,
+  };
+  const onBack = props.onBack ?? props.onCancel ?? (() => {});
+  const onSubmit = props.onSubmit ?? props.onSave ?? (() => {});
+  const customRequest = props.customRequest ?? (props.customRequestData ? (props.customRequestData as any) : null);
+  const isCustomTour = props.isCustomTour ?? props.isCustomDesign ?? false;
   const isCustom = isCustomTour || !!customRequest || tour?.tourType === "custom_request";
   const [changeNote, setChangeNote] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("general");
@@ -1694,7 +1712,7 @@ export function TourFormPage({
         ]
   );
   const [companyNote, setCompanyNote] = useState(
-    tour?.companyNote ?? `${company.name.toUpperCase()} KÍNH CHÚC QUÝ KHÁCH MỘT CHUYẾN ĐI THÚ VỊ VÀ Ý NGHĨA!`
+    tour?.companyNote ?? `${(company?.name || "CÔNG TY LỮ HÀNH").toUpperCase()} KÍNH CHÚC QUÝ KHÁCH MỘT CHUYẾN ĐI THÚ VỊ VÀ Ý NGHĨA!`
   );
 
   const [newInclusion, setNewInclusion] = useState("");
@@ -4927,3 +4945,5 @@ export function TourFormPage({
     </div>
   );
 }
+
+export const CompanyTourManagement = AgencyTourManagement;

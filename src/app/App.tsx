@@ -11,7 +11,7 @@ import { ProviderDashboard } from "@/app/components/provider/ProviderDashboard";
 import { ServicePostManagement } from "@/app/components/provider/ServicePostManagement";
 import { CreatePostModal } from "@/app/components/provider/CreatePostModal";
 import { EditServiceModal } from "@/app/components/provider/EditServiceModal";
-import { CompanyDashboard } from "@/app/components/company/CompanyDashboard";
+import { AgencyDashboard } from "@/app/components/agency/AgencyDashboard";
 import { BookToursPage } from "@/app/components/BookToursPage";
 import { ContactPage } from "@/app/components/ContactPage";
 import { AboutPage } from "@/app/components/AboutPage";
@@ -51,6 +51,7 @@ import {
   BookingAssignedGuide,
   BookingAttractionCheckin,
   BookingIncident,
+  RefundRequest,
 } from "@/app/types";
 import {
   mockTours,
@@ -63,6 +64,7 @@ import {
   mockCustomTourRequests,
   defaultSystemBankAccount,
 } from "@/app/data/mockData";
+import { mockRefundRequests } from "@/app/data/mockRefundRequests";
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(
@@ -76,6 +78,8 @@ function App() {
   const [tours, setTours] = useState<Tour[]>(mockTours);
   const [bookings, setBookings] =
     useState<Booking[]>(mockBookings);
+  const [refundRequests, setRefundRequests] =
+    useState<RefundRequest[]>(mockRefundRequests);
   const [services, setServices] =
     useState<Service[]>(mockServices);
   const [guideSchedules, setGuideSchedules] = useState<
@@ -239,6 +243,113 @@ function App() {
             }
           : booking,
       ),
+    );
+  };
+
+  
+  const handleCreateRefundRequest = (data: {
+    bookingId: string;
+    bookingCode?: string;
+    tourId?: string;
+    tourName: string;
+    tourStartDate?: string;
+    requestedBy: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    reason: any;
+    reasonDetail: string;
+    originalPaidAmount: number;
+    approvedRefundAmount: number;
+    refundFee: number;
+    refundPercentage: number;
+    refundBankName: string;
+    refundAccountNumber: string;
+    refundAccountHolder: string;
+  }) => {
+    const newRefund: RefundRequest = {
+      ...data,
+      id: `refund-${Date.now()}`,
+      status: "PENDING",
+      createdAt: new Date().toISOString(),
+    };
+
+    setRefundRequests([newRefund, ...refundRequests]);
+
+    // Đồng thời cập nhật trạng thái đơn booking sang cancelled
+    setBookings(
+      bookings.map((b) =>
+        b.id === data.bookingId
+          ? {
+              ...b,
+              status: "cancelled" as const,
+              cancellationReason: `[Yêu cầu hoàn tiền ${data.refundPercentage}%]: ${data.reasonDetail}`,
+              rejectedBy: "customer" as const,
+            }
+          : b
+      )
+    );
+  };
+
+  const handleApproveRefund = (refundId: string, bankTransactionCode: string, note?: string) => {
+    setRefundRequests(
+      refundRequests.map((r) =>
+        r.id === refundId
+          ? {
+              ...r,
+              status: "COMPLETED" as const,
+              bankTransactionCode,
+              reviewNote: note,
+              reviewedBy: currentUser?.id,
+              reviewerName: currentUser?.name || "Admin Platform",
+              reviewedAt: new Date().toISOString(),
+              completedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+
+    const target = refundRequests.find((r) => r.id === refundId);
+    if (target) {
+      setBookings(
+        bookings.map((b) =>
+          b.id === target.bookingId ? { ...b, paymentStatus: "refunded" as const } : b
+        )
+      );
+    }
+  };
+
+  const handleRejectRefund = (refundId: string, reason: string) => {
+    setRefundRequests(
+      refundRequests.map((r) =>
+        r.id === refundId
+          ? {
+              ...r,
+              status: "REJECTED" as const,
+              rejectionReason: reason,
+              reviewedBy: currentUser?.id,
+              reviewerName: currentUser?.name || "Admin Platform",
+              reviewedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  };
+
+  const handleReviewRefund = (refundId: string, note?: string) => {
+    setRefundRequests(
+      refundRequests.map((r) =>
+        r.id === refundId
+          ? {
+              ...r,
+              status: "REVIEWING" as const,
+              reviewNote: note,
+              reviewedBy: currentUser?.id,
+              reviewerName: currentUser?.name || "Admin Platform",
+              reviewedAt: new Date().toISOString(),
+            }
+          : r
+      )
     );
   };
 
@@ -1186,10 +1297,15 @@ function App() {
     return (
       <div className="min-h-screen bg-[#F0F9FF]">
         <RegisterScreen
-          onRegisterSuccess={() => {
-            setShowRegister(false);
-            setShowLogin(true);
+          onRegisterSuccess={(registeredUser?: User) => {
+            if (registeredUser) {
+              handleLogin(registeredUser);
+            } else {
+              setShowRegister(false);
+              setShowLogin(true);
+            }
           }}
+          onShowLogin={() => { setShowRegister(false); setShowLogin(true); }}
           onBack={() => setShowRegister(false)}
         />
       </div>
@@ -1221,11 +1337,11 @@ function App() {
     const displayedGuideSchedules =
       userGuideSchedules.length > 0 ? userGuideSchedules : guideSchedules;
 
-    // Company admin view
-    if (currentUser.role === "company_admin") {
+    // Agency view
+    if (currentUser.role === "company_admin" || currentUser.role === "agency") {
       const company = companies.find(
         (c) => c.id === currentUser.companyId,
-      );
+      ) || companies[0];
       if (company) {
         const companyGuides = users.filter(
           (u) => u.role === "guide" && u.companyId === company.id,
@@ -1236,7 +1352,7 @@ function App() {
             b.coHosts?.some((ch) => ch.companyId === company.id),
         );
         return (
-          <CompanyDashboard
+          <AgencyDashboard
             currentUser={currentUser}
             company={company}
             tours={tours}
@@ -1341,6 +1457,10 @@ function App() {
               onUpdateUserStatus={handleUpdateUserStatus}
               onApproveCompany={handleApproveCompany}
               onRejectCompany={handleRejectCompany}
+              refundRequests={refundRequests}
+              onApproveRefund={handleApproveRefund}
+              onRejectRefund={handleRejectRefund}
+              onReviewRefund={handleReviewRefund}
               systemBank={systemBankAccount}
               onUpdateSystemBank={handleUpdateSystemBank}
               onSettleBooking={handleSettleBooking}
@@ -1442,6 +1562,7 @@ function App() {
                 customTourRequests={customTourRequests.filter((r) => r.userId === currentUser?.id)}
                 onBookTour={handleOpenBookingForm}
                 onCancelBooking={handleCancelBooking}
+                onSubmitRefundRequest={handleCreateRefundRequest}
                 onViewTour={handleViewTour}
                 onCancelCustomRequest={handleCancelCustomTourRequest}
                 onNavigateToCustomTourForm={() => handleNavigate("custom-tour")}

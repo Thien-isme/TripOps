@@ -11,11 +11,12 @@ import {
 import { AdminLayout } from "./AdminLayout";
 import { AdminDashboardOverview } from "./AdminDashboardOverview";
 import { AdminFinancialManagement } from "./AdminFinancialManagement";
-import { ProviderAccountApproval } from "./ProviderAccountApproval";
 import { ServicePostApproval } from "./ServicePostApproval";
 import { ProviderManagement } from "./ProviderManagement";
 import { UserManagement } from "./UserManagement";
-import { CompanyManagement } from "./CompanyManagement";
+import { PartnerApprovalManagement } from "./PartnerApprovalManagement";
+import { AdminRefundManagement } from "./AdminRefundManagement";
+import { RefundRequest } from "@/app/types";
 import { AdminTourModeration } from "./AdminTourModeration";
 
 interface AdminDashboardProps {
@@ -57,6 +58,10 @@ interface AdminDashboardProps {
     bankReference?: string
   ) => void;
   onSuspendCompany: (companyId: string, reason: string) => void;
+  refundRequests?: RefundRequest[];
+  onApproveRefund?: (refundId: string, bankTransactionCode: string, note?: string) => void;
+  onRejectRefund?: (refundId: string, reason: string) => void;
+  onReviewRefund?: (refundId: string, note?: string) => void;
   onLogout?: () => void;
 }
 
@@ -90,10 +95,14 @@ export function AdminDashboard({
   onUpdateSystemBank,
   onSettleBooking,
   onSuspendCompany,
+  refundRequests = [],
+  onApproveRefund = () => {},
+  onRejectRefund = () => {},
+  onReviewRefund = () => {},
   onLogout,
 }: AdminDashboardProps) {
   const [activeSection, setActiveSection] =
-    useState<string>("companies");
+    useState<string>("partner-approvals");
 
   const companyAdmins = users.filter(
     (u) => u.role === "company_admin",
@@ -115,14 +124,18 @@ export function AdminDashboard({
             guideSchedules={guideSchedules}
           />
         );
+      case "partner-approvals":
       case "companies":
+      case "approve-providers":
         return (
-          <CompanyManagement
+          <PartnerApprovalManagement
             companies={companies}
             companyAdmins={companyAdmins}
+            providers={providers}
             onApproveCompany={onApproveCompany}
             onRejectCompany={onRejectCompany}
-            onSuspendCompany={onSuspendCompany}
+            onApproveProvider={onApproveProvider}
+            onRejectProvider={onRejectProvider}
           />
         );
       case "tours":
@@ -137,6 +150,16 @@ export function AdminDashboard({
             onRejectTour={onRejectTour || (() => {})}
           />
         );
+      case "refund-requests":
+        return (
+          <AdminRefundManagement
+            refundRequests={refundRequests}
+            onApproveRefund={onApproveRefund}
+            onRejectRefund={onRejectRefund}
+            onReviewRefund={onReviewRefund}
+          />
+        );
+
       case "finance":
         return (
           <AdminFinancialManagement
@@ -146,14 +169,7 @@ export function AdminDashboard({
             onSettleBooking={onSettleBooking}
           />
         );
-      case "approve-providers":
-        return (
-          <ProviderAccountApproval
-            providers={providers}
-            onApproveProvider={onApproveProvider}
-            onRejectProvider={onRejectProvider}
-          />
-        );
+
       case "services":
       case "approve-posts":
         return (
@@ -192,6 +208,7 @@ export function AdminDashboard({
       onNavigate={setActiveSection}
       onLogout={onLogout}
       pendingToursCount={pendingToursCount}
+      pendingRefundsCount={refundRequests.filter((r) => r.status === "PENDING").length}
     >
       {renderContent()}
     </AdminLayout>

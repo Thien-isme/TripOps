@@ -59,17 +59,21 @@ interface UserBookingDetailPageProps {
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Chờ xác nhận & chốt giá", color: "bg-amber-100 text-amber-800 border-amber-300" },
-  confirmed: { label: "Đã xác nhận", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
+  pending: { label: "Chờ xử lý / Chờ cọc", color: "bg-amber-100 text-amber-800 border-amber-300" },
+  deposited: { label: "Đã đặt cọc (30-50%)", color: "bg-sky-100 text-sky-800 border-sky-300" },
+  confirmed: { label: "Đã xác nhận đoàn", color: "bg-teal-100 text-teal-800 border-teal-300" },
+  paid: { label: "Đã thanh toán đủ 100%", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
+  in_progress: { label: "Đang diễn ra", color: "bg-indigo-100 text-indigo-800 border-indigo-300" },
+  completed: { label: "Đã hoàn thành", color: "bg-blue-100 text-blue-800 border-blue-300" },
   cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800 border-red-300" },
-  completed: { label: "Đã hoàn thành", color: "bg-[#E0F2FE] text-blue-800 border-blue-300" },
   rejected: { label: "Đã từ chối", color: "bg-gray-100 text-gray-800 border-gray-300" },
 };
 
 const paymentStatusMap: Record<string, { label: string; color: string }> = {
-  unpaid: { label: "Chưa thanh toán (Thanh toán sau)", color: "bg-amber-50 text-amber-800 border-amber-200" },
-  paid: { label: "Đã thanh toán", color: "bg-emerald-50 text-emerald-800 border-emerald-200" },
-  refunded: { label: "Đã hoàn tiền", color: "bg-[#F0F9FF] text-purple-800 border-[#F97316]/30" },
+  unpaid: { label: "Chưa thanh toán", color: "bg-amber-50 text-amber-800 border-amber-200" },
+  partially_paid: { label: "Đã đặt cọc", color: "bg-sky-50 text-[#075985] border-sky-200" },
+  paid: { label: "Đã thanh toán đủ", color: "bg-emerald-50 text-emerald-800 border-emerald-200" },
+  refunded: { label: "Đã hoàn tiền", color: "bg-purple-50 text-purple-800 border-purple-200" },
 };
 
 function formatVND(n: number) {
@@ -294,11 +298,16 @@ export function UserBookingDetailPage({
   };
 
   const st = statusMap[booking.status] ?? { label: booking.status, color: "bg-gray-100 text-gray-700" };
-  const pst = paymentStatusMap[booking.paymentStatus ?? "unpaid"];
+  const pst =
+    (booking.paymentStatus && paymentStatusMap[booking.paymentStatus]) ??
+    paymentStatusMap.unpaid ?? {
+      label: "Chưa thanh toán",
+      color: "bg-amber-50 text-amber-800 border-amber-200",
+    };
 
   const contractNo = `HD-${booking.id.replace("booking-", "").toUpperCase()}`;
   const today = new Date().toLocaleDateString("vi-VN");
-  const canCancel = booking.status === "pending" || booking.status === "confirmed";
+  const canCancel = booking.status === "pending" || booking.status === "deposited" || booking.status === "confirmed" || booking.status === "paid";
 
   // Multi-company co-hosting logic
   const isCoHosted = Boolean(booking.isCoHosted || booking.tour?.isCoHosted);
@@ -1675,8 +1684,21 @@ export function UserBookingDetailPage({
       {showCancelModal && (
         <CancelTourModal
           bookingId={booking.id}
-          tourName={booking.tour.name}
+          booking={booking}
+          tourName={booking.tour?.name || "Tour du lịch"}
           onCancel={() => setShowCancelModal(false)}
+          onImmediateCancel={(id, reason) => {
+            onCancelBooking(id, reason);
+            setShowCancelModal(false);
+          }}
+          onSubmitRefundRequest={(data) => {
+            if (onSubmitRefundRequest) {
+              onSubmitRefundRequest(data);
+            } else {
+              onCancelBooking(data.bookingId, `[Yêu cầu hoàn tiền]: ${data.reasonDetail}`);
+            }
+            setShowCancelModal(false);
+          }}
           onConfirm={(reason) => {
             onCancelBooking(booking.id, reason);
             setShowCancelModal(false);

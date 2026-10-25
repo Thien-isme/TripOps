@@ -13,6 +13,7 @@ import {
   Sparkles,
   CheckCircle,
   Handshake,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -40,8 +41,10 @@ export function MyBookings({
 
   const filterTabs = [
     { id: "all", label: "Tất cả" },
-    { id: "pending", label: "Chờ xác nhận" },
+    { id: "pending", label: "Chờ xử lý / Cọc" },
+    { id: "deposited", label: "Đã đặt cọc" },
     { id: "confirmed", label: "Đã xác nhận" },
+    { id: "paid", label: "Đã thanh toán đủ" },
     { id: "completed", label: "Hoàn thành" },
     { id: "cancelled", label: "Đã hủy" },
     { id: "rejected", label: "Đã từ chối" },
@@ -72,38 +75,66 @@ export function MyBookings({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "pending":
+        return (
+          <span className="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <Clock className="w-3 h-3 text-amber-600" />
+            Chờ xử lý & cọc
+          </span>
+        );
+      case "deposited":
+        return (
+          <span className="px-2.5 py-1 bg-sky-50 text-[#075985] border border-sky-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <CheckCircle className="w-3 h-3 text-[#075985]" />
+            Đã đặt cọc
+          </span>
+        );
       case "confirmed":
         return (
-          <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
+          <span className="px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <CheckCircle className="w-3 h-3 text-teal-600" />
             Đã xác nhận
+          </span>
+        );
+      case "paid":
+        return (
+          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <CheckCircle className="w-3 h-3 text-emerald-600" />
+            Đã thanh toán đủ
+          </span>
+        );
+      case "in_progress":
+        return (
+          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <Compass className="w-3 h-3 text-indigo-600" />
+            Đang diễn ra
           </span>
         );
       case "completed":
         return (
           <span className="px-2.5 py-1 bg-[#E0F2FE] text-blue-800 border border-blue-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
+            <CheckCircle className="w-3 h-3 text-blue-600" />
             Hoàn thành
           </span>
         );
       case "cancelled":
         return (
-          <span className="px-2.5 py-1 bg-rose-100 text-rose-800 border border-rose-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
-            <XCircle className="w-3 h-3" />
+          <span className="px-2.5 py-1 bg-rose-50 text-rose-800 border border-rose-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <XCircle className="w-3 h-3 text-rose-600" />
             Đã hủy
           </span>
         );
       case "rejected":
         return (
           <span className="px-2.5 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
+            <XCircle className="w-3 h-3 text-gray-500" />
             Đã từ chối
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-xs font-bold inline-flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            Chờ xác nhận &amp; chốt giá
+          <span className="px-2.5 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-full text-xs font-bold">
+            {status}
           </span>
         );
     }
@@ -115,6 +146,12 @@ export function MyBookings({
         return (
           <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">
             Đã thanh toán
+          </span>
+        );
+      case "partially_paid":
+        return (
+          <span className="px-2.5 py-1 bg-sky-50 text-[#075985] border border-sky-200 rounded-full text-xs font-bold">
+            Đã đặt cọc
           </span>
         );
       case "refunded":
@@ -223,7 +260,7 @@ export function MyBookings({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredBookings.map((b) => {
-                    const canCancel = b.status === "pending" || b.status === "confirmed";
+                    const canCancel = b.status === "pending" || b.status === "deposited" || b.status === "confirmed" || b.status === "paid";
 
                     return (
                       <tr key={b.id} className="hover:bg-teal-50/20 transition-colors group">
@@ -362,8 +399,21 @@ export function MyBookings({
           return (
             <CancelTourModal
               bookingId={showCancelModal}
+              booking={booking}
               tourName={booking.tour?.name || "Tour"}
               onCancel={() => setShowCancelModal(null)}
+              onImmediateCancel={(id, reason) => {
+                onCancelBooking(id, reason);
+                setShowCancelModal(null);
+              }}
+              onSubmitRefundRequest={(data) => {
+                if (onSubmitRefundRequest) {
+                  onSubmitRefundRequest(data);
+                } else {
+                  onCancelBooking(data.bookingId, `[Yêu cầu hoàn tiền]: ${data.reasonDetail}`);
+                }
+                setShowCancelModal(null);
+              }}
               onConfirm={handleConfirmCancel}
             />
           );
