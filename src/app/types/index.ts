@@ -697,6 +697,51 @@ export interface RoomBooking {
   specialRequests?: string;
   rejectionReason?: string;
 }
+// Thành viên trong đoàn khách - Khớp chuẩn với bảng booking_participants trong DATABASE_SCHEMA
+export interface GroupGuestMember {
+  id: number | string;
+  participantIndex: number; // participant_index: STT khách trong đoàn (1, 2, 3...)
+  fullName: string; // full_name: Họ và tên
+  gender?: "MALE" | "FEMALE" | "OTHER" | "male" | "female"; // gender: Giới tính
+  dateOfBirth?: string; // date_of_birth: Ngày sinh (YYYY-MM-DD)
+  identityCardNumber?: string; // identity_card_number: CCCD / CMND / Hộ chiếu
+  tierName?: string; // tier_name: Snapshot phân khúc đối tượng (Người lớn, Trẻ em 5-11 tuổi...)
+  roommateNote?: string; // roommate_note: Ghi chú muốn ở cùng với ai (VD: Ở chung phòng với STT 2, muốn ở phòng đơn riêng...)
+  note?: string; // note: Ghi chú cá nhân (Ăn chay, dị ứng, say xe...)
+}
+
+// Group accommodation reservation & quotation request from Tour Agency to Service Provider
+export interface ProviderGroupReservationRequest {
+  id: string;
+  bookingCode: string; // e.g. "BK-8821", "TC-9901"
+  tourName: string; // e.g. "Tour Đà Lạt Romantic 3N2Đ - Đoàn FPT Telecom"
+  serviceId: string; // ID của dịch vụ khách sạn
+  serviceName: string; // Tên khách sạn/resort
+  providerId: string; // ID nhà cung cấp: "provider-1"
+  agencyId: string;
+  agencyName: string; // e.g. "Công ty Cổ phần Lữ hành Fiditour"
+  agencyLogo?: string;
+  agencyContactName: string; // e.g. "Phạm Trung Hiếu"
+  agencyPhone: string; // e.g. "0938 101 234"
+  agencyEmail: string; // e.g. "booking@fiditour.com"
+  checkInDate: string; // e.g. "2026-11-20"
+  checkOutDate: string; // e.g. "2026-11-22"
+  numberOfNights: number; // e.g. 2 đêm
+  numberOfGuests: number; // e.g. 16 khách
+  adultGuests: number; // e.g. 16
+  childGuests: number; // e.g. 0
+  numberOfRooms?: number; // Không bắt buộc - Provider xem danh sách khách để tự tính toán
+  roomTypeRequested?: string; // Hạng phòng gợi ý: "Phòng Deluxe / Superior"
+  passengers?: GroupGuestMember[]; // Danh sách toàn bộ đoàn khách & mong muốn xếp phòng
+  specialRequests?: string; // Ghi chú chung của Agency cho đoàn
+  status: "pending" | "confirmed" | "rejected";
+  quotedTotalPrice?: number; // Giá tổng cho toàn bộ đoàn khách do provider báo
+  providerNote?: string; // Ghi chú báo giá từ provider
+  rejectionReason?: string; // Lý do từ chối nếu không nhận
+  createdAt: string;
+  respondedAt?: string;
+}
+
 export interface CustomTourRequest {
   id: string;
   userId?: string;
