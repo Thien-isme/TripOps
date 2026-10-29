@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Tour,
   Service,
@@ -2245,28 +2245,28 @@ export function TourDetailPage({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 font-sans">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-4">
             {/* Hero */}
-            <div className="relative rounded-2xl overflow-hidden shadow-lg h-72 sm:h-96">
+            <div className="relative rounded-[6px] overflow-hidden border border-[#CBD5E1] h-72 sm:h-96">
               <img src={selectedPhoto || tour.image} alt={tour.name} className="w-full h-full object-cover transition-all duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-black/40" />
               {tour.companyName && (
-                <div className="absolute top-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5">
+                <div className="absolute top-4 left-4 flex items-center gap-2 bg-white rounded-[4px] px-3 py-1.5 border border-[#CBD5E1]">
                   {tour.companyLogo && (
-                    <img src={tour.companyLogo} alt="" className="w-5 h-5 rounded object-cover" />
+                    <img src={tour.companyLogo} alt="" className="w-4 h-4 rounded-[2px] object-cover" />
                   )}
-                  <span className="text-xs font-semibold text-gray-800">{tour.companyName}</span>
+                  <span className="text-xs font-semibold text-[#0F172A]">{tour.companyName}</span>
                 </div>
               )}
-              <div className="absolute top-4 right-4 bg-amber-400 text-white text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1">
+              <div className="absolute top-4 right-4 bg-[#B45309] text-white text-xs font-bold px-2.5 py-1 rounded-[4px] flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 fill-white" />
-                {tour.rating}
+                <span>{tour.rating}</span>
               </div>
               <div className="absolute bottom-4 left-4 right-4">
-                <p className="text-xs text-white/70 font-medium mb-1">MÃ TOUR: {tour.tourCode}</p>
+                <p className="text-xs text-white/80 font-medium mb-1">MÃ TOUR: {tour.tourCode}</p>
                 <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">{tour.name}</h1>
               </div>
             </div>
