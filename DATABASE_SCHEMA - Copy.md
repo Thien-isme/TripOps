@@ -286,6 +286,7 @@ Table booking_participants {
   date_of_birth date
   gender varchar(20) // MALE, FEMALE, OTHER
   identity_card_number varchar(50) // CCCD / CMND / Hộ chiếu
+  roommate_note text // Ghi chú muốn ở cùng với ai (VD: Ở chung phòng với khách STT 2, cần phòng đơn riêng...)
   note text // Ăn chay, dị ứng, say xe...
 
   // Giá chốt độc lập của chặng (Snapshot)

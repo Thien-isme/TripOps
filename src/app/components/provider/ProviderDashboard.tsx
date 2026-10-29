@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Service, User } from "@/app/types";
+import { Service, User, ProviderGroupReservationRequest } from "@/app/types";
 import { ProviderLayout } from "./ProviderLayout";
 import { ServicePostManagement } from "./ServicePostManagement";
 import { ProviderServiceDetailPage } from "./ProviderServiceDetailPage";
@@ -7,6 +7,8 @@ import { ProviderOverview } from "./ProviderOverview";
 import { ProviderCreateServicePage } from "./ProviderCreateServicePage";
 import { ProviderProfilePage } from "./ProviderProfilePage";
 import { BusinessProfileOnboardingPage } from "@/app/components/auth/BusinessProfileOnboardingPage";
+import { ProviderGroupBookingRequests } from "./ProviderGroupBookingRequests";
+import { mockProviderGroupRequests } from "@/app/data/mockProviderGroupRequests";
 
 interface ProviderDashboardProps {
   currentUser: User;
@@ -37,11 +39,56 @@ export function ProviderDashboard({
   onLogout,
 }: ProviderDashboardProps) {
   const [activeSection, setActiveSection] = useState<
-    "overview" | "services" | "create" | "detail" | "profile"
+    "overview" | "services" | "create" | "detail" | "profile" | "room-requests"
   >("overview");
 
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
+
+  // Quản lý Yêu cầu Giữ phòng & Báo giá Đoàn từ các Agency
+  const [groupRequests, setGroupRequests] = useState<ProviderGroupReservationRequest[]>(() => {
+    const matching = mockProviderGroupRequests.filter(
+      (r) => r.providerId === currentUser.id
+    );
+    return matching.length > 0 ? matching : mockProviderGroupRequests;
+  });
+
+  const pendingGroupCount = groupRequests.filter((r) => r.status === "pending").length;
+
+  const handleApproveAndQuote = (
+    requestId: string,
+    quotedTotalPrice: number,
+    providerNote: string
+  ) => {
+    setGroupRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: "confirmed" as const,
+              quotedTotalPrice,
+              providerNote,
+              respondedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  };
+
+  const handleRejectRequest = (requestId: string, rejectionReason: string) => {
+    setGroupRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: "rejected" as const,
+              rejectionReason,
+              respondedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  };
 
   // Find currently selected service for detail view
   const selectedService = selectedServiceId
@@ -57,7 +104,7 @@ export function ProviderDashboard({
       setSelectedServiceId(null);
       setEditingService(null);
       setActiveSection(
-        section as "overview" | "services" | "create" | "detail" | "profile"
+        section as "overview" | "services" | "create" | "detail" | "profile" | "room-requests"
       );
     }
   };
@@ -119,6 +166,7 @@ export function ProviderDashboard({
       currentUser={currentUser}
       onLogout={onLogout}
       onCreateService={handleStartCreateService}
+      pendingRequestsCount={pendingGroupCount}
     >
       {/* 1. Dedicated Service Detail Page */}
       {activeSection === "detail" && selectedService ? (
@@ -152,6 +200,12 @@ export function ProviderDashboard({
           currentUser={currentUser}
           onUpdateProfile={onUpdateProfile}
         />
+      ) : activeSection === "room-requests" ? (
+        <ProviderGroupBookingRequests
+          requests={groupRequests}
+          onApproveAndQuote={handleApproveAndQuote}
+          onRejectRequest={handleRejectRequest}
+        />
       ) : activeSection === "services" ? (
         /* 4. Services Management - Table View */
         <ServicePostManagement
@@ -173,6 +227,12 @@ export function ProviderDashboard({
             setActiveSection("services");
           }}
           onViewDetail={handleViewDetail}
+          pendingGroupRequestsCount={pendingGroupCount}
+          onNavigateToRoomRequests={() => {
+            setSelectedServiceId(null);
+            setEditingService(null);
+            setActiveSection("room-requests");
+          }}
         />
       )}
     </ProviderLayout>
