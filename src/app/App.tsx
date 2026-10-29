@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LoginScreen } from "@/app/components/LoginScreen";
 import { RegisterScreen } from "@/app/components/RegisterScreen";
 import { UnifiedHeader } from "@/app/components/UnifiedHeader";
@@ -29,6 +29,11 @@ import { BookingFormPage, BookingSubmitData } from "@/app/components/user/Bookin
 import { CustomTourRequestPage } from "@/app/components/user/CustomTourRequestPage";
 import { UserBookingDetailPage } from "@/app/components/user/UserBookingDetailPage";
 import { AITourRecommenderModal } from "@/app/components/ai/AITourRecommenderModal";
+import { CustomerHeader } from "@/app/components/customer/CustomerHeader";
+import { CustomerFooter } from "@/app/components/customer/CustomerFooter";
+import { emptyTourSearch, type TourSearchCriteria } from "@/app/components/customer/tour-search";
+import { MyRequestsPage } from "@/app/components/customer/MyRequestsPage";
+import { MyComplaintsPage } from "@/app/components/customer/MyComplaintsPage";
 import {
   User,
   Tour,
@@ -52,6 +57,7 @@ import {
   BookingAttractionCheckin,
   BookingIncident,
   RefundRequest,
+  CustomerComplaint,
 } from "@/app/types";
 import {
   mockTours,
@@ -63,6 +69,7 @@ import {
   mockTourCompanies,
   mockCustomTourRequests,
   defaultSystemBankAccount,
+  mockComplaints,
 } from "@/app/data/mockData";
 import { mockRefundRequests } from "@/app/data/mockRefundRequests";
 
@@ -100,8 +107,43 @@ function App() {
     hasLocationCustomization?: boolean;
   } | null>(null);
   const [customTourRequests, setCustomTourRequests] = useState<CustomTourRequest[]>(mockCustomTourRequests);
+  const [complaints, setComplaints] = useState<CustomerComplaint[]>(mockComplaints);
+  const [complaintInitialBooking, setComplaintInitialBooking] = useState<Booking | null>(null);
   const [systemBankAccount, setSystemBankAccount] = useState<SystemBankAccount>(defaultSystemBankAccount);
   const [showAIAdvisor, setShowAIAdvisor] = useState(false);
+  const [tourSearch, setTourSearch] = useState<TourSearchCriteria>(emptyTourSearch);
+
+  const handleAddComplaint = (newCompData: Omit<CustomerComplaint, "id" | "createdAt" | "status">) => {
+    const newComp: CustomerComplaint = {
+      ...newCompData,
+      id: `comp-${Date.now()}`,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    setComplaints([newComp, ...complaints]);
+  };
+
+  const handleAddComplaintMessage = (complaintId: string, content: string) => {
+    setComplaints((prev) =>
+      prev.map((c) =>
+        c.id === complaintId
+          ? {
+              ...c,
+              messages: [
+                ...(c.messages || []),
+                {
+                  id: `cmsg-${Date.now()}`,
+                  senderName: currentUser?.name || "Khách hàng",
+                  senderRole: "customer",
+                  content,
+                  timestamp: new Date().toISOString().replace("T", " ").substring(0, 16),
+                },
+              ],
+            }
+          : c
+      )
+    );
+  };
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -113,19 +155,89 @@ function App() {
     setCurrentUser(null);
     setShowLogin(false);
     setShowRegister(false);
-    setCurrentPage("home");
+    handleNavigate("home");
   };
 
-  const handleNavigate = (page: string) => {
+  // URL Hash Sync for direct testing and browser back/forward
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const [rawHash, query = ""] = window.location.hash.replace(/^#\/?/, "").split("?");
+      if (!rawHash || rawHash === "" || rawHash === "home") {
+        setCurrentPage("home");
+        setSelectedTour(null);
+        setSelectedUserBooking(null);
+      } else if (rawHash === "tours" || rawHash === "book-tours") {
+        const params = new URLSearchParams(query);
+        const requestedGuests = params.get("guests") || "";
+        const requestedDate = params.get("date") || "";
+        setTourSearch({
+          destination: params.get("destination") || "",
+          departureDate: /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? requestedDate : "",
+          guests: /^[1-9]\d*$/.test(requestedGuests) ? requestedGuests : "",
+        });
+        setCurrentPage("book-tours");
+        setSelectedTour(null);
+      } else if (rawHash.startsWith("tours/")) {
+        const tourId = rawHash.replace("tours/", "");
+        const found = tours.find((t) => t.id === tourId || t.tourCode === tourId);
+        if (found) {
+          setSelectedTour(found);
+          setCurrentPage("tour-detail");
+        }
+      } else if (rawHash === "my-bookings") {
+        setCurrentPage("my-bookings");
+        setSelectedUserBooking(null);
+      } else if (rawHash.startsWith("my-bookings/")) {
+        const bId = rawHash.replace("my-bookings/", "");
+        const foundB = bookings.find((b) => b.id === bId);
+        if (foundB) {
+          setSelectedUserBooking(foundB);
+          setCurrentPage("user-booking-detail");
+        }
+      } else if (rawHash === "custom-tour") {
+        setCurrentPage("custom-tour");
+      } else if (rawHash === "my-requests") {
+        setCurrentPage("my-requests");
+      } else if (rawHash === "my-complaints") {
+        setCurrentPage("my-complaints");
+      } else if (rawHash === "messages") {
+        setCurrentPage("messages");
+      } else if (rawHash === "my-reviews") {
+        setCurrentPage("my-reviews");
+      } else if (rawHash === "user-profile" || rawHash === "account") {
+        setCurrentPage("user-profile");
+      }
+    };
+
+    handleUrlChange();
+    window.addEventListener("hashchange", handleUrlChange);
+    return () => window.removeEventListener("hashchange", handleUrlChange);
+  }, [tours, bookings]);
+
+  const handleNavigate = (page: string, criteria?: TourSearchCriteria) => {
     setCurrentPage(page);
     setSelectedTour(null);
     setSelectedUserBooking(null);
+    setComplaintInitialBooking(null);
+    const params = new URLSearchParams();
+    if (page === "book-tours") {
+      const search = criteria || emptyTourSearch;
+      setTourSearch(search);
+      if (search.destination) params.set("destination", search.destination);
+      if (search.departureDate) params.set("date", search.departureDate);
+      if (search.guests) params.set("guests", search.guests);
+    }
+    const targetHash = page === "home" ? "" : `#/${page === "book-tours" ? "tours" : page}${params.size ? `?${params}` : ""}`;
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleViewUserBookingDetail = (booking: Booking) => {
     setSelectedUserBooking(booking);
     setCurrentPage("user-booking-detail");
+    window.location.hash = `#/my-bookings/${booking.id}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -133,6 +245,7 @@ function App() {
     setPreviousPage(currentPage);
     setSelectedTour(tour);
     setCurrentPage("tour-detail");
+    window.location.hash = `#/tours/${tour.id}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -1495,16 +1608,17 @@ function App() {
     : [];
 
   return (
-    <>
-      <UnifiedHeader
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans antialiased text-[#0F172A]">
+      <CustomerHeader
         currentUser={currentUser}
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
         onShowLogin={() => setShowLogin(true)}
         onLogout={handleLogout}
-        onNavigate={handleNavigate}
-        currentPage={currentPage}
-        
+        onOpenAIAdvisor={() => setShowAIAdvisor(true)}
       />
-      <div className="pt-16">
+
+      <main className={currentPage === "home" ? "flex-1 w-full min-w-0" : "flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 py-6"}>
         {currentPage === "custom-tour" ? (
           <CustomTourRequestPage
             companies={companies}
@@ -1512,6 +1626,7 @@ function App() {
             onBack={() => handleNavigate("home")}
             onSubmit={handleSubmitCustomTourRequest}
             onShowLogin={() => setShowLogin(true)}
+            onViewMyRequests={() => handleNavigate("my-requests")}
           />
         ) : currentPage === "booking-form" && bookingTour ? (
           <BookingFormPage
@@ -1552,35 +1667,31 @@ function App() {
             onBookNow={handleOpenBookingForm}
             onShowLogin={() => setShowLogin(true)}
           />
-        ) : currentPage === "home" && currentUser?.role === "user" ? (
-          // Logged in user sees their dashboard on home page
-          <div className="min-h-screen bg-gray-50">
-            <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
-              <UserDashboard
-                tours={tours}
-                userBookings={userBookings}
-                customTourRequests={customTourRequests.filter((r) => r.userId === currentUser?.id)}
-                onBookTour={handleOpenBookingForm}
-                onCancelBooking={handleCancelBooking}
-                onSubmitRefundRequest={handleCreateRefundRequest}
-                onViewTour={handleViewTour}
-                onCancelCustomRequest={handleCancelCustomTourRequest}
-                onNavigateToCustomTourForm={() => handleNavigate("custom-tour")}
-                onViewBookingDetail={handleViewUserBookingDetail}
-              />
-            </main>
-          </div>
         ) : currentPage === "home" ? (
-          // Not logged in, show public home page
           <HomePage
             onShowLogin={() => setShowLogin(true)}
-            popularTours={tours.filter((t) => t.tourType !== "custom_request" && ((t.status === "completed" || t.status === "published" || !t.status) && (t.visibility === "public" || !t.visibility)))}
+            popularTours={tours.filter(
+              (t) =>
+                t.tourType !== "custom_request" &&
+                (t.status === "completed" || t.status === "published" || !t.status) &&
+                (t.visibility === "public" || !t.visibility)
+            )}
             onNavigate={handleNavigate}
             onViewTour={handleViewTour}
+            onBookTour={(t) => handleOpenBookingForm(t)}
+            onOpenAIAdvisor={() => setShowAIAdvisor(true)}
+            onSearchTours={(criteria) => handleNavigate("book-tours", criteria)}
           />
         ) : currentPage === "book-tours" ? (
           <BookToursPage
-            tours={tours.filter((t) => t.tourType !== "custom_request" && ((t.status === "completed" || t.status === "published" || !t.status) && (t.visibility === "public" || !t.visibility)))}
+            initialSearch={tourSearch}
+            onClearSearch={() => handleNavigate("book-tours")}
+            tours={tours.filter(
+              (t) =>
+                t.tourType !== "custom_request" &&
+                (t.status === "completed" || t.status === "published" || !t.status) &&
+                (t.visibility === "public" || !t.visibility)
+            )}
             currentUser={currentUser}
             onShowLogin={() => setShowLogin(true)}
             onBookTour={(tourId) => {
@@ -1590,30 +1701,15 @@ function App() {
               }
             }}
             onViewTour={handleViewTour}
+            onOpenBookingForm={(t) => handleOpenBookingForm(t)}
           />
-        ) : currentPage === "contact" ? (
-          <ContactPage onShowLogin={() => setShowLogin(true)} />
-        ) : currentPage === "about" ? (
-          <AboutPage onShowLogin={() => setShowLogin(true)} />
-        ) : currentPage === "reviews" ? (
-          <ReviewsPage onShowLogin={() => setShowLogin(true)} />
-        ) : currentPage === "promotions" ? (
-          <PromotionsPage />
-        ) : currentPage === "messages" ? (
-          <MessagesPage />
-        ) : currentPage === "wishlist" ? (
-          <WishlistPage />
-        ) : currentPage === "my-reviews" ? (
-          <MyReviewsPage />
-        ) : currentPage === "notifications" ? (
-          <NotificationsPage />
-        ) : currentPage === "help-center" ? (
-          <HelpCenterPage />
         ) : currentPage === "my-bookings" ? (
           <MyBookings
             bookings={userBookings}
             onCancelBooking={handleCancelBooking}
             onViewBookingDetail={handleViewUserBookingDetail}
+            onSubmitRefundRequest={handleCreateRefundRequest}
+            onNavigateToExplore={() => handleNavigate("book-tours")}
           />
         ) : currentPage === "user-booking-detail" && selectedUserBooking ? (
           <UserBookingDetailPage
@@ -1630,12 +1726,65 @@ function App() {
             onCancelBooking={handleCancelBooking}
             onPayPaymentRequest={handlePayPaymentRequest}
             onUpdateBookingPassengers={handleUpdateBookingPassengers}
+            onNavigateToComplaint={(b) => {
+              setComplaintInitialBooking(b);
+              setCurrentPage("my-complaints");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onNavigateToReview={() => {
+              setCurrentPage("my-reviews");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
+        ) : currentPage === "my-requests" ? (
+          <MyRequestsPage
+            requests={customTourRequests.filter((r) => !currentUser || r.userId === currentUser.id)}
+            tours={tours}
+            onCancelRequest={handleCancelCustomTourRequest}
+            onNavigateToCreate={() => handleNavigate("custom-tour")}
+            onViewTour={handleViewTour}
+            onBookTour={(t) => handleOpenBookingForm(t)}
+          />
+        ) : currentPage === "my-complaints" ? (
+          <MyComplaintsPage
+            complaints={complaints.filter((c) => !currentUser || c.userId === currentUser.id)}
+            userBookings={userBookings}
+            currentUser={currentUser}
+            initialSelectedBooking={complaintInitialBooking}
+            onAddComplaint={handleAddComplaint}
+            onAddComplaintMessage={handleAddComplaintMessage}
+            onViewBookingDetail={handleViewUserBookingDetail}
+          />
+        ) : currentPage === "messages" ? (
+          <MessagesPage />
+        ) : currentPage === "my-reviews" ? (
+          <MyReviewsPage />
         ) : currentPage === "user-profile" ? (
           <UserProfile />
-        ) : null}
-      </div>
-      <PublicFooter />
+        ) : currentPage === "contact" ? (
+          <ContactPage onShowLogin={() => setShowLogin(true)} />
+        ) : currentPage === "about" ? (
+          <AboutPage onShowLogin={() => setShowLogin(true)} />
+        ) : currentPage === "reviews" ? (
+          <ReviewsPage onShowLogin={() => setShowLogin(true)} />
+        ) : (
+          <HomePage
+            onShowLogin={() => setShowLogin(true)}
+            popularTours={tours.filter(
+              (t) =>
+                t.tourType !== "custom_request" &&
+                (t.status === "completed" || t.status === "published" || !t.status) &&
+                (t.visibility === "public" || !t.visibility)
+            )}
+            onNavigate={handleNavigate}
+            onViewTour={handleViewTour}
+            onBookTour={(t) => handleOpenBookingForm(t)}
+            onOpenAIAdvisor={() => setShowAIAdvisor(true)}
+          />
+        )}
+      </main>
+
+      <CustomerFooter onNavigate={handleNavigate} onOpenAIAdvisor={() => setShowAIAdvisor(true)} />
 
       {/* AI Tour Recommender Modal for Customers & Businesses */}
       {showAIAdvisor && (
@@ -1647,7 +1796,7 @@ function App() {
           onBookTour={handleOpenBookingForm}
         />
       )}
-    </>
+    </div>
   );
 }
 

@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 import { Tour, BookingPassenger, TourPriceRow, CustomHotelChange, CustomLocationChange, CustomMealChange } from "@/app/types";
 import {
@@ -544,36 +544,39 @@ export function BookingFormPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F9FF]">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-16">
       {/* Header */}
       <div className="bg-white border-b border-[#CBD5E1] sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-[#F1F5F9] rounded-[6px] transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <ArrowLeft className="w-4 h-4 text-[#475569]" />
           </button>
-          <h1 className="font-bold text-gray-900">Đăng ký Tour</h1>
+          <div>
+            <h1 className="text-base font-bold text-[#0F172A]">Đăng ký đặt tour theo đoàn</h1>
+            <p className="text-xs text-[#475569]">{tour.name}</p>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
         {/* Step indicator */}
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-0 bg-white border border-[#CBD5E1] rounded-[6px] p-2">
           {STEPS.map((s, idx) => {
             const done = s.id < step;
             const active = s.id === step;
             return (
               <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all ${
-                  done ? "bg-teal-600 text-white" : active ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-500"
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-xs font-semibold transition-all ${
+                  done ? "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]" : active ? "bg-[#075985] text-white" : "bg-transparent text-[#94A3B8]"
                 }`}>
-                  {done ? <CheckCircle className="w-4 h-4" /> : <span className="w-4 h-4 flex items-center justify-center">{s.id}</span>}
+                  {done ? <CheckCircle className="w-3.5 h-3.5" /> : <span className="w-3.5 h-3.5 flex items-center justify-center">{s.id}</span>}
                   <span className="hidden sm:inline">{s.label}</span>
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div className={`h-0.5 flex-1 mx-1 ${done ? "bg-teal-600" : "bg-gray-200"}`} />
+                  <div className={`h-0.5 flex-1 mx-2 ${done ? "bg-[#15803D]" : "bg-[#CBD5E1]"}`} />
                 )}
               </div>
             );

@@ -835,3 +835,37 @@ export interface RefundRequest {
   reviewedAt?: string;
   completedAt?: string;
 }
+
+// ============================================================================
+// CUSTOMER COMPLAINTS (Khiếu nại của khách hàng gắn với Booking)
+// ============================================================================
+export type ComplaintStatus = "pending" | "processing" | "resolved" | "rejected";
+
+export interface ComplaintMessage {
+  id: string;
+  senderName: string;
+  senderRole: "customer" | "agency" | "admin";
+  content: string;
+  timestamp: string;
+}
+
+export interface CustomerComplaint {
+  id: string;
+  bookingId: string;
+  bookingCode: string;
+  tourName: string;
+  departureDate: string;
+  agencyName: string;
+  userId: string;
+  customerName: string;
+  customerPhone?: string;
+  title: string;
+  category: "service_quality" | "schedule_change" | "guide_attitude" | "accommodation_food" | "pricing_billing" | "other";
+  description: string;
+  evidenceUrls?: string[];
+  status: ComplaintStatus;
+  createdAt: string;
+  resolvedAt?: string;
+  resolutionNote?: string;
+  messages?: ComplaintMessage[];
+}

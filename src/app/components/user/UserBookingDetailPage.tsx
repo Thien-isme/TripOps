@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Booking, BookingPassenger, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
 import { defaultSystemBankAccount } from "@/app/data/mockData";
 import {
@@ -56,6 +56,8 @@ interface UserBookingDetailPageProps {
   onCancelBooking: (bookingId: string, reason: string) => void;
   onPayPaymentRequest?: (bookingId: string, paymentRequestId: string) => void;
   onUpdateBookingPassengers?: (bookingId: string, passengers: BookingPassenger[]) => void;
+  onNavigateToComplaint?: (booking: Booking) => void;
+  onNavigateToReview?: (booking: Booking) => void;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -113,6 +115,8 @@ export function UserBookingDetailPage({
   onCancelBooking,
   onPayPaymentRequest,
   onUpdateBookingPassengers,
+  onNavigateToComplaint,
+  onNavigateToReview,
 }: UserBookingDetailPageProps) {
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -388,10 +392,32 @@ export function UserBookingDetailPage({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+              {booking.status === "completed" && onNavigateToReview && (
+                <Button
+                  variant="outline"
+                  onClick={() => onNavigateToReview(booking)}
+                  className="text-xs h-9 gap-1.5 border-[#075985] text-[#075985] hover:bg-[#F0F9FF] font-semibold rounded-[6px]"
+                >
+                  <Star className="w-3.5 h-3.5 fill-[#B45309] text-[#B45309]" />
+                  Viết đánh giá tour
+                </Button>
+              )}
+
+              {onNavigateToComplaint && (
+                <Button
+                  variant="outline"
+                  onClick={() => onNavigateToComplaint(booking)}
+                  className="text-xs h-9 gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-50 font-semibold rounded-[6px]"
+                >
+                  <Flag className="w-3.5 h-3.5 text-amber-600" />
+                  Gửi khiếu nại
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 onClick={() => setContractModalOpen(true)}
-                className="text-xs h-9 gap-1.5 border-gray-300 hover:bg-gray-100 font-semibold"
+                className="text-xs h-9 gap-1.5 border-gray-300 hover:bg-gray-100 font-semibold rounded-[6px]"
               >
                 <FileText className="w-4 h-4 text-[#075985]" />
                 Xem hợp đồng dịch vụ
@@ -401,7 +427,7 @@ export function UserBookingDetailPage({
                 <Button
                   variant="outline"
                   onClick={() => setShowCancelModal(true)}
-                  className="text-xs h-9 gap-1.5 border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold"
+                  className="text-xs h-9 gap-1.5 border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold rounded-[6px]"
                 >
                   <XCircle className="w-4 h-4 text-rose-600" />
                   Yêu cầu hủy tour

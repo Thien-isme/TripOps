@@ -9,6 +9,7 @@ import {
   TourCompany,
   CustomTourRequest,
   SystemBankAccount,
+  CustomerComplaint,
 } from "@/app/types";
 
 export const defaultSystemBankAccount: SystemBankAccount = {
@@ -5778,3 +5779,83 @@ export const mockCustomTourRequests: CustomTourRequest[] = [
     createdAt: "2026-10-15T08:30:00Z",
   },
 ];
+
+export const mockComplaints: CustomerComplaint[] = [
+  {
+    id: "comp-1",
+    bookingId: "booking-matrix-1",
+    bookingCode: "BK-MTX-01",
+    tourName: "Hành Trình Di Sản Miền Trung: Huế - Hội An - Đà Nẵng 4N3Đ",
+    departureDate: "2026-11-20",
+    agencyName: "Viettravel",
+    userId: "user-1",
+    customerName: "Tập đoàn FPT",
+    customerPhone: "0933 888 999",
+    title: "Khách sạn ngày 2 không đúng tiêu chuẩn 4 sao cam kết",
+    category: "accommodation_food",
+    description: "Theo thỏa thuận ban đầu, đoàn lưu trú tại khách sạn 4 sao view sông Hương, tuy nhiên thực tế phòng được bố trí ở khu phụ xuống cấp, máy lạnh hỏng.",
+    evidenceUrls: [
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800",
+    ],
+    status: "processing",
+    createdAt: "2026-10-18T14:20:00Z",
+    messages: [
+      {
+        id: "cmsg-1",
+        senderName: "Tập đoàn FPT",
+        senderRole: "customer",
+        content: "Đề nghị TripOps và Viettravel kiểm tra lại hợp đồng và phương án bồi hoàn chênh lệch hạng phòng cho đoàn 24 người.",
+        timestamp: "2026-10-18 14:20",
+      },
+      {
+        id: "cmsg-2",
+        senderName: "Bộ phận CSKH TripOps",
+        senderRole: "admin",
+        content: "TripOps đã tiếp nhận khiếu nại và chuyển yêu cầu làm việc sang đại diện Viettravel để rà soát chứng từ dịch vụ.",
+        timestamp: "2026-10-18 16:00",
+      },
+      {
+        id: "cmsg-3",
+        senderName: "Viettravel Support",
+        senderRole: "agency",
+        content: "Chúng tôi thành thật xin lỗi vì sự cố bảo trì đột xuất tại khu chính. Chúng tôi đề xuất hoàn trả 15% phí lưu trú đêm thứ 2 cho đoàn.",
+        timestamp: "2026-10-19 09:30",
+      },
+    ],
+  },
+  {
+    id: "comp-2",
+    bookingId: "booking-matrix-4",
+    bookingCode: "BK-MTX-04",
+    tourName: "Nghỉ Dưỡng Thượng Lưu Nha Trang - Vịnh Cam Ranh 3N2Đ",
+    departureDate: "2026-10-05",
+    agencyName: "Hà Giang Discovery Travel",
+    userId: "user-1",
+    customerName: "Tập đoàn FPT",
+    customerPhone: "0933 888 999",
+    title: "Xe trung chuyển đón muộn hơn 1 tiếng tại sân bay Cam Ranh",
+    category: "schedule_change",
+    description: "Xe đưa đón đoàn bị trễ 65 phút so với giờ hạ cánh đã thông báo trước, khiến đoàn lỡ lịch ăn trưa tại nhà hàng.",
+    status: "resolved",
+    createdAt: "2026-10-06T10:00:00Z",
+    resolvedAt: "2026-10-07T15:00:00Z",
+    resolutionNote: "Công ty đã nâng cấp miễn phí bữa tối Gala Dinner và tặng voucher giảm giá 10% cho chuyến đi tiếp theo. Khách hàng đã đồng ý giải pháp.",
+    messages: [
+      {
+        id: "cmsg-4",
+        senderName: "Tập đoàn FPT",
+        senderRole: "customer",
+        content: "Đoàn bị muộn giờ ăn trưa do xe đón chậm. Cần giải trình lý do từ đơn vị vận chuyển.",
+        timestamp: "2026-10-06 10:00",
+      },
+      {
+        id: "cmsg-5",
+        senderName: "Hà Giang Discovery Travel",
+        senderRole: "agency",
+        content: "Do đoạn đường sân bay xảy ra va chạm giao thông đột xuất gây tắc đường. Chúng tôi đã trực tiếp xin lỗi trưởng đoàn và nâng cấp thực đơn tối.",
+        timestamp: "2026-10-07 11:30",
+      },
+    ],
+  },
+];
+
