@@ -257,7 +257,7 @@ export function LoginScreen({
           <div className="pt-4 border-t border-[#F1F5F9] space-y-2">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#475569]">
               <Info className="w-3.5 h-3.5 text-[#075985]" />
-              <span>Tài khoản trải nghiệm (Click để đăng nhập nhanh):</span>
+              <span>Tài khoản trải nghiệm (Mật khẩu: <code className="text-[#075985] font-mono font-bold bg-[#E0F2FE] px-1 rounded">1</code> hoặc <code className="text-[#075985] font-mono font-bold bg-[#E0F2FE] px-1 rounded">123456</code>):</span>
             </div>
 
             <div className="space-y-1.5">

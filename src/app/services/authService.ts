@@ -50,9 +50,9 @@ export const login = async (
       return createErrorResponse("Email không tồn tại");
     }
 
-    // Mock: Mật khẩu mặc định là "1" cho tất cả tài khoản demo
-    if (credentials.password !== "1") {
-      return createErrorResponse("Mật khẩu không đúng");
+    // Mock: Mật khẩu mặc định là "1" hoặc "123456" cho tất cả tài khoản demo
+    if (credentials.password !== "1" && credentials.password !== "123456") {
+      return createErrorResponse("Mật khẩu không đúng (Mật khẩu demo là: 1 hoặc 123456)");
     }
 
     // Simulate API call
