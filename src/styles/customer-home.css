@@ -1,20 +1,22 @@
 /* Customer presentation only. Other role layouts keep their existing tokens. */
 :where(.trip-home, .trip-header, .trip-footer) {
-  --home-primary: #075985;
-  --home-primary-hover: #0c4a6e;
-  --home-ink: #152c36;
-  --home-muted: #5c6c72;
-  --home-line: #dfe5e6;
-  --home-warm: #f5f3ed;
-  --home-soft: #f1f6f6;
-  --home-radius: 6px;
-  --home-container: 1280px;
-  --home-gutter: 32px;
+  --home-primary: #0f766e;
+  --home-primary-hover: #115e59;
+  --home-ink: #172523;
+  --home-muted: #62706c;
+  --home-line: #e5eae7;
+  --home-warm: #fafbf9;
+  --home-soft: #f4f7f5;
+  --home-radius: 8px;
+  --home-card-radius: 12px;
+  --home-search-radius: 16px;
+  --home-container: 1320px;
+  --home-gutter: 48px;
   color: var(--home-ink);
   font-family: var(--font-sans);
 }
 .trip-home {
-  background: white;
+  background: var(--home-warm);
   padding-bottom: 80px;
 }
 .home-container {
@@ -48,6 +50,25 @@
   border-radius: 50%;
   background: var(--home-primary);
 }
+
+/* Full-width scenic Hero as referenced in VietTrip */
+.home-hero-full {
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 1024px) {
+  .home-hero-full {
+    min-height: 600px;
+  }
+}
+@media (max-width: 639px) {
+  .home-hero-full {
+    min-height: auto;
+  }
+}
+
 .home-hero {
   background: var(--home-warm);
 }
@@ -911,8 +932,8 @@
   height: 18px;
 }
 .trip-footer {
-  background: #132f3b;
-  color: #d1dce0;
+  background: #0f172a;
+  color: #cbd5e1;
 }
 .trip-footer-inner {
   max-width: var(--home-container);

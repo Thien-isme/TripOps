@@ -53,7 +53,7 @@ export function CustomerHeader({
   const links = [
     { id: "home", label: "Trang chủ" },
     { id: "book-tours", label: "Khám phá tour" },
-    { id: "custom-tour", label: "Thiết kế tour riêng" },
+    { id: "custom-tour", label: "Thiết kế tour theo yêu cầu" },
   ];
   const accountLinks = [
     { id: "user-profile", label: "Thông tin tài khoản", icon: UserRound },

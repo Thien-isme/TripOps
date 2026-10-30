@@ -16,15 +16,23 @@ interface HomeTourCardProps {
   onView: (tour: Tour) => void;
   onBook?: (tour: Tour) => void;
 }
+
 export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
   const [failedImage, setFailedImage] = useState("");
   const image = homeTourImage(tour);
+
   return (
-    <article className="home-tour-card">
-      <button
-        className="home-tour-photo"
+    <article className="group bg-white border border-[#E5EAE7] hover:border-slate-300 rounded-[12px] overflow-hidden flex flex-col transition-all duration-200 shadow-xs hover:shadow-md">
+      {/* Tour Photo: 3:2 aspect ratio */}
+      <div
+        className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100 cursor-pointer block"
         onClick={() => onView(tour)}
-        aria-label={`Xem tour ${tour.name}`}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") onView(tour);
+        }}
+        aria-label={`Xem chi tiết tour ${tour.name}`}
       >
         {image && failedImage !== image ? (
           <img
@@ -32,63 +40,102 @@ export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
             alt={`Cảnh quan ${tour.destination}`}
             loading="lazy"
             decoding="async"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setFailedImage(image)}
           />
         ) : (
-          <span className="home-image-empty">
-            <ImageOff aria-hidden="true" />
-            Chưa có ảnh điểm đến
+          <span className="w-full h-full flex items-center justify-center gap-1.5 text-xs text-slate-400 bg-slate-100">
+            <ImageOff className="w-4 h-4" />
+            <span>Chưa có ảnh</span>
           </span>
         )}
-        <span className="home-photo-label">{tour.destination}</span>
-        <span className="home-photo-arrow">
-          <ArrowUpRight aria-hidden="true" />
+
+        {/* Destination Tag */}
+        <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-white/95 text-[11px] font-semibold text-slate-800 shadow-xs backdrop-blur-xs">
+          {tour.destination}
         </span>
-      </button>
-      <div className="home-tour-body">
-        <div className="home-tour-agency">
-          <span>
-            <Building2 aria-hidden="true" />
-            {tour.companyName || "Đơn vị tổ chức"}
-          </span>
-          {Number.isFinite(tour.rating) && tour.rating > 0 && (
-            <span className="home-tour-rating">
-              <Star aria-hidden="true" />
-              {tour.rating.toFixed(1)}
+
+        {/* Quick View Icon */}
+        <span className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/90 text-[#0F766E] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+          <ArrowUpRight className="w-4 h-4" />
+        </span>
+      </div>
+
+      {/* Tour Information Body */}
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Agency & Rating */}
+          <div className="flex items-center justify-between text-xs text-[#62706C] mb-2">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate">{tour.companyName || "Đơn vị tổ chức"}</span>
             </span>
-          )}
-        </div>
-        <h3>
-          <button onClick={() => onView(tour)}>{tour.name}</button>
-        </h3>
-        <div className="home-tour-meta">
-          <span>
-            <Clock3 aria-hidden="true" />
-            {tour.duration}
-          </span>
-          {tour.maxGuests > 0 && (
-            <span>
-              <Users aria-hidden="true" />
-              {tour.minGuests > 0 ? `${tour.minGuests}–` : "Tối đa "}
-              {tour.maxGuests} khách
+            {Number.isFinite(tour.rating) && tour.rating > 0 && (
+              <span className="inline-flex items-center gap-1 text-amber-700 font-semibold shrink-0">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                <span>{tour.rating.toFixed(1)}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Tour Title */}
+          <h3 className="font-bold text-base text-[#172523] line-clamp-2 leading-snug group-hover:text-[#0F766E] transition-colors mb-2.5">
+            <button
+              type="button"
+              onClick={() => onView(tour)}
+              className="text-left w-full cursor-pointer hover:underline"
+            >
+              {tour.name}
+            </button>
+          </h3>
+
+          {/* Metadata: Duration & Guests */}
+          <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-[#62706C] mb-4">
+            <span className="inline-flex items-center gap-1">
+              <Clock3 className="w-3.5 h-3.5 text-slate-400" />
+              <span>{tour.duration}</span>
             </span>
-          )}
+            {tour.maxGuests > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <span>
+                  {tour.minGuests > 0 ? `${tour.minGuests}–` : "Tối đa "}
+                  {tour.maxGuests} khách
+                </span>
+              </span>
+            )}
+          </div>
         </div>
-        <div className="home-tour-bottom">
+
+        {/* Bottom: Price & Actions */}
+        <div className="pt-3 border-t border-[#E5EAE7] flex items-center justify-between gap-2">
           <div>
-            <span className="home-price-caption">Giá từ / khách</span>
-            <p className="home-tour-price">
-              {new Intl.NumberFormat("vi-VN").format(tour.price)} <span>đ</span>
+            <span className="text-[10px] text-[#62706C] block uppercase font-medium">
+              Giá từ / khách
+            </span>
+            <p className="text-base sm:text-lg font-bold text-[#0F766E] tracking-tight leading-none mt-0.5">
+              {new Intl.NumberFormat("vi-VN").format(tour.price)}
+              <span className="text-xs font-semibold ml-0.5">đ</span>
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => (onBook ? onBook(tour) : onView(tour))}
-            className="home-book-button"
-          >
-            {onBook ? "Đặt tour" : "Chi tiết"}
-            <ArrowUpRight aria-hidden="true" />
-          </Button>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onView(tour)}
+              className="h-8 px-2.5 text-xs text-[#172523] border-[#E5EAE7] hover:border-[#0F766E] hover:text-[#0F766E] rounded-[8px]"
+            >
+              Chi tiết
+            </Button>
+            <Button
+              type="button"
+              onClick={() => (onBook ? onBook(tour) : onView(tour))}
+              className="h-8 px-3.5 bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-semibold rounded-[8px] transition-colors"
+            >
+              Đặt tour
+            </Button>
+          </div>
         </div>
       </div>
     </article>
