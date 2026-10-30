@@ -14,14 +14,15 @@ export function CustomerFooter({
         <div className="trip-footer-top">
           <div>
             <button
-              className="trip-brand"
+              className="trip-brand focus:outline-none"
               onClick={() => onNavigate?.("home")}
               aria-label="TripOps — Trang chủ"
             >
-              <span className="trip-brand-icon">
-                <Compass aria-hidden="true" />
-              </span>
-              <strong>TripOps</strong>
+              <img
+                src="/images/Logo/TripOps_logo_white.png"
+                alt="TripOps Logo"
+                className="h-8 w-auto object-contain transition-opacity hover:opacity-90"
+              />
             </button>
             <p className="trip-footer-about">
               Những chuyến đi đáng nhớ bắt đầu từ một ý tưởng. Khám phá tour và

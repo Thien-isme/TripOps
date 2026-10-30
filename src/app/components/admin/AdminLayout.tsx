@@ -88,15 +88,23 @@ export function AdminLayout({
       {/* Logo/Header */}
       <div className="p-6 border-b border-[#CBD5E1]">
         <div className="flex items-center justify-between">
-          {!collapsed && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Platform Admin
-              </h2>
-              <p className="text-sm text-gray-500">
-                Quản lý nền tảng
-              </p>
+          {!collapsed ? (
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/images/Logo/TripOps_logo_transparent.png"
+                alt="TripOps Logo"
+                className="h-7 w-auto object-contain"
+              />
+              <span className="text-[10px] uppercase tracking-wider font-extrabold bg-sky-100 text-[#075985] px-2 py-0.5 rounded-md">
+                Admin
+              </span>
             </div>
+          ) : (
+            <img
+              src="/images/Logo/TripOps_icon_transparent.png"
+              alt="TripOps"
+              className="h-7 w-7 object-contain mx-auto"
+            />
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}

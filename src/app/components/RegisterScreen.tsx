@@ -328,10 +328,13 @@ export function RegisterScreen({
       <div className="max-w-4xl mx-auto space-y-8">
         {/* TOP BRAND HEADER */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center gap-2 bg-white px-4 py-1.5 rounded-full border border-slate-200 shadow-2xs mb-1">
-            <Compass className="w-5 h-5 text-[#075985] animate-spin-slow" />
-            <span className="font-extrabold text-[#075985] tracking-wide text-sm uppercase">TripOps Platform</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Sign Up v2</span>
+          <div className="inline-flex items-center justify-center gap-2.5 bg-white px-5 py-2 rounded-full border border-slate-200 shadow-2xs mb-1">
+            <img
+              src="/images/Logo/TripOps_logo_transparent.png"
+              alt="TripOps Logo"
+              className="h-7 w-auto object-contain"
+            />
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Sign Up v2</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Đăng ký tài khoản thành viên

@@ -83,17 +83,15 @@ export function CustomerHeader({
     <header className="trip-header">
       <div className="trip-header-inner">
         <button
-          className="trip-brand"
+          className="trip-brand focus:outline-none"
           onClick={() => navigate("home")}
           aria-label="TripOps — Trang chủ"
         >
-          <span className="trip-brand-icon">
-            <Compass aria-hidden="true" />
-          </span>
-          <span>
-            <strong>TripOps</strong>
-            <small>ĐI CÙNG NHAU</small>
-          </span>
+          <img
+            src="/images/Logo/TripOps_logo_transparent.png"
+            alt="TripOps Logo"
+            className="h-9 sm:h-10 w-auto object-contain transition-transform hover:scale-[1.02]"
+          />
         </button>
         {isCustomer && (
           <nav className="trip-header-nav" aria-label="Điều hướng chính">

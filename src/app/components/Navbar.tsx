@@ -84,10 +84,11 @@ export function Navbar({
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
-            <MapPin className="w-8 h-8 text-[#075985]" />
-            <span className="text-2xl font-bold bg-[#075985] bg-clip-text text-transparent">
-              TripOps
-            </span>
+            <img
+              src="/images/Logo/TripOps_logo_transparent.png"
+              alt="TripOps Logo"
+              className="h-9 w-auto object-contain"
+            />
           </div>
 
           {/* Navigation - Hidden on mobile */}

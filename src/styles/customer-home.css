@@ -782,6 +782,13 @@
   text-align: left;
   flex-shrink: 0;
 }
+.trip-brand img {
+  display: block;
+  height: 38px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+}
 .trip-brand-icon {
   display: grid;
   place-items: center;

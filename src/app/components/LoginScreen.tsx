@@ -90,12 +90,13 @@ export function LoginScreen({
       <div className="max-w-md w-full mx-auto space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-10 h-10 rounded-[6px] bg-[#075985] text-white flex items-center justify-center mx-auto shadow-xs">
-            <Compass className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-center py-1">
+            <img
+              src="/images/Logo/TripOps_logo_transparent.png"
+              alt="TripOps Logo"
+              className="h-10 w-auto object-contain mx-auto"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">
-            TripOps
-          </h1>
           <p className="text-xs text-[#475569]">
             {isForgotPw
               ? "Khôi phục mật khẩu tài khoản"

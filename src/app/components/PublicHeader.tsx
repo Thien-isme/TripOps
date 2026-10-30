@@ -29,17 +29,11 @@ export function PublicHeader({
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onNavigate?.("home")}
           >
-            <div className="w-10 h-10 rounded-full bg-[#075985] flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
-              <Compass className="w-5 h-5 text-[#CBD5E1]" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-semibold tracking-tight text-[#075985]">
-                TripOps
-              </span>
-              <span className="text-[10px] tracking-widest uppercase text-[#475569] -mt-1 font-medium">
-                Curated Travel
-              </span>
-            </div>
+            <img
+              src="/images/Logo/TripOps_logo_transparent.png"
+              alt="TripOps Logo"
+              className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            />
           </div>
 
           {/* Navigation Links */}
