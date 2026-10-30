@@ -30,6 +30,7 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import { VietnameseDatePicker } from "@/app/components/ui/VietnameseDatePicker";
 
 interface BookingFormPageProps {
@@ -235,6 +236,7 @@ function newPassenger(id: string, tour: Tour, defaultDob = ""): BookingPassenger
     ageGroup,
     price: getPassengerPrice(tour, ageGroup, age),
     idNumber: "",
+    roommateNote: "",
     notes: "",
   };
 }
@@ -263,6 +265,53 @@ export function BookingFormPage({
   const [passengers, setPassengers] = useState<BookingPassenger[]>([
     newPassenger("p1", tour),
   ]);
+  const [selectedPassengerIds, setSelectedPassengerIds] = useState<Set<string>>(new Set());
+
+  // Min / Max guests constraint from tour object
+  const minGuests = typeof tour.minGuests === "number" && tour.minGuests > 0 ? tour.minGuests : undefined;
+  const maxGuests = typeof tour.maxGuests === "number" && tour.maxGuests > 0 ? tour.maxGuests : undefined;
+  const guestCount = passengers.length;
+  const isBelowMin = minGuests !== undefined && guestCount < minGuests;
+  const isAboveMax = maxGuests !== undefined && guestCount > maxGuests;
+  const isGuestCountValid = !isBelowMin && !isAboveMax;
+
+  // Passenger selection helpers
+  const isAllSelected = passengers.length > 0 && selectedPassengerIds.size === passengers.length;
+  const isPartiallySelected = selectedPassengerIds.size > 0 && selectedPassengerIds.size < passengers.length;
+  const selectAllState: boolean | "indeterminate" = isAllSelected ? true : isPartiallySelected ? "indeterminate" : false;
+
+  const toggleSelectPassenger = (id: string, checked: boolean) => {
+    setSelectedPassengerIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      setSelectedPassengerIds(new Set(passengers.map((p) => p.id)));
+    } else {
+      setSelectedPassengerIds(new Set());
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedPassengerIds.size === 0) return;
+    const remaining = passengers.filter((p) => !selectedPassengerIds.has(p.id));
+    if (remaining.length === 0) {
+      // Giữ lại ít nhất 1 khách trống như quy định
+      const defaultOne = newPassenger(`p_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, tour);
+      setPassengers([defaultOne]);
+    } else {
+      setPassengers(remaining);
+    }
+    setSelectedPassengerIds(new Set());
+  };
   const [contactName, setContactName] = useState(currentUser?.name ?? "");
   const [contactAddress, setContactAddress] = useState("");
   const [contactPhone, setContactPhone] = useState(currentUser?.phone ?? "");
@@ -281,12 +330,19 @@ export function BookingFormPage({
   const requiresDepositNow = false;
 
   const addPassenger = () => {
-    setPassengers([...passengers, newPassenger(`p${Date.now()}`, tour)]);
+    const newId = `p_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    setPassengers((prev) => [...prev, newPassenger(newId, tour)]);
   };
 
   const removePassenger = (id: string) => {
     if (passengers.length <= 1) return;
-    setPassengers(passengers.filter((p) => p.id !== id));
+    setPassengers((prev) => prev.filter((p) => p.id !== id));
+    setSelectedPassengerIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const handleStartDateChange = (newDate: string) => {
@@ -346,7 +402,8 @@ export function BookingFormPage({
           "Ngày sinh (YYYY-MM-DD) (*)": "1990-05-15",
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Người lớn",
-          "Ghi chú": "Người đại diện đoàn, ăn chay nhẹ",
+          "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Muốn ở cùng Trần Thị Bình (STT 2), ưu tiên hai giường đơn",
+          "Ghi chú cá nhân": "Người đại diện đoàn, ăn chay nhẹ",
         },
         {
           "STT": 2,
@@ -355,7 +412,8 @@ export function BookingFormPage({
           "Ngày sinh (YYYY-MM-DD) (*)": "1992-08-20",
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Người lớn",
-          "Ghi chú": "Hay say xe ngồi đầu xe",
+          "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Muốn ở cùng Nguyễn Văn An (STT 1)",
+          "Ghi chú cá nhân": "Hay say xe ngồi đầu xe",
         },
         {
           "STT": 3,
@@ -364,7 +422,8 @@ export function BookingFormPage({
           "Ngày sinh (YYYY-MM-DD) (*)": "2018-11-10",
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Trẻ em (2–11 tuổi)",
-          "Ghi chú": "Dị ứng hải sản",
+          "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Ở cùng phòng bố mẹ (Nguyễn Văn An)",
+          "Ghi chú cá nhân": "Dị ứng hải sản",
         },
         {
           "STT": 4,
@@ -373,19 +432,32 @@ export function BookingFormPage({
           "Ngày sinh (YYYY-MM-DD) (*)": "2024-03-25",
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Trẻ em (dưới 2 tuổi)",
-          "Ghi chú": "Cần nôi / ghế trẻ em",
+          "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Cần nôi trẻ em trong phòng",
+          "Ghi chú cá nhân": "Trẻ nhỏ cần hỗ trợ",
         },
       ];
 
       const ws = XLSX.utils.json_to_sheet(templateRows);
+
+      // Định dạng kiểu text 's' và format '@' cho cột CCCD (Cột C) để không bị mất số 0 đầu
+      Object.keys(ws).forEach((cellKey) => {
+        if (/^C\d+$/.test(cellKey) && cellKey !== "C1") {
+          if (ws[cellKey]) {
+            ws[cellKey].t = "s";
+            ws[cellKey].z = "@";
+          }
+        }
+      });
+
       ws["!cols"] = [
-        { wch: 6 },
-        { wch: 25 },
-        { wch: 30 },
-        { wch: 28 },
-        { wch: 18 },
-        { wch: 26 },
-        { wch: 35 },
+        { wch: 6 },  // STT
+        { wch: 25 }, // Họ và tên
+        { wch: 30 }, // Số CCCD / Passport / Định danh
+        { wch: 26 }, // Ngày sinh
+        { wch: 16 }, // Giới tính
+        { wch: 22 }, // Loại khách
+        { wch: 45 }, // Nguyện vọng xếp phòng / Muốn ở cùng ai
+        { wch: 35 }, // Ghi chú cá nhân
       ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach_Khach");
@@ -444,8 +516,31 @@ export function BookingFormPage({
           const gender: "male" | "female" =
             rawGender.includes("nữ") || rawGender.includes("female") ? "female" : "male";
 
-          const idNumber = findVal(["cccd", "cmnd", "passport", "hộ chiếu", "định danh", "dinhdanh", "idnumber", "so cccd"]);
-          const notes = findVal(["ghi chú", "ghichu", "note", "yêu cầu", "yeucau"]);
+          const rawId = findVal(["cccd", "cmnd", "passport", "hộ chiếu", "định danh", "dinhdanh", "idnumber", "so cccd"]);
+          const idNumber = rawId !== undefined && rawId !== null ? String(rawId).trim() : "";
+
+          // Tách riêng nguyện vọng xếp phòng và ghi chú cá nhân
+          const roommateNote = findVal([
+            "nguyện vọng xếp phòng",
+            "muốn ở cùng ai",
+            "ở cùng ai",
+            "xếp phòng",
+            "ghép phòng",
+            "roommate",
+            "rooming",
+            "room_preference",
+            "room preference",
+          ]);
+
+          const notes = findVal([
+            "ghi chú cá nhân",
+            "ghi chú riêng",
+            "ghi chú",
+            "ghichu",
+            "note",
+            "yêu cầu đặc biệt",
+            "dị ứng",
+          ]);
 
           // Calculate passenger age relative to tourStartDate
           const calculatedAge = calculateAge(dateOfBirth, tourStartDate);
@@ -484,7 +579,8 @@ export function BookingFormPage({
             ageGroup,
             price,
             idNumber,
-            notes,
+            roommateNote: roommateNote || "",
+            notes: notes || "",
           });
         });
 
@@ -492,6 +588,7 @@ export function BookingFormPage({
           throw new Error("Không tìm thấy dòng thông tin khách hợp lệ. Vui lòng kiểm tra cột 'Họ và tên' trong file.");
         }
 
+        setSelectedPassengerIds(new Set());
         setPassengers(parsed);
         setExcelSuccess(`Đã nạp thành công ${parsed.length} khách từ file: ${file.name}`);
         if (fileInputRef.current) {
@@ -516,6 +613,7 @@ export function BookingFormPage({
   };
 
   const isStep2Valid =
+    isGuestCountValid &&
     tourStartDate.trim() &&
     passengers.every((p) => p.fullName.trim() && p.dateOfBirth) &&
     contactName.trim() &&
@@ -523,6 +621,7 @@ export function BookingFormPage({
     contactEmail.trim();
 
   const handleConfirm = () => {
+    if (!isGuestCountValid || !isStep2Valid) return;
     onSubmit({
       tourId: tour.id,
       tourStartDate,
@@ -734,7 +833,18 @@ export function BookingFormPage({
                     <Users className="w-4 h-4 text-teal-600" />
                     Danh sách khách hàng đi tour ({passengers.length} người)
                   </h2>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
+                      {minGuests && maxGuests
+                        ? `Tour dành cho đoàn từ ${minGuests} đến ${maxGuests} khách`
+                        : minGuests
+                        ? `Tour dành cho đoàn tối thiểu ${minGuests} khách`
+                        : maxGuests
+                        ? `Tour dành cho đoàn tối đa ${maxGuests} khách`
+                        : "Tour linh hoạt số lượng khách"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
                     Nhập từng khách thủ công hoặc tải file Excel lên để tự động điền danh sách nhanh chóng
                   </p>
                 </div>
@@ -826,18 +936,96 @@ export function BookingFormPage({
                 </div>
               </div>
 
+              {/* Guest Limit Warnings */}
+              {isBelowMin && minGuests !== undefined && (
+                <div className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-900 mb-4 animate-in fade-in">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-amber-950">Chưa đủ số lượng khách tối thiểu</p>
+                    <p className="mt-0.5">
+                      Tour yêu cầu tối thiểu <strong>{minGuests}</strong> khách. Vui lòng thêm <strong>{minGuests - guestCount}</strong> khách.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isAboveMax && maxGuests !== undefined && (
+                <div className="bg-red-50 border border-red-300 rounded-xl p-3.5 flex items-start gap-3 text-xs text-red-900 mb-4 animate-in fade-in">
+                  <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-red-950">Vượt quá số lượng khách tối đa</p>
+                    <p className="mt-0.5">
+                      Tour nhận tối đa <strong>{maxGuests}</strong> khách. Vui lòng giảm <strong>{guestCount - maxGuests}</strong> khách.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Batch action & Select all toolbar */}
+              <div className="flex flex-wrap items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-4 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Checkbox
+                    id="select-all-passengers"
+                    checked={selectAllState}
+                    onCheckedChange={handleToggleSelectAll}
+                  />
+                  <Label
+                    htmlFor="select-all-passengers"
+                    className="text-xs font-semibold text-slate-700 cursor-pointer select-none"
+                  >
+                    Chọn tất cả ({passengers.length})
+                  </Label>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {selectedPassengerIds.size > 0 && (
+                    <span className="text-xs text-slate-600 font-medium">
+                      Đã chọn <strong className="text-teal-700 font-bold">{selectedPassengerIds.size}</strong> khách
+                    </span>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedPassengerIds.size === 0}
+                    onClick={handleDeleteSelected}
+                    className={`text-xs h-8 px-3 gap-1.5 transition-colors ${
+                      selectedPassengerIds.size > 0
+                        ? "border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        : "border-slate-200 text-slate-400"
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Xóa khách đã chọn
+                  </Button>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 {passengers.map((p, idx) => (
                   <div key={p.id} className="border border-[#CBD5E1] rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <User className="w-4 h-4 text-teal-600" />
-                        Khách {idx + 1}
-                      </p>
+                      <div className="flex items-center gap-2.5">
+                        <Checkbox
+                          id={`passenger-check-${p.id}`}
+                          checked={selectedPassengerIds.has(p.id)}
+                          onCheckedChange={(checked) => toggleSelectPassenger(p.id, !!checked)}
+                          aria-label={`Chọn khách ${idx + 1}`}
+                        />
+                        <Label
+                          htmlFor={`passenger-check-${p.id}`}
+                          className="text-sm font-semibold text-gray-700 flex items-center gap-1.5 cursor-pointer select-none"
+                        >
+                          <User className="w-4 h-4 text-teal-600" />
+                          Khách {idx + 1}
+                        </Label>
+                      </div>
                       {passengers.length > 1 && (
                         <button
+                          type="button"
                           onClick={() => removePassenger(p.id)}
                           className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Xóa khách này"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -891,8 +1079,27 @@ export function BookingFormPage({
                           <option value="female">Nữ</option>
                         </select>
                       </div>
-                      <div className="sm:col-span-2">
-                        <Label className="text-xs text-gray-500">Ghi chú riêng cho khách</Label>
+                      {/* Nguyện vọng xếp phòng / Muốn ở cùng ai */}
+                      <div className="sm:col-span-2 space-y-1">
+                        <Label className="text-xs font-semibold text-gray-700">
+                          Nguyện vọng xếp phòng / Muốn ở cùng ai <span className="text-gray-400 font-normal">(Tùy chọn)</span>
+                        </Label>
+                        <Input
+                          value={p.roommateNote ?? ""}
+                          onChange={(e) => updatePassenger(p.id, { roommateNote: e.target.value })}
+                          placeholder="VD: Muốn ở cùng Nguyễn Văn A, ưu tiên hai giường đơn…"
+                          className="mt-1 text-sm"
+                        />
+                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                          Đơn vị phụ trách sẽ xem xét theo tình trạng phòng. (Nguyện vọng mang tính tham khảo, không tự động xác nhận, phân phòng hoặc tính phụ thu).
+                        </p>
+                      </div>
+
+                      {/* Ghi chú cá nhân */}
+                      <div className="sm:col-span-2 space-y-1">
+                        <Label className="text-xs font-semibold text-gray-700">
+                          Ghi chú cá nhân <span className="text-gray-400 font-normal">(Tùy chọn)</span>
+                        </Label>
                         <Input
                           value={p.notes ?? ""}
                           onChange={(e) => updatePassenger(p.id, { notes: e.target.value })}
@@ -950,7 +1157,16 @@ export function BookingFormPage({
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div>
+                {!isGuestCountValid && (
+                  <p className="text-xs text-red-600 font-medium">
+                    {isBelowMin
+                      ? `⚠️ Chưa thể tiếp tục: Cần tối thiểu ${minGuests} khách (hiện có ${guestCount}).`
+                      : `⚠️ Chưa thể tiếp tục: Vượt quá ${maxGuests} khách (hiện có ${guestCount}).`}
+                  </p>
+                )}
+              </div>
               <Button
                 disabled={!isStep2Valid}
                 onClick={() => setStep(3)}
@@ -1038,7 +1254,8 @@ export function BookingFormPage({
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Ngày sinh</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Giới tính</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Loại khách</th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-600">Ghi chú</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-600">Nguyện vọng xếp phòng</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-600">Ghi chú cá nhân</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-600">Giá theo người</th>
                       </tr>
                     </thead>
@@ -1072,6 +1289,15 @@ export function BookingFormPage({
                             <td className="px-3 py-2 text-gray-600">{p.gender === "male" ? "Nam" : "Nữ"}</td>
                             <td className="px-3 py-2 text-gray-600">{grp?.label ?? p.ageGroup}</td>
                             <td className="px-3 py-2 text-xs max-w-[180px]">
+                              {p.roommateNote ? (
+                                <span className="text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 inline-block line-clamp-2 font-medium">
+                                  🛏️ {p.roommateNote}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-xs max-w-[180px]">
                               {p.notes ? (
                                 <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block line-clamp-2">
                                   {p.notes}
@@ -1089,7 +1315,7 @@ export function BookingFormPage({
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-[#CBD5E1] bg-[#F0F9FF]">
-                        <td colSpan={7} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
+                        <td colSpan={8} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
                         <td className="px-3 py-2 text-right font-bold text-[#075985] text-base">{formatVND(totalPrice)}</td>
                       </tr>
                     </tfoot>

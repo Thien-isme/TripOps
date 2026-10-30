@@ -590,6 +590,19 @@ function getDestinationGroups(tour: Tour): DestinationHotelState[] {
   return groups.filter((g) => g.nightCount > 0);
 }
 
+
+function getGoogleMapsSearchUrl(name?: string, address?: string, destination?: string): string | null {
+  const cleanName = name?.trim() || "";
+  const cleanAddress = address?.trim() || "";
+  const cleanDest = destination?.trim() || "";
+
+  if (!cleanName && !cleanAddress) return null;
+
+  const parts = [cleanName, cleanAddress, cleanDest].filter(Boolean);
+  const query = parts.join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 function CustomTab({
   tour,
   services = [],
@@ -1040,18 +1053,31 @@ function CustomTab({
 
                   {/* System / Configured hotel cards */}
                   {choice.mode === "system" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {(() => {
-                        const options: Array<{ name: string; stars?: number; description?: string; diff: number; pricePerNight?: number }> = [];
+                        const options: Array<{
+                          name: string;
+                          stars?: number;
+                          description?: string;
+                          diff: number;
+                          pricePerNight?: number;
+                          serviceId?: string;
+                          address?: string;
+                          mapUrl?: string;
+                        }> = [];
 
                         // 1. Default Tour Hotel (0đ)
                         if (defHotel) {
+                          const matchingServiceId = defHotel.serviceId || tour.itinerary.find((d) => d.hotel && d.hotel.name === defHotel.name)?.hotel?.serviceId;
                           options.push({
                             name: defHotel.name,
                             stars: defHotel.stars || 4,
                             description: defHotel.description || defHotel.address || "Khách sạn tiêu chuẩn theo tour",
                             diff: 0,
                             pricePerNight: defHotel.pricePerNight,
+                            serviceId: matchingServiceId,
+                            address: defHotel.address,
+                            mapUrl: (defHotel as any).mapUrl || (defHotel as any).googleMapsUrl,
                           });
                         }
 
@@ -1064,11 +1090,14 @@ function CustomTab({
                               description: alt.description || alt.address || "",
                               diff: alt.priceDifference,
                               pricePerNight: (defHotel.pricePerNight || 0) + alt.priceDifference,
+                              serviceId: alt.serviceId,
+                              address: alt.address,
+                              mapUrl: (alt as any).mapUrl || (alt as any).googleMapsUrl,
                             });
                           });
                         } else {
                           // Fallback to SYSTEM_HOTELS if no alternatives configured yet
-                          SYSTEM_HOTELS.forEach((h) => {
+                          SYSTEM_HOTELS.forEach((h: any) => {
                             if (h.name !== defHotel?.name) {
                               const diff = defHotel ? h.pricePerNight - defHotel.pricePerNight : 0;
                               options.push({
@@ -1077,6 +1106,9 @@ function CustomTab({
                                 description: h.description,
                                 diff,
                                 pricePerNight: h.pricePerNight,
+                                serviceId: h.serviceId,
+                                address: h.address,
+                                mapUrl: h.mapUrl || h.googleMapsUrl,
                               });
                             }
                           });
@@ -1084,48 +1116,146 @@ function CustomTab({
 
                         return options.map((opt) => {
                           const isSel = choice.systemName === opt.name;
+                          // 1. Check if linked to a valid Service profile on TripOps
+                          const linkedService = opt.serviceId
+                            ? services.find((s) => s.id === opt.serviceId && s.category === "hotel")
+                            : undefined;
+
+                          // 2. Otherwise prepare Google Maps URL from valid data
+                          const mapsUrl = opt.mapUrl || getGoogleMapsSearchUrl(opt.name, opt.address, destination);
+
                           return (
-                            <button
+                            <div
                               key={opt.name}
-                              onClick={() => updateDestHotel(destination, {
-                                mode: "system",
-                                systemName: opt.name,
-                                systemStars: opt.stars,
-                                systemPricePerNight: opt.pricePerNight,
-                                priceDifference: opt.diff,
-                              })}
-                              className={`text-left p-3.5 rounded-xl border-2 transition-all ${
-                                isSel ? "border-blue-500 bg-white ring-1 ring-blue-400/30" : "border-gray-200 bg-white hover:border-[#CBD5E1]"
+                              className={`rounded-xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
+                                isSel
+                                  ? "border-teal-600 bg-teal-50/25 ring-1 ring-teal-400/30"
+                                  : "border-gray-200 bg-white hover:border-slate-300 shadow-2xs"
                               }`}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
-                                    {opt.stars && (
-                                      <span className="inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                                        {opt.stars} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                                      </span>
+                              {/* Option body (Clickable to select this hotel) */}
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => updateDestHotel(destination, {
+                                  mode: "system",
+                                  systemName: opt.name,
+                                  systemStars: opt.stars,
+                                  systemPricePerNight: opt.pricePerNight,
+                                  priceDifference: opt.diff,
+                                })}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    updateDestHotel(destination, {
+                                      mode: "system",
+                                      systemName: opt.name,
+                                      systemStars: opt.stars,
+                                      systemPricePerNight: opt.pricePerNight,
+                                      priceDifference: opt.diff,
+                                    });
+                                  }
+                                }}
+                                className="cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-lg"
+                                aria-label={`Chọn khách sạn ${opt.name}`}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
+                                      {opt.stars && (
+                                        <span className="inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                          {opt.stars} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                        </span>
+                                      )}
+                                    </div>
+                                    {opt.description && <p className="text-xs text-gray-500 mt-1">{opt.description}</p>}
+                                    {opt.address && opt.description !== opt.address && (
+                                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 truncate">
+                                        <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
+                                        {opt.address}
+                                      </p>
                                     )}
                                   </div>
-                                  {opt.description && <p className="text-xs text-gray-400 mt-1">{opt.description}</p>}
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  {opt.diff === 0 ? (
-                                    <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded">
-                                      Tiêu chuẩn tour (0đ)
-                                    </span>
-                                  ) : (
-                                    <div className="space-y-0.5">
-                                      <p className="text-[10px] text-gray-400 uppercase font-medium">CHÊNH LỆCH</p>
-                                      <p className={`text-sm font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                        {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}
-                                      </p>
-                                    </div>
-                                  )}
+                                  <div className="text-right flex-shrink-0">
+                                    {opt.diff === 0 ? (
+                                      <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2 py-0.5 rounded">
+                                        Tiêu chuẩn tour (0đ)
+                                      </span>
+                                    ) : (
+                                      <div className="space-y-0.5">
+                                        <p className="text-[10px] text-gray-400 uppercase font-medium">CHÊNH LỆCH</p>
+                                        <p className={`text-sm font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                                          {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </button>
+
+                              {/* Separate Action Footer: Secondary Link for viewing & Main select button */}
+                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 mt-1">
+                                <div>
+                                  {linkedService ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModalService(linkedService);
+                                        setModalTarget({ type: "hotel", destination });
+                                        setIsModalOpen(true);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1.5 py-0.5 cursor-pointer"
+                                      title="Xem chi tiết hồ sơ dịch vụ trên TripOps"
+                                    >
+                                      <FileText className="w-3.5 h-3.5 text-teal-600" />
+                                      <span>Xem chi tiết</span>
+                                    </button>
+                                  ) : mapsUrl ? (
+                                    <a
+                                      href={mapsUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1.5 py-0.5"
+                                      title="Xem vị trí khách sạn trên Google Maps (Mở trong tab mới)"
+                                    >
+                                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                                      <span>Xem trên Google Maps</span>
+                                      <ExternalLink className="w-3 h-3 text-teal-500" />
+                                    </a>
+                                  ) : (
+                                    <span className="text-xs text-gray-400 italic">Chưa có thông tin vị trí</span>
+                                  )}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => updateDestHotel(destination, {
+                                    mode: "system",
+                                    systemName: opt.name,
+                                    systemStars: opt.stars,
+                                    systemPricePerNight: opt.pricePerNight,
+                                    priceDifference: opt.diff,
+                                  })}
+                                  className={`py-1 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                                    isSel
+                                      ? "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
+                                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                  }`}
+                                >
+                                  {isSel ? (
+                                    <>
+                                      <Check className="w-3 h-3" />
+                                      Đang chọn
+                                    </>
+                                  ) : (
+                                    "Chọn phương án này"
+                                  )}
+                                </button>
+                              </div>
+                            </div>
                           );
                         });
                       })()}
@@ -1168,13 +1298,17 @@ function CustomTab({
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {displayHotels.map((serv) => {
                               const isSel = choice.mode === "provider" && choice.serviceId === serv.id;
+                              const mapsExternal = serv.latitude && serv.longitude
+                                ? `https://www.google.com/maps?q=${serv.latitude},${serv.longitude}`
+                                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([serv.name, serv.location].filter(Boolean).join(", "))}`;
+
                               return (
                                 <div
                                   key={serv.id}
                                   className={`rounded-xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
                                     isSel
-                                      ? "border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-300"
-                                      : "border-gray-200 bg-white hover:border-indigo-200 shadow-2xs"
+                                      ? "border-teal-600 bg-teal-50/20 ring-1 ring-teal-300"
+                                      : "border-gray-200 bg-white hover:border-teal-200 shadow-2xs"
                                   }`}
                                 >
                                   <div className="flex gap-3">
@@ -1187,7 +1321,7 @@ function CustomTab({
                                       )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <span className="inline-block text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mb-1">
+                                      <span className="inline-block text-[10px] font-bold text-teal-800 bg-teal-100/70 px-1.5 py-0.5 rounded mb-1">
                                         {serv.providerName}
                                       </span>
                                       <h5 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-1 leading-tight">
@@ -1197,34 +1331,51 @@ function CustomTab({
                                         <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
                                         {serv.location}
                                       </p>
-                                      <p className="text-xs font-bold text-blue-900 mt-1">
+                                      <p className="text-xs font-bold text-teal-900 mt-1">
                                         {formatVND(serv.pricePerPerson || serv.price)}
                                         <span className="text-[10px] font-normal text-gray-400"> (giá tham khảo)</span>
                                       </p>
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setModalService(serv);
-                                        setModalTarget({ type: "hotel", destination });
-                                        setIsModalOpen(true);
-                                      }}
-                                      className="flex-1 py-1.5 px-2.5 rounded-lg border border-gray-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 text-[11px] font-semibold text-gray-700 flex items-center justify-center gap-1 transition-colors"
-                                    >
-                                      <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                                      Xem bài viết &amp; Bản đồ
-                                    </button>
+                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setModalService(serv);
+                                          setModalTarget({ type: "hotel", destination });
+                                          setIsModalOpen(true);
+                                        }}
+                                        className="py-1.5 px-2.5 rounded-lg border border-gray-200 hover:border-teal-300 bg-white hover:bg-teal-50 text-[11px] font-semibold text-teal-800 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                        title="Xem chi tiết hồ sơ & bài viết trên TripOps"
+                                      >
+                                        <FileText className="w-3.5 h-3.5 text-teal-600" />
+                                        Xem chi tiết
+                                      </button>
+
+                                      <a
+                                        href={mapsExternal}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="py-1.5 px-2 rounded-lg text-[11px] font-medium text-gray-500 hover:text-teal-800 hover:bg-gray-50 flex items-center gap-1 transition-colors"
+                                        title="Xem trực tiếp trên Google Maps (Mở tab mới)"
+                                      >
+                                        <MapPin className="w-3 h-3 text-red-500" />
+                                        <span>Maps</span>
+                                        <ExternalLink className="w-2.5 h-2.5 text-gray-400" />
+                                      </a>
+                                    </div>
 
                                     <button
                                       type="button"
                                       onClick={() => handleSelectProviderHotel(destination, serv)}
-                                      className={`py-1.5 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+                                      className={`py-1.5 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                                         isSel
-                                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                          : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                          ? "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
+                                          : "bg-teal-700 hover:bg-teal-800 text-white"
                                       }`}
                                     >
                                       {isSel ? (
@@ -1251,7 +1402,7 @@ function CustomTab({
                     <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
                       <p className="text-xs text-amber-700 flex items-start gap-1.5">
                         <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        Nhập thông tin khách sạn bạn muốn tại {destination}. Công ty sẽ xác nhận và báo giá.
+                        Nhập thông tin khách sạn bạn muốn tại {destination}. Công ty sẽ xác nhận tình trạng phòng và báo giá chính thức.
                       </p>
                       <div>
                         <label className="text-xs font-medium text-gray-700 block mb-1">Tên khách sạn *</label>
@@ -1282,6 +1433,25 @@ function CustomTab({
                           placeholder="VD: Yêu cầu phòng view hồ, loại phòng superior…"
                           className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
                         />
+                      </div>
+
+                      {/* Dynamic Google Maps check */}
+                      <div className="pt-2 border-t border-amber-200/70 flex items-center justify-between text-xs">
+                        {choice.customName?.trim() || choice.customAddress?.trim() ? (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([choice.customName?.trim(), choice.customAddress?.trim(), destination].filter(Boolean).join(", "))}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 font-semibold text-teal-800 hover:text-teal-950 hover:underline transition-colors"
+                            title="Xem vị trí khách sạn bạn vừa nhập trên Google Maps (Mở tab mới)"
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                            <span>Xem vị trí đã nhập trên Google Maps</span>
+                            <ExternalLink className="w-3 h-3 text-teal-600" />
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 italic">Chưa có thông tin vị trí để tìm kiếm trên bản đồ</span>
+                        )}
                       </div>
                     </div>
                   )}

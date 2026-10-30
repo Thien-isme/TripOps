@@ -22,18 +22,21 @@ export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
   const image = homeTourImage(tour);
 
   return (
-    <article className="group bg-white border border-[#E5EAE7] hover:border-slate-300 rounded-[12px] overflow-hidden flex flex-col transition-all duration-200 shadow-xs hover:shadow-md">
+    <article
+      onClick={() => onView(tour)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onView(tour);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Xem chi tiết tour ${tour.name}`}
+      className="group bg-white border border-[#E5EAE7] hover:border-[#0F766E]/50 rounded-[12px] overflow-hidden flex flex-col transition-all duration-200 shadow-xs hover:shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F766E] select-none"
+    >
       {/* Tour Photo: 3:2 aspect ratio */}
-      <div
-        className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100 cursor-pointer block"
-        onClick={() => onView(tour)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") onView(tour);
-        }}
-        aria-label={`Xem chi tiết tour ${tour.name}`}
-      >
+      <div className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100 block">
         {image && failedImage !== image ? (
           <img
             src={image}
@@ -80,13 +83,7 @@ export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
 
           {/* Tour Title */}
           <h3 className="font-bold text-base text-[#172523] line-clamp-2 leading-snug group-hover:text-[#0F766E] transition-colors mb-2.5">
-            <button
-              type="button"
-              onClick={() => onView(tour)}
-              className="text-left w-full cursor-pointer hover:underline"
-            >
-              {tour.name}
-            </button>
+            {tour.name}
           </h3>
 
           {/* Metadata: Duration & Guests */}
@@ -123,14 +120,21 @@ export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => onView(tour)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onView(tour);
+              }}
               className="h-8 px-2.5 text-xs text-[#172523] border-[#E5EAE7] hover:border-[#0F766E] hover:text-[#0F766E] rounded-[8px]"
             >
               Chi tiết
             </Button>
             <Button
               type="button"
-              onClick={() => (onBook ? onBook(tour) : onView(tour))}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBook) onBook(tour);
+                else onView(tour);
+              }}
               className="h-8 px-3.5 bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-semibold rounded-[8px] transition-colors"
             >
               Đặt tour

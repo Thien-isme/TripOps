@@ -55,6 +55,48 @@ export function CustomTourRequestPage({
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Auto-format currency VND helper
+  const formatCurrencyVND = (digits: string): string => {
+    if (!digits) return "";
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  const [displayBudget, setDisplayBudget] = useState(() =>
+    form.budgetPerPerson ? formatCurrencyVND(form.budgetPerPerson) : ""
+  );
+
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const rawVal = input.value;
+    const cursorPos = input.selectionStart ?? rawVal.length;
+
+    // Count how many numeric digits were before the cursor
+    const digitsBeforeCursor = rawVal.slice(0, cursorPos).replace(/\D/g, "").length;
+
+    // Extract only digits (prevent negative, decimals, letters)
+    const cleanDigits = rawVal.replace(/\D/g, "");
+
+    // Format for display with dot separators (e.g. 5.000.000)
+    const formatted = formatCurrencyVND(cleanDigits);
+
+    // Update raw payload & display state
+    setForm((prev) => ({ ...prev, budgetPerPerson: cleanDigits }));
+    setDisplayBudget(formatted);
+
+    // Preserve cursor position relative to the digits
+    requestAnimationFrame(() => {
+      let newPos = 0;
+      let countedDigits = 0;
+      while (newPos < formatted.length && countedDigits < digitsBeforeCursor) {
+        if (/\d/.test(formatted[newPos])) {
+          countedDigits++;
+        }
+        newPos++;
+      }
+      input.setSelectionRange(newPos, newPos);
+    });
+  };
+
   const set = (key: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -136,6 +178,12 @@ export function CustomTourRequestPage({
               <span className="text-[#475569]">Thời gian dự kiến:</span>
               <strong className="font-semibold">{form.departureDate} đến {form.returnDate}</strong>
             </div>
+            {form.budgetPerPerson ? (
+              <div className="flex justify-between">
+                <span className="text-[#475569]">Ngân sách dự kiến:</span>
+                <strong className="font-semibold">{formatCurrencyVND(form.budgetPerPerson)} VND / người</strong>
+              </div>
+            ) : null}
             <div className="flex justify-between border-t border-[#CBD5E1] pt-1.5">
               <span className="text-[#475569]">Trạng thái:</span>
               <span className="text-[#B45309] font-bold">Chờ Agency thẩm định & báo giá</span>
@@ -382,14 +430,19 @@ export function CustomTourRequestPage({
               <label className="text-xs font-semibold text-[#0F172A]">
                 Ngân sách dự kiến (VNĐ / một người)
               </label>
-              <input
-                type="number"
-                step="500000"
-                value={form.budgetPerPerson}
-                onChange={set("budgetPerPerson")}
-                placeholder="VD: 5000000"
-                className="w-full h-9 px-3 bg-white border border-[#CBD5E1] rounded-[6px] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#075985]"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={displayBudget}
+                  onChange={handleBudgetChange}
+                  placeholder="VD: 5.000.000"
+                  className="w-full h-9 pl-3 pr-12 bg-white border border-[#CBD5E1] rounded-[6px] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#075985]"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-[#475569] pointer-events-none">
+                  VND
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5">

@@ -30,6 +30,28 @@ interface BookToursPageProps {
 
 const ITEMS_PER_PAGE = 6;
 
+const BOOK_TOURS_STORAGE_KEY = "tripops_book_tours_state";
+
+interface SavedBookToursState {
+  searchTerm?: string;
+  searchGuests?: string;
+  searchDeparture?: string;
+  selectedDestination?: string;
+  selectedCompany?: string;
+  selectedPriceRange?: string;
+  selectedDuration?: string;
+  sortBy?: "featured" | "price-asc" | "price-desc" | "duration";
+  currentPage?: number;
+}
+
+function getSavedBookToursState(): SavedBookToursState | null {
+  try {
+    const raw = sessionStorage.getItem(BOOK_TOURS_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 export function BookToursPage({
   initialSearch,
   onClearSearch,
@@ -40,24 +62,84 @@ export function BookToursPage({
   onViewTour,
   onOpenBookingForm,
 }: BookToursPageProps) {
-  // Filter & Search states
-  const [searchTerm, setSearchTerm] = useState(initialSearch?.destination || "");
-  const [searchGuests, setSearchGuests] = useState(initialSearch?.guests || "");
-  const [searchDeparture, setSearchDeparture] = useState(initialSearch?.departureDate || "");
-  const [selectedDestination, setSelectedDestination] = useState("all");
-  const [selectedCompany, setSelectedCompany] = useState("all");
-  const [selectedPriceRange, setSelectedPriceRange] = useState("all");
-  const [selectedDuration, setSelectedDuration] = useState("all");
-  const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "duration">("featured");
-  const [currentPage, setCurrentPage] = useState(1);
+  // Filter & Search states - initialized from props or persisted sessionStorage
+  const [savedFilters] = useState<SavedBookToursState | null>(() => getSavedBookToursState());
 
+  const hasExplicitInitialSearch = Boolean(
+    initialSearch?.destination || initialSearch?.guests || initialSearch?.departureDate
+  );
+
+  const [searchTerm, setSearchTerm] = useState<string>(() => {
+    if (hasExplicitInitialSearch) return initialSearch?.destination || "";
+    return savedFilters?.searchTerm ?? initialSearch?.destination ?? "";
+  });
+  const [searchGuests, setSearchGuests] = useState<string>(() => {
+    if (hasExplicitInitialSearch) return initialSearch?.guests || "";
+    return savedFilters?.searchGuests ?? initialSearch?.guests ?? "";
+  });
+  const [searchDeparture, setSearchDeparture] = useState<string>(() => {
+    if (hasExplicitInitialSearch) return initialSearch?.departureDate || "";
+    return savedFilters?.searchDeparture ?? initialSearch?.departureDate ?? "";
+  });
+  const [selectedDestination, setSelectedDestination] = useState<string>(
+    () => (hasExplicitInitialSearch ? "all" : savedFilters?.selectedDestination ?? "all")
+  );
+  const [selectedCompany, setSelectedCompany] = useState<string>(
+    () => savedFilters?.selectedCompany ?? "all"
+  );
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>(
+    () => savedFilters?.selectedPriceRange ?? "all"
+  );
+  const [selectedDuration, setSelectedDuration] = useState<string>(
+    () => savedFilters?.selectedDuration ?? "all"
+  );
+  const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "duration">(
+    () => savedFilters?.sortBy ?? "featured"
+  );
+  const [currentPage, setCurrentPage] = useState<number>(
+    () => (hasExplicitInitialSearch ? 1 : savedFilters?.currentPage ?? 1)
+  );
+
+  // Sync when user executes a new search from elsewhere (e.g., header search or home search)
   useEffect(() => {
-    setSearchTerm(initialSearch?.destination || "");
-    setSearchGuests(initialSearch?.guests || "");
-    setSearchDeparture(initialSearch?.departureDate || "");
-    setSelectedDestination("all");
-    setCurrentPage(1);
+    if (initialSearch && (initialSearch.destination || initialSearch.guests || initialSearch.departureDate)) {
+      setSearchTerm(initialSearch.destination || "");
+      setSearchGuests(initialSearch.guests || "");
+      setSearchDeparture(initialSearch.departureDate || "");
+      setSelectedDestination("all");
+      setCurrentPage(1);
+    }
   }, [initialSearch?.destination, initialSearch?.guests, initialSearch?.departureDate]);
+
+  // Persist current filters & pagination to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        BOOK_TOURS_STORAGE_KEY,
+        JSON.stringify({
+          searchTerm,
+          searchGuests,
+          searchDeparture,
+          selectedDestination,
+          selectedCompany,
+          selectedPriceRange,
+          selectedDuration,
+          sortBy,
+          currentPage,
+        })
+      );
+    } catch {}
+  }, [
+    searchTerm,
+    searchGuests,
+    searchDeparture,
+    selectedDestination,
+    selectedCompany,
+    selectedPriceRange,
+    selectedDuration,
+    sortBy,
+    currentPage,
+  ]);
 
   // Available filter options extracted from data
   const publicTours = useMemo(() => {
@@ -152,6 +234,9 @@ export function BookToursPage({
   ].filter(Boolean).length;
 
   const handleClearAllFilters = () => {
+    try {
+      sessionStorage.removeItem(BOOK_TOURS_STORAGE_KEY);
+    } catch {}
     onClearSearch?.();
     setSearchGuests("");
     setSearchDeparture("");
@@ -160,6 +245,7 @@ export function BookToursPage({
     setSelectedCompany("all");
     setSelectedPriceRange("all");
     setSelectedDuration("all");
+    setSortBy("featured");
     setCurrentPage(1);
   };
 

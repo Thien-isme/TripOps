@@ -199,6 +199,7 @@ export function UserBookingDetailPage({
   const [pAgeGroup, setPAgeGroup] = useState<"adult" | "child_2_11" | "child_under_2">("adult");
   const [pPhone, setPPhone] = useState("");
   const [pIdNumber, setPIdNumber] = useState("");
+  const [pRoommateNote, setPRoommateNote] = useState("");
   const [pNotes, setPNotes] = useState("");
   const [pPrice, setPPrice] = useState(0);
 
@@ -223,6 +224,7 @@ export function UserBookingDetailPage({
     setPAgeGroup(p.ageGroup);
     setPPhone(p.phone || "");
     setPIdNumber(p.idNumber || "");
+    setPRoommateNote(p.roommateNote || "");
     setPNotes(p.notes || "");
     setPPrice(p.price);
     setShowPassengerModal(true);
@@ -244,6 +246,7 @@ export function UserBookingDetailPage({
               ageGroup: pAgeGroup,
               phone: pPhone.trim(),
               idNumber: pIdNumber.trim(),
+              roommateNote: pRoommateNote.trim(),
               notes: pNotes.trim(),
               price: computedPrice,
             }
@@ -258,6 +261,7 @@ export function UserBookingDetailPage({
         ageGroup: pAgeGroup,
         phone: pPhone.trim(),
         idNumber: pIdNumber.trim(),
+        roommateNote: pRoommateNote.trim(),
         notes: pNotes.trim(),
         price: computedPrice,
       };
@@ -859,14 +863,19 @@ export function UserBookingDetailPage({
                                 {p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)"}
                               </span>
                             </td>
-                            <td className="px-3 py-2.5 max-w-[200px]">
+                            <td className="px-3 py-2.5 max-w-[220px]">
+                              {p.roommateNote ? (
+                                <div className="text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 text-[11px] mb-1 font-medium leading-tight">
+                                  🛏️ {p.roommateNote}
+                                </div>
+                              ) : null}
                               {p.notes ? (
                                 <span className="text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-[11px]">
-                                  {p.notes}
+                                  📝 {p.notes}
                                 </span>
-                              ) : (
+                              ) : !p.roommateNote ? (
                                 <span className="text-gray-400 italic">—</span>
-                              )}
+                              ) : null}
                             </td>
                             <td className="px-3 py-2.5 text-right font-bold text-[#075985]">
                               {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
@@ -2105,7 +2114,23 @@ export function UserBookingDetailPage({
 
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Ghi chú riêng (Dị ứng, hỗ trợ xe lăn, v.v.)
+                Nguyện vọng xếp phòng / Muốn ở cùng ai <span className="font-normal text-gray-400">(Tùy chọn)</span>
+              </label>
+              <input
+                type="text"
+                value={pRoommateNote}
+                onChange={(e) => setPRoommateNote(e.target.value)}
+                placeholder="VD: Muốn ở cùng Nguyễn Văn A, ưu tiên hai giường đơn…"
+                className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+              />
+              <p className="text-[10px] text-gray-500 mt-0.5">
+                Đơn vị phụ trách sẽ xem xét theo tình trạng phòng.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Ghi chú cá nhân (Dị ứng, hỗ trợ xe lăn, v.v.)
               </label>
               <input
                 type="text"
