@@ -2,6 +2,7 @@ import { useState } from "react";
 import { User } from "@/app/types";
 import { login } from "@/app/services/authService";
 import { Compass, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Info, CheckCircle2 } from "lucide-react";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 import { Button } from "@/app/components/ui/button";
 
 interface LoginScreenProps {
@@ -92,7 +93,7 @@ export function LoginScreen({
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center py-1">
             <img
-              src="/images/Logo/TripOps_logo_transparent.png"
+              src={TRIPOPS_LOGO}
               alt="TripOps Logo"
               className="h-10 w-auto object-contain mx-auto"
             />

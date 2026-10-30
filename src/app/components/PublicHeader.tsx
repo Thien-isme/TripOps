@@ -1,4 +1,5 @@
 ﻿import { Compass, ArrowRight } from "lucide-react";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 
 interface PublicHeaderProps {
   onShowLogin: () => void;
@@ -30,7 +31,7 @@ export function PublicHeader({
             onClick={() => onNavigate?.("home")}
           >
             <img
-              src="/images/Logo/TripOps_logo_transparent.png"
+              src={TRIPOPS_LOGO}
               alt="TripOps Logo"
               className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
             />

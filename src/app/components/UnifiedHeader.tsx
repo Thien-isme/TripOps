@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { User as UserType } from "@/app/types";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 
 interface UnifiedHeaderProps {
   currentUser: UserType | null;
@@ -99,7 +100,7 @@ export function UnifiedHeader({
             onClick={() => handleNavigateClick("home")}
           >
             <img
-              src="/images/Logo/TripOps_logo_transparent.png"
+              src={TRIPOPS_LOGO}
               alt="TripOps Logo"
               className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
             />

@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import type { User } from "@/app/types";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -88,7 +89,7 @@ export function CustomerHeader({
           aria-label="TripOps — Trang chủ"
         >
           <img
-            src="/images/Logo/TripOps_logo_transparent.png"
+            src={TRIPOPS_LOGO}
             alt="TripOps Logo"
             className="h-9 sm:h-10 w-auto object-contain transition-transform hover:scale-[1.02]"
           />

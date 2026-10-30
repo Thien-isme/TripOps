@@ -1,4 +1,5 @@
 import { ArrowUpRight, Compass, MapPin } from "lucide-react";
+import { TRIPOPS_LOGO_WHITE } from "@/app/constants/logo";
 
 interface CustomerFooterProps {
   onNavigate?: (page: string) => void;
@@ -19,7 +20,7 @@ export function CustomerFooter({
               aria-label="TripOps — Trang chủ"
             >
               <img
-                src="/images/Logo/TripOps_logo_white.png"
+                src={TRIPOPS_LOGO_WHITE}
                 alt="TripOps Logo"
                 className="h-8 w-auto object-contain transition-opacity hover:opacity-90"
               />

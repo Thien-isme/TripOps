@@ -1,4 +1,5 @@
 ﻿import { Compass, Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
+import { TRIPOPS_LOGO_WHITE } from "@/app/constants/logo";
 
 export function PublicFooter() {
   return (
@@ -9,7 +10,7 @@ export function PublicFooter() {
           <div className="md:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src="/images/Logo/TripOps_logo_white.png"
+                src={TRIPOPS_LOGO_WHITE}
                 alt="TripOps Logo"
                 className="h-9 w-auto object-contain"
               />

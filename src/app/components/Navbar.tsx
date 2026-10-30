@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { User as UserType } from "@/app/types";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 
 interface NavbarProps {
   currentUser: UserType;
@@ -85,7 +86,7 @@ export function Navbar({
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer">
             <img
-              src="/images/Logo/TripOps_logo_transparent.png"
+              src={TRIPOPS_LOGO}
               alt="TripOps Logo"
               className="h-9 w-auto object-contain"
             />

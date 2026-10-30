@@ -25,6 +25,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { User, UserRole } from "@/app/types";
+import { TRIPOPS_LOGO } from "@/app/constants/logo";
 
 interface RegisterScreenProps {
   onRegisterSuccess?: (registeredUser?: User) => void;
@@ -330,7 +331,7 @@ export function RegisterScreen({
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center gap-2.5 bg-white px-5 py-2 rounded-full border border-slate-200 shadow-2xs mb-1">
             <img
-              src="/images/Logo/TripOps_logo_transparent.png"
+              src={TRIPOPS_LOGO}
               alt="TripOps Logo"
               className="h-7 w-auto object-contain"
             />

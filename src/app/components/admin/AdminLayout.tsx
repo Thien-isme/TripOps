@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { TRIPOPS_LOGO, TRIPOPS_ICON } from "@/app/constants/logo";
 import {
   LayoutDashboard,
   Package,
@@ -91,7 +92,7 @@ export function AdminLayout({
           {!collapsed ? (
             <div className="flex items-center gap-2.5">
               <img
-                src="/images/Logo/TripOps_logo_transparent.png"
+                src={TRIPOPS_LOGO}
                 alt="TripOps Logo"
                 className="h-7 w-auto object-contain"
               />
@@ -101,7 +102,7 @@ export function AdminLayout({
             </div>
           ) : (
             <img
-              src="/images/Logo/TripOps_icon_transparent.png"
+              src={TRIPOPS_ICON}
               alt="TripOps"
               className="h-7 w-7 object-contain mx-auto"
             />
