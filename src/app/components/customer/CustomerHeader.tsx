@@ -16,6 +16,7 @@ import {
 import type { User } from "@/app/types";
 import { TRIPOPS_LOGO } from "@/app/constants/logo";
 import { Button } from "@/app/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -32,6 +33,40 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/app/components/ui/sheet";
+
+
+export function getAccountInitials(name?: string): string {
+  if (!name || typeof name !== "string") return "TK";
+  // Remove suffixes in parentheses or brackets, e.g. "(Đại diện FPT)", "[FPT]"
+  const cleaned = name
+    .replace(/\(.*?\)/g, "")
+    .replace(/\[.*?\]/g, "")
+    .replace(/\{.*?\}/g, "")
+    .trim();
+
+  // Strip special symbols, keep unicode letters, digits, and spaces
+  const cleanWords = cleaned
+    .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ""))
+    .filter(Boolean);
+
+  if (cleanWords.length === 0) {
+    const fallbackWords = name
+      .split(/\s+/)
+      .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ""))
+      .filter(Boolean);
+    if (fallbackWords.length === 0) return "TK";
+    return fallbackWords[0].slice(0, 2).toUpperCase();
+  }
+
+  if (cleanWords.length === 1) {
+    return cleanWords[0].slice(0, 2).toUpperCase();
+  }
+
+  // Last 2 words: e.g. Nguyễn Văn An -> Văn An -> VA
+  const lastTwo = cleanWords.slice(-2);
+  return (lastTwo[0][0] + lastTwo[1][0]).toUpperCase();
+}
 
 interface CustomerHeaderProps {
   currentUser: User | null;
@@ -69,13 +104,8 @@ export function CustomerHeader({
     { id: "my-complaints", label: "Khiếu nại của tôi", icon: ShieldAlert },
   ];
   const isCustomer = !currentUser || currentUser.role === "user";
-  const initials =
-    currentUser?.name
-      .trim()
-      .split(/\s+/)
-      .slice(-2)
-      .map((part) => part[0])
-      .join("") || "KH";
+  const displayName = currentUser?.name?.trim() || "Tài khoản";
+  const initials = getAccountInitials(currentUser?.name);
   const navigate = (page: string) => {
     setMobileOpen(false);
     onNavigate(page);
@@ -126,23 +156,60 @@ export function CustomerHeader({
           {currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="trip-account-trigger"
-                aria-label="Mở menu tài khoản"
+                className="trip-account-trigger group flex items-center gap-2 px-2 py-1 rounded-full sm:rounded-lg hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 transition-colors cursor-pointer select-none"
+                aria-label={`Menu tài khoản của ${displayName}`}
               >
-                <span className="trip-account-avatar">{initials}</span>
-                <span className="trip-account-name">
-                  {currentUser.name.split(" ").slice(-1)[0]}
+                <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-teal-200/80 shadow-2xs shrink-0">
+                  {currentUser.avatar ? (
+                    <AvatarImage
+                      src={currentUser.avatar}
+                      alt={displayName}
+                      className="object-cover"
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-teal-50 text-teal-800 font-semibold text-xs sm:text-sm">
+                    {initials !== "TK" ? initials : <UserRound className="w-4 h-4 text-teal-700" />}
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  className="trip-account-name text-sm font-medium text-slate-800 max-w-[130px] sm:max-w-[170px] md:max-w-[220px] truncate leading-tight group-hover:text-teal-900"
+                  title={displayName}
+                >
+                  {displayName}
                 </span>
-                <ChevronDown size={14} />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-800 transition-transform group-data-[state=open]:rotate-180 shrink-0" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="trip-account-menu">
-                <DropdownMenuLabel>
-                  <p className="text-sm font-semibold">{currentUser.name}</p>
-                  <p className="text-xs font-normal text-slate-500 mt-1 truncate">
-                    {currentUser.email}
-                  </p>
+              <DropdownMenuContent align="end" className="trip-account-menu w-64 p-1.5 shadow-lg border border-slate-200">
+                <DropdownMenuLabel className="p-3">
+                  <div className="flex items-start gap-2.5">
+                    <Avatar className="h-9 w-9 border border-teal-200 shrink-0 mt-0.5">
+                      {currentUser.avatar ? (
+                        <AvatarImage
+                          src={currentUser.avatar}
+                          alt={displayName}
+                          className="object-cover"
+                        />
+                      ) : null}
+                      <AvatarFallback className="bg-teal-50 text-teal-800 font-semibold text-xs">
+                        {initials !== "TK" ? initials : <UserRound className="w-4 h-4 text-teal-700" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-slate-900 break-words leading-tight" title={displayName}>
+                        {displayName}
+                      </p>
+                      {currentUser.companyName && (
+                        <p className="text-xs text-teal-700 font-medium mt-1 truncate" title={currentUser.companyName}>
+                          🏢 {currentUser.companyName}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1 truncate" title={currentUser.email}>
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
                 {accountLinks
                   .filter(
                     (link) =>
@@ -152,15 +219,19 @@ export function CustomerHeader({
                     <DropdownMenuItem
                       key={link.id}
                       onSelect={() => navigate(link.id)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 rounded-md cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors"
                     >
-                      <link.icon size={16} />
-                      {link.label}
+                      <link.icon size={15} className="text-teal-700" />
+                      <span>{link.label}</span>
                     </DropdownMenuItem>
                   ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={onLogout} className="text-red-700">
-                  <LogOut size={16} />
-                  Đăng xuất
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
+                <DropdownMenuItem
+                  onSelect={onLogout}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs text-red-600 rounded-md cursor-pointer hover:bg-red-50 hover:text-red-700 font-medium transition-colors"
+                >
+                  <LogOut size={15} className="text-red-600" />
+                  <span>Đăng xuất</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -191,6 +262,31 @@ export function CustomerHeader({
                     Tìm hành trình dành cho đoàn bạn.
                   </SheetDescription>
                 </SheetHeader>
+                {currentUser && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 mt-3 mb-2 flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border border-teal-200 shrink-0">
+                      {currentUser.avatar ? (
+                        <AvatarImage src={currentUser.avatar} alt={displayName} className="object-cover" />
+                      ) : null}
+                      <AvatarFallback className="bg-teal-50 text-teal-800 font-semibold text-sm">
+                        {initials !== "TK" ? initials : <UserRound className="w-5 h-5 text-teal-700" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-900 truncate" title={displayName}>
+                        {displayName}
+                      </p>
+                      {currentUser.companyName && (
+                        <p className="text-xs text-teal-700 font-medium truncate">
+                          🏢 {currentUser.companyName}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-500 truncate">
+                        {currentUser.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <nav
                   className="trip-mobile-links"
                   aria-label="Điều hướng trên điện thoại"
@@ -224,6 +320,18 @@ export function CustomerHeader({
                         {link.label}
                       </button>
                     ))}
+                  {currentUser && (
+                    <button
+                      onClick={() => {
+                        setMobileOpen(false);
+                        onLogout();
+                      }}
+                      className="text-red-600 hover:text-red-700 flex items-center gap-2"
+                    >
+                      <LogOut size={16} />
+                      Đăng xuất
+                    </button>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
