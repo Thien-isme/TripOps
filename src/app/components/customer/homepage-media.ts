@@ -1,33 +1,48 @@
 import type { Tour } from "@/app/types";
 
 const imageBase = `${import.meta.env.BASE_URL}images/destinations/`;
+
+export const heroImage = `${imageBase}ninh-binh.webp`;
+
 export const homeDestinations = [
   {
-    name: "Sapa",
-    image: `${imageBase}sapa.webp`,
-    description: "Đi giữa những mùa vàng",
+    name: "Ninh Bình",
+    image: `${imageBase}ninh-binh.webp`,
+    description: "Tràng An, Tam Cốc & Hang Múa",
     region: "Miền Bắc",
   },
   {
-    name: "Phú Quốc",
-    image: `${imageBase}phu-quoc.webp`,
-    description: "Hẹn nhau bên biển xanh",
-    region: "Biển đảo",
-  },
-  {
-    name: "Đà Lạt",
-    image: `${imageBase}da-lat.webp`,
-    description: "Một khoảng trời bình yên",
-    region: "Tây Nguyên",
+    name: "Sapa",
+    image: `${imageBase}sapa.webp`,
+    description: "Ruộng bậc thang & Đỉnh Fansipan",
+    region: "Tây Bắc",
   },
   {
     name: "Đà Nẵng",
     image: `${imageBase}da-nang.webp`,
-    description: "Từ phố biển đến Hội An",
+    description: "Cầu Rồng, Bà Nà Hills & Phố cổ Hội An",
     region: "Miền Trung",
   },
+  {
+    name: "Nha Trang",
+    image: `${imageBase}nha-trang.webp`,
+    description: "Vịnh biển ngọc & Lặn ngắm san hô",
+    region: "Nam Trung Bộ",
+  },
+  {
+    name: "Đà Lạt",
+    image: `${imageBase}da-lat.webp`,
+    description: "Thành phố ngàn hoa & Rừng thông",
+    region: "Tây Nguyên",
+  },
+  {
+    name: "Phú Quốc",
+    image: `${imageBase}phu-quoc.webp`,
+    description: "Bãi Sao, lặn biển & Hoàng hôn đảo ngọc",
+    region: "Biển đảo",
+  },
 ];
-export const heroImage = `${imageBase}ninh-binh.webp`;
+
 const destinationImages: Record<string, string> = {
   "Ninh Bình": heroImage,
   "Nha Trang": `${imageBase}nha-trang.webp`,
@@ -43,6 +58,7 @@ export function homeTourImage(tour: Tour) {
   return (
     ((!tour.image || placeholder) && destinationImages[tour.destination]) ||
     tour.image ||
-    ""
+    heroImage
   );
 }
+
