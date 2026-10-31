@@ -11,6 +11,7 @@ import {
   Plus,
   PlusCircle,
   BedDouble,
+  ClipboardList,
 } from "lucide-react";
 import { User } from "@/app/types";
 import { Button } from "@/app/components/ui/button";
@@ -42,8 +43,8 @@ export function ProviderLayout({
     { id: "services", label: "Quản lý Dịch vụ", icon: Layers },
     {
       id: "room-requests",
-      label: "Yêu cầu Giữ phòng Đoàn",
-      icon: BedDouble,
+      label: "Yêu cầu Dịch vụ",
+      icon: ClipboardList,
       badge: pendingRequestsCount,
     },
     { id: "create", label: "Đăng Dịch vụ Mới", icon: PlusCircle },

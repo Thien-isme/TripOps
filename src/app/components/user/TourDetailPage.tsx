@@ -3,6 +3,7 @@ import {
   Tour,
   Service,
   TourHotel,
+  TourMeal,
   CustomHotelChange,
   CustomLocationChange,
   CustomMealChange,
@@ -2572,7 +2573,9 @@ export function TourDetailPage({
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <Users className="w-4 h-4 text-blue-500" />
-                {tour.minGuests}–{tour.maxGuests} khách
+                {tour.minGuests > 0
+                  ? `Tối thiểu ${tour.minGuests} khách có vé tính tiền · Tối đa ${tour.maxGuests} người`
+                  : `Tối đa ${tour.maxGuests} người`}
               </div>
               {tour.operationPeriod && (
                 <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -2761,8 +2764,12 @@ export function TourDetailPage({
                   </div>
                 )}
                 <div className="flex justify-between text-gray-600">
-                  <span>Nhóm khách</span>
-                  <span className="font-medium">{tour.minGuests}–{tour.maxGuests} người</span>
+                  <span>Quy mô đoàn</span>
+                  <span className="font-medium text-right text-xs">
+                    {tour.minGuests > 0
+                      ? `Tối thiểu ${tour.minGuests} khách tính tiền · Tối đa ${tour.maxGuests} người`
+                      : `Tối đa ${tour.maxGuests} người`}
+                  </span>
                 </div>
               </div>
 

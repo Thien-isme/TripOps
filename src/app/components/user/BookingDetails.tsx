@@ -239,7 +239,7 @@ export function BookingDetails({
                             {day.description}
                           </p>
                           <p className="text-sm text-gray-500 mt-1">
-                            {formatDate(day.date)}
+                            {day.date ? formatDate(day.date) : "Chưa xác định ngày"}
                           </p>
                         </div>
                       </div>

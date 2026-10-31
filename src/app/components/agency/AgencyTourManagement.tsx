@@ -11,6 +11,7 @@ import {
   TourAlternativeHotel,
   Location,
   TourVersion,
+  TourCoHost,
   CustomTourRequest,
 } from "@/app/types";
 import {
@@ -228,7 +229,6 @@ export function AgencyTourManagement({
           services={mockServices}
           currentUser={company as any}
           onBack={() => setViewingTour(null)}
-          onEditTour={onEditTour}
           onDeleteTour={(id) => {
             onDeleteTour(id);
             setViewingTour(null);
@@ -406,7 +406,7 @@ export function AgencyTourManagement({
             <div className="flex items-center gap-2 bg-[#E0F2FE] px-3 py-1 rounded-xl border border-[#075985]/30 animate-in fade-in">
               <span className="text-xs font-bold text-[#075985]">Đã chọn {selectedTourIds.length} tour:</span>
               <button
-                onClick={() => handleBulkToggleVisibility("published")}
+                onClick={() => handleBulkToggleVisibility("public")}
                 className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded hover:bg-emerald-200"
               >
                 Mở bán
@@ -454,7 +454,7 @@ export function AgencyTourManagement({
         <div className="bg-white rounded-2xl border border-[#CBD5E1] p-16 text-center shadow-xs">
           <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-500 font-medium">
-            {statusFilter === "active"
+            {statusFilter === "published"
               ? "Chưa có tour công khai nào đang mở bán"
               : statusFilter === "hidden"
               ? "Không có tour nào đang tạm dừng"
@@ -989,7 +989,9 @@ export function TourFormPage(props: TourFormPageProps) {
     status: "approved",
     rating: 5,
     totalTours: 10,
-    activeBookings: 5,
+    taxCode: "",
+    adminId: "",
+    createdAt: "",
   };
   const onBack = props.onBack ?? props.onCancel ?? (() => {});
   const onSubmit = props.onSubmit ?? props.onSave ?? (() => {});
@@ -3089,9 +3091,10 @@ export function TourFormPage(props: TourFormPageProps) {
 
                     return (
                       <div key={hotel.id || hIdx} className={`border rounded-2xl overflow-hidden bg-white shadow-2xs ${isHotelLocked ? "border-amber-200" : "border-[#CBD5E1]"}`}>
-                        <button
-                          type="button"
-                          onClick={() => setExpandedHotelId(isExpanded ? null : (hotel.id || `h-${hIdx}`))}
+                        <div
+                          role="button" tabIndex={0} aria-expanded={isExpanded}
+                          onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); setExpandedHotelId(isExpanded ? null : (hotel.id || `h-${hIdx}`)); } }}
+                                            onClick={() => setExpandedHotelId(isExpanded ? null : (hotel.id || `h-${hIdx}`))}
                           className={`w-full flex items-center justify-between px-4 py-3 transition-colors text-left ${
                             isHotelLocked ? "bg-amber-50/70 hover:bg-amber-100/60" : "bg-[#F0F9FF]/80 hover:bg-[#E0F2FE]/70"
                           }`}
@@ -3144,7 +3147,7 @@ export function TourFormPage(props: TourFormPageProps) {
                               <ChevronDown className="w-4 h-4 text-gray-400" />
                             )}
                           </div>
-                        </button>
+                        </div>
 
                         {isExpanded && (
                           <div className="p-4 bg-white border-t border-gray-100 space-y-4">
@@ -3303,6 +3306,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                             return;
                                           }
                                           const fakeServ: Service = {
+                                            rating: 0,
                                             id: `custom-hotel-${Date.now()}`,
                                             providerId: "external-provider",
                                             providerName: "Đối tác Ngoài Sàn",
@@ -4007,7 +4011,7 @@ export function TourFormPage(props: TourFormPageProps) {
                               {(() => {
                                 type UnifiedItem =
                                   | { kind: "location"; loc: (typeof day.locations)[0]; lIdx: number; arrayOrder: number; minutes: number }
-                                  | { kind: "meal"; meal: (typeof day.meals)[0]; mIdx: number; arrayOrder: number; minutes: number };
+                                  | { kind: "meal"; meal: TourMeal; mIdx: number; arrayOrder: number; minutes: number };
 
                                 const items: UnifiedItem[] = [
                                   ...(day.locations || []).map((loc, lIdx) => ({
@@ -4225,8 +4229,9 @@ export function TourFormPage(props: TourFormPageProps) {
 
                                         {/* Meal Card */}
                                         <div className={`flex-1 border rounded-2xl overflow-hidden bg-white shadow-2xs ${isMealLocked ? "border-amber-200" : "border-[#CBD5E1]"}`}>
-                                          <button
-                                            type="button"
+                                          <div
+                                            role="button" tabIndex={0} aria-expanded={isExpanded}
+                                            onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); setExpandedMealKey(isExpanded ? null : mealKey); } }}
                                             onClick={() => setExpandedMealKey(isExpanded ? null : mealKey)}
                                             className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors text-left ${
                                               isMealLocked
@@ -4296,7 +4301,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                               )}
                                               {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                                             </div>
-                                          </button>
+                                          </div>
 
                                           {/* Expanded Meal Config */}
                                           {isExpanded && (
@@ -4448,6 +4453,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                                               return;
                                                             }
                                                             const fakeServ: Service = {
+                                            rating: 0,
                                                               id: `custom-fnb-${Date.now()}`,
                                                               providerId: "external-provider",
                                                               providerName: "Đối tác Ngoài Sàn",
@@ -4950,7 +4956,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                       {!isMe && isLeadCompany && (
                                         <button
                                           type="button"
-                                          onClick={() => handleRemovePartnerCoHost(ch.id)}
+                                          onClick={() => ch.id && handleRemovePartnerCoHost(ch.id)}
                                           className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
                                           title="Xóa đối tác này khỏi liên minh"
                                         >
@@ -5843,7 +5849,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                             });
                                             if (dayCompanies.size === 0) {
                                               const coHosts = tour?.coHosts || customRequest?.coHosts || coHostsList;
-                                              coHosts?.forEach((ch) => {
+                                              coHosts?.forEach((ch: TourCoHost) => {
                                                 if (ch.assignedDays?.includes(d.day)) {
                                                   dayCompanies.set(ch.companyId, ch.companyName);
                                                 }

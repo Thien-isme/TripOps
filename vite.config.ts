@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
-function figmaAssetResolver() {
+function figmaAssetResolver(): Plugin {
   return {
     name: 'figma-asset-resolver',
     resolveId(id) {

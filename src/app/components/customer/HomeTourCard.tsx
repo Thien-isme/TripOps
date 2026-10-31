@@ -96,8 +96,8 @@ export function HomeTourCard({ tour, onView, onBook }: HomeTourCardProps) {
               <span className="inline-flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-slate-400" />
                 <span>
-                  {tour.minGuests > 0 ? `${tour.minGuests}–` : "Tối đa "}
-                  {tour.maxGuests} khách
+                  {tour.minGuests > 0 ? `Tối thiểu ${tour.minGuests} vé tính tiền · ` : "Tối đa "}
+                  {tour.maxGuests} người (tối đa)
                 </span>
               </span>
             )}

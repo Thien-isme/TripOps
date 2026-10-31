@@ -2162,6 +2162,9 @@ export const mockTours: Tour[] = [
   {
     id: "tour-hg-1",
     tourCode: "HG001",
+    minGuests: 10,
+    maxGuests: 20,
+    highlights: [],
     name: "Chinh Phục Cao Nguyên Đá Đồng Văn – Đèo Mã Pí Lèng 3N2Đ",
     destination: "Hà Giang",
     region: "Miền Bắc",
@@ -2185,6 +2188,7 @@ export const mockTours: Tour[] = [
     itinerary: [
       {
         day: 1,
+        id: "ha-giang-day-1",
         title: "Hà Giang – Quản Bạ – Núi Đôi Cô Tiên – Yên Minh",
         description:
           "Đón đoàn tại TP. Hà Giang, vượt dốc Bắc Sum, ngắm Cổng Trời Quản Bạ và núi đôi Cô Tiên.",
@@ -2220,6 +2224,7 @@ export const mockTours: Tour[] = [
       },
       {
         day: 2,
+        id: "ha-giang-day-2",
         title: "Đồng Văn – Đèo Mã Pí Lèng – Đi Thuyền Sông Nho Quế",
         description:
           "Chinh phục đèo Mã Pí Lèng hiểm trở, đi thuyền ngắm hẻm Tu Sản xanh biếc và khám phá phố cổ Đồng Văn về đêm.",
@@ -2260,6 +2265,7 @@ export const mockTours: Tour[] = [
       },
       {
         day: 3,
+        id: "ha-giang-day-3",
         title: "Dinh Thự Vua Mèo – Nhà Của Pao – Tiễn Đoàn",
         description:
           "Thăm dinh thự họ Vương bề thế và làng văn hóa Lũng Cẩm - bối cảnh phim Chuyện của Pao trước khi về lại Hà Nội.",
@@ -2274,7 +2280,7 @@ export const mockTours: Tour[] = [
             address: "Sà Phìn, Đồng Văn, Hà Giang",
           },
         ],
-        hotel: null,
+        hotel: undefined,
         meals: [
           {
             type: "breakfast",
@@ -2316,7 +2322,7 @@ export const mockTours: Tour[] = [
       "Bảo hiểm du lịch mức 100.000.000đ/vụ",
     ],
     exclusions: ["Chi phí cá nhân", "Thuế VAT"],
-    tourType: "fixed",
+    tourType: "public",
   },
 ];
 
@@ -4257,6 +4263,8 @@ export const mockBookings: Booking[] = [
   // 6. BOOKING ĐÃ HỦY VÀ HOÀN TIỀN (CANCELLED / REFUNDED)
   {
     id: "booking-6",
+    bookingDate: "",
+    tourStartDate: "",
     tourId: "tour-5",
     tour: getMockTourById("tour-5"),
     userId: "user-1",

@@ -50,6 +50,7 @@ import {
 import { CancelTourModal } from "./CancelTourModal";
 
 interface UserBookingDetailPageProps {
+  onSubmitRefundRequest?: React.ComponentProps<typeof CancelTourModal>["onSubmitRefundRequest"];
   booking: Booking;
   systemBank?: SystemBankAccount;
   onBack: () => void;
@@ -117,6 +118,7 @@ export function UserBookingDetailPage({
   onUpdateBookingPassengers,
   onNavigateToComplaint,
   onNavigateToReview,
+  onSubmitRefundRequest,
 }: UserBookingDetailPageProps) {
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -200,6 +202,7 @@ export function UserBookingDetailPage({
   const [pPhone, setPPhone] = useState("");
   const [pIdNumber, setPIdNumber] = useState("");
   const [pRoommateNote, setPRoommateNote] = useState("");
+  const [pDietaryNote, setPDietaryNote] = useState("");
   const [pNotes, setPNotes] = useState("");
   const [pPrice, setPPrice] = useState(0);
 
@@ -219,12 +222,13 @@ export function UserBookingDetailPage({
   const handleOpenEditPassenger = (p: BookingPassenger) => {
     setEditingPassenger(p);
     setPFullName(p.fullName);
-    setPDob(p.dateOfBirth);
-    setPGender(p.gender);
+    setPDob(p.dateOfBirth ?? "");
+    setPGender(p.gender ?? "male");
     setPAgeGroup(p.ageGroup);
     setPPhone(p.phone || "");
     setPIdNumber(p.idNumber || "");
     setPRoommateNote(p.roommateNote || "");
+    setPDietaryNote(p.dietaryNote || "");
     setPNotes(p.notes || "");
     setPPrice(p.price);
     setShowPassengerModal(true);
@@ -843,7 +847,7 @@ export function UserBookingDetailPage({
                             <td className="px-3 py-2.5 text-gray-600">
                               <span>{p.dateOfBirth || "—"}</span>
                               {(() => {
-                                const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                                const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
                                 return age !== null ? (
                                   <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
                                     {age} tuổi

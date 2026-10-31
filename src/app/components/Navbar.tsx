@@ -34,6 +34,8 @@ export function Navbar({
     guide: "Hướng dẫn viên",
     admin: "Quản lý",
     provider: "Nhà cung cấp",
+    agency: "Công ty lữ hành",
+    company_admin: "Quản trị công ty",
   };
 
   // Close dropdown when clicking outside

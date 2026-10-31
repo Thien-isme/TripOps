@@ -94,7 +94,7 @@ export function TourCard({ tour, onViewTour, onBookTour }: TourCardProps) {
             <span className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5 text-[#075985]" />
               <span>
-                {tour.minGuests}–{tour.maxGuests} khách
+                {tour.minGuests > 0 ? `Tối thiểu ${tour.minGuests} vé tính tiền` : `Tối đa ${tour.maxGuests} khách`}
               </span>
             </span>
           </div>

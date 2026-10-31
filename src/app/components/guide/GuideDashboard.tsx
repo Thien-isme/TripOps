@@ -150,7 +150,7 @@ export function GuideDashboard({
   // Incident reporting modal
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   const [incidentCategory, setIncidentCategory] = useState<
-    "medical" | "transport" | "weather" | "service_provider" | "other"
+    "medical" | "vehicle" | "weather" | "service" | "other"
   >("medical");
   const [incidentSeverity, setIncidentSeverity] = useState<
     "low" | "medium" | "high" | "critical"
@@ -163,7 +163,13 @@ export function GuideDashboard({
     currentSchedule?.incidents || [
       {
         id: "inc-demo-1",
-        category: "transport",
+        bookingId: currentSchedule?.booking.id ?? "",
+        tourId: currentSchedule?.booking.tourId ?? "",
+        tourName: currentSchedule?.booking.tour.name ?? "",
+        guideId: currentSchedule?.booking.guideId ?? "",
+        guideName: currentSchedule?.booking.guideName ?? "",
+        title: "Chậm phương tiện",
+        category: "vehicle",
         severity: "medium",
         description:
           "Xe 29 chỗ kẹt phà 20 phút tại bến phà, đã thông báo khách và điều chỉnh giờ cơm trưa.",
@@ -421,6 +427,12 @@ export function GuideDashboard({
     if (!incidentDescription.trim() || !currentSchedule) return;
     const newInc: IncidentReport = {
       id: `inc-${Date.now()}`,
+      bookingId: currentSchedule.booking.id,
+      tourId: currentSchedule.booking.tourId,
+      tourName: currentSchedule.booking.tour.name,
+      guideId: currentSchedule.booking.guideId ?? "",
+      guideName: currentSchedule.booking.guideName ?? "",
+      title: incidentDescription.trim().slice(0, 100),
       category: incidentCategory,
       severity: incidentSeverity,
       description: incidentDescription.trim(),
@@ -434,6 +446,12 @@ export function GuideDashboard({
     setLocalIncidents([newInc, ...localIncidents]);
     if (onReportIncident) {
       onReportIncident(currentSchedule.id, {
+        bookingId: newInc.bookingId,
+        tourId: newInc.tourId,
+        tourName: newInc.tourName,
+        guideId: newInc.guideId,
+        guideName: newInc.guideName,
+        title: newInc.title,
         category: incidentCategory,
         severity: incidentSeverity,
         description: incidentDescription.trim(),
@@ -1428,7 +1446,7 @@ export function GuideDashboard({
                                 <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">
                                   {inc.category === "medical"
                                     ? "Y tế"
-                                    : inc.category === "transport"
+                                    : inc.category === "vehicle"
                                     ? "Giao thông"
                                     : inc.category === "weather"
                                     ? "Thời tiết"
@@ -1660,9 +1678,9 @@ export function GuideDashboard({
                 className="w-full text-xs rounded-lg border border-slate-300 px-2.5 py-2 bg-white"
               >
                 <option value="medical">🚑 Y tế & Sức khỏe thành viên</option>
-                <option value="transport">🚌 Xe cộ & Giao thông di chuyển</option>
+                <option value="vehicle">🚌 Xe cộ & Giao thông di chuyển</option>
                 <option value="weather">⛈️ Thời tiết cực đoan & Thiên tai</option>
-                <option value="service_provider">🏨 Đối tác khách sạn / nhà hàng</option>
+                <option value="service">🏨 Đối tác khách sạn / nhà hàng</option>
                 <option value="other">📌 Tình huống khác</option>
               </select>
             </div>

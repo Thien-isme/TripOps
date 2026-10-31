@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@/app/components/common/ErrorBoundary";
 import { useState, useEffect } from "react";
 import { LoginScreen } from "@/app/components/LoginScreen";
 import { RegisterScreen } from "@/app/components/RegisterScreen";
@@ -46,6 +47,7 @@ import {
   RoomBooking,
   TourCompany,
   PaymentRequest,
+  ProviderGroupReservationRequest,
   CustomTourRequest,
   CustomHotelChange,
   CustomMealChange,
@@ -73,6 +75,7 @@ import {
   mockComplaints,
 } from "@/app/data/mockData";
 import { mockRefundRequests } from "@/app/data/mockRefundRequests";
+import { mockProviderGroupRequests } from "@/app/data/mockProviderGroupRequests";
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(
@@ -107,6 +110,7 @@ function App() {
     locationChanges?: CustomLocationChange[];
     hasLocationCustomization?: boolean;
   } | null>(null);
+  const [providerGroupRequests, setProviderGroupRequests] = useState<ProviderGroupReservationRequest[]>(mockProviderGroupRequests);
   const [customTourRequests, setCustomTourRequests] = useState<CustomTourRequest[]>(mockCustomTourRequests);
   const [complaints, setComplaints] = useState<CustomerComplaint[]>(mockComplaints);
   const [complaintInitialBooking, setComplaintInitialBooking] = useState<Booking | null>(null);
@@ -377,7 +381,7 @@ function App() {
     );
   };
 
-  
+
   const handleCreateRefundRequest = (data: {
     bookingId: string;
     bookingCode?: string;
@@ -498,6 +502,42 @@ function App() {
             }
           : booking,
       ),
+    );
+  };
+
+
+  const handleApproveAndQuoteProviderRequest = (
+    requestId: string,
+    quotedTotalPrice: number,
+    providerNote: string
+  ) => {
+    setProviderGroupRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: "confirmed" as const,
+              quotedTotalPrice,
+              providerNote,
+              respondedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  };
+
+  const handleRejectProviderRequest = (requestId: string, rejectionReason: string) => {
+    setProviderGroupRequests((prev) =>
+      prev.map((r) =>
+        r.id === requestId
+          ? {
+              ...r,
+              status: "rejected" as const,
+              rejectionReason,
+              respondedAt: new Date().toISOString(),
+            }
+          : r
+      )
     );
   };
 
@@ -1026,24 +1066,24 @@ function App() {
             a.agencyId === targetAgencyId
               ? {
                   ...a,
-                  settlementStatus: "PAID" as const,
-                  settlementAmount: settledAmount,
-                  bankReference: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
-                  settledAt: new Date().toISOString().split("T")[0],
+                  settlementStatus: "paid" as const,
+                  netPayout: settledAmount,
+                  bankReferenceCode: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
+                  payoutTransferredAt: new Date().toISOString().split("T")[0],
                 }
               : a
           );
         } else if (updatedAgencies) {
           updatedAgencies = updatedAgencies.map((a) => ({
             ...a,
-            settlementStatus: "PAID" as const,
-            settlementAmount: a.finalAmount - Math.round(a.finalAmount * (b.platformFeeRate || 8) / 100),
-            bankReference: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
-            settledAt: new Date().toISOString().split("T")[0],
+            settlementStatus: "paid" as const,
+            netPayout: a.finalAmount - Math.round(a.finalAmount * (b.platformFeeRate || 8) / 100),
+            bankReferenceCode: bankReference || `UNC-${Date.now().toString().slice(-6)}`,
+            payoutTransferredAt: new Date().toISOString().split("T")[0],
           }));
         }
 
-        const allSettled = !updatedAgencies || updatedAgencies.every((a) => a.settlementStatus === "PAID");
+        const allSettled = !updatedAgencies || updatedAgencies.every((a) => a.settlementStatus === "paid");
 
         return {
           ...b,
@@ -1217,10 +1257,10 @@ function App() {
       companyId: guideData.companyId,
       companyName: guideData.companyName,
       licenseNumber: guideData.licenseNumber,
-      licenseExpiry: guideData.licenseExpiry,
+      licenseExpiryDate: guideData.licenseExpiryDate,
       languages: guideData.languages || ["Tiếng Việt"],
       specialties: guideData.specialties || ["Tour văn hóa", "Tour sinh thái"],
-      status: guideData.status || "active",
+      guideStatus: guideData.guideStatus || "active",
       avatar:
         guideData.avatar ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
@@ -1330,7 +1370,7 @@ function App() {
   // Wrap up tour handler (Guide)
   const handleWrapUpTour = (
     scheduleId: string,
-    wrapUpReport: { rating: number; notes: string }
+    wrapUpReport: { rating?: number; notes: string }
   ) => {
     setGuideSchedules((prev) =>
       prev.map((s) => {
@@ -1484,7 +1524,9 @@ function App() {
             b.coHosts?.some((ch) => ch.companyId === company.id),
         );
         return (
+          <ErrorBoundary fallbackTitle="Không thể tải giao diện Quản lý Agency">
           <AgencyDashboard
+            providerGroupRequests={providerGroupRequests}
             currentUser={currentUser}
             company={company}
             tours={tours}
@@ -1517,6 +1559,7 @@ function App() {
             onViewTour={handleViewTour}
             onLogout={handleLogout}
           />
+          </ErrorBoundary>
         );
       }
     }
@@ -1530,7 +1573,7 @@ function App() {
             onLogout={handleLogout}
             onNavigate={handleNavigate}
             currentPage={currentPage}
-            
+
           />
         )}
 
@@ -1648,6 +1691,7 @@ function App() {
             onViewMyRequests={() => handleNavigate("my-requests")}
           />
         ) : currentPage === "booking-form" && bookingTour ? (
+          <ErrorBoundary fallbackTitle="Không thể tải form đặt tour">
           <BookingFormPage
             tour={bookingTour}
             currentUser={currentUser as any}
@@ -1673,6 +1717,7 @@ function App() {
               handleNavigate("home");
             }}
           />
+          </ErrorBoundary>
         ) : currentPage === "tour-detail" && selectedTour ? (
           <TourDetailPage
             tour={selectedTour}
@@ -1733,12 +1778,14 @@ function App() {
             onNavigateToExplore={() => handleNavigate("book-tours")}
           />
         ) : currentPage === "user-booking-detail" && selectedUserBooking ? (
+          <ErrorBoundary fallbackTitle="Không thể tải chi tiết đơn đặt tour">
           <UserBookingDetailPage
             booking={
               bookings.find((b) => b.id === selectedUserBooking.id) ||
               selectedUserBooking
             }
             systemBank={systemBankAccount}
+            onSubmitRefundRequest={handleCreateRefundRequest}
             onBack={() => {
               if (window.history.length > 1) {
                 window.history.back();
@@ -1759,6 +1806,7 @@ function App() {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
+          </ErrorBoundary>
         ) : currentPage === "my-requests" ? (
           <MyRequestsPage
             requests={customTourRequests.filter((r) => !currentUser || r.userId === currentUser.id)}
