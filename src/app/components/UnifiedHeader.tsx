@@ -52,6 +52,8 @@ export function UnifiedHeader({
     guide: "Hướng dẫn viên",
     admin: "Quản trị viên",
     provider: "Nhà cung cấp",
+    agency: "Công ty lữ hành",
+    company_admin: "Quản trị công ty",
   };
 
   useEffect(() => {

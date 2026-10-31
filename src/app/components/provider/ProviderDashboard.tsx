@@ -1,3 +1,4 @@
+import { ErrorBoundary } from "@/app/components/common/ErrorBoundary";
 import { useState } from "react";
 import { Service, User, ProviderGroupReservationRequest } from "@/app/types";
 import { ProviderLayout } from "./ProviderLayout";
@@ -11,6 +12,13 @@ import { ProviderGroupBookingRequests } from "./ProviderGroupBookingRequests";
 import { mockProviderGroupRequests } from "@/app/data/mockProviderGroupRequests";
 
 interface ProviderDashboardProps {
+  groupRequests?: ProviderGroupReservationRequest[];
+  onApproveAndQuote?: (
+    requestId: string,
+    quotedTotalPrice: number,
+    providerNote: string
+  ) => void;
+  onRejectRequest?: (requestId: string, rejectionReason: string) => void;
   currentUser: User;
   services: Service[];
   onCreateService?: () => void;
@@ -28,6 +36,9 @@ interface ProviderDashboardProps {
 }
 
 export function ProviderDashboard({
+  groupRequests: externalGroupRequests,
+  onApproveAndQuote: externalApproveAndQuote,
+  onRejectRequest: externalRejectRequest,
   currentUser,
   services,
   onCreateService,
@@ -45,22 +56,25 @@ export function ProviderDashboard({
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
 
-  // Quản lý Yêu cầu Giữ phòng & Báo giá Đoàn từ các Agency
-  const [groupRequests, setGroupRequests] = useState<ProviderGroupReservationRequest[]>(() => {
-    const matching = mockProviderGroupRequests.filter(
-      (r) => r.providerId === currentUser.id
-    );
-    return matching.length > 0 ? matching : mockProviderGroupRequests;
+  // Quản lý Yêu cầu Dịch vụ Đoàn từ các Agency (Chỉ lấy yêu cầu thuộc Provider đăng nhập, không fallback sang người khác)
+  const [internalRequests, setInternalRequests] = useState<ProviderGroupReservationRequest[]>(() => {
+    return mockProviderGroupRequests.filter((r) => r.providerId === currentUser.id);
   });
 
-  const pendingGroupCount = groupRequests.filter((r) => r.status === "pending").length;
+  const activeRequestsList = (externalGroupRequests && externalGroupRequests.length > 0 ? externalGroupRequests : internalRequests)
+    .filter((r) => r.providerId === currentUser.id);
+
+  const pendingGroupCount = activeRequestsList.filter((r) => r.status === "pending").length;
 
   const handleApproveAndQuote = (
     requestId: string,
     quotedTotalPrice: number,
     providerNote: string
   ) => {
-    setGroupRequests((prev) =>
+    if (externalApproveAndQuote) {
+      externalApproveAndQuote(requestId, quotedTotalPrice, providerNote);
+    }
+    setInternalRequests((prev) =>
       prev.map((r) =>
         r.id === requestId
           ? {
@@ -76,7 +90,10 @@ export function ProviderDashboard({
   };
 
   const handleRejectRequest = (requestId: string, rejectionReason: string) => {
-    setGroupRequests((prev) =>
+    if (externalRejectRequest) {
+      externalRejectRequest(requestId, rejectionReason);
+    }
+    setInternalRequests((prev) =>
       prev.map((r) =>
         r.id === requestId
           ? {
@@ -201,11 +218,15 @@ export function ProviderDashboard({
           onUpdateProfile={onUpdateProfile}
         />
       ) : activeSection === "room-requests" ? (
-        <ProviderGroupBookingRequests
-          requests={groupRequests}
-          onApproveAndQuote={handleApproveAndQuote}
-          onRejectRequest={handleRejectRequest}
-        />
+        <ErrorBoundary fallbackTitle="Không thể tải trang Yêu cầu dịch vụ">
+          <ProviderGroupBookingRequests
+            requests={activeRequestsList}
+            providerServices={services.filter((s) => s.providerId === currentUser.id)}
+            currentProviderId={currentUser.id}
+            onApproveAndQuote={handleApproveAndQuote}
+            onRejectRequest={handleRejectRequest}
+          />
+        </ErrorBoundary>
       ) : activeSection === "services" ? (
         /* 4. Services Management - Table View */
         <ServicePostManagement

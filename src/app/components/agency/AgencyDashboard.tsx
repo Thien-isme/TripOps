@@ -12,6 +12,7 @@ import {
   BookingAssignedGuide,
   BookingAttractionCheckin,
   BookingIncident,
+  ProviderGroupReservationRequest,
 } from "@/app/types";
 import { mockTourCompanies } from "@/app/data/mockData";
 import { AgencyLayout } from "./AgencyLayout";
@@ -26,6 +27,7 @@ import { AgencyServicesExplorer } from "./AgencyServicesExplorer";
 import { BusinessProfileOnboardingPage } from "@/app/components/auth/BusinessProfileOnboardingPage";
 
 interface AgencyDashboardProps {
+  providerGroupRequests?: ProviderGroupReservationRequest[];
   currentUser: User;
   company: TourCompany;
   tours: Tour[];

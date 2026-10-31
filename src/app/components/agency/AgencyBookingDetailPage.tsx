@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Booking,
   User,
@@ -11,6 +11,7 @@ import {
   TourCoHost,
   BookingPriceAdjustment,
   BookingAgencyShare,
+  BookingProviderConfirmation,
   BookingAssignedGuide,
   BookingAttractionCheckin,
   BookingIncident,
@@ -293,8 +294,8 @@ export function AgencyBookingDetailPage({
       {
         id: `ba-${booking.id}-main`,
         bookingId: booking.id,
-        agencyId: booking.companyId,
-        agencyName: booking.companyName,
+        agencyId: booking.companyId ?? companyId ?? "",
+        agencyName: booking.companyName ?? companyName ?? "",
         isHost: true,
         role: "lead" as const,
         originalAmount: booking.totalPrice,
@@ -478,14 +479,14 @@ export function AgencyBookingDetailPage({
         const updatedAssigned = [...assignedGuides, newAssignedGuide];
         setAssignedGuides(updatedAssigned);
         if (onUpdateAssignedGuides) {
-          onUpdateAssignedGuides(updatedAssigned);
+          onUpdateAssignedGuides(booking.id, updatedAssigned);
         }
       }
     }
 
     setAttractionCheckins(updatedCheckins);
     if (onUpdateAttractionCheckins) {
-      onUpdateAttractionCheckins(updatedCheckins);
+      onUpdateAttractionCheckins(booking.id, updatedCheckins);
     }
   };
 
@@ -779,6 +780,8 @@ export function AgencyBookingDetailPage({
   const [passengerIdNumber, setPassengerIdNumber] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
   const [passengerNotes, setPassengerNotes] = useState("");
+  const [passengerRoommateNote, setPassengerRoommateNote] = useState("");
+  const [passengerDietaryNote, setPassengerDietaryNote] = useState("");
   const [passengerSelectedAgencyId, setPassengerSelectedAgencyId] = useState<string>("all");
 
   // Simultaneous price sync state when adding passenger
@@ -1411,6 +1414,8 @@ export function AgencyBookingDetailPage({
     setPassengerGender(p.gender || "male");
     setPassengerIdNumber(p.idNumber || "");
     setPassengerPhone(p.phone || "");
+    setPassengerRoommateNote(p.roommateNote || "");
+    setPassengerDietaryNote(p.dietaryNote || "");
     setPassengerNotes(p.notes || "");
     setPassengerSelectedAgencyId(p.agencyId || "all");
     const initialPrice = p.price !== undefined ? p.price : calculatePassengerPrice(p.ageGroup || "adult", p.agencyId || "all");
@@ -2429,12 +2434,29 @@ export function AgencyBookingDetailPage({
                                 "Phân loại": p.ageGroup === "adult" ? "Người lớn" : p.ageGroup === "child_2_11" ? "Trẻ em (2–11t)" : "Em bé (<2t)",
                                 "Trạng thái chặng": p.status === "INACTIVE" ? `Đã rút (${p.statusNote || ""})` : "Đang tham gia chặng",
                                 "Số điện thoại": p.phone || "",
+                                "Nguyện vọng xếp phòng": p.roommateNote || "",
+                                "Yêu cầu ăn uống / Dị ứng": p.dietaryNote || "",
                                 "Ghi chú riêng": p.notes || "",
                                 "Giá vé (VNĐ)": p.status === "INACTIVE" ? 0 : p.price,
                               };
                             });
 
                             const ws = XLSX.utils.json_to_sheet(exportRows);
+                            ws["!cols"] = [
+                              { wch: 6 },
+                              { wch: 25 },
+                              { wch: 20 },
+                              { wch: 15 },
+                              { wch: 12 },
+                              { wch: 10 },
+                              { wch: 18 },
+                              { wch: 22 },
+                              { wch: 16 },
+                              { wch: 40 },
+                              { wch: 35 },
+                              { wch: 30 },
+                              { wch: 16 },
+                            ];
                             const wb = XLSX.utils.book_new();
                             XLSX.utils.book_append_sheet(wb, ws, "Danh_Sach");
                             XLSX.writeFile(wb, fileName);
@@ -2535,6 +2557,23 @@ export function AgencyBookingDetailPage({
                                     {p.fullName}
                                   </span>
                                   {p.phone && <span className="block text-[11px] font-normal text-[#075985]">{p.phone}</span>}
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {p.roommateNote && (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] bg-teal-50 text-teal-800 border border-teal-200 px-1.5 py-0.5 rounded font-medium">
+                                        🛏️ {p.roommateNote}
+                                      </span>
+                                    )}
+                                    {p.dietaryNote && (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] bg-amber-50 text-amber-950 border border-amber-300 px-1.5 py-0.5 rounded font-bold">
+                                        🍽️ {p.dietaryNote}
+                                      </span>
+                                    )}
+                                    {p.notes && (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded">
+                                        📝 {p.notes}
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-3 py-2.5">
                                   {p.idNumber ? (
@@ -2548,7 +2587,7 @@ export function AgencyBookingDetailPage({
                                 <td className="px-3 py-2.5 text-gray-600">
                                   <span>{p.dateOfBirth || "—"}</span>
                                   {(() => {
-                                    const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.createdAt);
+                                    const age = calculateAge(p.dateOfBirth, booking.tourStartDate || booking.bookingDate);
                                     return age !== null ? (
                                       <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
                                         {age} tuổi

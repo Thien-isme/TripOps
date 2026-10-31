@@ -3,7 +3,7 @@
  * Xử lý đăng nhập, đăng xuất, và quản lý thông tin user
  */
 
-import { User } from "@/app/types";
+import { User, UserRole } from "@/app/types";
 import { mockUsers } from "@/app/data/mockData";
 import {
   mockApiCall,

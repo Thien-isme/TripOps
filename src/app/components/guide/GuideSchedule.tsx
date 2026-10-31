@@ -204,7 +204,7 @@ export function GuideScheduleComponent({
                           {currentItinerary.title}
                         </h4>
                         <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                          {formatDate(currentItinerary.date)}
+                          {currentItinerary.date ? formatDate(currentItinerary.date) : "Chưa xác định ngày"}
                         </span>
                       </div>
 

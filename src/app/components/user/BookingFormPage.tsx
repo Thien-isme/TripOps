@@ -1,4 +1,16 @@
-import { useState, useRef } from "react";
+import { Textarea } from "@/app/components/ui/textarea";
+import { useState, useRef, useMemo } from "react";
+import {
+  parseDateString,
+  calculateAge,
+  determineAgeGroup,
+  getPassengerPrice,
+  validateTourGuests,
+  GuestValidationResult,
+  EvaluatedPassenger,
+} from "@/app/utils/guestValidation";
+
+export { calculateAge, determineAgeGroup, getPassengerPrice, parseDateString } from "@/app/utils/guestValidation";
 import * as XLSX from "xlsx";
 import { Tour, BookingPassenger, TourPriceRow, CustomHotelChange, CustomLocationChange, CustomMealChange } from "@/app/types";
 import {
@@ -83,147 +95,7 @@ function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
 }
 
-/**
- * Parse various date formats: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY, or Excel date number
- */
-export function parseDateString(dateStr: string): string | null {
-  if (!dateStr) return null;
-  const trimmed = String(dateStr).trim();
-  if (!trimmed) return null;
-
-  // Excel serial number (e.g. 33009, 44520)
-  if (!isNaN(Number(trimmed)) && Number(trimmed) > 1000 && Number(trimmed) < 100000) {
-    const d = new Date(Math.round((Number(trimmed) - 25569) * 86400 * 1000));
-    if (!isNaN(d.getTime())) {
-      return d.toISOString().split("T")[0];
-    }
-  }
-
-  // DD/MM/YYYY or D/M/YYYY
-  if (trimmed.includes("/")) {
-    const parts = trimmed.split("/");
-    if (parts.length === 3) {
-      const d = parts[0].padStart(2, "0");
-      const m = parts[1].padStart(2, "0");
-      const y = parts[2];
-      if (y.length === 4) return `${y}-${m}-${d}`;
-    }
-  }
-
-  // DD-MM-YYYY
-  if (trimmed.includes("-")) {
-    const parts = trimmed.split("-");
-    if (parts.length === 3) {
-      if (parts[0].length === 4) {
-        // YYYY-MM-DD
-        return trimmed;
-      }
-      if (parts[2].length === 4) {
-        // DD-MM-YYYY
-        const d = parts[0].padStart(2, "0");
-        const m = parts[1].padStart(2, "0");
-        const y = parts[2];
-        return `${y}-${m}-${d}`;
-      }
-    }
-  }
-
-  const parsed = new Date(trimmed);
-  if (!isNaN(parsed.getTime())) {
-    return parsed.toISOString().split("T")[0];
-  }
-  return null;
-}
-
-/**
- * Calculate age on reference date (tourStartDate or today)
- */
-export function calculateAge(dateOfBirth: string, refDateStr?: string): number | null {
-  const normalizedDob = parseDateString(dateOfBirth);
-  if (!normalizedDob) return null;
-
-  const birthDate = new Date(normalizedDob);
-  if (isNaN(birthDate.getTime())) return null;
-
-  const refDate = refDateStr ? new Date(refDateStr) : new Date();
-  if (isNaN(refDate.getTime())) return null;
-
-  let age = refDate.getFullYear() - birthDate.getFullYear();
-  const m = refDate.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && refDate.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return Math.max(0, age);
-}
-
-/**
- * Determine ageGroup from dateOfBirth and reference date
- */
-export function determineAgeGroup(dateOfBirth: string, refDateStr?: string): BookingPassenger["ageGroup"] {
-  const age = calculateAge(dateOfBirth, refDateStr);
-  if (age === null) return "adult";
-  if (age < 2) return "child_under_2";
-  if (age <= 11) return "child_2_11";
-  return "adult";
-}
-
-/**
- * Match price from tour's priceTable or fallback standard %
- */
-export function getPassengerPrice(tour: Tour, ageGroup: BookingPassenger["ageGroup"], age?: number | null): number {
-  if (tour.priceTable && tour.priceTable.length > 0) {
-    // 1. ƯU TIÊN HÀNG ĐẦU: Khớp theo minAge & maxAge (tương ứng min_age & max_age từ bảng tour_pricing_tiers)
-    if (typeof age === "number" && !isNaN(age)) {
-      const matchByMinMaxAge = tour.priceTable.find((r) => {
-        if (r.minAge !== undefined && r.maxAge !== undefined) {
-          return age >= r.minAge && age <= r.maxAge;
-        }
-        if (r.minAge !== undefined && r.maxAge === undefined) {
-          return age >= r.minAge;
-        }
-        if (r.minAge === undefined && r.maxAge !== undefined) {
-          return age <= r.maxAge;
-        }
-        return false;
-      });
-      if (matchByMinMaxAge) return matchByMinMaxAge.price;
-
-      // 1.2 Fallback nếu minAge/maxAge chưa thiết lập thì đọc từ chuỗi ageRange hoặc ageGroupLabel
-      const matchByAge = tour.priceTable.find((r) => {
-        const range = (r.ageRange || "").toLowerCase();
-        const label = (r.ageGroupLabel || "").toLowerCase();
-        if (age < 2 && (range.includes("dưới 2") || range.includes("< 2") || range.includes("<2") || label.includes("em bé") || r.ageGroup === "child_under_2")) return true;
-        if (age >= 2 && age <= 11 && (range.includes("2") || range.includes("11") || label.includes("trẻ em") || r.ageGroup === "child_2_11")) return true;
-        if (age >= 12 && (range.includes("11") || range.includes("12") || label.includes("người lớn") || r.ageGroup === "adult")) return true;
-        return false;
-      });
-      if (matchByAge) return matchByAge.price;
-    }
-
-    // 2. Khớp theo ageGroup key
-    const matchByGroup = tour.priceTable.find((r) => r.ageGroup === ageGroup);
-    if (matchByGroup) return matchByGroup.price;
-
-    // 3. Fallback matching theo nhãn phân loại trong priceTable
-    if (ageGroup === "child_under_2") {
-      const row = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("em bé") || (r.ageGroupLabel || "").toLowerCase().includes("sơ sinh"));
-      if (row) return row.price;
-      return 0;
-    }
-    if (ageGroup === "child_2_11") {
-      const row = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("trẻ em"));
-      if (row) return row.price;
-      return Math.round(tour.price * 0.7);
-    }
-    const adultRow = tour.priceTable.find((r) => (r.ageGroupLabel || "").toLowerCase().includes("người lớn"));
-    if (adultRow) return adultRow.price;
-  }
-
-  // Fallback nếu tour chưa cấu hình priceTable:
-  if (ageGroup === "child_under_2") return 0;
-  if (ageGroup === "child_2_11") return Math.round(tour.price * 0.7);
-  return tour.price;
-}
+// Các hàm parseDateString, calculateAge, determineAgeGroup, getPassengerPrice đã chuyển vào @/app/utils/guestValidation
 
 function newPassenger(id: string, tour: Tour, defaultDob = ""): BookingPassenger {
   const age = calculateAge(defaultDob);
@@ -237,6 +109,7 @@ function newPassenger(id: string, tour: Tour, defaultDob = ""): BookingPassenger
     price: getPassengerPrice(tour, ageGroup, age),
     idNumber: "",
     roommateNote: "",
+    dietaryNote: "",
     notes: "",
   };
 }
@@ -267,13 +140,18 @@ export function BookingFormPage({
   ]);
   const [selectedPassengerIds, setSelectedPassengerIds] = useState<Set<string>>(new Set());
 
-  // Min / Max guests constraint from tour object
-  const minGuests = typeof tour.minGuests === "number" && tour.minGuests > 0 ? tour.minGuests : undefined;
-  const maxGuests = typeof tour.maxGuests === "number" && tour.maxGuests > 0 ? tour.maxGuests : undefined;
-  const guestCount = passengers.length;
-  const isBelowMin = minGuests !== undefined && guestCount < minGuests;
-  const isAboveMax = maxGuests !== undefined && guestCount > maxGuests;
-  const isGuestCountValid = !isBelowMin && !isAboveMax;
+  // Guest validation: Tách riêng vé tính tiền và vé miễn phí theo chính sách tour
+  const guestValidation = useMemo(
+    () => validateTourGuests(tour, passengers, tourStartDate),
+    [tour, passengers, tourStartDate]
+  );
+
+  const minGuests = guestValidation.minGuests;
+  const maxGuests = guestValidation.maxGuests;
+  const guestCount = guestValidation.totalGuests;
+  const isBelowMin = guestValidation.isBelowMin;
+  const isAboveMax = guestValidation.isAboveMax;
+  const isGuestCountValid = guestValidation.isValid;
 
   // Passenger selection helpers
   const isAllSelected = passengers.length > 0 && selectedPassengerIds.size === passengers.length;
@@ -351,7 +229,7 @@ export function BookingFormPage({
     setPassengers((prev) =>
       prev.map((p) => {
         if (!p.dateOfBirth) return p;
-        const age = calculateAge(p.dateOfBirth, newDate);
+        const age = calculateAge(p.dateOfBirth ?? "", newDate);
         if (age === null) return p;
         const autoGroup = determineAgeGroup(p.dateOfBirth, newDate);
         return {
@@ -378,7 +256,7 @@ export function BookingFormPage({
           }
         } else if (update.ageGroup !== undefined) {
           // If user manually altered the age group dropdown
-          const age = calculateAge(updated.dateOfBirth, tourStartDate);
+          const age = calculateAge(updated.dateOfBirth ?? "", tourStartDate);
           updated.price = getPassengerPrice(tour, update.ageGroup, age);
         }
 
@@ -403,7 +281,8 @@ export function BookingFormPage({
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Người lớn",
           "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Muốn ở cùng Trần Thị Bình (STT 2), ưu tiên hai giường đơn",
-          "Ghi chú cá nhân": "Người đại diện đoàn, ăn chay nhẹ",
+          "Yêu cầu ăn uống / Dị ứng thực phẩm": "Ăn chay nhẹ, không ăn cay",
+          "Ghi chú cá nhân": "Người đại diện đoàn",
         },
         {
           "STT": 2,
@@ -413,6 +292,7 @@ export function BookingFormPage({
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Người lớn",
           "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Muốn ở cùng Nguyễn Văn An (STT 1)",
+          "Yêu cầu ăn uống / Dị ứng thực phẩm": "Không ăn thịt bò",
           "Ghi chú cá nhân": "Hay say xe ngồi đầu xe",
         },
         {
@@ -423,7 +303,8 @@ export function BookingFormPage({
           "Giới tính (Nam/Nữ)": "Nam",
           "Loại khách": "Trẻ em (2–11 tuổi)",
           "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Ở cùng phòng bố mẹ (Nguyễn Văn An)",
-          "Ghi chú cá nhân": "Dị ứng hải sản",
+          "Yêu cầu ăn uống / Dị ứng thực phẩm": "Dị ứng hải sản, tôm cua, kiêng đậu phộng",
+          "Ghi chú cá nhân": "Trẻ nhỏ cần chú ý",
         },
         {
           "STT": 4,
@@ -433,6 +314,7 @@ export function BookingFormPage({
           "Giới tính (Nam/Nữ)": "Nữ",
           "Loại khách": "Trẻ em (dưới 2 tuổi)",
           "Nguyện vọng xếp phòng / Muốn ở cùng ai": "Cần nôi trẻ em trong phòng",
+          "Yêu cầu ăn uống / Dị ứng thực phẩm": "Dùng thức ăn mềm / cháo dinh dưỡng",
           "Ghi chú cá nhân": "Trẻ nhỏ cần hỗ trợ",
         },
       ];
@@ -457,6 +339,7 @@ export function BookingFormPage({
         { wch: 16 }, // Giới tính
         { wch: 22 }, // Loại khách
         { wch: 45 }, // Nguyện vọng xếp phòng / Muốn ở cùng ai
+        { wch: 40 }, // Yêu cầu ăn uống / Dị ứng thực phẩm
         { wch: 35 }, // Ghi chú cá nhân
       ];
       const wb = XLSX.utils.book_new();
@@ -495,9 +378,10 @@ export function BookingFormPage({
 
         rawRows.forEach((row, i) => {
           const keys = Object.keys(row);
-          const findVal = (keywords: string[]) => {
+          const findVal = (keywords: string[], exclude: string[] = []) => {
             const k = keys.find((key) => {
               const lower = key.toLowerCase().trim();
+              if (exclude.some((ex) => lower.includes(ex))) return false;
               return keywords.some((kw) => lower.includes(kw));
             });
             return k ? String(row[k]).trim() : "";
@@ -520,7 +404,26 @@ export function BookingFormPage({
           const idNumber = rawId !== undefined && rawId !== null ? String(rawId).trim() : "";
 
           // Tách riêng nguyện vọng xếp phòng và ghi chú cá nhân
-          const roommateNote = findVal([
+          // Tách riêng nguyện vọng xếp phòng, yêu cầu ăn uống và ghi chú cá nhân
+          const dietaryNote = findVal(
+            [
+              "yêu cầu ăn uống",
+              "dị ứng thực phẩm",
+              "ăn uống",
+              "dị ứng",
+              "ăn kiêng",
+              "chế độ ăn",
+              "ăn chay",
+              "dietary",
+              "dietary_note",
+              "dietarynote",
+              "food",
+              "allergy",
+            ],
+            ["xếp phòng", "ở cùng", "roommate"]
+          );
+          const roommateNote = findVal(
+            [
             "nguyện vọng xếp phòng",
             "muốn ở cùng ai",
             "ở cùng ai",
@@ -530,17 +433,21 @@ export function BookingFormPage({
             "rooming",
             "room_preference",
             "room preference",
-          ]);
+            ],
+            ["ăn uống", "dị ứng", "thực phẩm"]
+          );
 
-          const notes = findVal([
-            "ghi chú cá nhân",
-            "ghi chú riêng",
-            "ghi chú",
-            "ghichu",
-            "note",
-            "yêu cầu đặc biệt",
-            "dị ứng",
-          ]);
+          const notes = findVal(
+            [
+              "ghi chú cá nhân",
+              "ghi chú riêng",
+              "ghi chú",
+              "ghichu",
+              "note",
+              "yêu cầu đặc biệt",
+            ],
+            ["ăn uống", "dị ứng", "thực phẩm", "xếp phòng", "ở cùng", "roommate"]
+          );
 
           // Calculate passenger age relative to tourStartDate
           const calculatedAge = calculateAge(dateOfBirth, tourStartDate);
@@ -580,6 +487,7 @@ export function BookingFormPage({
             price,
             idNumber,
             roommateNote: roommateNote || "",
+            dietaryNote: dietaryNote || "",
             notes: notes || "",
           });
         });
@@ -613,7 +521,7 @@ export function BookingFormPage({
   };
 
   const isStep2Valid =
-    isGuestCountValid &&
+    guestValidation.isValid &&
     tourStartDate.trim() &&
     passengers.every((p) => p.fullName.trim() && p.dateOfBirth) &&
     contactName.trim() &&
@@ -621,7 +529,10 @@ export function BookingFormPage({
     contactEmail.trim();
 
   const handleConfirm = () => {
-    if (!isGuestCountValid || !isStep2Valid) return;
+    if (!guestValidation.isValid || !isStep2Valid) {
+      alert(guestValidation.warningMessage || "Vui lòng kiểm tra lại điều kiện số lượng khách tối thiểu của tour.");
+      return;
+    }
     onSubmit({
       tourId: tour.id,
       tourStartDate,
@@ -817,7 +728,7 @@ export function BookingFormPage({
                   <textarea
                     value={bookingNotes}
                     onChange={(e) => setBookingNotes(e.target.value)}
-                    placeholder="Yêu cầu đặc biệt, dị ứng thức ăn, …"
+                    placeholder="Yêu cầu đặc biệt..."
                     className="mt-1 w-full border border-[#CBD5E1] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
                     rows={3}
                   />
@@ -831,18 +742,29 @@ export function BookingFormPage({
                 <div>
                   <h2 className="text-base font-bold text-teal-700 flex items-center gap-2">
                     <Users className="w-4 h-4 text-teal-600" />
-                    Danh sách khách hàng đi tour ({passengers.length} người)
+                    Danh sách khách hàng đi tour ({guestValidation.totalGuests} người)
                   </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
-                      {minGuests && maxGuests
-                        ? `Tour dành cho đoàn từ ${minGuests} đến ${maxGuests} khách`
-                        : minGuests
-                        ? `Tour dành cho đoàn tối thiểu ${minGuests} khách`
-                        : maxGuests
-                        ? `Tour dành cho đoàn tối đa ${maxGuests} khách`
-                        : "Tour linh hoạt số lượng khách"}
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300">
+                      Tổng số: <strong>{guestValidation.totalGuests}</strong> người (Tối đa {guestValidation.maxGuests})
                     </span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      guestValidation.payingGuestsCount >= guestValidation.minGuests
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                        : "bg-amber-50 text-amber-900 border border-amber-300"
+                    }`}>
+                      Vé tính tiền: <strong>{guestValidation.payingGuestsCount}</strong> / tối thiểu {guestValidation.minGuests} khách
+                    </span>
+                    {guestValidation.freeGuestsCount > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-300">
+                        Vé miễn phí: <strong>{guestValidation.freeGuestsCount}</strong> ({guestValidation.freeTiersSummary})
+                      </span>
+                    )}
+                    {guestValidation.undeterminedCount > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-300">
+                        ⚠️ Chưa đủ ngày sinh: <strong>{guestValidation.undeterminedCount}</strong> người
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Nhập từng khách thủ công hoặc tải file Excel lên để tự động điền danh sách nhanh chóng
@@ -937,25 +859,27 @@ export function BookingFormPage({
               </div>
 
               {/* Guest Limit Warnings */}
-              {isBelowMin && minGuests !== undefined && (
-                <div className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-900 mb-4 animate-in fade-in">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-amber-950">Chưa đủ số lượng khách tối thiểu</p>
-                    <p className="mt-0.5">
-                      Tour yêu cầu tối thiểu <strong>{minGuests}</strong> khách. Vui lòng thêm <strong>{minGuests - guestCount}</strong> khách.
+              {!guestValidation.isValid && guestValidation.warningMessage && (
+                <div className={`rounded-xl p-3.5 flex items-start gap-3 text-xs mb-4 animate-in fade-in ${
+                  guestValidation.isAboveMax || guestValidation.hasUndetermined
+                    ? "bg-red-50 border border-red-300 text-red-900"
+                    : "bg-amber-50 border border-amber-300 text-amber-900"
+                }`}>
+                  <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                    guestValidation.isAboveMax || guestValidation.hasUndetermined
+                      ? "text-red-600"
+                      : "text-amber-600"
+                  }`} />
+                  <div className="flex-1">
+                    <p className="font-bold text-sm">
+                      {guestValidation.hasUndetermined
+                        ? "Chưa đủ thông tin xác định hạng vé"
+                        : guestValidation.isAboveMax
+                        ? "Vượt quá số lượng khách tối đa"
+                        : "Chưa đạt điều kiện số khách tối thiểu"}
                     </p>
-                  </div>
-                </div>
-              )}
-
-              {isAboveMax && maxGuests !== undefined && (
-                <div className="bg-red-50 border border-red-300 rounded-xl p-3.5 flex items-start gap-3 text-xs text-red-900 mb-4 animate-in fade-in">
-                  <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-red-950">Vượt quá số lượng khách tối đa</p>
-                    <p className="mt-0.5">
-                      Tour nhận tối đa <strong>{maxGuests}</strong> khách. Vui lòng giảm <strong>{guestCount - maxGuests}</strong> khách.
+                    <p className="mt-1 leading-relaxed font-medium">
+                      {guestValidation.warningMessage}
                     </p>
                   </div>
                 </div>
@@ -1095,6 +1019,22 @@ export function BookingFormPage({
                         </p>
                       </div>
 
+                      {/* Yêu cầu ăn uống / Dị ứng thực phẩm (Tùy chọn) */}
+                      <div className="sm:col-span-2 space-y-1">
+                        <Label className="text-xs font-semibold text-gray-700">
+                          Yêu cầu ăn uống / Dị ứng thực phẩm <span className="text-gray-400 font-normal">(Tùy chọn)</span>
+                        </Label>
+                        <Input
+                          value={p.dietaryNote ?? ""}
+                          onChange={(e) => updatePassenger(p.id, { dietaryNote: e.target.value })}
+                          placeholder="VD: Ăn chay; dị ứng tôm, cua; không ăn thịt bò; kiêng đậu phộng; không ăn cay…"
+                          className="mt-1 text-sm"
+                        />
+                        <p className="text-[11px] text-gray-500 leading-relaxed">
+                          Ghi rõ món cần tránh, thực phẩm gây dị ứng hoặc chế độ ăn riêng để nhà hàng phục vụ chuẩn bị phù hợp.
+                        </p>
+                      </div>
+
                       {/* Ghi chú cá nhân */}
                       <div className="sm:col-span-2 space-y-1">
                         <Label className="text-xs font-semibold text-gray-700">
@@ -1103,13 +1043,14 @@ export function BookingFormPage({
                         <Input
                           value={p.notes ?? ""}
                           onChange={(e) => updatePassenger(p.id, { notes: e.target.value })}
-                          placeholder="VD: Ăn chay, say xe ngồi đầu xe, người cao tuổi cần hỗ trợ di chuyển..."
+                          placeholder="VD: Dễ say xe, người cao tuổi cần hỗ trợ di chuyển..."
                           className="mt-1 text-sm"
                         />
                       </div>
                     </div>
                     {(() => {
-                      const age = calculateAge(p.dateOfBirth, tourStartDate);
+                      const ep = guestValidation.evaluatedPassengers.find((x) => x.passenger.id === p.id);
+                      const age = ep?.age ?? calculateAge(p.dateOfBirth ?? "", tourStartDate);
                       const grp = AGE_GROUPS.find((g) => g.value === p.ageGroup);
                       return (
                         <div className="flex flex-wrap items-center justify-between bg-[#F0F9FF]/80 border border-[#CBD5E1] rounded-lg px-3 py-2 text-sm gap-2">
@@ -1119,16 +1060,32 @@ export function BookingFormPage({
                                 🎂 {age} tuổi (tính đến ngày đi tour)
                               </span>
                             ) : (
-                              <span className="text-xs text-gray-500 italic">
-                                Nhập ngày sinh để hệ thống tự động nhận diện độ tuổi &amp; giá vé
+                              <span className="text-xs text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300 font-medium">
+                                ⚠️ Vui lòng nhập ngày sinh để xác định hạng vé
                               </span>
                             )}
                             <span className="text-xs text-gray-600 font-medium">• {grp?.label ?? p.ageGroup}</span>
+
+                            {ep?.tierStatus === "paying" && (
+                              <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-800 font-semibold px-2 py-0.5 rounded border border-emerald-300">
+                                ✓ Vé tính tiền ({ep.tierLabel})
+                              </span>
+                            )}
+                            {ep?.tierStatus === "free" && (
+                              <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-300">
+                                🎁 Vé miễn phí ({ep.tierLabel}) · Không tính vào tối thiểu
+                              </span>
+                            )}
+                            {ep?.tierStatus === "undetermined" && p.dateOfBirth && (
+                              <span className="inline-flex items-center gap-1 text-xs bg-rose-50 text-rose-800 font-semibold px-2 py-0.5 rounded border border-rose-300">
+                                ⚠️ {ep.reason || "Chưa xác định hạng vé"}
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 ml-auto">
                             <span className="text-xs text-gray-500">Giá vé:</span>
                             <span className="font-bold text-[#075985]">
-                              {p.price === 0 ? "Miễn phí" : formatVND(p.price)}
+                              {p.price === 0 ? "Miễn phí (0đ)" : formatVND(p.price)}
                             </span>
                           </div>
                         </div>
@@ -1159,18 +1116,22 @@ export function BookingFormPage({
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
-                {!isGuestCountValid && (
-                  <p className="text-xs text-red-600 font-medium">
-                    {isBelowMin
-                      ? `⚠️ Chưa thể tiếp tục: Cần tối thiểu ${minGuests} khách (hiện có ${guestCount}).`
-                      : `⚠️ Chưa thể tiếp tục: Vượt quá ${maxGuests} khách (hiện có ${guestCount}).`}
+                {!guestValidation.isValid && guestValidation.warningMessage && (
+                  <p className="text-xs text-red-600 font-semibold max-w-xl">
+                    ⚠️ {guestValidation.warningMessage}
                   </p>
                 )}
               </div>
               <Button
-                disabled={!isStep2Valid}
-                onClick={() => setStep(3)}
-                className="bg-teal-600 hover:bg-teal-700 text-white gap-2 px-8"
+                disabled={!isStep2Valid || !guestValidation.isValid}
+                onClick={() => {
+                  if (!guestValidation.isValid || !isStep2Valid) {
+                    alert(guestValidation.warningMessage || "Vui lòng kiểm tra lại điều kiện số lượng khách tối thiểu của tour.");
+                    return;
+                  }
+                  setStep(3);
+                }}
+                className="bg-teal-600 hover:bg-teal-700 text-white gap-2 px-8 shadow-2xs font-semibold"
               >
                 Tiếp theo
                 <ArrowRight className="w-4 h-4" />
@@ -1243,7 +1204,24 @@ export function BookingFormPage({
 
               {/* Passenger list */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Danh sách khách ({passengers.length} người)</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-2 mb-2">
+                  <h3 className="text-sm font-bold text-gray-800">
+                    Danh sách khách ({guestValidation.totalGuests} người)
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-full font-semibold">
+                      ✓ {guestValidation.payingGuestsCount} khách có vé tính tiền
+                    </span>
+                    {guestValidation.freeGuestsCount > 0 && (
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-300 rounded-full font-semibold">
+                        🎁 {guestValidation.freeGuestsCount} khách miễn phí
+                      </span>
+                    )}
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-full font-medium">
+                      Quy mô tour: Tối thiểu {guestValidation.minGuests} vé tính tiền / Tối đa {guestValidation.maxGuests} người
+                    </span>
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -1255,6 +1233,7 @@ export function BookingFormPage({
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Giới tính</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Loại khách</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Nguyện vọng xếp phòng</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-600">Yêu cầu ăn uống</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-600">Ghi chú cá nhân</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-600">Giá theo người</th>
                       </tr>
@@ -1278,7 +1257,7 @@ export function BookingFormPage({
                             <td className="px-3 py-2 text-gray-600">
                               <span>{p.dateOfBirth || "—"}</span>
                               {(() => {
-                                const age = calculateAge(p.dateOfBirth, tourStartDate);
+                                const age = calculateAge(p.dateOfBirth ?? "", tourStartDate);
                                 return age !== null ? (
                                   <span className="ml-1.5 text-xs text-teal-700 font-semibold bg-[#E0F2FE] px-1.5 py-0.5 rounded border border-[#075985]/15">
                                     {age} tuổi
@@ -1292,6 +1271,15 @@ export function BookingFormPage({
                               {p.roommateNote ? (
                                 <span className="text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 inline-block line-clamp-2 font-medium">
                                   🛏️ {p.roommateNote}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-xs max-w-[180px]">
+                              {p.dietaryNote ? (
+                                <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block line-clamp-2 font-medium">
+                                  🍽️ {p.dietaryNote}
                                 </span>
                               ) : (
                                 <span className="text-gray-400 italic">—</span>
@@ -1315,7 +1303,9 @@ export function BookingFormPage({
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-[#CBD5E1] bg-[#F0F9FF]">
-                        <td colSpan={8} className="px-3 py-2 font-bold text-gray-700">Tổng cộng ({passengers.length} khách):</td>
+                        <td colSpan={9} className="px-3 py-2 font-bold text-gray-700">
+                          Tổng cộng ({guestValidation.totalGuests} người — {guestValidation.payingGuestsCount} vé tính tiền{guestValidation.freeGuestsCount > 0 ? `, ${guestValidation.freeGuestsCount} vé miễn phí` : ""}):
+                        </td>
                         <td className="px-3 py-2 text-right font-bold text-[#075985] text-base">{formatVND(totalPrice)}</td>
                       </tr>
                     </tfoot>
@@ -1470,8 +1460,9 @@ export function BookingFormPage({
                 Quay lại
               </Button>
               <Button
+                disabled={!isStep2Valid || !guestValidation.isValid}
                 onClick={handleConfirm}
-                className="bg-teal-600 hover:bg-teal-700 text-white gap-2 px-8 shadow-sm text-sm font-bold"
+                className="bg-teal-600 hover:bg-teal-700 text-white gap-2 px-8 shadow-sm text-sm font-bold disabled:opacity-50"
               >
                 Gửi yêu cầu đặt tour (Thanh toán sau)
                 <ArrowRight className="w-4 h-4" />

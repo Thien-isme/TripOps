@@ -127,7 +127,7 @@ export function CreateServiceForm({
       providerId: currentProvider.id,
       providerName: currentProvider.name,
       name,
-      category: category!,
+      category: category === "eatery" ? "fnb" as const : category!,
       description,
       price: parseFloat(price),
       location,

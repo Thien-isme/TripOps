@@ -248,7 +248,7 @@ export function ProviderServiceDetailPage({
                     )
                   ) {
                     onDelete?.(service.id);
-                    onBack();
+                    onBack?.();
                   }
                 }}
               >
@@ -288,7 +288,7 @@ export function ProviderServiceDetailPage({
                     )
                   ) {
                     onDelete?.(service.id);
-                    onBack();
+                    onBack?.();
                   }
                 }}
               >
@@ -334,7 +334,7 @@ export function ProviderServiceDetailPage({
           </div>
           <Button
             size="sm"
-            onClick={() => onEdit(service)}
+            onClick={() => onEdit?.(service)}
             className="bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-xl flex-shrink-0"
           >
             Sửa & Gửi lại
@@ -501,7 +501,7 @@ export function ProviderServiceDetailPage({
             <div className="p-2.5 bg-gray-50 rounded-xl">
               <span className="text-gray-500 block">Ngày tạo bài:</span>
               <strong className="text-gray-900">
-                {new Date(service.createdAt).toLocaleDateString("vi-VN")}
+                {service.createdAt ? new Date(service.createdAt).toLocaleDateString("vi-VN") : "Chưa có thông tin"}
               </strong>
             </div>
 
@@ -727,7 +727,7 @@ export function ProviderServiceDetailPage({
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span>Ngày tạo bài:</span>
-                <span>{new Date(service.createdAt).toLocaleString("vi-VN")}</span>
+                <span>{service.createdAt ? new Date(service.createdAt).toLocaleString("vi-VN") : "Chưa có thông tin"}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span>Trạng thái:</span>
@@ -794,8 +794,8 @@ export function ProviderServiceDetailPage({
                         `[Admin] Bạn có chắc chắn muốn xóa bài đăng "${service.name}"? Hành động này sẽ gỡ bỏ hoàn toàn bài đăng khỏi hệ thống.`
                       )
                     ) {
-                      onDelete(service.id);
-                      onBack();
+                      onDelete?.(service.id);
+                      onBack?.();
                     }
                   }}
                   className="w-full border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold"

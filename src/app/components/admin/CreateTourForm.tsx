@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import {
   Service,
   Tour,
@@ -59,6 +59,28 @@ export function CreateTourForm({
   });
 
   const [highlights, setHighlights] = useState<string[]>([""]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    const images = await Promise.all(files.map((file) => new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    })));
+    const loaded = images.filter((image): image is string => image !== null);
+    setUploadedImages((previous) => [...previous, ...loaded]);
+    if (loaded.length) setFormData((previous) => ({ ...previous, image: loaded[0] }));
+    event.target.value = "";
+  };
+  const handleRemoveImage = (index: number) => {
+    const remaining = uploadedImages.filter((_, imageIndex) => imageIndex !== index);
+    setUploadedImages(remaining);
+    setFormData((previous) => ({
+      ...previous,
+      image: previous.image === uploadedImages[index] ? remaining[0] ?? "" : previous.image,
+    }));
+  };
   const [itinerary, setItinerary] = useState<DailyItinerary[]>([
     {
       id: `day-1`,
@@ -74,7 +96,7 @@ export function CreateTourForm({
 
   // Filter only accommodation services that are approved
   const accommodationServices = services.filter(
-    (s) => s.status === "approved" && s.category === "Lưu trú",
+    (s) => s.status === "approved" && s.category === "hotel",
   );
 
   const handleAddHighlight = () => {
@@ -182,8 +204,10 @@ export function CreateTourForm({
       price: parseFloat(formData.price),
       description: formData.description,
       maxGuests: parseInt(formData.maxGuests),
+      minGuests: parseInt(formData.minGuests),
       rating: 0, // New tours start with no rating
       image: formData.image,
+      images: uploadedImages,
       highlights: highlights.filter((h) => h.trim() !== ""),
       itinerary: itinerary,
       // Add admin creator info
@@ -383,7 +407,7 @@ export function CreateTourForm({
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Số khách tối thiểu{" "}
+                  Số khách có vé tính tiền tối thiểu{" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <input

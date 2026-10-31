@@ -155,7 +155,7 @@ export function CancelTourModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tính số ngày còn lại đến ngày khởi hành để áp dụng chính sách hoàn hủy
-  const departureDateStr = booking?.tourStartDate || booking?.tour?.departureDate || "2026-11-20";
+  const departureDateStr = booking?.tourStartDate || booking?.tour?.departureDates?.[0]?.date || "2026-11-20";
   const { daysRemaining, refundPercentage, refundFee, approvedRefundAmount } = useMemo(() => {
     const depDate = new Date(departureDateStr);
     const today = new Date();

@@ -80,14 +80,19 @@ export interface User {
   specialties?: string[];
   experienceYears?: number;
   guideStatus?: "active" | "inactive" | "on_tour";
+  bio?: string;
 }
 
 export interface Location {
   id: string;
   name: string;
   address: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
+  image?: string;
+  category?: string;
+  notes?: string;
+  description?: string;
   time?: string;
   checkedIn?: boolean;
   checkInTime?: string;
@@ -107,6 +112,8 @@ export interface TourAlternativeMeal {
   serviceId?: string;
   providerName?: string;
   price?: number;
+  priceFrom?: number;
+  priceTo?: number;
   isCustom?: boolean;
 }
 
@@ -136,9 +143,9 @@ export interface TourAlternativeHotel {
   description?: string;
   address?: string;
   image?: string;
-  serviceId?: string;
   providerName?: string;
   price?: number; // Giá tham khảo gốc của phương án (VD: 1.450.000đ/đêm)
+  pricePerNight?: number;
   priceFrom?: number;
   priceTo?: number;
   isCustom?: boolean; // Khách sạn tự nhập ngoài sàn
@@ -149,6 +156,8 @@ export interface TourAlternativeHotel {
 export interface TourHotel {
   id?: string;
   serviceId?: string;
+  providerName?: string;
+  roomType?: string;
   name: string;
   destination?: string; // e.g. "Đà Lạt", "Nha Trang"
   nights?: number; // e.g. 2
@@ -171,7 +180,7 @@ export interface TourHotel {
 export interface DailyItinerary {
   id: string;
   day: number;
-  date: string;
+  date?: string; // Tour templates use day numbers before a departure is selected.
   title: string;
   description?: string;
   locations: Location[];
@@ -210,14 +219,15 @@ export interface TourPriceRow {
 export interface BookingPassenger {
   id: string;
   fullName: string;
-  dateOfBirth: string;
-  gender: "male" | "female";
+  dateOfBirth?: string; // Historical passenger records may be incomplete; booking forms validate new entries.
+  gender?: "male" | "female";
   ageGroup: "adult" | "child_2_11" | "child_under_2";
   price: number;
   phone?: string;
   email?: string;
   idNumber?: string; // CCCD / Passport
   roommateNote?: string; // roommate_note: Nguyện vọng xếp phòng / Muốn ở cùng ai
+  dietaryNote?: string; // dietary_note: Yêu cầu ăn uống / Dị ứng thực phẩm
   roomingPreference?: string; // Alias tương đương cho roommateNote
   notes?: string; // Ghi chú cá nhân
   // Alliance / Co-Host stage & multi-agency mapping (booking_participants schema)
@@ -268,7 +278,18 @@ export interface BookingProviderConfirmation {
   providerName?: string;
   providerPhone?: string;
   providerAddress?: string;
-  status: "pending" | "confirmed" | "rejected";
+  status: "pending" | "confirmed" | "rejected" | "quoted" | "cancelled";
+  bookingId?: string;
+  serviceType?: "hotel" | "restaurant";
+  servingDate?: string;
+  serviceTime?: string;
+  menuName?: string;
+  dietaryNotes?: string;
+  cancelledBy?: string;
+  cancelledByName?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  responseType?: "quote" | "confirm";
   confirmedAt?: string;
   rejectionReason?: string;
   priceDifference?: number;
@@ -286,6 +307,7 @@ export interface CustomHotelChange {
   newHotelName: string;
   mode: "system" | "custom" | "provider";
   newPricePerNight?: number;
+  priceDifference?: number;
   stars?: number;
   address?: string;
   note?: string;
@@ -318,6 +340,7 @@ export interface CustomMealChange {
   pricePerPerson?: number;
   priceDifference?: number;
   note?: string;
+  address?: string;
   // Platform provider service metadata
   isProviderService?: boolean;
   serviceId?: string;
@@ -369,6 +392,8 @@ export interface BookingAgencyShare {
   agencyId: string;
   agencyName: string;
   isHost: boolean;
+  role?: "lead" | "partner";
+  quoteConfirmed?: boolean;
   originalAmount: number;
   finalAmount: number;
   // Đã bỏ khỏi DB schema (lưu vết chi tiết nằm trong booking_price_adjustments)
@@ -445,6 +470,8 @@ export interface Tour {
   companyNote?: string;
   // Reviews
   reviews?: TourReview[];
+  reviewsCount?: number;
+  availableDates?: string[]; // Legacy tour listings.
   // Company info
   companyId?: string;
   companyName?: string;
@@ -720,7 +747,7 @@ export interface Service {
   status: "pending" | "approved" | "rejected" | "hidden";
   rejectionReason?: string; // Lý do từ chối bài đăng
   hiddenReason?: string; // Lý do Admin tạm ẩn bài đăng
-  createdAt: string;
+  createdAt?: string; // Service previews and legacy records may not include creation metadata.
   // Hotel specific fields
   stars?: number;
   totalRooms?: number; // Tổng số lượng phòng ở cơ sở lưu trú
@@ -732,7 +759,10 @@ export interface Service {
   // FnB specific fields (Restaurant/Cafe)
   openingHours?: string;
   cuisineType?: string;
+  cuisine?: string; // Legacy service forms.
+  priceRange?: string;
   dietaryOptions?: string[];
+  mealType?: "breakfast" | "lunch" | "dinner";
   // Attraction specific fields
   childPrice?: number;
   ticketIncludes?: string;
@@ -743,7 +773,9 @@ export interface Service {
   duration?: string;
   ageRestriction?: string;
   difficultyLevel?: string;
+  difficulty?: string; // Legacy service forms.
   safetyGear?: string;
+  updatedAt?: string;
 }
 
 // Room booking for accommodation providers
@@ -760,7 +792,8 @@ export interface RoomBooking {
   numberOfGuests: number;
   numberOfRooms: number;
   totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
+  paymentStatus?: "unpaid" | "paid" | "refunded";
   bookingDate: string;
   specialRequests?: string;
   rejectionReason?: string;
@@ -775,6 +808,7 @@ export interface GroupGuestMember {
   identityCardNumber?: string; // identity_card_number: CCCD / CMND / Hộ chiếu
   tierName?: string; // tier_name: Snapshot phân khúc đối tượng (Người lớn, Trẻ em 5-11 tuổi...)
   roommateNote?: string; // roommate_note: Ghi chú muốn ở cùng với ai (VD: Ở chung phòng với STT 2, muốn ở phòng đơn riêng...)
+  dietaryNote?: string; // dietary_note: Yêu cầu ăn uống / Dị ứng thực phẩm
   note?: string; // note: Ghi chú cá nhân (Ăn chay, dị ứng, say xe...)
 }
 
@@ -802,7 +836,19 @@ export interface ProviderGroupReservationRequest {
   roomTypeRequested?: string; // Hạng phòng gợi ý: "Phòng Deluxe / Superior"
   passengers?: GroupGuestMember[]; // Danh sách toàn bộ đoàn khách & mong muốn xếp phòng
   specialRequests?: string; // Ghi chú chung của Agency cho đoàn
-  status: "pending" | "confirmed" | "rejected";
+  status: "pending" | "confirmed" | "rejected" | "quoted" | "cancelled";
+  bookingId?: string;
+  serviceType?: "hotel" | "restaurant";
+  mealType?: "breakfast" | "lunch" | "dinner";
+  servingDate?: string;
+  serviceTime?: string;
+  menuName?: string;
+  dietaryNotes?: string;
+  cancelledBy?: string;
+  cancelledByName?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  responseType?: "quote" | "confirm";
   quotedTotalPrice?: number; // Giá tổng cho toàn bộ đoàn khách do provider báo
   providerNote?: string; // Ghi chú báo giá từ provider
   rejectionReason?: string; // Lý do từ chối nếu không nhận

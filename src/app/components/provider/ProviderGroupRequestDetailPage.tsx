@@ -10,12 +10,14 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   FileText,
   DollarSign,
   Search,
   Check,
   X,
   Hotel,
+  Utensils,
   ShieldCheck,
   Tag,
   MessageSquare,
@@ -55,7 +57,7 @@ function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + " ₫";
 }
 
-function formatDate(iso: string) {
+function formatDate(iso?: string) {
   if (!iso) return "";
   try {
     const d = new Date(iso);
@@ -95,6 +97,8 @@ export function ProviderGroupRequestDetailPage({
   onApproveAndQuote,
   onRejectRequest,
 }: ProviderGroupRequestDetailPageProps) {
+  const isRestaurant = request.serviceType === "restaurant" || Boolean(request.mealType);
+
   // Modal states
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -105,7 +109,9 @@ export function ProviderGroupRequestDetailPage({
   );
   const [providerNote, setProviderNote] = useState<string>(
     request.providerNote ||
-      "Khách sạn đã xem danh sách đoàn và bố trí đủ phòng theo nguyện vọng ghép phòng của khách. Giá trọn gói toàn đoàn đã gồm buffet sáng và thuế VAT."
+      (isRestaurant
+        ? "Nhà hàng đã ghi nhận số lượng thành viên và các yêu cầu ăn uống/dị ứng của từng khách. Sẽ sắp xếp set ăn riêng theo đúng thực đơn và tiêu chuẩn phục vụ."
+        : "Khách sạn đã xem danh sách đoàn và bố trí đủ phòng theo nguyện vọng ghép phòng của khách. Giá trọn gói toàn đoàn đã gồm buffet sáng và thuế VAT.")
   );
   const [quoteError, setQuoteError] = useState<string>("");
 
@@ -119,7 +125,7 @@ export function ProviderGroupRequestDetailPage({
 
   const passengersList = request.passengers || [];
 
-  // Filter passengers based purely on search input (no arbitrary filter tabs)
+  // Filter passengers based on search input
   const filteredPassengers = useMemo(() => {
     return passengersList.filter((p) => {
       if (guestSearchTerm.trim()) {
@@ -128,6 +134,7 @@ export function ProviderGroupRequestDetailPage({
           p.fullName.toLowerCase().includes(term) ||
           (p.identityCardNumber && p.identityCardNumber.toLowerCase().includes(term)) ||
           (p.roommateNote && p.roommateNote.toLowerCase().includes(term)) ||
+          (p.dietaryNote && p.dietaryNote.toLowerCase().includes(term)) ||
           (p.note && p.note.toLowerCase().includes(term)) ||
           (p.tierName && p.tierName.toLowerCase().includes(term))
         );
@@ -159,212 +166,277 @@ export function ProviderGroupRequestDetailPage({
     setShowRejectModal(false);
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawVal = e.target.value.replace(/\D/g, "");
-    setQuoteInputPrice(rawVal);
-    if (quoteError) setQuoteError("");
-  };
-
-  const parsedQuotedPrice = Number(quoteInputPrice || "0");
-
-  const isPending = request.status === "pending";
   const isConfirmed = request.status === "confirmed";
   const isRejected = request.status === "rejected";
+  const isPending = request.status === "pending";
+  const isQuoted = request.status === "quoted";
+  const isCancelled = request.status === "cancelled";
 
   return (
-    <div className="space-y-6 font-sans max-w-7xl mx-auto pb-16 animate-in fade-in duration-200">
-      {/* Top Bar Navigation */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-200">
-        <div className="space-y-2">
-          <button
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Top Navigation & Back Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-[#075985] transition-colors"
+            className="h-9 px-3 rounded-xl border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold gap-1.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại danh sách yêu cầu giữ phòng đoàn</span>
-          </button>
+            Quay lại danh sách
+          </Button>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-gray-900">
-              Chi tiết Yêu cầu Giữ phòng #{request.bookingCode}
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-md bg-sky-100 text-[#075985] font-black text-xs border border-sky-200">
+          <div className="h-4 w-px bg-gray-300 hidden sm:block"></div>
+
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-xs font-bold text-gray-500 uppercase">
+                Yêu cầu #{request.id}
+              </span>
+              <span className="text-gray-300">•</span>
+              <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
+                Mã Booking: {request.bookingCode}
+              </span>
+              {isRestaurant ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  <Utensils className="w-3.5 h-3.5" />
+                  Dịch vụ Nhà hàng / Ẩm thực
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+                  <Hotel className="w-3.5 h-3.5" />
+                  Dịch vụ Khách sạn Lưu trú
+                </span>
+              )}
+            </div>
+            <h1 className="text-lg sm:text-xl font-black text-gray-900 mt-1">
               {request.tourName}
-            </span>
-            {isPending && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                Chờ duyệt & báo giá đoàn
-              </span>
-            )}
-            {isConfirmed && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Đã xác nhận giữ phòng
-              </span>
-            )}
-            {isRejected && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300">
-                <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                Đã từ chối tiếp nhận
-              </span>
-            )}
+            </h1>
           </div>
         </div>
 
-        {/* Action buttons on top */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {isPending && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setRejectionReason(request.rejectionReason || "");
-                  setRejectionError("");
-                  setShowRejectModal(true);
-                }}
-                className="text-xs rounded-xl h-10 text-rose-700 border-rose-200 hover:bg-rose-50 font-bold px-4"
-              >
-                <X className="w-4 h-4 mr-1 text-rose-600" />
-                Từ chối tiếp nhận
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setQuoteError("");
-                  setShowApproveModal(true);
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl h-10 px-5 shadow-md shadow-emerald-600/20 gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                Phê duyệt & Báo giá trọn gói
-              </Button>
-            </>
-          )}
-
-          {isConfirmed && (
-            <Button
-              size="sm"
-              onClick={() => {
-                setQuoteError("");
-                setShowApproveModal(true);
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl h-10 px-4"
-            >
-              Cập nhật lại báo giá
-            </Button>
-          )}
-
-          {isRejected && (
-            <Button
-              size="sm"
-              onClick={() => {
-                setQuoteError("");
-                setShowApproveModal(true);
-              }}
-              className="bg-[#075985] hover:bg-[#0369A1] text-white font-black text-xs rounded-xl h-10 px-4"
-            >
-              Xem xét lại & Báo giá
-            </Button>
-          )}
-        </div>
+        {/* Action Buttons if not cancelled */}
+        {!isCancelled ? (
+          <div className="flex items-center gap-2 self-end sm:self-center">
+            {isPending || isQuoted ? (
+              <>
+                <Button
+                  onClick={() => {
+                    setQuoteError("");
+                    setShowApproveModal(true);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-sm gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  Xác nhận & Báo giá
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRejectionError("");
+                    setShowRejectModal(true);
+                  }}
+                  className="border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs h-9 px-4 rounded-xl gap-1.5"
+                >
+                  <X className="w-4 h-4" />
+                  Từ chối
+                </Button>
+              </>
+            ) : isConfirmed ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Đã xác nhận phục vụ
+              </span>
+            ) : isRejected ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-50 text-rose-800 border border-rose-300 font-bold text-xs">
+                <XCircle className="w-4 h-4 text-rose-600" />
+                Đã từ chối tiếp nhận
+              </span>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700 border border-gray-300">
+              <AlertTriangle className="w-4 h-4 text-gray-500" />
+              Yêu cầu đã hủy
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Cancellation Banner */}
+      {isCancelled && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-900">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-sm">Yêu cầu này đã bị hủy trên hệ thống</h4>
+            <p className="text-xs leading-relaxed text-rose-700">
+              {request.cancellationReason || "Đoàn khách hoặc Agency đã hủy booking liên quan. Dịch vụ không cần tiếp tục giữ chỗ."}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 3 Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: Agency Info */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-            <Building2 className="w-4 h-4 text-[#075985]" />
-            <span>Công ty Lữ hành (Agency)</span>
-          </div>
-
-          <div className="flex items-start gap-3">
-            {request.agencyLogo ? (
-              <img
-                src={request.agencyLogo}
-                alt={request.agencyName}
-                className="w-12 h-12 rounded-xl object-cover border border-gray-100 flex-shrink-0"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-xl bg-sky-50 text-[#075985] font-black text-base flex items-center justify-center flex-shrink-0">
-                {request.agencyName.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div>
-              <div className="font-extrabold text-sm text-gray-900 leading-snug">
-                {request.agencyName}
-              </div>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Người phụ trách: <strong>{request.agencyContactName}</strong>
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-gray-100 space-y-1.5 text-xs text-gray-600">
-            <div className="flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-gray-400" />
-              <span>{request.agencyPhone}</span>
-            </div>
-            {request.agencyEmail && (
-              <div className="flex items-center gap-2 truncate">
-                <Mail className="w-3.5 h-3.5 text-gray-400" />
-                <span className="truncate">{request.agencyEmail}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Card 2: Stay & Group Specs */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
-            <Hotel className="w-4 h-4 text-[#075985]" />
-            <span>Lịch trình lưu trú & Quy mô</span>
+            <Building2 className="w-4 h-4 text-sky-600" />
+            <span>Công ty Lữ hành gửi yêu cầu</span>
           </div>
 
           <div className="space-y-2">
-            <div className="font-extrabold text-sm text-gray-900">
-              {request.serviceName}
+            <div className="flex items-start gap-3">
+              {request.agencyLogo ? (
+                <img
+                  src={request.agencyLogo}
+                  alt={request.agencyName}
+                  className="w-10 h-10 rounded-xl object-cover border border-gray-200 shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 font-bold flex items-center justify-center shrink-0">
+                  <Building2 className="w-5 h-5" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="font-extrabold text-sm text-gray-900 leading-snug">
+                  {request.agencyName}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Đại diện: <strong>{request.agencyContactName}</strong>
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 rounded-xl bg-sky-50/70 border border-sky-100">
-                <div className="text-[10px] font-bold text-[#075985] uppercase">
-                  Thời gian
-                </div>
-                <div className="font-black text-gray-900 mt-0.5">
-                  {formatDate(request.checkInDate)} → {formatDate(request.checkOutDate)}
-                </div>
-                <div className="text-[11px] text-[#075985] font-bold">
-                  {request.numberOfNights} đêm lưu trú
-                </div>
+            <div className="pt-2 border-t border-gray-100 space-y-1.5 text-xs text-gray-600">
+              <div className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <a href={`tel:${request.agencyPhone}`} className="hover:text-sky-700 font-medium">
+                  {request.agencyPhone}
+                </a>
               </div>
-
-              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-                <div className="text-[10px] font-bold text-emerald-800 uppercase">
-                  Tổng đoàn khách
-                </div>
-                <div className="font-black text-emerald-950 mt-0.5">
-                  {request.numberOfGuests} khách
-                </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <a href={`mailto:${request.agencyEmail}`} className="hover:text-sky-700 font-medium truncate">
+                  {request.agencyEmail}
+                </a>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 3: Quotation Status */}
+        {/* Card 2: Service Details (Hotel vs Restaurant) */}
+        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            {isRestaurant ? (
+              <>
+                <Utensils className="w-4 h-4 text-amber-600" />
+                <span>Chi tiết Bữa ăn & Nhà hàng</span>
+              </>
+            ) : (
+              <>
+                <Hotel className="w-4 h-4 text-sky-600" />
+                <span>Chi tiết Lưu trú & Khách sạn</span>
+              </>
+            )}
+          </div>
+
+          <div className="space-y-2 text-xs">
+            <div>
+              <p className="text-gray-500 text-[11px]">Dịch vụ yêu cầu:</p>
+              <p className="font-bold text-sm text-gray-900 mt-0.5">{request.serviceName}</p>
+            </div>
+
+            {isRestaurant ? (
+              // RESTAURANT DETAILS (No check-in/out, no nights, no rooms)
+              <div className="pt-2 border-t border-gray-100 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-amber-50/70 border border-amber-100">
+                    <span className="text-[10px] text-gray-500 block uppercase font-bold">Ngày phục vụ</span>
+                    <strong className="text-gray-900 text-xs">
+                      {formatDate(request.servingDate || request.checkInDate)}
+                    </strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-amber-50/70 border border-amber-100">
+                    <span className="text-[10px] text-gray-500 block uppercase font-bold">Bữa ăn</span>
+                    <strong className="text-amber-900 text-xs uppercase">
+                      {request.mealType === "breakfast" ? "Bữa Sáng" : request.mealType === "lunch" ? "Bữa Trưa" : "Bữa Tối"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="text-gray-500">Giờ ăn phục vụ:</span>
+                  <span className="font-bold text-gray-900">{request.serviceTime || "Chưa xác định"}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="text-gray-500">Quy mô đoàn:</span>
+                  <span className="font-bold text-gray-900">{request.numberOfGuests} khách</span>
+                </div>
+
+                {request.menuName && (
+                  <div className="text-xs text-gray-700">
+                    <span className="text-gray-500 block text-[11px]">Thực đơn đề xuất:</span>
+                    <span className="font-semibold text-gray-900">{request.menuName}</span>
+                  </div>
+                )}
+
+                {request.specialRequests && (
+                  <div className="p-2 bg-gray-50 rounded-lg text-gray-600 text-[11px] italic border border-gray-100">
+                    "{request.specialRequests}"
+                  </div>
+                )}
+              </div>
+            ) : (
+              // HOTEL DETAILS (Check-in, Check-out, Nights, Rooms)
+              <div className="pt-2 border-t border-gray-100 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-sky-50/70 border border-sky-100">
+                    <span className="text-[10px] text-gray-500 block uppercase font-bold">Nhận phòng</span>
+                    <strong className="text-gray-900 text-xs">{formatDate(request.checkInDate)}</strong>
+                  </div>
+                  <div className="p-2 rounded-lg bg-sky-50/70 border border-sky-100">
+                    <span className="text-[10px] text-gray-500 block uppercase font-bold">Trả phòng</span>
+                    <strong className="text-gray-900 text-xs">{formatDate(request.checkOutDate)}</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="text-gray-500">Thời gian lưu trú:</span>
+                  <span className="font-bold text-gray-900">{request.numberOfNights} đêm</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="text-gray-500">Quy mô đoàn:</span>
+                  <span className="font-bold text-gray-900">{request.numberOfGuests} khách ({request.adultGuests} NL, {request.childGuests} TE)</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="text-gray-500">Hạng phòng gợi ý:</span>
+                  <span className="font-semibold text-gray-900 truncate max-w-[180px]">{request.roomTypeRequested || "Deluxe / Superior"}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: Quotation & Response Status */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
             <DollarSign className="w-4 h-4 text-emerald-600" />
-            <span>Báo giá trọn gói cho toàn đoàn</span>
+            <span>
+              {isRestaurant ? "Báo giá bữa ăn cho đoàn" : "Báo giá trọn gói toàn đoàn"}
+            </span>
           </div>
 
           {isConfirmed && request.quotedTotalPrice ? (
             <div className="space-y-2">
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950">
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                  Tổng tiền đã báo cho Agency
+                  {isRestaurant ? "Tổng tiền bữa ăn đã báo" : "Tổng tiền lưu trú đã báo"}
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">
                   {formatVND(request.quotedTotalPrice)}
@@ -374,65 +446,89 @@ export function ProviderGroupRequestDetailPage({
                 </div>
               </div>
               {request.providerNote && (
+                <p className="text-xs text-gray-600 italic bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                  "{request.providerNote}"
+                </p>
+              )}
+            </div>
+          ) : isQuoted && request.quotedTotalPrice ? (
+            <div className="space-y-2">
+              <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-950">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-sky-700">
+                  Đã gửi báo giá (Chưa giữ chỗ)
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-sky-700 mt-0.5">
+                  {formatVND(request.quotedTotalPrice)}
+                </div>
+              </div>
+              {request.providerNote && (
                 <p className="text-xs text-gray-600 italic">
                   "{request.providerNote}"
                 </p>
               )}
             </div>
           ) : isRejected ? (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-950 space-y-1">
-              <span className="font-bold block">Đã từ chối:</span>
-              <p className="text-gray-700 italic">"{request.rejectionReason}"</p>
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-950 space-y-1">
+              <span className="font-bold block text-rose-800">Đã từ chối tiếp nhận:</span>
+              <p className="text-gray-700 italic">"{request.rejectionReason || "Không còn khả năng phục vụ theo yêu cầu"}"</p>
             </div>
           ) : (
-            <div className="space-y-2 text-xs">
+            <div className="space-y-2.5 text-xs">
               <p className="text-gray-500 leading-relaxed">
-                Chưa có báo giá. Hãy xem danh sách khách và ghi chú bên dưới để tự xếp phòng và bấm{" "}
-                <strong className="text-emerald-700">"Phê duyệt & Báo giá"</strong>.
+                {isRestaurant
+                  ? "Chưa có báo giá. Hãy xem danh sách khách và yêu cầu ăn uống dị ứng bên dưới rồi bấm \"Xác nhận & Báo giá\"."
+                  : "Chưa có báo giá. Hãy xem danh sách khách và nguyện vọng xếp phòng bên dưới rồi bấm \"Xác nhận & Báo giá\"."}
               </p>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setQuoteError("");
-                  setShowApproveModal(true);
-                }}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl"
-              >
-                Nhập báo giá tổng ngay
-              </Button>
+              {!isCancelled && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setQuoteError("");
+                    setShowApproveModal(true);
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs h-9 rounded-xl"
+                >
+                  Nhập báo giá tổng ngay
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* MAIN SECTION: Passenger Roster (Strictly from booking_participants table) */}
+      {/* PASSENGER ROSTER SECTION */}
       {/* ========================================================================= */}
       <div className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden space-y-4 p-5 sm:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#075985] flex items-center justify-center font-bold">
-                <Users className="w-4 h-4" />
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                isRestaurant ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800"
+              }`}>
+                {isRestaurant ? <Utensils className="w-4 h-4" /> : <Users className="w-4 h-4" />}
               </div>
               <h3 className="font-black text-base sm:text-lg text-gray-900">
-                Danh sách Đoàn khách & Nguyện vọng Xếp phòng ({passengersList.length} thành viên)
+                {isRestaurant
+                  ? `Danh sách Thành viên & Yêu cầu Ăn uống (${passengersList.length} khách)`
+                  : `Danh sách Đoàn khách & Nguyện vọng Xếp phòng (${passengersList.length} khách)`}
               </h3>
             </div>
             <p className="text-xs text-gray-500 mt-1 pl-10">
-              Khách sạn xem thông tin thành viên và ghi chú muốn ở cùng ai để tự phân bổ số lượng phòng phù hợp.
+              {isRestaurant
+                ? "Nhà hàng xem chi tiết từng thành viên và yêu cầu ăn uống / dị ứng thực phẩm để chuẩn bị món ăn an toàn, chu đáo."
+                : "Khách sạn xem thông tin thành viên và ghi chú muốn ở cùng ai để tự phân bổ số lượng phòng phù hợp."}
             </p>
           </div>
 
-          {/* Quick guest stats badges */}
           <div className="flex items-center gap-2 flex-wrap pl-10 md:pl-0">
-            <span className="px-3.5 py-1.5 rounded-xl bg-sky-50 text-[#075985] font-black text-xs border border-sky-100">
-              Tổng: {request.numberOfGuests} khách
+            <span className="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs">
+              Quy mô: <strong>{request.numberOfGuests}</strong> khách
             </span>
           </div>
         </div>
 
-        {/* Search bar inside passenger table (Removed redundant filter tabs as requested) */}
+        {/* Search bar inside passenger table */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold">
             <span>Tất cả thành viên trong đoàn</span>
@@ -446,7 +542,7 @@ export function ProviderGroupRequestDetailPage({
             <Input
               value={guestSearchTerm}
               onChange={(e) => setGuestSearchTerm(e.target.value)}
-              placeholder="Tìm theo tên khách, CCCD, ghi chú ở cùng ai..."
+              placeholder={isRestaurant ? "Tìm theo tên khách, yêu cầu ăn uống, dị ứng..." : "Tìm theo tên khách, CCCD, ở cùng ai..."}
               className="pl-8 text-xs h-8 rounded-xl border-gray-200 focus:border-[#075985]"
             />
             {guestSearchTerm && (
@@ -460,7 +556,7 @@ export function ProviderGroupRequestDetailPage({
           </div>
         </div>
 
-        {/* Passengers Table - Fields strictly from booking_participants */}
+        {/* Passengers Table */}
         <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -468,16 +564,29 @@ export function ProviderGroupRequestDetailPage({
                 <tr>
                   <th className="py-3 px-3 text-center w-12">#</th>
                   <th className="py-3 px-4">Thành viên đoàn</th>
-                  <th className="py-3 px-3">Đối tượng & Ngày sinh</th>
-                  <th className="py-3 px-4">CCCD / Hộ chiếu</th>
-                  <th className="py-3 px-4 min-w-[280px]">Ghi chú muốn ở cùng với ai (Xếp phòng)</th>
-                  <th className="py-3 px-4">Ghi chú cá nhân</th>
+                  <th className="py-3 px-3">Đối tượng</th>
+                  {isRestaurant ? (
+                    // RESTAURANT COLUMNS (No CCCD, No roommateNote)
+                    <>
+                      <th className="py-3 px-4 min-w-[260px] text-amber-900 font-black">
+                        Yêu cầu ăn uống / Dị ứng thực phẩm
+                      </th>
+                      <th className="py-3 px-4">Ghi chú cá nhân</th>
+                    </>
+                  ) : (
+                    // HOTEL COLUMNS (CCCD, RoommateNote)
+                    <>
+                      <th className="py-3 px-4">CCCD / Hộ chiếu</th>
+                      <th className="py-3 px-4 min-w-[280px]">Ghi chú muốn ở cùng với ai (Xếp phòng)</th>
+                      <th className="py-3 px-4">Ghi chú cá nhân</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredPassengers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                    <td colSpan={isRestaurant ? 5 : 6} className="py-8 text-center text-gray-400">
                       Không tìm thấy thành viên nào phù hợp với từ khóa tìm kiếm.
                     </td>
                   </tr>
@@ -491,93 +600,99 @@ export function ProviderGroupRequestDetailPage({
                         ? "Nam"
                         : "Khác";
 
-                    const isChild =
-                      guest.tierName?.toLowerCase().includes("trẻ") || false;
+                    const isChild = guest.tierName?.toLowerCase().includes("trẻ") || false;
 
                     return (
                       <tr
                         key={guest.id || idx}
-                        className="hover:bg-sky-50/40 transition-colors"
+                        className="hover:bg-slate-50/80 transition-colors"
                       >
-                        {/* STT: participant_index */}
-                        <td className="py-3.5 px-3 text-center font-bold text-gray-500 text-xs">
+                        {/* 1. STT */}
+                        <td className="py-3 px-3 text-center font-bold text-gray-400">
                           {participantSTT}
                         </td>
 
-                        {/* full_name & gender */}
-                        <td className="py-3.5 px-4 font-bold text-gray-900">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-100 to-indigo-100 text-[#075985] font-black text-xs flex items-center justify-center flex-shrink-0">
-                              {guest.fullName.slice(0, 1).toUpperCase()}
-                            </div>
-                            <div>
-                              <span className="font-extrabold block text-gray-900 text-xs">
-                                {guest.fullName}
-                              </span>
-                              <span className="text-[10px] text-gray-500 font-medium">
-                                Giới tính: <strong>{genderLabel}</strong>
-                              </span>
-                            </div>
+                        {/* 2. Họ và tên */}
+                        <td className="py-3 px-4 font-bold text-gray-900">
+                          <div className="flex items-center gap-1.5">
+                            <span>{guest.fullName}</span>
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({genderLabel})
+                            </span>
                           </div>
                         </td>
 
-                        {/* tier_name & date_of_birth */}
-                        <td className="py-3.5 px-3">
-                          <div className="space-y-0.5">
-                            <span
-                              className={`px-2 py-0.5 rounded-md font-bold text-[10px] inline-block ${
-                                isChild
-                                  ? "bg-amber-100 text-amber-900"
-                                  : "bg-slate-100 text-slate-800"
-                              }`}
-                            >
-                              {guest.tierName || "Người lớn"}
-                            </span>
-                            {guest.dateOfBirth && (
-                              <div className="text-[10px] text-gray-400 font-mono">
-                                {formatDate(guest.dateOfBirth)}
-                              </div>
-                            )}
-                          </div>
+                        {/* 3. Phân khúc đối tượng */}
+                        <td className="py-3 px-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              isChild
+                                ? "bg-amber-100 text-amber-900 border border-amber-200"
+                                : "bg-sky-100 text-sky-900 border border-sky-200"
+                            }`}
+                          >
+                            {guest.tierName || "Người lớn"}
+                          </span>
                         </td>
 
-                        {/* identity_card_number */}
-                        <td className="py-3.5 px-4 text-gray-700">
-                          {guest.identityCardNumber ? (
-                            <span className="font-mono text-[11px] font-semibold text-gray-800 bg-gray-50 px-2 py-1 rounded-md border border-gray-200">
-                              {guest.identityCardNumber}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 italic text-[11px]">
-                              Chưa có CCCD (trẻ em)
-                            </span>
-                          )}
-                        </td>
+                        {isRestaurant ? (
+                          // RESTAURANT ROW CELLS
+                          <>
+                            {/* Yêu cầu ăn uống / Dị ứng thực phẩm */}
+                            <td className="py-3 px-4">
+                              {guest.dietaryNote ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-950 border border-amber-300">
+                                  <Utensils className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                                  {guest.dietaryNote}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">Bình thường (Không yêu cầu riêng)</span>
+                              )}
+                            </td>
 
-                        {/* roommate_note: Ghi chú muốn ở cùng với ai */}
-                        <td className="py-3.5 px-4">
-                          {guest.roommateNote ? (
-                            <div className="p-2.5 rounded-xl text-xs font-semibold flex items-start gap-2 border bg-sky-50 text-sky-950 border-sky-200">
-                              <Bed className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#075985]" />
-                              <span className="leading-relaxed">
-                                {guest.roommateNote}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 italic text-[11px]">
-                              Khách sạn tự sắp xếp phòng
-                            </span>
-                          )}
-                        </td>
+                            {/* Ghi chú cá nhân */}
+                            <td className="py-3 px-4 text-gray-600">
+                              {guest.note ? (
+                                <span className="text-xs text-gray-700 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
+                                  {guest.note}
+                                </span>
+                              ) : (
+                                <span className="text-gray-300 italic">—</span>
+                              )}
+                            </td>
+                          </>
+                        ) : (
+                          // HOTEL ROW CELLS
+                          <>
+                            {/* CCCD / Hộ chiếu */}
+                            <td className="py-3 px-4 font-mono font-medium text-gray-700">
+                              {guest.identityCardNumber || "—"}
+                            </td>
 
-                        {/* note: Ăn chay, dị ứng, say xe... */}
-                        <td className="py-3.5 px-4 text-gray-600 text-[11px]">
-                          {guest.note ? (
-                            <span className="italic">{guest.note}</span>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
+                            {/* Ghi chú muốn ở cùng với ai (Xếp phòng) */}
+                            <td className="py-3 px-4">
+                              {guest.roommateNote ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 text-teal-900 border border-teal-300">
+                                  <Bed className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                                  {guest.roommateNote}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">Tự do ghép phòng theo sắp xếp</span>
+                              )}
+                            </td>
+
+                            {/* Ghi chú cá nhân */}
+                            <td className="py-3 px-4 text-gray-600">
+                              {guest.note ? (
+                                <span className="text-xs text-gray-700 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
+                                  {guest.note}
+                                </span>
+                              ) : (
+                                <span className="text-gray-300 italic">—</span>
+                              )}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })
@@ -588,287 +703,104 @@ export function ProviderGroupRequestDetailPage({
         </div>
       </div>
 
-      {/* Floating Bottom Bar: Quick summary and Action Buttons */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky bottom-4 z-20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-50 text-[#075985] flex items-center justify-center font-bold flex-shrink-0">
-            <Hotel className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="font-extrabold text-sm text-gray-900">
-              Đoàn {request.numberOfGuests} khách · {request.numberOfNights} đêm tại {request.serviceName}
-            </div>
-            <div className="text-xs text-gray-500">
-              {isConfirmed && request.quotedTotalPrice
-                ? `Giá trọn gói đã xác nhận: ${formatVND(request.quotedTotalPrice)}`
-                : "Xem thông tin thành viên và ghi chú trên để tự xếp phòng và đưa ra giá trọn gói cho toàn đoàn."}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isPending && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setRejectionReason(request.rejectionReason || "");
-                  setRejectionError("");
-                  setShowRejectModal(true);
-                }}
-                className="text-xs rounded-xl h-10 text-rose-700 border-rose-200 hover:bg-rose-50 font-bold px-4"
-              >
-                Từ chối tiếp nhận
-              </Button>
-              <Button
-                onClick={() => {
-                  setQuoteError("");
-                  setShowApproveModal(true);
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl h-10 px-5 shadow-md shadow-emerald-600/20"
-              >
-                <Check className="w-4 h-4 mr-1.5" />
-                Phê duyệt & Báo giá trọn gói đoàn
-              </Button>
-            </>
-          )}
-
-          {isConfirmed && (
-            <Button
-              onClick={() => {
-                setQuoteError("");
-                setShowApproveModal(true);
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl h-10 px-5"
-            >
-              Cập nhật lại báo giá
-            </Button>
-          )}
-
-          {isRejected && (
-            <Button
-              onClick={() => {
-                setQuoteError("");
-                setShowApproveModal(true);
-              }}
-              className="bg-[#075985] hover:bg-[#0369A1] text-white font-black text-xs rounded-xl h-10 px-5"
-            >
-              Xem xét lại & Báo giá
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* MODAL 1: Phê duyệt & Báo giá Tổng cho Đoàn (Approve & Quote Modal)        */}
-      {/* ========================================================================= */}
+      {/* APPROVAL / QUOTATION MODAL */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden rounded-3xl border border-gray-100 shadow-2xl bg-white">
-          {/* Elegant Clean Header */}
-          <div className="p-6 pb-4 border-b border-gray-100 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-[#075985] flex items-center justify-center flex-shrink-0 border border-sky-100">
-              <CheckCircle2 className="w-6 h-6 text-[#075985]" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-[#075985] uppercase tracking-wider">
-                  Xác nhận giữ phòng & Báo giá trọn gói
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-sky-100 text-[#075985] font-black text-[11px] border border-sky-200">
-                  #{request.bookingCode}
-                </span>
-              </div>
-              <DialogTitle className="text-xl font-black text-gray-900 mt-1">
-                Báo giá Tổng cho Toàn bộ Đoàn khách
-              </DialogTitle>
-              <DialogDescription className="text-gray-500 text-xs mt-0.5">
-                Agency: <strong>{request.agencyName}</strong>
-              </DialogDescription>
-            </div>
-          </div>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+              <Check className="w-5 h-5 text-emerald-600" />
+              {isRestaurant ? "Xác nhận Phục vụ & Gửi Báo giá Bữa ăn" : "Xác nhận & Báo giá Lưu trú Toàn đoàn"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500">
+              {isRestaurant
+                ? `Nhà hàng: ${request.serviceName} · Bữa ${request.mealType === "breakfast" ? "Sáng" : request.mealType === "lunch" ? "Trưa" : "Tối"} (${request.numberOfGuests} khách)`
+                : `Khách sạn: ${request.serviceName} · ${request.numberOfNights} đêm (${request.numberOfGuests} khách)`}
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-            {/* Quick summary strip */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-2">
-              <div className="font-extrabold text-slate-900 text-sm flex items-center justify-between">
-                <span>{request.serviceName}</span>
-                <span className="text-[#075985] font-black">
-                  {request.numberOfGuests} khách · {request.numberOfNights} đêm
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-slate-600 text-xs pt-1 border-t border-slate-200/60">
-                <div>
-                  📅 Check-in: <strong>{formatDate(request.checkInDate)}</strong>
-                </div>
-                <div>
-                  📅 Check-out: <strong>{formatDate(request.checkOutDate)}</strong>
-                </div>
-                <div>
-                  👥 Đoàn khách: <strong>{request.numberOfGuests} khách</strong>
-                </div>
-                <div>
-                  🌙 Lưu trú: <strong>{request.numberOfNights} đêm</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* MANDATORY INPUT: Quoted Total Price */}
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Giá tổng cho toàn bộ đoàn khách (VNĐ)</span>
-                <span className="text-rose-600">*</span>
-              </Label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  value={
-                    quoteInputPrice ? Number(quoteInputPrice).toLocaleString("vi-VN") : ""
-                  }
-                  onChange={handlePriceChange}
-                  placeholder="Ví dụ: 36.000.000"
-                  className={`text-lg font-black pr-14 h-12 rounded-xl text-gray-900 bg-white border-gray-300 focus:border-[#075985] focus:ring-2 focus:ring-[#075985]/15 ${
-                    quoteError ? "border-rose-500 bg-rose-50/20" : ""
-                  }`}
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 font-extrabold text-sm text-gray-500">
-                  VNĐ
-                </span>
-              </div>
-
-              {/* Number in words display */}
-              {parsedQuotedPrice > 0 && (
-                <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-100 text-xs text-slate-700 flex items-center gap-2">
-                  <span className="font-bold text-[#075985]">Số tiền bằng chữ:</span>
-                  <span className="font-black text-gray-900 capitalize">
-                    {numberToVietnameseWords(parsedQuotedPrice)}
-                  </span>
-                </div>
-              )}
-
-              {quoteError && (
-                <p className="text-xs text-rose-600 font-semibold flex items-center gap-1 mt-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  {quoteError}
-                </p>
-              )}
-            </div>
-
-            {/* Note & Conditions for Agency */}
+          <div className="space-y-4 pt-2 text-xs">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-gray-700">
-                Ghi chú điều khoản / Chính sách kèm theo báo giá:
+              <Label className="font-bold text-gray-800 text-xs">
+                {isRestaurant ? "Tổng giá tiền cho toàn bộ bữa ăn của đoàn (VNĐ) *" : "Tổng giá tiền trọn gói lưu trú toàn đoàn (VNĐ) *"}
+              </Label>
+              <Input
+                type="text"
+                value={quoteInputPrice}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, "");
+                  setQuoteInputPrice(raw ? Number(raw).toLocaleString("vi-VN") : "");
+                  setQuoteError("");
+                }}
+                placeholder="VD: 5.000.000"
+                className="text-sm font-black text-emerald-700"
+              />
+              <p className="text-[11px] text-gray-500">
+                Lưu ý: Báo giá tổng cho toàn bộ đoàn {request.numberOfGuests} khách, không phải giá một người.
+              </p>
+              {quoteError && <p className="text-rose-600 font-semibold">{quoteError}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="font-bold text-gray-800 text-xs">
+                Ghi chú gửi kèm cho Agency
               </Label>
               <Textarea
-                rows={3}
                 value={providerNote}
                 onChange={(e) => setProviderNote(e.target.value)}
-                placeholder="Ghi chú về cơ cấu phòng đã xếp, buffet sáng, hỗ trợ check-in sớm, v.v..."
-                className="text-xs rounded-xl border-gray-300 focus:border-[#075985] focus:ring-2 focus:ring-[#075985]/15 resize-none leading-relaxed text-gray-900 bg-white"
+                rows={3}
+                className="text-xs"
               />
             </div>
           </div>
 
-          <DialogFooter className="p-5 pt-3 bg-gray-50/70 flex items-center justify-end gap-2 border-t border-gray-100">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowApproveModal(false)}
-              className="text-xs rounded-xl h-10 px-4 font-bold border-gray-200 hover:bg-gray-100"
-            >
-              Hủy bỏ
+          <DialogFooter className="gap-2 pt-3 border-t">
+            <Button variant="outline" size="sm" onClick={() => setShowApproveModal(false)}>
+              Hủy
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmitApproval}
-              className="bg-[#075985] hover:bg-[#0369A1] text-white font-black text-xs rounded-xl h-10 px-5 shadow-sm shadow-[#075985]/20"
-            >
-              <Check className="w-4 h-4 mr-1.5" />
-              Gửi Báo giá trọn gói cho Agency
+            <Button size="sm" onClick={handleSubmitApproval} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+              Xác nhận & Gửi báo giá
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ========================================================================= */}
-      {/* MODAL 2: Từ chối tiếp nhận yêu cầu (Reject Modal)                         */}
-      {/* ========================================================================= */}
+      {/* REJECTION MODAL */}
       <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-3xl border border-gray-100 shadow-2xl bg-white">
-          {/* Elegant Clean Header */}
-          <div className="p-6 pb-4 border-b border-gray-100 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 border border-rose-100">
-              <XCircle className="w-6 h-6 text-rose-600" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">
-                  Xác nhận từ chối tiếp nhận
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-black text-[11px] border border-rose-200">
-                  #{request.bookingCode}
-                </span>
-              </div>
-              <DialogTitle className="text-xl font-black text-gray-900 mt-1">
-                Từ chối yêu cầu giữ phòng đoàn
-              </DialogTitle>
-              <DialogDescription className="text-gray-500 text-xs mt-0.5">
-                Đơn hàng: <strong>#{request.bookingCode}</strong> · {request.agencyName}
-              </DialogDescription>
-            </div>
-          </div>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-rose-700">
+              <X className="w-5 h-5 text-rose-600" />
+              Từ chối tiếp nhận yêu cầu #{request.id}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500">
+              Agency sẽ nhận được lý do từ chối để chủ động tìm phương án thay thế cho đoàn.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="p-6 space-y-4">
-            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-1">
-              <div className="font-bold flex items-center gap-1.5 text-amber-900">
-                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                <span>Lưu ý quan trọng:</span>
-              </div>
-              <p className="leading-relaxed text-amber-900/90 pl-5 text-xs">
-                Khi từ chối, yêu cầu này sẽ bị hủy bỏ và lý do sẽ được thông báo ngay đến Công ty lữ hành để họ kịp thời sắp xếp phương án khác.
-              </p>
-            </div>
-
+          <div className="space-y-3 pt-2 text-xs">
             <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                <span>Lý do từ chối</span>
-                <span className="text-rose-600">*</span>
+              <Label className="font-bold text-gray-800 text-xs">
+                Lý do từ chối *
               </Label>
               <Textarea
-                rows={4}
                 value={rejectionReason}
                 onChange={(e) => {
                   setRejectionReason(e.target.value);
-                  if (rejectionError) setRejectionError("");
+                  setRejectionError("");
                 }}
-                placeholder="Nhập lý do cụ thể (Ví dụ: Khách sạn đã kín phòng vào ngày lưu trú, không đủ phòng theo cơ cấu đoàn yêu cầu...)"
-                className={`text-xs rounded-xl resize-none text-gray-900 bg-white border-gray-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15 ${
-                  rejectionError ? "border-rose-500 bg-rose-50/20" : ""
-                }`}
+                placeholder={isRestaurant ? "VD: Nhà hàng đã kín chỗ vào khung giờ 11:30 - 13:00 ngày này..." : "VD: Khách sạn đã kín phòng trong giai đoạn này..."}
+                rows={3}
+                className="text-xs"
               />
-              {rejectionError && (
-                <p className="text-xs text-rose-600 font-semibold flex items-center gap-1 mt-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  {rejectionError}
-                </p>
-              )}
+              {rejectionError && <p className="text-rose-600 font-semibold">{rejectionError}</p>}
             </div>
           </div>
 
-          <DialogFooter className="p-5 pt-3 bg-gray-50/70 flex items-center justify-end gap-2 border-t border-gray-100">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowRejectModal(false)}
-              className="text-xs rounded-xl h-10 px-4 font-bold border-gray-200 hover:bg-gray-100"
-            >
-              Hủy
+          <DialogFooter className="gap-2 pt-3 border-t">
+            <Button variant="outline" size="sm" onClick={() => setShowRejectModal(false)}>
+              Quay lại
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmitRejection}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl h-10 px-5 shadow-sm shadow-rose-600/20"
-            >
-              <XCircle className="w-4 h-4 mr-1.5" />
+            <Button size="sm" onClick={handleSubmitRejection} className="bg-rose-600 hover:bg-rose-700 text-white font-bold">
               Xác nhận từ chối
             </Button>
           </DialogFooter>
