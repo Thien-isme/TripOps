@@ -32,6 +32,7 @@ import { AITourRecommenderModal } from "@/app/components/ai/AITourRecommenderMod
 import { CustomerHeader } from "@/app/components/customer/CustomerHeader";
 import { CustomerFooter } from "@/app/components/customer/CustomerFooter";
 import { emptyTourSearch, type TourSearchCriteria } from "@/app/components/customer/tour-search";
+import { useHistoryScroll } from "@/app/components/customer/useHistoryScroll";
 import { MyRequestsPage } from "@/app/components/customer/MyRequestsPage";
 import { MyComplaintsPage } from "@/app/components/customer/MyComplaintsPage";
 import {
@@ -158,10 +159,14 @@ function App() {
     handleNavigate("home");
   };
 
+  const { navigateForward, restoreHistoryPosition, goBack } = useHistoryScroll();
+
   // URL Hash Sync for direct testing and browser back/forward
   useEffect(() => {
     const handleUrlChange = () => {
+      restoreHistoryPosition();
       const [rawHash, query = ""] = window.location.hash.replace(/^#\/?/, "").split("?");
+
       if (!rawHash || rawHash === "" || rawHash === "home") {
         setCurrentPage("home");
         setSelectedTour(null);
@@ -183,6 +188,13 @@ function App() {
         if (found) {
           setSelectedTour(found);
           setCurrentPage("tour-detail");
+        }
+      } else if (rawHash.startsWith("booking/")) {
+        const tourId = rawHash.replace("booking/", "");
+        const found = tours.find((t) => t.id === tourId || t.tourCode === tourId);
+        if (found) {
+          setBookingTour(found);
+          setCurrentPage("booking-form");
         }
       } else if (rawHash === "my-bookings") {
         setCurrentPage("my-bookings");
@@ -207,46 +219,50 @@ function App() {
       } else if (rawHash === "user-profile" || rawHash === "account") {
         setCurrentPage("user-profile");
       }
+
     };
 
     handleUrlChange();
     window.addEventListener("hashchange", handleUrlChange);
     return () => window.removeEventListener("hashchange", handleUrlChange);
-  }, [tours, bookings]);
+  }, [tours, bookings, restoreHistoryPosition]);
 
   const handleNavigate = (page: string, criteria?: TourSearchCriteria) => {
-    setCurrentPage(page);
-    setSelectedTour(null);
-    setSelectedUserBooking(null);
-    setComplaintInitialBooking(null);
-    const params = new URLSearchParams();
-    if (page === "book-tours") {
-      const search = criteria || emptyTourSearch;
-      setTourSearch(search);
-      if (search.destination) params.set("destination", search.destination);
-      if (search.departureDate) params.set("date", search.departureDate);
-      if (search.guests) params.set("guests", search.guests);
-    }
-    const targetHash = page === "home" ? "" : `#/${page === "book-tours" ? "tours" : page}${params.size ? `?${params}` : ""}`;
-    if (window.location.hash !== targetHash) {
-      window.location.hash = targetHash;
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigateForward(() => {
+      setCurrentPage(page);
+      setSelectedTour(null);
+      setSelectedUserBooking(null);
+      setComplaintInitialBooking(null);
+      const params = new URLSearchParams();
+      if (page === "book-tours") {
+        const search = criteria || emptyTourSearch;
+        setTourSearch(search);
+        if (search.destination) params.set("destination", search.destination);
+        if (search.departureDate) params.set("date", search.departureDate);
+        if (search.guests) params.set("guests", search.guests);
+      }
+      const targetHash = page === "home" ? "" : `#/${page === "book-tours" ? "tours" : page}${params.size ? `?${params}` : ""}`;
+      if (window.location.hash !== targetHash) {
+        window.location.hash = targetHash;
+      }
+    });
   };
 
   const handleViewUserBookingDetail = (booking: Booking) => {
-    setSelectedUserBooking(booking);
-    setCurrentPage("user-booking-detail");
-    window.location.hash = `#/my-bookings/${booking.id}`;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigateForward(() => {
+      setSelectedUserBooking(booking);
+      setCurrentPage("user-booking-detail");
+      window.location.hash = `#/my-bookings/${booking.id}`;
+    });
   };
 
   const handleViewTour = (tour: Tour) => {
-    setPreviousPage(currentPage);
-    setSelectedTour(tour);
-    setCurrentPage("tour-detail");
-    window.location.hash = `#/tours/${tour.id}`;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigateForward(() => {
+      setPreviousPage(currentPage);
+      setSelectedTour(tour);
+      setCurrentPage("tour-detail");
+      window.location.hash = `#/tours/${tour.id}`;
+    });
   };
 
   const handleOpenBookingForm = (
@@ -258,10 +274,12 @@ function App() {
       hasLocationCustomization?: boolean;
     },
   ) => {
-    setBookingTour(tour);
-    setBookingCustomData(customData ?? null);
-    setCurrentPage("booking-form");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigateForward(() => {
+      setBookingTour(tour);
+      setBookingCustomData(customData ?? null);
+      setCurrentPage("booking-form");
+      window.location.hash = `#/booking/${tour.id}`;
+    });
   };
 
   const handleBookingSubmit = (data: BookingSubmitData) => {
@@ -1624,7 +1642,7 @@ function App() {
           <CustomTourRequestPage
             companies={companies}
             currentUser={currentUser}
-            onBack={() => handleNavigate("home")}
+            onBack={() => goBack(() => handleNavigate("home"))}
             onSubmit={handleSubmitCustomTourRequest}
             onShowLogin={() => setShowLogin(true)}
             onViewMyRequests={() => handleNavigate("my-requests")}
@@ -1661,9 +1679,11 @@ function App() {
             services={services}
             currentUser={currentUser}
             onBack={() => {
-              setSelectedTour(null);
-              setCurrentPage(previousPage || "home");
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                handleNavigate("book-tours");
+              }
             }}
             onBookNow={handleOpenBookingForm}
             onShowLogin={() => setShowLogin(true)}
@@ -1720,9 +1740,11 @@ function App() {
             }
             systemBank={systemBankAccount}
             onBack={() => {
-              setSelectedUserBooking(null);
-              setCurrentPage("my-bookings");
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                handleNavigate("my-bookings");
+              }
             }}
             onCancelBooking={handleCancelBooking}
             onPayPaymentRequest={handlePayPaymentRequest}

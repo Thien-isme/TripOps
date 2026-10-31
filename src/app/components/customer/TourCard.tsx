@@ -20,7 +20,19 @@ export function TourCard({ tour, onViewTour, onBookTour }: TourCardProps) {
   }).format(tour.price);
 
   return (
-    <div className="bg-white border border-[#CBD5E1] rounded-[6px] overflow-hidden flex flex-col hover:border-[#075985] transition-colors group">
+    <div
+      onClick={() => onViewTour(tour)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onViewTour(tour);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Xem chi tiết tour ${tour.name}`}
+      className="bg-white border border-[#CBD5E1] rounded-[6px] overflow-hidden flex flex-col hover:border-[#075985] hover:shadow-md transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#075985] select-none"
+    >
       {/* Aspect Ratio 16:10 or 3:2 consistent */}
       <div className="relative aspect-[16/10] bg-[#F1F5F9] overflow-hidden">
         <img
@@ -104,7 +116,10 @@ export function TourCard({ tour, onViewTour, onBookTour }: TourCardProps) {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => onViewTour(tour)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewTour(tour);
+              }}
               className="border-[#CBD5E1] text-[#0F172A] hover:bg-[#F8FAFC] text-xs h-8 px-3 rounded-[6px]"
             >
               Chi tiết
@@ -113,7 +128,10 @@ export function TourCard({ tour, onViewTour, onBookTour }: TourCardProps) {
               <Button
                 type="button"
                 size="sm"
-                onClick={() => onBookTour(tour)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBookTour(tour);
+                }}
                 className="bg-[#075985] hover:bg-[#0C4A6E] text-white text-xs h-8 px-3 rounded-[6px]"
               >
                 Đặt tour

@@ -129,6 +129,7 @@ export interface TourMeal {
 
 export interface TourAlternativeHotel {
   id: string;
+  serviceId?: string; // ID dịch vụ tương ứng trên hệ thống nếu là đối tác
   name: string;
   priceDifference: number; // e.g. +400000 or -350000 (chênh lệch tự động so với mặc định)
   stars?: number;
@@ -141,6 +142,8 @@ export interface TourAlternativeHotel {
   priceFrom?: number;
   priceTo?: number;
   isCustom?: boolean; // Khách sạn tự nhập ngoài sàn
+  mapUrl?: string; // Link trực tiếp Google Maps nếu Agency đã nhập
+  googleMapsUrl?: string;
 }
 
 export interface TourHotel {
@@ -157,6 +160,8 @@ export interface TourHotel {
   address?: string;
   image?: string;
   isCustom?: boolean; // Khách sạn tự nhập ngoài sàn
+  mapUrl?: string; // Link trực tiếp Google Maps nếu Agency đã nhập
+  googleMapsUrl?: string;
   allowCustomHotelRequest?: boolean; // Cho phép khách tự đề xuất khách sạn ngoài danh sách
   alternativeHotels?: TourAlternativeHotel[]; // Danh sách khách sạn nâng cấp/đổi hạng cho khách hàng chọn kèm giá chênh lệch
   createdByCompanyId?: string; // ID công ty thiết lập khách sạn này
@@ -212,7 +217,9 @@ export interface BookingPassenger {
   phone?: string;
   email?: string;
   idNumber?: string; // CCCD / Passport
-  notes?: string;
+  roommateNote?: string; // roommate_note: Nguyện vọng xếp phòng / Muốn ở cùng ai
+  roomingPreference?: string; // Alias tương đương cho roommateNote
+  notes?: string; // Ghi chú cá nhân
   // Alliance / Co-Host stage & multi-agency mapping (booking_participants schema)
   participantIndex?: number;
   agencyId?: string; // ID của công ty du lịch phụ trách chặng của khách này
