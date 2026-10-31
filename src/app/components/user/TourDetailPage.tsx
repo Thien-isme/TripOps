@@ -1125,7 +1125,7 @@ function CustomTab({
 
               {isExpanded && (
                 <div className="px-4 py-4 space-y-4">
-                  {/* Mode tabs (Tour / Provider / Custom) */}
+                  {/* Mode tabs (Tour / Custom) */}
                   <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-xl">
                     <button
                       type="button"
@@ -1138,18 +1138,6 @@ function CustomTab({
                     >
                       <Building2 className="w-3.5 h-3.5" />
                       Khách sạn theo Tour
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateDestHotel(destination, { ...choice, mode: "provider" })}
-                      className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                        choice.mode === "provider"
-                          ? "bg-white text-indigo-700 shadow-xs border border-indigo-300"
-                          : "text-gray-600 hover:text-indigo-700"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      🌟 Đối tác Nền tảng
                     </button>
                     <button
                       type="button"
@@ -1228,121 +1216,104 @@ function CustomTab({
                           });
                         }
 
-                        return options.map((opt) => {
+                        return options.map((opt, optIdx) => {
                           const isSel = choice.systemName === opt.name;
-                          // 1. Check if linked to a valid Service profile on TripOps
                           const linkedService = opt.serviceId
                             ? services.find((s) => s.id === opt.serviceId && s.category === "hotel")
-                            : undefined;
+                            : services.find((s) => s.category === "hotel" && (s.name.toLowerCase().includes(opt.name.toLowerCase()) || opt.name.toLowerCase().includes(s.name.toLowerCase())));
 
-                          // 2. Otherwise prepare Google Maps URL from valid data
                           const mapsUrl = opt.mapUrl || getGoogleMapsSearchUrl(opt.name, opt.address, destination);
+                          const imgUrl = linkedService?.images?.[0] || linkedService?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500";
+                          const providerName = linkedService?.providerName || "Tổ hợp Dịch vụ Du lịch Đối tác";
 
                           return (
                             <div
                               key={opt.name}
-                              className={`rounded-xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
+                              className={`rounded-2xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
                                 isSel
-                                  ? "border-teal-600 bg-teal-50/25 ring-1 ring-teal-400/30"
-                                  : "border-gray-200 bg-white hover:border-slate-300 shadow-2xs"
+                                  ? "border-emerald-500 bg-emerald-50/20 shadow-sm ring-1 ring-emerald-400"
+                                  : "border-[#CBD5E1] bg-white hover:border-gray-300 shadow-2xs"
                               }`}
                             >
-                              {/* Option body (Clickable to select this hotel) */}
-                              <div
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => updateDestHotel(destination, {
-                                  mode: "system",
-                                  systemName: opt.name,
-                                  systemStars: opt.stars,
-                                  systemPricePerNight: opt.pricePerNight,
-                                  priceDifference: opt.diff,
-                                })}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    updateDestHotel(destination, {
-                                      mode: "system",
-                                      systemName: opt.name,
-                                      systemStars: opt.stars,
-                                      systemPricePerNight: opt.pricePerNight,
-                                      priceDifference: opt.diff,
-                                    });
-                                  }
-                                }}
-                                className="cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-lg"
-                                aria-label={`Chọn khách sạn ${opt.name}`}
-                              >
-                                <div className="flex items-start justify-between gap-2">
-                                  <div>
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <p className="font-semibold text-gray-900 text-sm">{opt.name}</p>
-                                      {opt.stars && (
-                                        <span className="inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                                          {opt.stars} <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                                        </span>
-                                      )}
-                                    </div>
-                                    {opt.description && <p className="text-xs text-gray-500 mt-1">{opt.description}</p>}
-                                    {opt.address && opt.description !== opt.address && (
-                                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1 truncate">
+                              <div>
+                                {/* Top Banner Tag */}
+                                <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-gray-100 flex-wrap gap-1">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                                    opt.diff === 0
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                      : "bg-amber-50 text-amber-900 border-amber-300"
+                                  }`}>
+                                    <Star className="w-3 h-3 fill-current text-amber-500" />
+                                    {opt.diff === 0 ? "Khách sạn Tiêu chuẩn (Mặc định)" : `Phương án thay thế (Option ${optIdx + 1})`}
+                                  </span>
+                                  {isSel && (
+                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                      <Check className="w-3 h-3 text-emerald-600" /> Đang chọn
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Card Body with Image Thumbnail */}
+                                <div className="flex items-start gap-3">
+                                  <div className="relative w-20 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
+                                    <img src={imgUrl} alt={opt.name} className="w-full h-full object-cover" />
+                                    {opt.stars && (
+                                      <span className="absolute bottom-1 right-1 bg-black/70 text-amber-300 text-[9px] font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                        {opt.stars}★
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200 inline-block truncate max-w-full">
+                                      {providerName}
+                                    </span>
+                                    <h5 className="font-bold text-gray-900 text-xs sm:text-sm mt-0.5 truncate">{opt.name}</h5>
+                                    {opt.address && (
+                                      <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5 truncate">
                                         <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
                                         {opt.address}
                                       </p>
                                     )}
-                                  </div>
-                                  <div className="text-right flex-shrink-0">
-                                    {opt.diff === 0 ? (
-                                      <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2 py-0.5 rounded">
-                                        Tiêu chuẩn tour (0đ)
-                                      </span>
-                                    ) : (
-                                      <div className="space-y-0.5">
-                                        <p className="text-[10px] text-gray-400 uppercase font-medium">CHÊNH LỆCH</p>
-                                        <p className={`text-sm font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                          {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}
-                                        </p>
-                                      </div>
-                                    )}
+                                    <div className="mt-1">
+                                      {opt.diff === 0 ? (
+                                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                                          Tiêu chuẩn tour (0đ chênh lệch)
+                                        </span>
+                                      ) : (
+                                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-block ${
+                                          opt.diff > 0
+                                            ? "text-amber-800 bg-amber-50 border-amber-200"
+                                            : "text-emerald-800 bg-emerald-50 border-emerald-200"
+                                        }`}>
+                                          {opt.diff > 0 ? "Phụ thu +" : "Tiết kiệm "}{formatVND(Math.abs(opt.diff))}/đêm
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* Separate Action Footer: Secondary Link for viewing & Main select button */}
-                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 mt-1">
-                                <div>
-                                  {linkedService ? (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setModalService(linkedService);
-                                        setModalTarget({ type: "hotel", destination });
-                                        setIsModalOpen(true);
-                                      }}
-                                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1.5 py-0.5 cursor-pointer"
-                                      title="Xem chi tiết hồ sơ dịch vụ trên TripOps"
-                                    >
-                                      <FileText className="w-3.5 h-3.5 text-teal-600" />
-                                      <span>Xem chi tiết</span>
-                                    </button>
-                                  ) : mapsUrl ? (
-                                    <a
-                                      href={mapsUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1.5 py-0.5"
-                                      title="Xem vị trí khách sạn trên Google Maps (Mở trong tab mới)"
-                                    >
-                                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                                      <span>Xem trên Google Maps</span>
-                                      <ExternalLink className="w-3 h-3 text-teal-500" />
-                                    </a>
-                                  ) : (
-                                    <span className="text-xs text-gray-400 italic">Chưa có thông tin vị trí</span>
-                                  )}
-                                </div>
+                              {/* Action Footer */}
+                              <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-gray-100 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (linkedService) {
+                                      setModalService(linkedService);
+                                      setModalTarget({ type: "hotel", destination });
+                                      setIsModalOpen(true);
+                                    } else if (mapsUrl) {
+                                      window.open(mapsUrl, "_blank");
+                                    }
+                                  }}
+                                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"
+                                  title="Xem bài viết chi tiết & Bản đồ"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>Xem bài viết &amp; Bản đồ</span>
+                                </button>
 
                                 <button
                                   type="button"
@@ -1353,160 +1324,18 @@ function CustomTab({
                                     systemPricePerNight: opt.pricePerNight,
                                     priceDifference: opt.diff,
                                   })}
-                                  className={`py-1 px-2.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                                     isSel
-                                      ? "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
-                                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                      ? "bg-emerald-600 text-white cursor-default"
+                                      : "bg-[#075985] text-white hover:bg-[#F97316] cursor-pointer"
                                   }`}
                                 >
-                                  {isSel ? (
-                                    <>
-                                      <Check className="w-3 h-3" />
-                                      Đang chọn
-                                    </>
-                                  ) : (
-                                    "Chọn phương án này"
-                                  )}
+                                  {isSel ? "✓ Đang chọn" : "Chọn khách sạn này"}
                                 </button>
                               </div>
                             </div>
                           );
                         });
-                      })()}
-                    </div>
-                  )}
-
-                  {/* Provider hotel list */}
-                  {choice.mode === "provider" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs text-gray-500 bg-indigo-50/70 p-3 rounded-xl border border-indigo-100">
-                        <span className="flex items-center gap-1.5 text-indigo-900 font-semibold">
-                          <Sparkles className="w-4 h-4 text-amber-500" />
-                          Khách sạn &amp; Resort Đối tác Nền tảng tại {destination}
-                        </span>
-                        <span className="text-[11px] text-gray-500 hidden sm:inline">
-                          Xem bài viết blog &amp; toạ độ Google Maps trước khi chọn
-                        </span>
-                      </div>
-
-                      {(() => {
-                        const providerHotels = services.filter((s) => {
-                          if (s.category !== "hotel" || s.status !== "approved") return false;
-                          if (!destination) return true;
-                          const destLower = destination.toLowerCase();
-                          const locLower = (s.location || "").toLowerCase();
-                          const provLower = (s.province || "").toLowerCase();
-                          return locLower.includes(destLower) || provLower.includes(destLower) || destLower.includes(locLower) || destLower.includes(provLower);
-                        });
-                        const displayHotels = providerHotels.length > 0 ? providerHotels : services.filter((s) => s.category === "hotel" && s.status === "approved");
-
-                        if (displayHotels.length === 0) {
-                          return (
-                            <div className="p-6 text-center text-xs text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                              Chưa có khách sạn đối tác nào tại khu vực này. Bạn có thể chọn tab "Tự đề xuất" để nhập khách sạn mong muốn.
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {displayHotels.map((serv) => {
-                              const isSel = choice.mode === "provider" && choice.serviceId === serv.id;
-                              const mapsExternal = serv.latitude && serv.longitude
-                                ? `https://www.google.com/maps?q=${serv.latitude},${serv.longitude}`
-                                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([serv.name, serv.location].filter(Boolean).join(", "))}`;
-
-                              return (
-                                <div
-                                  key={serv.id}
-                                  className={`rounded-xl border-2 transition-all p-3.5 flex flex-col justify-between gap-3 ${
-                                    isSel
-                                      ? "border-teal-600 bg-teal-50/20 ring-1 ring-teal-300"
-                                      : "border-gray-200 bg-white hover:border-teal-200 shadow-2xs"
-                                  }`}
-                                >
-                                  <div className="flex gap-3">
-                                    <div className="relative w-24 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
-                                      <img src={serv.image} alt={serv.name} className="w-full h-full object-cover" />
-                                      {serv.stars && (
-                                        <span className="absolute bottom-1 right-1 bg-black/70 backdrop-blur-xs text-amber-400 font-bold text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                                          {serv.stars}★
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <span className="inline-block text-[10px] font-bold text-teal-800 bg-teal-100/70 px-1.5 py-0.5 rounded mb-1">
-                                        {serv.providerName}
-                                      </span>
-                                      <h5 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-1 leading-tight">
-                                        {serv.name}
-                                      </h5>
-                                      <p className="text-[11px] text-gray-500 flex items-center gap-1 mt-1 truncate">
-                                        <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
-                                        {serv.location}
-                                      </p>
-                                      <p className="text-xs font-bold text-teal-900 mt-1">
-                                        {formatVND(serv.pricePerPerson || serv.price)}
-                                        <span className="text-[10px] font-normal text-gray-400"> (giá tham khảo)</span>
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setModalService(serv);
-                                          setModalTarget({ type: "hotel", destination });
-                                          setIsModalOpen(true);
-                                        }}
-                                        className="py-1.5 px-2.5 rounded-lg border border-gray-200 hover:border-teal-300 bg-white hover:bg-teal-50 text-[11px] font-semibold text-teal-800 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                                        title="Xem chi tiết hồ sơ & bài viết trên TripOps"
-                                      >
-                                        <FileText className="w-3.5 h-3.5 text-teal-600" />
-                                        Xem chi tiết
-                                      </button>
-
-                                      <a
-                                        href={mapsExternal}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="py-1.5 px-2 rounded-lg text-[11px] font-medium text-gray-500 hover:text-teal-800 hover:bg-gray-50 flex items-center gap-1 transition-colors"
-                                        title="Xem trực tiếp trên Google Maps (Mở tab mới)"
-                                      >
-                                        <MapPin className="w-3 h-3 text-red-500" />
-                                        <span>Maps</span>
-                                        <ExternalLink className="w-2.5 h-2.5 text-gray-400" />
-                                      </a>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleSelectProviderHotel(destination, serv)}
-                                      className={`py-1.5 px-3 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                                        isSel
-                                          ? "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
-                                          : "bg-teal-700 hover:bg-teal-800 text-white"
-                                      }`}
-                                    >
-                                      {isSel ? (
-                                        <>
-                                          <Check className="w-3.5 h-3.5" />
-                                          Đã chọn
-                                        </>
-                                      ) : (
-                                        "Chọn khách sạn"
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
                       })()}
                     </div>
                   )}
@@ -1905,7 +1734,7 @@ function CustomTab({
 
                               {isExpanded && (
                                 <div className="p-3.5 space-y-3 bg-white border-t border-gray-100">
-                                  {/* Mode tabs (Tour / Provider / Custom) */}
+                                  {/* Mode tabs (Tour / Custom) */}
                                   <div className="flex flex-wrap gap-1.5 p-1 bg-gray-100 rounded-xl">
                                     <button
                                       type="button"
@@ -1918,18 +1747,6 @@ function CustomTab({
                                     >
                                       <Utensils className="w-3.5 h-3.5" />
                                       Nhà hàng theo Tour
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateMealChoice(day.id, mealType, { mode: "provider" })}
-                                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                                        mealChoice?.mode === "provider"
-                                          ? "bg-white text-indigo-700 shadow-xs border border-indigo-300"
-                                          : "text-gray-600 hover:text-indigo-700"
-                                      }`}
-                                    >
-                                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                      🌟 Đối tác Nền tảng
                                     </button>
                                     {defaultMeal.allowCustomMealRequest !== false && (
                                       <button
@@ -1949,7 +1766,7 @@ function CustomTab({
 
                                   {/* System restaurant list */}
                                   {mealChoice?.mode === "system" && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                       {(() => {
                                         const options: Array<{ name: string; description?: string; diff: number; pricePerPerson?: number }> = [];
 
@@ -1984,154 +1801,114 @@ function CustomTab({
                                           });
                                         }
 
-                                        return options.map((opt) => {
+                                        return options.map((opt, optIdx) => {
                                           const isSel = (mealChoice?.systemName || defaultMeal.serviceName) === opt.name;
+                                          const linkedService = services.find((s) =>
+                                            s.category === "fnb" &&
+                                            (s.name.toLowerCase().includes(opt.name.toLowerCase()) ||
+                                              opt.name.toLowerCase().includes(s.name.toLowerCase()))
+                                          );
+                                          const imgUrl = linkedService?.images?.[0] || linkedService?.image || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500";
+                                          const providerName = linkedService?.providerName || "Tổ hợp Dịch vụ Du lịch Heritage";
+
                                           return (
-                                            <button
-                                              type="button"
+                                            <div
                                               key={opt.name}
-                                              onClick={() => updateMealChoice(day.id, mealType, {
-                                                mode: "system",
-                                                systemName: opt.name,
-                                                systemPrice: opt.pricePerPerson,
-                                                priceDifference: opt.diff,
-                                              })}
-                                              className={`text-left p-2.5 rounded-xl border transition-all ${
+                                              className={`rounded-2xl border-2 transition-all p-3 flex flex-col justify-between gap-2.5 ${
                                                 isSel
-                                                  ? "border-emerald-500 bg-emerald-50/50 ring-1 ring-emerald-400"
-                                                  : "border-gray-200 bg-white hover:border-emerald-200"
+                                                  ? "border-emerald-500 bg-emerald-50/20 shadow-sm ring-1 ring-emerald-400"
+                                                  : "border-[#CBD5E1] bg-white hover:border-gray-300 shadow-2xs"
                                               }`}
                                             >
-                                              <div className="flex items-start justify-between gap-2">
-                                                <div>
-                                                  <p className="font-semibold text-gray-900 text-xs">{opt.name}</p>
-                                                  {opt.description && <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{opt.description}</p>}
-                                                </div>
-                                                <div className="text-right flex-shrink-0">
-                                                  {opt.diff === 0 ? (
-                                                    <span className="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-medium">Mặc định (0đ)</span>
-                                                  ) : (
-                                                    <div className="space-y-0.5">
-                                                      <p className="text-[9px] text-gray-400 uppercase font-medium">Chênh lệch</p>
-                                                      <span className={`text-xs font-bold ${opt.diff > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                                                        {opt.diff > 0 ? "+" : ""}{formatVND(opt.diff)}/người
-                                                      </span>
-                                                    </div>
+                                              <div>
+                                                {/* Top Banner Tag */}
+                                                <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-gray-100 flex-wrap gap-1">
+                                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                                                    opt.diff === 0
+                                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                                      : "bg-amber-50 text-amber-900 border-amber-300"
+                                                  }`}>
+                                                    <Utensils className="w-3 h-3 text-emerald-600" />
+                                                    {opt.diff === 0 ? "Món ăn Tiêu chuẩn (Mặc định)" : `Lựa chọn đổi món (Option ${optIdx + 1})`}
+                                                  </span>
+                                                  {isSel && (
+                                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                                      <Check className="w-3 h-3 text-emerald-600" /> Đang chọn
+                                                    </span>
                                                   )}
                                                 </div>
-                                              </div>
-                                            </button>
-                                          );
-                                        });
-                                      })()}
-                                    </div>
-                                  )}
 
-                                  {/* Provider restaurant list */}
-                                  {mealChoice?.mode === "provider" && (
-                                    <div className="space-y-3">
-                                      <div className="flex items-center justify-between text-xs text-gray-500 bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-100">
-                                        <span className="flex items-center gap-1.5 text-indigo-900 font-semibold">
-                                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                          Nhà hàng &amp; Ẩm thực Đối tác Nền tảng (Ngày {day.day})
-                                        </span>
-                                        <span className="text-[11px] text-gray-500 hidden sm:inline">
-                                          Xem bài viết blog &amp; toạ độ Google Maps trước khi chọn
-                                        </span>
-                                      </div>
-
-                                      {(() => {
-                                        const destCity = day.destinationCity || tour.destination || "";
-                                        const providerMeals = services.filter((s) => {
-                                          if ((s.category !== "fnb" && s.category !== "restaurant") || s.status !== "approved") return false;
-                                          if (!destCity) return true;
-                                          const destLower = destCity.toLowerCase();
-                                          const locLower = (s.location || "").toLowerCase();
-                                          const provLower = (s.province || "").toLowerCase();
-                                          return locLower.includes(destLower) || provLower.includes(destLower) || destLower.includes(locLower) || destLower.includes(provLower);
-                                        });
-                                        const displayMeals = providerMeals.length > 0 ? providerMeals : services.filter((s) => (s.category === "fnb" || s.category === "restaurant") && s.status === "approved");
-
-                                        if (displayMeals.length === 0) {
-                                          return (
-                                            <div className="p-5 text-center text-xs text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                              Chưa có nhà hàng đối tác nào cho khu vực này. Bạn có thể chọn tab "Tự đề xuất" để nhập địa điểm muốn đến.
-                                            </div>
-                                          );
-                                        }
-
-                                        return (
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                            {displayMeals.map((serv) => {
-                                              const isSel = mealChoice?.mode === "provider" && mealChoice.serviceId === serv.id;
-                                              return (
-                                                <div
-                                                  key={serv.id}
-                                                  className={`rounded-xl border-2 transition-all p-3 flex flex-col justify-between gap-2.5 ${
-                                                    isSel
-                                                      ? "border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-300"
-                                                      : "border-gray-200 bg-white hover:border-indigo-200 shadow-2xs"
-                                                  }`}
-                                                >
-                                                  <div className="flex gap-2.5">
-                                                    <div className="relative w-20 h-18 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200">
-                                                      <img src={serv.image} alt={serv.name} className="w-full h-full object-cover" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                      <span className="inline-block text-[9px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded mb-0.5">
-                                                        {serv.providerName}
-                                                      </span>
-                                                      <h6 className="font-bold text-gray-900 text-xs line-clamp-1 leading-snug">
-                                                        {serv.name}
-                                                      </h6>
-                                                      <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
-                                                        {serv.cuisineType || serv.subCategory || "Ẩm thực truyền thống"}
-                                                      </p>
-                                                      <p className="text-xs font-bold text-emerald-700 mt-1">
-                                                        {formatVND(serv.pricePerPerson || serv.price)}
-                                                        <span className="text-[10px] font-normal text-gray-400">/suất (tham khảo)</span>
-                                                      </p>
-                                                    </div>
+                                                {/* Body */}
+                                                <div className="flex items-start gap-2.5">
+                                                  <div className="w-16 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-gray-200">
+                                                    <img src={imgUrl} alt={opt.name} className="w-full h-full object-cover" />
                                                   </div>
-
-                                                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => {
-                                                        setModalService(serv);
-                                                        setModalTarget({ type: "meal", dayId: day.id, mealType });
-                                                        setIsModalOpen(true);
-                                                      }}
-                                                      className="flex-1 py-1.5 px-2 rounded-lg border border-gray-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 text-[10px] font-semibold text-gray-700 flex items-center justify-center gap-1 transition-colors"
-                                                    >
-                                                      <FileText className="w-3 h-3 text-indigo-600" />
-                                                      Xem bài viết &amp; Bản đồ
-                                                    </button>
-
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => handleSelectProviderMeal(day.id, mealType, serv)}
-                                                      className={`py-1.5 px-2.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
-                                                        isSel
-                                                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                                          : "bg-indigo-600 hover:bg-indigo-700 text-white"
-                                                      }`}
-                                                    >
-                                                      {isSel ? (
-                                                        <>
-                                                          <Check className="w-3 h-3" />
-                                                          Đã chọn
-                                                        </>
+                                                  <div className="min-w-0 flex-1">
+                                                    <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200 inline-block truncate max-w-full">
+                                                      {providerName}
+                                                    </span>
+                                                    <h5 className="font-bold text-gray-900 text-xs sm:text-sm mt-0.5 truncate">{opt.name}</h5>
+                                                    {opt.description && (
+                                                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{opt.description}</p>
+                                                    )}
+                                                    <div className="mt-1">
+                                                      {opt.diff === 0 ? (
+                                                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                                                          Đã bao gồm trong tour (0đ chênh lệch)
+                                                        </span>
                                                       ) : (
-                                                        "Chọn nhà hàng"
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-block ${
+                                                          opt.diff > 0
+                                                            ? "text-amber-800 bg-amber-50 border-amber-200"
+                                                            : "text-emerald-800 bg-emerald-50 border-emerald-200"
+                                                        }`}>
+                                                          {opt.diff > 0 ? "Phụ thu +" : "Tiết kiệm "}{formatVND(Math.abs(opt.diff))}/người
+                                                        </span>
                                                       )}
-                                                    </button>
+                                                    </div>
                                                   </div>
                                                 </div>
-                                              );
-                                            })}
-                                          </div>
-                                        );
+                                              </div>
+
+                                              {/* Action Footer */}
+                                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 flex-wrap">
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (linkedService) {
+                                                      setModalService(linkedService);
+                                                      setModalTarget({ type: "meal", dayId: day.id, mealType });
+                                                      setIsModalOpen(true);
+                                                    }
+                                                  }}
+                                                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 py-1 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"
+                                                  title="Xem bài viết & Bản đồ nhà hàng"
+                                                >
+                                                  <FileText className="w-3.5 h-3.5 text-blue-600" />
+                                                  <span>Xem bài viết &amp; Bản đồ</span>
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  onClick={() => updateMealChoice(day.id, mealType, {
+                                                    mode: "system",
+                                                    systemName: opt.name,
+                                                    systemPrice: opt.pricePerPerson,
+                                                    priceDifference: opt.diff,
+                                                  })}
+                                                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                                    isSel
+                                                      ? "bg-emerald-600 text-white cursor-default"
+                                                      : "bg-[#075985] text-white hover:bg-[#F97316] cursor-pointer"
+                                                  }`}
+                                                >
+                                                  {isSel ? "✓ Đang chọn" : "Chọn món này"}
+                                                </button>
+                                              </div>
+                                            </div>
+                                          );
+                                        });
                                       })()}
                                     </div>
                                   )}
@@ -2350,6 +2127,7 @@ function CustomTab({
       <ServiceBlogDetailModal
         service={modalService}
         isOpen={isModalOpen}
+        hidePrice={true}
         onClose={() => {
           setIsModalOpen(false);
           setModalService(null);
