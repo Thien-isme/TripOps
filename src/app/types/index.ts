@@ -11,7 +11,7 @@ export type ProviderType =
 export interface TourCompany {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   logo?: string;
   coverImage?: string;
   address: string;
@@ -103,15 +103,24 @@ export interface TourAlternativeMeal {
   priceDifference: number; // e.g. +50000, +180000, -30000
   description?: string;
   address?: string;
+  image?: string;
+  serviceId?: string;
+  providerName?: string;
+  price?: number;
+  isCustom?: boolean;
 }
 
 export interface TourMeal {
   id?: string;
   type: "breakfast" | "lunch" | "dinner";
+  time?: string; // Giờ diễn ra bữa ăn (VD: "07:30", "11:30", "12:00", "18:30")
   serviceId?: string;
   serviceName?: string;
   description?: string;
   pricePerPerson?: number;
+  image?: string;
+  providerName?: string;
+  isCustom?: boolean;
   allowCustomMealRequest?: boolean; // Cho phép khách tự đề xuất nhà hàng ngoài danh sách
   alternativeMeals?: TourAlternativeMeal[]; // Danh sách nhà hàng đổi món/nâng cấp cho khách chọn
   createdByCompanyId?: string; // ID công ty thiết lập bữa ăn này
@@ -122,10 +131,17 @@ export interface TourAlternativeHotel {
   id: string;
   serviceId?: string; // ID dịch vụ tương ứng trên hệ thống nếu là đối tác
   name: string;
-  priceDifference: number; // e.g. +400000 or -350000
+  priceDifference: number; // e.g. +400000 or -350000 (chênh lệch tự động so với mặc định)
   stars?: number;
   description?: string;
   address?: string;
+  image?: string;
+  serviceId?: string;
+  providerName?: string;
+  price?: number; // Giá tham khảo gốc của phương án (VD: 1.450.000đ/đêm)
+  priceFrom?: number;
+  priceTo?: number;
+  isCustom?: boolean; // Khách sạn tự nhập ngoài sàn
   mapUrl?: string; // Link trực tiếp Google Maps nếu Agency đã nhập
   googleMapsUrl?: string;
 }
@@ -138,9 +154,12 @@ export interface TourHotel {
   nights?: number; // e.g. 2
   stars?: number;
   pricePerNight: number;
+  priceFrom?: number;
+  priceTo?: number;
   description?: string;
   address?: string;
   image?: string;
+  isCustom?: boolean; // Khách sạn tự nhập ngoài sàn
   mapUrl?: string; // Link trực tiếp Google Maps nếu Agency đã nhập
   googleMapsUrl?: string;
   allowCustomHotelRequest?: boolean; // Cho phép khách tự đề xuất khách sạn ngoài danh sách
@@ -154,7 +173,7 @@ export interface DailyItinerary {
   day: number;
   date: string;
   title: string;
-  description: string;
+  description?: string;
   locations: Location[];
   destinationCity?: string; // e.g. "Đà Lạt", "Nha Trang" — for multi-destination tours
   // Hotel & meals for this day (set by company)
@@ -233,6 +252,33 @@ export interface CustomLocationChange {
   note?: string;
 }
 
+export interface BookingProviderConfirmation {
+  id: string;
+  type: "hotel" | "meal";
+  title: string;
+  dayNumber?: number;
+  time?: string;
+  mealType?: "breakfast" | "lunch" | "dinner";
+  destination?: string;
+  originalName?: string;
+  selectedName: string;
+  isCustom: boolean; // Khách hàng tự điền thay vì chọn service sàn
+  serviceId?: string;
+  providerId?: string;
+  providerName?: string;
+  providerPhone?: string;
+  providerAddress?: string;
+  status: "pending" | "confirmed" | "rejected";
+  confirmedAt?: string;
+  rejectionReason?: string;
+  priceDifference?: number;
+  pricePerUnit?: number;
+  address?: string;
+  image?: string;
+  stars?: number;
+  notes?: string;
+}
+
 export interface CustomHotelChange {
   destination: string;
   originalHotelName?: string;
@@ -255,11 +301,17 @@ export interface CustomHotelChange {
   serviceImage?: string;
   latitude?: number;
   longitude?: number;
+  // Provider Approval
+  isCustom?: boolean;
+  providerStatus?: "pending" | "confirmed" | "rejected";
+  providerConfirmedAt?: string;
+  providerRejectionReason?: string;
 }
 
 export interface CustomMealChange {
   dayNumber: number;
   mealType: "breakfast" | "lunch" | "dinner";
+  time?: string; // Giờ diễn ra bữa ăn để nhà hàng chuẩn bị (VD: "11:30")
   originalMealName?: string;
   newMealName: string;
   mode: "system" | "custom" | "provider";
@@ -278,13 +330,18 @@ export interface CustomMealChange {
   serviceImage?: string;
   latitude?: number;
   longitude?: number;
+  // Provider Approval
+  isCustom?: boolean;
+  providerStatus?: "pending" | "confirmed" | "rejected";
+  providerConfirmedAt?: string;
+  providerRejectionReason?: string;
 }
 
 export interface PaymentRequest {
   id: string;
   bookingId: string;
   amount: number;
-  description: string;
+  description?: string;
   dueDate: string;
   status: "pending" | "paid" | "overdue" | "cancelled";
   createdAt: string;
@@ -361,11 +418,12 @@ export interface Tour {
   tourCode: string;
   name: string;
   destination: string;
+  region?: string; // Khu vực: Miền Bắc | Miền Trung | Miền Nam | Tây Nguyên | Miền Tây
   duration: string;
   numberOfDays?: number;
   numberOfNights?: number;
   price: number;
-  description: string;
+  description?: string;
   image: string;
   images?: string[];
   rating: number;
@@ -539,6 +597,9 @@ export interface Booking {
   // Guide Attraction Check-ins & Incidents
   attractionCheckins?: BookingAttractionCheckin[];
   incidents?: BookingIncident[];
+  // Provider Confirmation & Approval status
+  providerApprovalStatus?: "all_approved" | "pending_provider" | "has_rejection" | "not_required";
+  providerConfirmations?: BookingProviderConfirmation[];
 }
 
 export interface IncidentReport {
@@ -551,7 +612,7 @@ export interface IncidentReport {
   title: string;
   category: "vehicle" | "weather" | "medical" | "schedule" | "service" | "other";
   severity: "low" | "medium" | "high" | "critical";
-  description: string;
+  description?: string;
   images?: string[];
   reportedAt: string;
   location?: string;
@@ -617,7 +678,7 @@ export interface BookingIncident {
   reportedByName: string;
   incidentType: IncidentCategory;
   title: string;
-  description: string;
+  description?: string;
   evidenceUrls?: string[];
   status: IncidentStatus;
   reportedAt: string;
@@ -638,7 +699,7 @@ export interface Service {
     | "activity"
     | "transportation";
   subCategory?: string; // Sub-category cho FnB: "restaurant", "cafe", "streetfood"
-  description: string;
+  description?: string;
   price: number;
   priceFrom?: number; // Khoảng giá từ (VNĐ/người)
   priceTo?: number; // Khoảng giá đến (VNĐ/người)
@@ -868,7 +929,7 @@ export interface CustomerComplaint {
   customerPhone?: string;
   title: string;
   category: "service_quality" | "schedule_change" | "guide_attitude" | "accommodation_food" | "pricing_billing" | "other";
-  description: string;
+  description?: string;
   evidenceUrls?: string[];
   status: ComplaintStatus;
   createdAt: string;
