@@ -427,13 +427,17 @@ export function ServiceBlogDetailModal({
         {/* Footer Actions */}
         <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-xs text-gray-500">
-            {isSelected ? (
-              <span className="text-emerald-700 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Dịch vụ này hiện đang được chọn làm phương án thay thế trong tour.
-              </span>
+            {onSelect ? (
+              isSelected ? (
+                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  Dịch vụ này hiện đang được chọn làm phương án thay thế trong tour.
+                </span>
+              ) : (
+                <span>Bấm chọn dịch vụ nếu bạn muốn đưa vào chương trình tour tùy chỉnh của mình.</span>
+              )
             ) : (
-              <span>Bấm chọn dịch vụ nếu bạn muốn đưa vào chương trình tour tùy chỉnh của mình.</span>
+              <span className="text-gray-400 italic">Chi tiết bài viết & thông tin dịch vụ đối tác cung cấp</span>
             )}
           </div>
 
