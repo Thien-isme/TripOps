@@ -1633,16 +1633,40 @@ export function TourFormPage(props: TourFormPageProps) {
   const [showCustomMealForm, setShowCustomMealForm] = useState<Record<string, boolean>>({});
   const [customMealInputs, setCustomMealInputs] = useState<Record<string, { restaurantName: string; description: string; price: number }>>({});
 
+  // Helper tính giá tham khảo / người cho bữa ăn theo công thức: ((min + max) / 2) / 2
+  const getMealRefPricePerPerson = (servObj: any, fallbackPrice: number = 150000): number => {
+    let minP = servObj?.priceFrom;
+    let maxP = servObj?.priceTo;
+
+    if (!minP || !maxP) {
+      const base = servObj?.pricePerPerson || servObj?.price || fallbackPrice;
+      minP = Math.round((base * 0.8) / 10000) * 10000;
+      maxP = Math.round((base * 1.2) / 10000) * 10000;
+    }
+
+    const avg = (minP + maxP) / 2;
+    // Chia 2 cái nữa: ra giá tham khảo / người (tương tự như công thức khách sạn)
+    return Math.round(avg / 2);
+  };
+
   const getServiceForMeal = (name?: string, desc?: string, serviceId?: string, image?: string): Service => {
     if (serviceId) {
       const found = mockServices.find((s) => s.id === serviceId);
       if (found) return found;
     }
     if (name) {
-      const nameLower = name.toLowerCase().trim();
-      const foundByName = mockServices.find((s) => s.category === "fnb" && s.name.toLowerCase().includes(nameLower));
+      const cleanSearch = removeVietnameseTones(name);
+      const foundByName = mockServices.find((s) => {
+        if (s.category !== "fnb") return false;
+        const cleanS = removeVietnameseTones(s.name);
+        return cleanS === cleanSearch || cleanS.includes(cleanSearch) || cleanSearch.includes(cleanS);
+      });
       if (foundByName) return foundByName;
     }
+
+    const basePrice = 160000;
+    const pFrom = Math.round((basePrice * 0.8) / 10000) * 10000;
+    const pTo = Math.round((basePrice * 1.2) / 10000) * 10000;
 
     return {
       id: serviceId || `fnb-${Date.now()}`,
@@ -1652,8 +1676,10 @@ export function TourFormPage(props: TourFormPageProps) {
       category: "fnb",
       subCategory: "Nhà hàng & Ẩm thực",
       description: desc || "Thực đơn món ngon đặc sản địa phương phong phú và hấp dẫn theo tiêu chuẩn tour.",
-      price: 180000,
-      pricePerPerson: 180000,
+      price: basePrice,
+      priceFrom: pFrom,
+      priceTo: pTo,
+      pricePerPerson: Math.round((pFrom + pTo) / 4),
       location: "Trung tâm thành phố",
       image: image || "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
       images: [image || "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800"],
@@ -1670,11 +1696,13 @@ export function TourFormPage(props: TourFormPageProps) {
     const isCustomServ = Boolean((serv as any).isCustom || serv.id?.startsWith("custom-") || serv.providerName === "Đối tác Ngoài Sàn");
     const isStandardEmpty = !meal.serviceName || meal.serviceName === "Nhà hàng địa phương" || meal.serviceName === "Nhà hàng theo tour";
 
+    const refPrice = getMealRefPricePerPerson(serv);
+
     if (isStandardEmpty) {
       updateMealField(dIdx, mIdx, {
         serviceName: serv.name,
         description: serv.description || "Thực đơn đặc sản theo tour",
-        pricePerPerson: serv.pricePerPerson || serv.price || 150000,
+        pricePerPerson: refPrice,
         serviceId: serv.id,
         image: serv.image,
         providerName: serv.providerName,
@@ -1682,13 +1710,14 @@ export function TourFormPage(props: TourFormPageProps) {
       });
     } else {
       const baseMealPrice = meal.pricePerPerson || 150000;
-      const servPrice = serv.pricePerPerson || serv.price || 150000;
       const newAlt: TourAlternativeMeal = {
         id: `alt-meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         restaurantName: serv.name,
         description: serv.description || "Thực đơn lựa chọn đổi món",
-        priceDifference: servPrice - baseMealPrice,
-        price: servPrice,
+        priceDifference: Math.max(0, refPrice - baseMealPrice),
+        price: refPrice,
+        priceFrom: serv.priceFrom,
+        priceTo: serv.priceTo,
         image: serv.image,
         serviceId: serv.id,
         providerName: serv.providerName,
@@ -4238,7 +4267,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                                         <option value="">-- Click chọn quán ăn / nhà hàng để thêm vào danh sách thẻ bên dưới --</option>
                                                         {displayFnb.map((serv) => (
                                                           <option key={serv.id} value={serv.id}>
-                                                            🍴 {serv.name} — {serv.description} ({formatVND(serv.pricePerPerson || serv.price)}/người)
+                                                            🍴 {serv.name} — {serv.priceFrom && serv.priceTo ? `${formatVND(serv.priceFrom)} - ${formatVND(serv.priceTo)}/suất (${formatVND(getMealRefPricePerPerson(serv))}/người)` : `${formatVND(serv.pricePerPerson || serv.price)}/người`}
                                                           </option>
                                                         ))}
                                                       </select>
@@ -4477,7 +4506,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                                                     {meal.serviceName}
                                                                   </h5>
                                                                   <p className="text-xs font-bold text-emerald-900 mt-1">
-                                                                    {formatVND(meal.pricePerPerson || servObj.pricePerPerson || servObj.price || 150000)}
+                                                                    {formatVND(getMealRefPricePerPerson(servObj, meal.pricePerPerson))}
                                                                     <span className="text-[10px] font-normal text-gray-400"> (giá tham khảo / người)</span>
                                                                   </p>
                                                                 </div>
@@ -4583,7 +4612,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                                                     {alt.restaurantName}
                                                                   </h5>
                                                                   <p className="text-xs font-bold text-emerald-900 mt-1">
-                                                                    {formatVND(refMealPrice)}
+                                                                    {formatVND(getMealRefPricePerPerson(servObj, alt.price || alt.priceDifference))}
                                                                     <span className="text-[10px] font-normal text-gray-400"> (giá tham khảo / người)</span>
                                                                   </p>
                                                                   {/* Ô nhập giá chênh lệch */}
