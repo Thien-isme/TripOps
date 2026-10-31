@@ -521,6 +521,16 @@ interface MealChoice {
   longitude?: number;
 }
 
+function parseTimeToMinutes(timeStr?: string): number {
+  if (!timeStr) return 9999;
+  const clean = timeStr.trim().toLowerCase();
+  const match = clean.match(/(\d{1,2})(?:[:h](\d{0,2}))?/i);
+  if (!match) return 9999;
+  const hours = parseInt(match[1], 10);
+  const mins = match[2] ? parseInt(match[2], 10) : 0;
+  return hours * 60 + mins;
+}
+
 interface LocationChoice {
   locationId: string;
   locationName: string;
@@ -848,6 +858,7 @@ function CustomTab({
           customMealChanges.push({
             dayNumber: day.day,
             mealType: mc.mealType,
+            time: defaultMeal?.time || (mc.mealType === "breakfast" ? "07:30" : mc.mealType === "lunch" ? "12:00" : "18:30"),
             originalMealName: defaultMeal?.serviceName || "Nhà hàng theo tour",
             newMealName:
               mc.mode === "custom"
@@ -1358,89 +1369,171 @@ function CustomTab({
                   </p>
                 )}
 
-                {/* Pure locations timeline (No meal changes here) */}
-                <div className="relative pl-1">
-                  <div className="absolute left-3.5 top-2 bottom-2 w-0.5 bg-gray-200" />
+                {/* UNIFIED DAY TIMELINE: LỊCH TRÌNH THAM QUAN & ẨM THỰC SẮP XẾP THEO GIỜ */}
+                {(() => {
+                  type CustActivity =
+                    | { kind: "location"; loc: LocationChoice; time: string; key: string }
+                    | { kind: "meal"; meal: TourMeal; time: string; key: string };
 
-                  <div className="space-y-2.5">
-                    {locations.map((loc) => (
-                      <div key={loc.locationId} className="relative flex items-start gap-3">
-                        {/* Dot */}
-                        <div className={`relative z-10 flex-shrink-0 mt-3 w-7 h-7 rounded-full flex items-center justify-center border-2 ${
-                          loc.changed ? "bg-amber-400 border-amber-400" : "bg-white border-blue-400"
-                        }`}>
-                          <MapPin className={`w-3.5 h-3.5 ${loc.changed ? "text-white" : "text-blue-500"}`} />
-                        </div>
+                  const activities: CustActivity[] = [];
+                  locations.forEach((loc) => {
+                    const origLoc = day.locations?.find((l) => l.id === loc.locationId);
+                    const time = (loc as any).time || origLoc?.time || "08:30";
+                    activities.push({
+                      kind: "location",
+                      loc,
+                      time,
+                      key: `loc-${loc.locationId}`,
+                    });
+                  });
 
-                        {/* Content */}
-                        <div className={`flex-1 rounded-xl border p-3 ${
-                          loc.changed ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
-                        }`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex-1">
-                              {loc.changed ? (
-                                <p className="text-xs text-gray-400 line-through">{loc.locationName}</p>
-                              ) : (
-                                <p className="font-medium text-gray-900 text-sm">{loc.locationName}</p>
-                              )}
-                              {loc.changed && loc.changeRequest && (
-                                <p className="text-sm font-medium text-amber-800 mt-0.5">
-                                  → {loc.changeRequest}
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => updateLocation(day.id, loc.locationId, {
-                                changed: !loc.changed,
-                                changeRequest: loc.changed ? "" : loc.changeRequest,
-                              })}
-                              className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
-                                loc.changed
-                                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-[#F97316]/15 hover:text-[#EA580C]"
-                              }`}
-                            >
-                              {loc.changed ? "Huỷ thay đổi" : "Thay đổi"}
-                            </button>
-                          </div>
+                  (day.meals || []).forEach((meal, mIdx) => {
+                    const defaultTime = meal.type === "breakfast" ? "07:30" : meal.type === "lunch" ? "12:00" : "18:30";
+                    activities.push({
+                      kind: "meal",
+                      meal,
+                      time: meal.time || defaultTime,
+                      key: `meal-${meal.type}-${meal.id || mIdx}`,
+                    });
+                  });
 
-                          {loc.changed && (
-                            <div className="mt-2">
-                              <textarea
-                                value={loc.changeRequest}
-                                onChange={(e) => updateLocation(day.id, loc.locationId, { changeRequest: e.target.value })}
-                                placeholder={`Thay thế "${loc.locationName}" bằng địa điểm nào? (VD: Vườn hoa thành phố Đà Lạt, Ga Đà Lạt, ...)`}
-                                className="w-full border border-amber-300 rounded-lg p-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
-                                rows={2}
-                              />
-                              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                                <Info className="w-3 h-3 flex-shrink-0" />
-                                Công ty sẽ xem xét và báo giá sau khi nhận booking.
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                  // Chronological order by time
+                  activities.sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
+
+                  if (activities.length === 0) {
+                    return (
+                      <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                        Chưa có lịch trình cho ngày này.
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    );
+                  }
 
-                {/* Day Meals Section (Chế độ ẩm thực & Bữa ăn trong ngày) */}
-                {day.meals && day.meals.length > 0 && (
-                  <div className="pt-3 border-t border-gray-100 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-                        <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                        Chế độ ẩm thực &amp; Bữa ăn Ngày {day.day}
-                      </span>
-                      <span className="text-[11px] text-gray-400">
-                        (Có thể đổi nhà hàng hoặc yêu cầu riêng)
-                      </span>
-                    </div>
+                  return (
+                    <div className="relative pl-1">
+                      {/* Vertical line through dots */}
+                      <div className="absolute left-[95px] top-4 bottom-4 w-0.5 bg-gray-200" />
 
-                    <div className="space-y-2">
-                      {day.meals.map((defaultMeal) => {
+                      <div className="space-y-3">
+                        {activities.map((act) => {
+                          if (act.kind === "location") {
+                            const { loc } = act;
+                            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.locationName + (day.destinationCity ? " " + day.destinationCity : ""))}`;
+
+                            return (
+                              <div key={act.key} className="relative flex items-start gap-2.5">
+                                {/* Time badge */}
+                                <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-2.5">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                    <Clock className="w-3 h-3 text-blue-500" />
+                                    {act.time}
+                                  </span>
+                                </div>
+
+                                {/* Dot */}
+                                <div className={`relative z-10 flex-shrink-0 mt-2.5 w-7 h-7 rounded-full flex items-center justify-center border-2 shadow-2xs ${
+                                  loc.changed ? "bg-amber-400 border-amber-400 text-white" : "bg-white border-blue-400 text-blue-500"
+                                }`}>
+                                  <MapPin className="w-3.5 h-3.5" />
+                                </div>
+
+                                {/* Content Card */}
+                                <div className={`flex-1 rounded-xl border p-3 shadow-2xs transition-all ${
+                                  loc.changed ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white hover:border-blue-300"
+                                }`}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex-1">
+                                      {loc.changed ? (
+                                        <p className="text-xs text-gray-400 line-through">{loc.locationName}</p>
+                                      ) : (
+                                        <a
+                                          href={mapsUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="font-medium text-gray-900 text-sm hover:text-blue-600 hover:underline flex items-center gap-1.5 group inline-flex"
+                                          title="Bấm để xem vị trí trên Google Maps"
+                                        >
+                                          <span>{loc.locationName}</span>
+                                          <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-blue-600" />
+                                        </a>
+                                      )}
+                                      {loc.changed && loc.changeRequest && (
+                                        <p className="text-sm font-medium text-amber-800 mt-0.5">
+                                          → {loc.changeRequest}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => updateLocation(day.id, loc.locationId, {
+                                        changed: !loc.changed,
+                                        changeRequest: loc.changed ? "" : loc.changeRequest,
+                                      })}
+                                      className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                                        loc.changed
+                                          ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                          : "bg-gray-100 text-gray-600 hover:bg-[#F97316]/15 hover:text-[#EA580C]"
+                                      }`}
+                                    >
+                                      {loc.changed ? "Huỷ thay đổi" : "Thay đổi"}
+                                    </button>
+                                  </div>
+
+                                  {loc.changed && (
+                                    <div className="mt-2">
+                                      <textarea
+                                        value={loc.changeRequest}
+                                        onChange={(e) => updateLocation(day.id, loc.locationId, { changeRequest: e.target.value })}
+                                        placeholder={`Thay thế "${loc.locationName}" bằng địa điểm nào? (VD: Vườn hoa thành phố Đà Lạt, Ga Đà Lạt, ...)`}
+                                        className="w-full border border-amber-300 rounded-lg p-2.5 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                                        rows={2}
+                                      />
+                                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                        <Info className="w-3 h-3 flex-shrink-0" />
+                                        Công ty sẽ xem xét và báo giá sau khi nhận booking.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          } else {
+                            // act.kind === "meal"
+                            const defaultMeal = act.meal;
+                            const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
+
+                            return (
+                              <div key={act.key} className="relative flex items-start gap-2.5">
+                                {/* Time badge */}
+                                <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-2.5">
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono border shadow-2xs ${
+                                    mealType === "breakfast"
+                                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                                      : mealType === "lunch"
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                      : "bg-purple-50 text-[#EA580C] border-purple-200"
+                                  }`}>
+                                    <Clock className={`w-3 h-3 ${
+                                      mealType === "breakfast" ? "text-amber-600" : mealType === "lunch" ? "text-emerald-600" : "text-[#F97316]"
+                                    }`} />
+                                    {act.time}
+                                  </span>
+                                </div>
+
+                                {/* Dot */}
+                                <div className={`relative z-10 flex-shrink-0 mt-2.5 w-7 h-7 rounded-full flex items-center justify-center border-2 shadow-2xs ${
+                                  mealType === "breakfast"
+                                    ? "bg-amber-100 border-amber-400 text-amber-700"
+                                    : mealType === "lunch"
+                                    ? "bg-emerald-100 border-emerald-500 text-emerald-700"
+                                    : "bg-[#F97316]/15 border-purple-500 text-[#EA580C]"
+                                }`}>
+                                  {mealType === "breakfast" ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                </div>
+
+                                {/* Meal Accordion Content */}
+                                <div className="flex-1 min-w-0">
+                                  {(() => {
                         const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
                         const mealChoice = mealChoices.find((mc) => mc.mealType === mealType);
                         const mealKey = `${day.id}-${mealType}`;
@@ -1790,11 +1883,17 @@ function CustomTab({
                                 </div>
                               )}
                             </div>
-                          );
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            );
+                          }
                         })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           );

@@ -1166,10 +1166,11 @@ function App() {
     const newTour: Tour = {
       ...tourData,
       id: tourData.id || `tour-${Date.now()}`,
-      status: tourData.status || "pending_approval",
+      status: tourData.status || "completed",
+      visibility: tourData.visibility || "public",
       bookings: 0,
     };
-    setTours([...tours, newTour]);
+    setTours([newTour, ...tours]);
   };
 
   const handleCompanyEditTour = (

@@ -3,7 +3,6 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
-
 function figmaAssetResolver() {
   return {
     name: 'figma-asset-resolver',
@@ -16,8 +15,11 @@ function figmaAssetResolver() {
   }
 }
 
+// Automatically use '/TripOps/' base on GitHub Actions / GitHub Pages, and relative './' for local dev
+const base = process.env.GITHUB_ACTIONS ? '/TripOps/' : './';
+
 export default defineConfig({
-  base: './',
+  base,
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if

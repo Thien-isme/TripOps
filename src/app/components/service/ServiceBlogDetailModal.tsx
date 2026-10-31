@@ -176,16 +176,41 @@ export function ServiceBlogDetailModal({
               </div>
 
               {/* Price card */}
-              <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-3.5 text-right flex-shrink-0 min-w-[200px]">
-                <p className="text-xs font-semibold text-[#075985] uppercase tracking-wide">
-                  {isHotel ? "Giá tham khảo / đêm" : "Đơn giá tham khảo / suất"}
-                </p>
-                <p className="text-xl sm:text-2xl font-black text-blue-900 mt-0.5">
-                  {formatVND(service.pricePerPerson || service.price)}
-                </p>
-                <p className="text-[11px] text-gray-500 mt-0.5">
-                  * Công ty du lịch sẽ chốt giá B2B chính thức
-                </p>
+              <div className="bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl p-3.5 text-right flex-shrink-0 min-w-[220px]">
+                {(() => {
+                  const pFrom = service.priceFrom ?? (isHotel && service.price ? Math.round(service.price * 0.8 / 10000) * 10000 : undefined);
+                  const pTo = service.priceTo ?? (isHotel && service.price ? Math.round(service.price * 1.2 / 10000) * 10000 : undefined);
+                  const hasRange = pFrom !== undefined && pTo !== undefined && pFrom !== pTo;
+
+                  return (
+                    <>
+                      <p className="text-xs font-semibold text-[#075985] uppercase tracking-wide">
+                        {hasRange
+                          ? `Khoảng giá dự kiến / ${isHotel ? "phòng" : "người"}`
+                          : (isHotel ? "Giá tham khảo / đêm" : "Đơn giá tham khảo / suất")}
+                      </p>
+                      {hasRange ? (
+                        <div className="mt-0.5">
+                          <span className="text-xl sm:text-2xl font-black text-blue-900">
+                            {formatVND(pFrom)} - {formatVND(pTo)}
+                          </span>
+                          <span className="text-xs font-semibold text-[#075985]">
+                            {" "}/ {isHotel ? "phòng" : "người"}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-xl sm:text-2xl font-black text-blue-900 mt-0.5">
+                          {formatVND(service.pricePerPerson || service.price)}
+                        </p>
+                      )}
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        {hasRange && isHotel
+                          ? "Khoảng giá theo phòng/đêm giúp công ty lữ hành dễ dàng ước tính chi phí khi thiết kế tour."
+                          : "* Công ty du lịch sẽ chốt giá B2B chính thức"}
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

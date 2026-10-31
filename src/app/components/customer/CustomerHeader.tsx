@@ -92,6 +92,13 @@ export function CustomerHeader({
             src={TRIPOPS_LOGO}
             alt="TripOps Logo"
             className="h-9 sm:h-10 w-auto object-contain transition-transform hover:scale-[1.02]"
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (!el.dataset.fallback) {
+                el.dataset.fallback = "1";
+                el.src = "./images/Logo/TripOps_logo_transparent.png";
+              }
+            }}
           />
         </button>
         {isCustomer && (
