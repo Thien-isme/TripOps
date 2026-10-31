@@ -59,8 +59,10 @@ import {
   UserPlus,
   Tag,
   Lock,
+  Zap,
 } from "lucide-react";
 import { mockTourCompanies, mockServices } from "@/app/data/mockData";
+import { getSuggestionsByDestination } from "@/app/data/destinationCatalog";
 import { Button } from "@/app/components/ui/button";
 import {
   AlertDialog,
@@ -1987,6 +1989,10 @@ export function TourFormPage(props: TourFormPageProps) {
   const addMealToDay = (dayIdx: number, mealType: "lunch" | "dinner" | "breakfast" = "lunch") => {
     const updated = [...itinerary];
     const dayMeals = [...(updated[dayIdx].meals || [])];
+    if (dayMeals.some((m) => m.type === mealType)) {
+      alert(`Ngày ${updated[dayIdx].day} đã có bữa ${mealType === "breakfast" ? "sáng" : mealType === "lunch" ? "trưa" : "tối"}. Mỗi ngày chỉ thiết lập tối đa 1 bữa cho mỗi buổi.`);
+      return;
+    }
     const label = mealType === "lunch" ? "Ăn trưa" : mealType === "dinner" ? "Ăn tối" : "Ăn sáng";
     const defaultPrice = mealType === "breakfast" ? 60000 : mealType === "dinner" ? 140000 : 120000;
     const defaultTime = mealType === "breakfast" ? "07:30" : mealType === "dinner" ? "18:30" : "12:00";
@@ -2338,9 +2344,21 @@ export function TourFormPage(props: TourFormPageProps) {
   const moveLocation = (dayIdx: number, fromIdx: number, toIdx: number) => {
     const updated = [...itinerary];
     const locs = [...updated[dayIdx].locations];
-    if (toIdx < 0 || toIdx >= locs.length) return;
+    if (toIdx < 0 || toIdx >= locs.length || fromIdx === toIdx) return;
+
+    // Lưu lại chuỗi thời gian của các vị trí trước khi dịch chuyển
+    const times = locs.map((l) => l.time);
+
     const [moved] = locs.splice(fromIdx, 1);
     locs.splice(toIdx, 0, moved);
+
+    // Gán lại khung giờ theo thứ tự vị trí mới để bảo đảm sắp xếp timeline trực quan & chính xác
+    for (let i = 0; i < locs.length; i++) {
+      if (times[i]) {
+        locs[i].time = times[i];
+      }
+    }
+
     updated[dayIdx].locations = locs;
     setItinerary(updated);
   };
@@ -2394,14 +2412,24 @@ export function TourFormPage(props: TourFormPageProps) {
     setDuration(`${daysCount} ngày ${nightsCount} đêm`);
   };
 
-  const addLocationToDay = (dayIdx: number) => {
+  const addLocationToDay = (dayIdx: number, locationName?: string, defaultTime?: string) => {
     const updated = [...itinerary];
     const currentLocs = updated[dayIdx]?.locations ? [...updated[dayIdx].locations] : [];
+
+    let time = defaultTime;
+    if (!time) {
+      if (currentLocs.length === 0) time = "08:30";
+      else if (currentLocs.length === 1) time = "10:00";
+      else if (currentLocs.length === 2) time = "14:30";
+      else if (currentLocs.length === 3) time = "16:00";
+      else time = "17:30";
+    }
+
     currentLocs.push({
       id: `loc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: "Điểm tham quan mới",
+      name: locationName || "Điểm tham quan mới",
       address: "",
-      time: "10:00",
+      time: time,
       createdByCompanyId: company.id,
       createdByCompanyName: company.name,
     });
@@ -2954,16 +2982,7 @@ export function TourFormPage(props: TourFormPageProps) {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <Label className="text-xs font-semibold text-gray-700">Mô tả ngắn tổng quan về tour</Label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    placeholder="Mô tả hấp dẫn về hành trình, những nét thú vị đón chờ du khách..."
-                    className="mt-1 text-sm"
-                  />
-                </div>
+
               </div>
 
               {/* Highlights section */}
@@ -3841,67 +3860,144 @@ export function TourFormPage(props: TourFormPageProps) {
                           />
                         </div>
 
+                        {/* GỢI Ý ĐIỂM THAM QUAN / CHECK-IN NỔI BẬT THEO ĐIỂM ĐẾN */}
+                        {(() => {
+                          const destPreset = getSuggestionsByDestination(destination || "Đà Lạt");
+                          const suggestions = destPreset.attractions || [];
+                          if (suggestions.length === 0) return null;
+
+                          return (
+                            <div className="p-3 bg-amber-50/70 border border-amber-200/90 rounded-xl space-y-2 mt-2">
+                              <div className="flex items-center justify-between text-xs flex-wrap gap-1">
+                                <span className="font-semibold text-amber-900 flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                                  Gợi ý điểm check-in nổi bật tại {destPreset.destination} (Bấm để thêm vào ngày):
+                                </span>
+                                <span className="text-[11px] text-amber-700 flex items-center gap-1 font-medium">
+                                  <Zap className="w-3 h-3 text-amber-600 flex-shrink-0" /> Click thẻ để thêm không cần gõ phím
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {suggestions.map((attr) => {
+                                  const isAdded = (day.locations || []).some((loc) =>
+                                    loc.name?.toLowerCase().trim() === attr.toLowerCase().trim() ||
+                                    loc.name?.toLowerCase().includes(attr.toLowerCase()) ||
+                                    attr.toLowerCase().includes(loc.name?.toLowerCase() || "___")
+                                  );
+
+                                  return (
+                                    <button
+                                      key={attr}
+                                      type="button"
+                                      disabled={isAdded}
+                                      onClick={() => addLocationToDay(dIdx, attr)}
+                                      className={`px-2.5 py-1 text-xs rounded-full border transition-all flex items-center gap-1 ${
+                                        isAdded
+                                          ? "bg-emerald-50 border-emerald-300 text-emerald-700 font-medium cursor-default opacity-80"
+                                          : "bg-white border-amber-300 text-amber-900 hover:bg-amber-100 hover:border-amber-400 cursor-pointer shadow-2xs font-medium"
+                                      }`}
+                                      title={isAdded ? `"${attr}" đã có trong lịch trình Ngày ${day.day}` : `Thêm "${attr}" vào lịch trình Ngày ${day.day}`}
+                                    >
+                                      {isAdded ? <Check className="w-3 h-3 text-emerald-600" /> : <Plus className="w-3 h-3 text-amber-600" />}
+                                      {attr}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {/* UNIFIED DAY TIMELINE: ĐIỂM THAM QUAN & BỮA ĂN GỘP CHUNG THEO KHUNG GIỜ */}
                         <div className="space-y-3 pt-3 border-t border-gray-100">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div>
-                              <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-[#F97316]" />
-                                Lịch trình chi tiết &amp; Bữa ăn trong ngày {day.day}
-                              </Label>
-                              <p className="text-[11px] text-gray-500">
-                                Sắp xếp các điểm tham quan và các bữa ăn theo thứ tự khung giờ trong ngày
-                              </p>
-                            </div>
+                          {(() => {
+                            const hasBreakfast = day.meals?.some((m) => m.type === "breakfast");
+                            const hasLunch = day.meals?.some((m) => m.type === "lunch");
+                            const hasDinner = day.meals?.some((m) => m.type === "dinner");
 
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleSortDayByTime(dIdx)}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-[#F0F9FF] text-[#EA580C] hover:bg-[#F97316]/15 font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                                title="Tự động sắp xếp các điểm tham quan và bữa ăn theo thứ tự thời gian tăng dần"
-                              >
-                                <Sparkles className="w-3 h-3 text-[#F97316]" />
-                                ⚡ Sắp xếp theo giờ
-                              </button>
+                            return (
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div>
+                                  <Label className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-[#F97316]" />
+                                    Lịch trình chi tiết &amp; Bữa ăn trong ngày {day.day}
+                                  </Label>
+                                  <p className="text-[11px] text-gray-500">
+                                    Sắp xếp các điểm tham quan và các bữa ăn theo thứ tự khung giờ trong ngày
+                                  </p>
+                                </div>
 
-                              <button
-                                type="button"
-                                onClick={() => addLocationToDay(dIdx)}
-                                className="px-2.5 py-1 text-xs rounded-lg border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3" />
-                                + Điểm tham quan
-                              </button>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSortDayByTime(dIdx)}
+                                    className="px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-[#F0F9FF] text-[#EA580C] hover:bg-[#F97316]/15 font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                    title="Tự động sắp xếp các điểm tham quan và bữa ăn theo thứ tự thời gian tăng dần"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
+                                    ⚡ Sắp xếp theo giờ
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => addMealToDay(dIdx, "breakfast")}
-                                className="px-2 py-1 text-xs rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3" />
-                                + Bữa sáng
-                              </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => addLocationToDay(dIdx)}
+                                    className="px-2.5 py-1 text-xs rounded-lg border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    + Điểm tham quan
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => addMealToDay(dIdx, "lunch")}
-                                className="px-2 py-1 text-xs rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3" />
-                                + Bữa trưa
-                              </button>
+                                  {/* + Bữa sáng (Disable nếu đã có) */}
+                                  <button
+                                    type="button"
+                                    disabled={hasBreakfast}
+                                    onClick={() => addMealToDay(dIdx, "breakfast")}
+                                    className={`px-2 py-1 text-xs rounded-lg border font-medium transition-colors flex items-center gap-1 shadow-2xs ${
+                                      hasBreakfast
+                                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                                        : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 cursor-pointer"
+                                    }`}
+                                    title={hasBreakfast ? `Ngày ${day.day} đã có bữa sáng (mỗi ngày tối đa 1 bữa sáng)` : "Thêm bữa sáng cho ngày"}
+                                  >
+                                    {hasBreakfast ? <Check className="w-3 h-3 text-emerald-600" /> : <Plus className="w-3 h-3" />}
+                                    {hasBreakfast ? "Đã có bữa sáng" : "+ Bữa sáng"}
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => addMealToDay(dIdx, "dinner")}
-                                className="px-2 py-1 text-xs rounded-lg border border-purple-300 bg-[#F0F9FF] text-[#EA580C] hover:bg-[#F97316]/15 font-medium transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Plus className="w-3 h-3" />
-                                + Bữa tối
-                              </button>
-                            </div>
-                          </div>
+                                  {/* + Bữa trưa (Disable nếu đã có) */}
+                                  <button
+                                    type="button"
+                                    disabled={hasLunch}
+                                    onClick={() => addMealToDay(dIdx, "lunch")}
+                                    className={`px-2 py-1 text-xs rounded-lg border font-medium transition-colors flex items-center gap-1 shadow-2xs ${
+                                      hasLunch
+                                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                                        : "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+                                    }`}
+                                    title={hasLunch ? `Ngày ${day.day} đã có bữa trưa (mỗi ngày tối đa 1 bữa trưa)` : "Thêm bữa trưa cho ngày"}
+                                  >
+                                    {hasLunch ? <Check className="w-3 h-3 text-emerald-600" /> : <Plus className="w-3 h-3" />}
+                                    {hasLunch ? "Đã có bữa trưa" : "+ Bữa trưa"}
+                                  </button>
+
+                                  {/* + Bữa tối (Disable nếu đã có) */}
+                                  <button
+                                    type="button"
+                                    disabled={hasDinner}
+                                    onClick={() => addMealToDay(dIdx, "dinner")}
+                                    className={`px-2 py-1 text-xs rounded-lg border font-medium transition-colors flex items-center gap-1 shadow-2xs ${
+                                      hasDinner
+                                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                                        : "border-purple-300 bg-[#F0F9FF] text-[#EA580C] hover:bg-[#F97316]/15 cursor-pointer"
+                                    }`}
+                                    title={hasDinner ? `Ngày ${day.day} đã có bữa tối (mỗi ngày tối đa 1 bữa tối)` : "Thêm bữa tối cho ngày"}
+                                  >
+                                    {hasDinner ? <Check className="w-3 h-3 text-emerald-600" /> : <Plus className="w-3 h-3" />}
+                                    {hasDinner ? "Đã có bữa tối" : "+ Bữa tối"}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()}
 
                           <div className="relative pl-1 pt-1">
                             {/* Đường trục dọc timeline liên tục */}
@@ -3910,25 +4006,32 @@ export function TourFormPage(props: TourFormPageProps) {
                             <div className="space-y-3">
                               {(() => {
                                 type UnifiedItem =
-                                  | { kind: "location"; loc: (typeof day.locations)[0]; lIdx: number; minutes: number }
-                                  | { kind: "meal"; meal: (typeof day.meals)[0]; mIdx: number; minutes: number };
+                                  | { kind: "location"; loc: (typeof day.locations)[0]; lIdx: number; arrayOrder: number; minutes: number }
+                                  | { kind: "meal"; meal: (typeof day.meals)[0]; mIdx: number; arrayOrder: number; minutes: number };
 
                                 const items: UnifiedItem[] = [
                                   ...(day.locations || []).map((loc, lIdx) => ({
                                     kind: "location" as const,
                                     loc,
                                     lIdx,
+                                    arrayOrder: lIdx,
                                     minutes: parseTimeToMinutes(loc.time),
                                   })),
                                   ...(day.meals || []).map((meal, mIdx) => ({
                                     kind: "meal" as const,
                                     meal,
                                     mIdx,
+                                    arrayOrder: mIdx,
                                     minutes: parseTimeToMinutes(meal.time),
                                   })),
                                 ];
 
-                                items.sort((a, b) => a.minutes - b.minutes);
+                                items.sort((a, b) => {
+                                  if (a.minutes !== b.minutes) {
+                                    return a.minutes - b.minutes;
+                                  }
+                                  return a.arrayOrder - b.arrayOrder;
+                                });
 
                                 if (items.length === 0) {
                                   return (
