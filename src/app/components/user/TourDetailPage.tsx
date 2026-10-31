@@ -236,87 +236,190 @@ function ProgramTab({ tour }: { tour: Tour }) {
                 </button>
 
                 {isOpen && (
-                  <div className="px-4 py-4 space-y-3.5">
-                    <p className="text-gray-700 leading-relaxed text-sm">{day.description}</p>
-                    {day.locations.length > 0 && (
-                      <div className="space-y-1.5">
-                        {day.locations.map((loc) => (
-                          <div key={loc.id} className="flex items-center justify-between text-sm text-gray-700">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                              <span className="font-medium text-gray-900">{loc.name}</span>
-                            </div>
-                            {loc.createdByCompanyName && (
-                              <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded font-normal">
-                                Tạo bởi: {loc.createdByCompanyName}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                  <div className="px-4 py-4 space-y-4">
+                    {day.description && (
+                      <p className="text-gray-700 leading-relaxed text-xs sm:text-sm bg-[#F0F9FF] p-3 rounded-xl border border-blue-100">
+                        {day.description}
+                      </p>
                     )}
 
-                    {/* Chế độ ẩm thực & Bữa ăn (Chỗ ăn) trong ngày */}
-                    {day.meals && day.meals.length > 0 && (
-                      <div className="pt-3 border-t border-gray-100 space-y-2">
-                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                          <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                          Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                          {day.meals.map((meal, mIdx) => {
-                            const mealType = meal.type;
-                            const label = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
-                            const isBreakfast = mealType === "breakfast";
-                            const isLunch = mealType === "lunch";
-                            return (
-                              <div
-                                key={mIdx}
-                                className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
-                                  isBreakfast
-                                    ? "bg-amber-50/60 border-amber-200/80"
-                                    : isLunch
-                                    ? "bg-emerald-50/60 border-emerald-200/80"
-                                    : "bg-[#F0F9FF]/60 border-[#F97316]/30/80"
-                                }`}
-                              >
-                                <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                    isBreakfast
-                                      ? "bg-amber-100 text-amber-700"
-                                      : isLunch
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-[#F97316]/15 text-[#EA580C]"
-                                  }`}
-                                >
-                                  {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                    {/* UNIFIED TIMELINE: ĐIỂM THAM QUAN & BỮA ĂN TRONG NGÀY THEO KHUNG GIỜ */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#F97316]" />
+                          Lịch trình chi tiết &amp; Bữa ăn trong ngày {day.day}
+                        </h5>
+                        <span className="text-[11px] text-gray-500">Sắp xếp theo thứ tự khung giờ trong ngày</span>
+                      </div>
+
+                      <div className="relative pl-1 pt-1">
+                        {/* Đường trục dọc timeline liên tục */}
+                        <div className="absolute left-[95px] top-3 bottom-3 w-0.5 bg-gray-200" />
+
+                        <div className="space-y-3">
+                          {(() => {
+                            type UnifiedItem =
+                              | { kind: "location"; loc: (typeof day.locations)[0]; minutes: number; time: string }
+                              | { kind: "meal"; meal: (typeof day.meals)[0]; minutes: number; time: string };
+
+                            const items: UnifiedItem[] = [
+                              ...(day.locations || []).map((loc) => ({
+                                kind: "location" as const,
+                                loc,
+                                time: loc.time || "08:30",
+                                minutes: parseTimeToMinutes(loc.time || "08:30"),
+                              })),
+                              ...(day.meals || []).map((meal) => {
+                                const defTime = meal.type === "breakfast" ? "07:30" : meal.type === "lunch" ? "12:00" : "18:30";
+                                return {
+                                  kind: "meal" as const,
+                                  meal,
+                                  time: meal.time || defTime,
+                                  minutes: parseTimeToMinutes(meal.time || defTime),
+                                };
+                              }),
+                            ];
+
+                            items.sort((a, b) => a.minutes - b.minutes);
+
+                            if (items.length === 0) {
+                              return (
+                                <div className="p-4 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400 bg-gray-50/50">
+                                  Chưa có lịch trình cụ thể cho ngày này.
                                 </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <p className="text-xs font-bold text-gray-900">{label}</p>
-                                    {meal.createdByCompanyName && (
-                                      <span className="text-[10px] text-emerald-700 bg-white border border-emerald-200 px-1 py-0.2 rounded font-normal">
-                                        Tạo bởi: {meal.createdByCompanyName}
+                              );
+                            }
+
+                            return items.map((tItem, idx) => {
+                              if (tItem.kind === "location") {
+                                const { loc, time } = tItem;
+                                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name + (tour.destination ? " " + tour.destination : ""))}`;
+
+                                return (
+                                  <div key={loc.id || `loc-${idx}`} className="relative flex items-start gap-2.5">
+                                    {/* Time pill */}
+                                    <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                        <Clock className="w-3 h-3 text-blue-500" />
+                                        {time}
                                       </span>
-                                    )}
+                                    </div>
+
+                                    {/* Dot on line */}
+                                    <div className="relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 border-blue-400 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                      <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                                    </div>
+
+                                    {/* Location card */}
+                                    <div className="flex-1 border border-gray-200 rounded-xl p-3 bg-white hover:border-blue-300 transition-colors shadow-2xs">
+                                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+                                            Tham quan
+                                          </span>
+                                          <h5 className="text-xs sm:text-sm font-bold text-gray-900">{loc.name}</h5>
+                                        </div>
+                                        <a
+                                          href={mapsUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-[11px] text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition-colors"
+                                        >
+                                          <MapPin className="w-3 h-3" />
+                                          Bản đồ
+                                        </a>
+                                      </div>
+                                      {loc.createdByCompanyName && (
+                                        <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                                          <Building2 className="w-3 h-3 text-gray-400" />
+                                          Tạo bởi: {loc.createdByCompanyName}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
-                                  <p className="text-xs text-gray-800 font-semibold truncate">
-                                    {meal.serviceName || "Nhà hàng theo chương trình"}
-                                  </p>
-                                  {meal.description && (
-                                    <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">
-                                      {meal.description}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                                );
+                              } else {
+                                const { meal, time } = tItem;
+                                const mealType = meal.type;
+                                const mealLabel = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                                const isBreakfast = mealType === "breakfast";
+                                const isLunch = mealType === "lunch";
+
+                                return (
+                                  <div key={meal.id || `meal-${idx}`} className="relative flex items-start gap-2.5">
+                                    {/* Time pill */}
+                                    <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono border shadow-2xs ${
+                                        isBreakfast
+                                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                                          : isLunch
+                                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                          : "bg-purple-50 text-purple-700 border-purple-200"
+                                      }`}>
+                                        <Clock className="w-3 h-3" />
+                                        {time}
+                                      </span>
+                                    </div>
+
+                                    {/* Dot on line */}
+                                    <div className={`relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 flex items-center justify-center flex-shrink-0 shadow-2xs ${
+                                      isBreakfast
+                                        ? "border-amber-400 text-amber-600"
+                                        : isLunch
+                                        ? "border-emerald-500 text-emerald-600"
+                                        : "border-[#F97316] text-[#EA580C]"
+                                    }`}>
+                                      {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                    </div>
+
+                                    {/* Meal card */}
+                                    <div className={`flex-1 border rounded-xl p-3 bg-white shadow-2xs ${
+                                      isBreakfast
+                                        ? "border-amber-200 bg-amber-50/20"
+                                        : isLunch
+                                        ? "border-emerald-200 bg-emerald-50/20"
+                                        : "border-purple-200 bg-purple-50/20"
+                                    }`}>
+                                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border ${
+                                            isBreakfast
+                                              ? "bg-amber-100 text-amber-800 border-amber-300"
+                                              : isLunch
+                                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                              : "bg-[#F97316]/15 text-[#EA580C] border-purple-300"
+                                          }`}>
+                                            {mealLabel}
+                                          </span>
+                                          <h5 className="text-xs sm:text-sm font-bold text-gray-900">{meal.serviceName || "Nhà hàng theo chương trình"}</h5>
+                                        </div>
+                                        {meal.alternativeMeals && meal.alternativeMeals.length > 0 && (
+                                          <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                                            +{meal.alternativeMeals.length} phương án ẩm thực
+                                          </span>
+                                        )}
+                                      </div>
+                                      {meal.description && (
+                                        <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                          {meal.description}
+                                        </p>
+                                      )}
+                                      {meal.createdByCompanyName && (
+                                        <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                                          <Building2 className="w-3 h-3 text-gray-400" />
+                                          Tạo bởi: {meal.createdByCompanyName}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            });
+                          })()}
                         </div>
                       </div>
-                    )}
-
-
+                    </div>
                   </div>
                 )}
               </div>

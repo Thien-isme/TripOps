@@ -2341,6 +2341,76 @@ export function TourFormPage(props: TourFormPageProps) {
     setItinerary(updated);
   };
 
+  const minutesToTimeString = (mins: number): string => {
+    const h = Math.floor(mins / 60) % 24;
+    const m = mins % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+
+  const moveTimelineItem = (
+    dayIdx: number,
+    fromTimelineIdx: number,
+    toTimelineIdx: number,
+    dayItems: Array<{ kind: "location" | "meal"; lIdx?: number; mIdx?: number; minutes: number }>
+  ) => {
+    const updated = [...itinerary];
+    const day = updated[dayIdx];
+    if (!day || toTimelineIdx < 0 || toTimelineIdx >= dayItems.length || fromTimelineIdx === toTimelineIdx) return;
+
+    const fromItem = dayItems[fromTimelineIdx];
+    const toItem = dayItems[toTimelineIdx];
+    if (!fromItem || !toItem) return;
+
+    const fromTime = fromItem.kind === "location"
+      ? day.locations[fromItem.lIdx!]?.time
+      : day.meals[fromItem.mIdx!]?.time;
+    const toTime = toItem.kind === "location"
+      ? day.locations[toItem.lIdx!]?.time
+      : day.meals[toItem.mIdx!]?.time;
+
+    let newFromTime = toTime;
+    let newToTime = fromTime;
+
+    if (!newFromTime || !newToTime || newFromTime === newToTime) {
+      const baseMinutes = parseTimeToMinutes(fromTime || "12:00");
+      if (toTimelineIdx > fromTimelineIdx) {
+        newFromTime = minutesToTimeString(baseMinutes + 30);
+        newToTime = minutesToTimeString(baseMinutes);
+      } else {
+        newFromTime = minutesToTimeString(Math.max(360, baseMinutes - 30));
+        newToTime = minutesToTimeString(baseMinutes);
+      }
+    }
+
+    if (fromItem.kind === "location" && day.locations[fromItem.lIdx!]) {
+      day.locations[fromItem.lIdx!].time = newFromTime;
+    } else if (fromItem.kind === "meal" && day.meals[fromItem.mIdx!]) {
+      day.meals[fromItem.mIdx!].time = newFromTime;
+    }
+
+    if (toItem.kind === "location" && day.locations[toItem.lIdx!]) {
+      day.locations[toItem.lIdx!].time = newToTime;
+    } else if (toItem.kind === "meal" && day.meals[toItem.mIdx!]) {
+      day.meals[toItem.mIdx!].time = newToTime;
+    }
+
+    if (fromItem.kind === "location" && toItem.kind === "location") {
+      const locs = [...day.locations];
+      const [moved] = locs.splice(fromItem.lIdx!, 1);
+      locs.splice(toItem.lIdx!, 0, moved);
+      day.locations = locs;
+    }
+
+    if (fromItem.kind === "meal" && toItem.kind === "meal") {
+      const meals = [...day.meals];
+      const [moved] = meals.splice(fromItem.mIdx!, 1);
+      meals.splice(toItem.mIdx!, 0, moved);
+      day.meals = meals;
+    }
+
+    setItinerary(updated);
+  };
+
   const moveLocation = (dayIdx: number, fromIdx: number, toIdx: number) => {
     const updated = [...itinerary];
     const locs = [...updated[dayIdx].locations];
@@ -4041,7 +4111,7 @@ export function TourFormPage(props: TourFormPageProps) {
                                   );
                                 }
 
-                                return items.map((tItem) => {
+                                return items.map((tItem, itemIdx) => {
                                   if (tItem.kind === "location") {
                                     const { loc, lIdx } = tItem;
                                     const isBeingDragged = draggedLocation?.dayIdx === dIdx && draggedLocation?.locIdx === lIdx;
@@ -4152,8 +4222,8 @@ export function TourFormPage(props: TourFormPageProps) {
                                           <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                                             <button
                                               type="button"
-                                              disabled={isLocLocked || lIdx === 0}
-                                              onClick={() => moveLocation(dIdx, lIdx, lIdx - 1)}
+                                              disabled={isLocLocked || itemIdx === 0}
+                                              onClick={() => moveTimelineItem(dIdx, itemIdx, itemIdx - 1, items)}
                                               className="p-1 text-gray-400 hover:text-[#F97316] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                               title="Đổi thứ tự lên trên"
                                             >
@@ -4161,8 +4231,8 @@ export function TourFormPage(props: TourFormPageProps) {
                                             </button>
                                             <button
                                               type="button"
-                                              disabled={isLocLocked || lIdx === day.locations.length - 1}
-                                              onClick={() => moveLocation(dIdx, lIdx, lIdx + 1)}
+                                              disabled={isLocLocked || itemIdx === items.length - 1}
+                                              onClick={() => moveTimelineItem(dIdx, itemIdx, itemIdx + 1, items)}
                                               className="p-1 text-gray-400 hover:text-[#F97316] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
                                               title="Đổi thứ tự xuống dưới"
                                             >
@@ -4274,6 +4344,31 @@ export function TourFormPage(props: TourFormPageProps) {
                                               <span className="text-[11px] text-gray-500 bg-white px-2 py-0.5 rounded border border-[#CBD5E1] font-medium">
                                                 {altsCount > 0 ? `${altsCount + 1} phương án ẩm thực` : "1 phương án tiêu chuẩn (0đ)"}
                                               </span>
+                                              {/* Actions: Move Up, Move Down Bữa ăn */}
+                                              <button
+                                                type="button"
+                                                disabled={isMealLocked || itemIdx === 0}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  moveTimelineItem(dIdx, itemIdx, itemIdx - 1, items);
+                                                }}
+                                                className="p-1 text-gray-400 hover:text-[#F97316] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
+                                                title="Đổi thứ tự bữa ăn lên trên"
+                                              >
+                                                <ArrowUp className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={isMealLocked || itemIdx === items.length - 1}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  moveTimelineItem(dIdx, itemIdx, itemIdx + 1, items);
+                                                }}
+                                                className="p-1 text-gray-400 hover:text-[#F97316] disabled:opacity-20 disabled:hover:text-gray-400 rounded transition-colors"
+                                                title="Đổi thứ tự bữa ăn xuống dưới"
+                                              >
+                                                <ArrowDown className="w-3.5 h-3.5" />
+                                              </button>
                                               {isMealLocked ? (
                                                 <span
                                                   className="p-1 text-gray-300 cursor-not-allowed"
@@ -5690,83 +5785,170 @@ export function TourFormPage(props: TourFormPageProps) {
                           </div>
 
                           {/* 2. LỊCH TRÌNH CHI TIẾT & CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY) */}
-                          <div className="space-y-2">
-                            <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
-                              <MapPin className="w-3.5 h-3.5 text-[#F97316]" />
-                              LỊCH TRÌNH CHI TIẾT &amp; CHẾ ĐỘ ĂN UỐNG (THEO TỪNG NGÀY)
-                            </h4>
-                            <div className="space-y-3">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div>
+                                <h4 className="font-bold text-gray-900 text-xs flex items-center gap-1.5 uppercase">
+                                  <Clock className="w-3.5 h-3.5 text-[#F97316]" />
+                                  LỊCH TRÌNH CHI TIẾT &amp; BỮA ĂN TRONG NGÀY (THEO TỪNG NGÀY)
+                                </h4>
+                                <p className="text-[11px] text-gray-500">Khách hàng có thể linh hoạt giữ tiêu chuẩn hoặc chọn phương án thay thế</p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
                               {itinerary.map((d) => (
-                                <div key={d.id} className="border border-[#CBD5E1] rounded-2xl p-3 bg-white space-y-2.5 shadow-2xs">
+                                <div key={d.id} className="border border-[#CBD5E1] rounded-2xl p-3.5 bg-white space-y-3 shadow-2xs">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-[#F97316] text-white text-xs font-bold flex items-center justify-center">
+                                    <div className="w-6 h-6 rounded-full bg-[#F97316] text-white text-xs font-bold flex items-center justify-center shadow-xs">
                                       {d.day}
                                     </div>
-                                    <span className="font-bold text-gray-900 text-xs">Ngày {d.day}: {d.title}</span>
+                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">Ngày {d.day}: {d.title}</span>
                                   </div>
                                   {d.description && (
-                                    <p className="bg-[#F0F9FF] p-2.5 rounded-lg border border-gray-100 text-[11px] text-gray-600">
+                                    <p className="bg-[#F0F9FF] p-2.5 rounded-lg border border-gray-100 text-xs text-gray-600">
                                       {d.description}
                                     </p>
                                   )}
-                                  <div className="space-y-1.5 pl-2">
-                                    {d.locations.map((loc) => (
-                                      <div key={loc.id} className="flex items-center justify-between p-2 rounded-lg border border-[#CBD5E1] bg-white">
-                                        <div className="flex items-center gap-2 text-xs">
-                                          <MapPin className="w-3 h-3 text-blue-500" />
-                                          <span className="font-medium text-gray-900">{loc.name}</span>
-                                        </div>
-                                        <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-[#CBD5E1]">
-                                          Thay đổi
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
 
-                                  {/* Bữa ăn trong ngày: Nằm ngay dưới các điểm tham quan */}
-                                  {d.meals && d.meals.length > 0 && (
-                                    <div className="pt-2.5 border-t border-gray-100 space-y-2 pl-2">
-                                      <p className="text-[11px] font-bold text-emerald-950 uppercase flex items-center gap-1.5">
-                                        <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                                        Bữa ăn Ngày {d.day} (Chỗ ăn)
-                                      </p>
-                                      <div className="space-y-1.5">
-                                        {d.meals.map((m, mi) => (
-                                          <div key={mi} className="border border-[#CBD5E1] rounded-lg overflow-hidden bg-white">
-                                            <div className={`p-2 flex items-center justify-between border-b border-gray-100 ${
-                                              m.type === "breakfast" ? "bg-amber-50/50" : m.type === "lunch" ? "bg-emerald-50/50" : "bg-[#F0F9FF]/50"
-                                            }`}>
-                                              <div className="flex items-center gap-2">
-                                                {m.type === "breakfast" ? (
-                                                  <Sun className="w-3 h-3 text-amber-600" />
-                                                ) : (
-                                                  <Utensils className="w-3 h-3 text-emerald-600" />
-                                                )}
-                                                <span className="font-semibold text-gray-900 text-[11px]">
-                                                  {m.type === "breakfast" ? "Ăn sáng" : m.type === "lunch" ? "Ăn trưa" : "Ăn tối"}: {m.serviceName}
-                                                </span>
-                                              </div>
-                                              <span className="text-[10px] bg-white border border-[#CBD5E1] px-1.5 py-0.5 rounded text-gray-600 font-medium">
-                                                {(m.alternativeMeals || []).length > 0 ? `${(m.alternativeMeals || []).length + 1} phương án ẩm thực` : "1 phương án ẩm thực tiêu chuẩn"}
-                                              </span>
+                                  {/* UNIFIED TIMELINE FOR CUSTOM PREVIEW */}
+                                  <div className="relative pl-1 pt-1">
+                                    <div className="absolute left-[95px] top-3 bottom-3 w-0.5 bg-gray-200" />
+                                    <div className="space-y-3">
+                                      {(() => {
+                                        type UnifiedItem =
+                                          | { kind: "location"; loc: (typeof d.locations)[0]; minutes: number; time: string }
+                                          | { kind: "meal"; meal: (typeof d.meals)[0]; minutes: number; time: string };
+
+                                        const items: UnifiedItem[] = [
+                                          ...(d.locations || []).map((loc) => ({
+                                            kind: "location" as const,
+                                            loc,
+                                            time: loc.time || "08:30",
+                                            minutes: parseTimeToMinutes(loc.time || "08:30"),
+                                          })),
+                                          ...(d.meals || []).map((meal) => {
+                                            const defTime = meal.type === "breakfast" ? "07:30" : meal.type === "lunch" ? "12:00" : "18:30";
+                                            return {
+                                              kind: "meal" as const,
+                                              meal,
+                                              time: meal.time || defTime,
+                                              minutes: parseTimeToMinutes(meal.time || defTime),
+                                            };
+                                          }),
+                                        ];
+
+                                        items.sort((a, b) => a.minutes - b.minutes);
+
+                                        if (items.length === 0) {
+                                          return (
+                                            <div className="p-3 border border-dashed border-[#CBD5E1] rounded-xl text-center text-xs text-gray-400 bg-gray-50">
+                                              Chưa có lịch trình cho Ngày {d.day}.
                                             </div>
-                                            {(m.alternativeMeals || []).length > 0 && (
-                                              <div className="p-2 space-y-1 bg-[#F0F9FF]/40">
-                                                {(m.alternativeMeals || []).map((alt, ai) => (
-                                                  <div key={ai} className="flex items-center justify-between p-1.5 rounded bg-white border border-gray-100 text-[10px]">
-                                                    <span className="font-medium text-gray-800">{alt.restaurantName}</span>
-                                                    <span className={`font-bold ${alt.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
-                                                      {alt.priceDifference > 0 ? "+" : ""}{formatVND(alt.priceDifference)}
+                                          );
+                                        }
+
+                                        return items.map((tItem, idx) => {
+                                          if (tItem.kind === "location") {
+                                            const { loc, time } = tItem;
+                                            return (
+                                              <div key={loc.id || `loc-${idx}`} className="relative flex items-start gap-2.5">
+                                                <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                                    <Clock className="w-3 h-3 text-blue-500" />
+                                                    {time}
+                                                  </span>
+                                                </div>
+                                                <div className="relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 border-blue-400 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                  <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                                                </div>
+                                                <div className="flex-1 flex items-center justify-between p-2.5 rounded-xl border border-[#CBD5E1] bg-white shadow-2xs">
+                                                  <div className="flex items-center gap-2 text-xs">
+                                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+                                                      Điểm đến
+                                                    </span>
+                                                    <span className="font-semibold text-gray-900">{loc.name}</span>
+                                                  </div>
+                                                  <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-[#CBD5E1] font-medium">
+                                                    Tùy chọn thay đổi
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            );
+                                          } else {
+                                            const { meal, time } = tItem;
+                                            const mealType = meal.type;
+                                            const label = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                                            const isBreakfast = mealType === "breakfast";
+                                            const isLunch = mealType === "lunch";
+
+                                            return (
+                                              <div key={meal.id || `meal-${idx}`} className="relative flex items-start gap-2.5">
+                                                <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono border shadow-2xs ${
+                                                    isBreakfast
+                                                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                                                      : isLunch
+                                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                      : "bg-purple-50 text-purple-700 border-purple-200"
+                                                  }`}>
+                                                    <Clock className="w-3 h-3" />
+                                                    {time}
+                                                  </span>
+                                                </div>
+                                                <div className={`relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 flex items-center justify-center flex-shrink-0 shadow-2xs ${
+                                                  isBreakfast
+                                                    ? "border-amber-400 text-amber-600"
+                                                    : isLunch
+                                                    ? "border-emerald-500 text-emerald-600"
+                                                    : "border-[#F97316] text-[#EA580C]"
+                                                }`}>
+                                                  {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                                </div>
+                                                <div className={`flex-1 border rounded-xl overflow-hidden bg-white shadow-2xs ${
+                                                  isBreakfast ? "border-amber-200" : isLunch ? "border-emerald-200" : "border-purple-200"
+                                                }`}>
+                                                  <div className={`p-2.5 flex items-center justify-between border-b border-gray-100 ${
+                                                    isBreakfast ? "bg-amber-50/50" : isLunch ? "bg-emerald-50/50" : "bg-[#F0F9FF]/50"
+                                                  }`}>
+                                                    <div className="flex items-center gap-2">
+                                                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border ${
+                                                        isBreakfast
+                                                          ? "bg-amber-100 text-amber-800 border-amber-300"
+                                                          : isLunch
+                                                          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                                          : "bg-[#F97316]/15 text-[#EA580C] border-purple-300"
+                                                      }`}>
+                                                        {label}
+                                                      </span>
+                                                      <span className="font-semibold text-gray-900 text-xs">
+                                                        {meal.serviceName}
+                                                      </span>
+                                                    </div>
+                                                    <span className="text-[10px] bg-white border border-[#CBD5E1] px-2 py-0.5 rounded text-gray-600 font-medium">
+                                                      {(meal.alternativeMeals || []).length > 0 ? `${(meal.alternativeMeals || []).length + 1} phương án ẩm thực` : "Tiêu chuẩn: 0đ"}
                                                     </span>
                                                   </div>
-                                                ))}
+                                                  {(meal.alternativeMeals || []).length > 0 && (
+                                                    <div className="p-2 space-y-1 bg-[#F0F9FF]/40 text-[11px]">
+                                                      {(meal.alternativeMeals || []).map((alt, ai) => (
+                                                        <div key={ai} className="flex items-center justify-between p-1.5 rounded bg-white border border-gray-100">
+                                                          <span className="font-medium text-gray-800">{alt.serviceName}</span>
+                                                          <span className={`font-bold ${alt.priceDifference > 0 ? "text-amber-700" : "text-emerald-600"}`}>
+                                                            {alt.priceDifference > 0 ? "+" : ""}{formatVND(alt.priceDifference)}/người
+                                                          </span>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
+                                            );
+                                          }
+                                        });
+                                      })()}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -5898,82 +6080,190 @@ export function TourFormPage(props: TourFormPageProps) {
                                     </button>
 
                                     {isOpen && (
-                                      <div className="px-4 py-3.5 space-y-3 bg-white">
+                                      <div className="px-4 py-3.5 space-y-4 bg-white">
                                         {d.description && (
-                                          <p className="text-gray-700 leading-relaxed text-xs">{d.description}</p>
+                                          <p className="text-gray-700 leading-relaxed text-xs bg-[#F0F9FF] p-3 rounded-xl border border-blue-100">
+                                            {d.description}
+                                          </p>
                                         )}
 
-                                        {/* Pure locations list (No detailed addresses) */}
-                                        {d.locations.length > 0 && (
-                                          <div className="space-y-1.5">
-                                            {d.locations.map((loc) => (
-                                              <div key={loc.id} className="flex items-center justify-between text-xs text-gray-700">
-                                                <div className="flex items-center gap-2">
-                                                  <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                                                  <span className="font-medium text-gray-900">{loc.name}</span>
-                                                </div>
-                                                {loc.createdByCompanyName && (
-                                                  <span className="text-[10px] text-gray-500 bg-gray-100 border border-[#CBD5E1] px-1.5 py-0.2 rounded">
-                                                    Tạo bởi: {loc.createdByCompanyName}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-
-                                        {/* Chế độ ẩm thực & Bữa ăn (Chỗ ăn) trong ngày */}
-                                        {d.meals && d.meals.length > 0 && (
-                                          <div className="pt-3 border-t border-gray-100 space-y-2">
-                                            <h5 className="text-[11px] font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
-                                              <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                                              Chế độ ẩm thực &amp; Bữa ăn (Chỗ ăn)
+                                        {/* LỊCH TRÌNH CHI TIẾT & BỮA ĂN TRONG NGÀY (UNIFIED TIMELINE THEO KHUNG GIỜ) */}
+                                        <div className="space-y-2">
+                                          <div className="flex items-center justify-between">
+                                            <h5 className="text-[11px] font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                                              <Clock className="w-3.5 h-3.5 text-[#F97316]" />
+                                              Lịch trình chi tiết &amp; Bữa ăn trong ngày {d.day}
                                             </h5>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                              {d.meals.map((meal, mIdx) => {
-                                                const mealType = meal.type;
-                                                const label = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
-                                                const isBreakfast = mealType === "breakfast";
-                                                const isLunch = mealType === "lunch";
-                                                return (
-                                                  <div
-                                                    key={mIdx}
-                                                    className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
-                                                      isBreakfast
-                                                        ? "bg-amber-50/60 border-amber-200/80"
-                                                        : isLunch
-                                                        ? "bg-emerald-50/60 border-emerald-200/80"
-                                                        : "bg-[#F0F9FF]/60 border-[#F97316]/30/80"
-                                                    }`}
-                                                  >
-                                                    <div
-                                                      className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                        isBreakfast
-                                                          ? "bg-amber-100 text-amber-700"
-                                                          : isLunch
-                                                          ? "bg-emerald-100 text-emerald-700"
-                                                          : "bg-[#F97316]/15 text-[#EA580C]"
-                                                      }`}
-                                                    >
-                                                      {isBreakfast ? <Sun className="w-3 h-3" /> : <Utensils className="w-3 h-3 text-emerald-600" />}
+                                            <span className="text-[10px] text-gray-500">Sắp xếp theo thứ tự khung giờ trong ngày</span>
+                                          </div>
+
+                                          <div className="relative pl-1 pt-1">
+                                            {/* Đường trục dọc timeline liên tục */}
+                                            <div className="absolute left-[95px] top-3 bottom-3 w-0.5 bg-gray-200" />
+
+                                            <div className="space-y-3">
+                                              {(() => {
+                                                type UnifiedItem =
+                                                  | { kind: "location"; loc: (typeof d.locations)[0]; minutes: number; time: string }
+                                                  | { kind: "meal"; meal: (typeof d.meals)[0]; minutes: number; time: string };
+
+                                                const items: UnifiedItem[] = [
+                                                  ...(d.locations || []).map((loc) => ({
+                                                    kind: "location" as const,
+                                                    loc,
+                                                    time: loc.time || "08:30",
+                                                    minutes: parseTimeToMinutes(loc.time || "08:30"),
+                                                  })),
+                                                  ...(d.meals || []).map((meal) => {
+                                                    const defTime = meal.type === "breakfast" ? "07:30" : meal.type === "lunch" ? "12:00" : "18:30";
+                                                    return {
+                                                      kind: "meal" as const,
+                                                      meal,
+                                                      time: meal.time || defTime,
+                                                      minutes: parseTimeToMinutes(meal.time || defTime),
+                                                    };
+                                                  }),
+                                                ];
+
+                                                items.sort((a, b) => a.minutes - b.minutes);
+
+                                                if (items.length === 0) {
+                                                  return (
+                                                    <div className="p-3 border border-dashed border-[#CBD5E1] rounded-xl text-center text-xs text-gray-400 bg-gray-50">
+                                                      Chưa có điểm tham quan hoặc bữa ăn nào cho Ngày {d.day}.
                                                     </div>
-                                                    <div className="min-w-0">
-                                                      <p className="text-[11px] font-bold text-gray-900">{label}</p>
-                                                      <p className="text-xs text-gray-800 font-semibold truncate">
-                                                        {meal.serviceName || "Nhà hàng theo chương trình"}
-                                                      </p>
-                                                      {meal.description && (
-                                                        <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
-                                                          {meal.description}
-                                                        </p>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                );
-                                              })}
+                                                  );
+                                                }
+
+                                                return items.map((tItem, idx) => {
+                                                  if (tItem.kind === "location") {
+                                                    const { loc, time } = tItem;
+                                                    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name + (destination ? " " + destination : ""))}`;
+
+                                                    return (
+                                                      <div key={loc.id || `loc-${idx}`} className="relative flex items-start gap-2.5">
+                                                        {/* Time pill */}
+                                                        <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                                            <Clock className="w-3 h-3 text-blue-500" />
+                                                            {time}
+                                                          </span>
+                                                        </div>
+
+                                                        {/* Dot on line */}
+                                                        <div className="relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 border-blue-400 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                                          <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                                                        </div>
+
+                                                        {/* Location card */}
+                                                        <div className="flex-1 border border-[#CBD5E1] rounded-xl p-2.5 bg-white shadow-2xs hover:border-blue-300 transition-colors">
+                                                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                                                            <div className="flex items-center gap-2">
+                                                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+                                                                Tham quan
+                                                              </span>
+                                                              <span className="font-semibold text-gray-900 text-xs sm:text-sm">{loc.name}</span>
+                                                            </div>
+                                                            <a
+                                                              href={mapsUrl}
+                                                              target="_blank"
+                                                              rel="noopener noreferrer"
+                                                              className="text-[11px] text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition-colors"
+                                                            >
+                                                              <MapPin className="w-3 h-3" />
+                                                              Bản đồ
+                                                            </a>
+                                                          </div>
+                                                          {loc.createdByCompanyName && (
+                                                            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                                                              <Building2 className="w-3 h-3 text-gray-400" />
+                                                              Tạo bởi: {loc.createdByCompanyName}
+                                                            </p>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  } else {
+                                                    const { meal, time } = tItem;
+                                                    const mealType = meal.type;
+                                                    const mealLabel = mealType === "breakfast" ? "Ăn sáng" : mealType === "lunch" ? "Ăn trưa" : "Ăn tối";
+                                                    const isBreakfast = mealType === "breakfast";
+                                                    const isLunch = mealType === "lunch";
+
+                                                    return (
+                                                      <div key={meal.id || `meal-${idx}`} className="relative flex items-start gap-2.5">
+                                                        {/* Time pill */}
+                                                        <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-1.5">
+                                                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono border shadow-2xs ${
+                                                            isBreakfast
+                                                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                                                              : isLunch
+                                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                              : "bg-purple-50 text-purple-700 border-purple-200"
+                                                          }`}>
+                                                            <Clock className="w-3 h-3" />
+                                                            {time}
+                                                          </span>
+                                                        </div>
+
+                                                        {/* Dot on line */}
+                                                        <div className={`relative z-10 w-7 h-7 mt-1 rounded-full bg-white border-2 flex items-center justify-center flex-shrink-0 shadow-2xs ${
+                                                          isBreakfast
+                                                            ? "border-amber-400 text-amber-600"
+                                                            : isLunch
+                                                            ? "border-emerald-500 text-emerald-600"
+                                                            : "border-[#F97316] text-[#EA580C]"
+                                                        }`}>
+                                                          {isBreakfast ? <Sun className="w-3.5 h-3.5" /> : <Utensils className="w-3.5 h-3.5" />}
+                                                        </div>
+
+                                                        {/* Meal card */}
+                                                        <div className={`flex-1 border rounded-xl p-2.5 bg-white shadow-2xs ${
+                                                          isBreakfast
+                                                            ? "border-amber-200 bg-amber-50/20"
+                                                            : isLunch
+                                                            ? "border-emerald-200 bg-emerald-50/20"
+                                                            : "border-purple-200 bg-purple-50/20"
+                                                        }`}>
+                                                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                                                            <div className="flex items-center gap-2">
+                                                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border ${
+                                                                isBreakfast
+                                                                  ? "bg-amber-100 text-amber-800 border-amber-300"
+                                                                  : isLunch
+                                                                  ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                                                  : "bg-[#F97316]/15 text-[#EA580C] border-purple-300"
+                                                              }`}>
+                                                                {mealLabel}
+                                                              </span>
+                                                              <span className="font-semibold text-gray-900 text-xs sm:text-sm">{meal.serviceName || "Nhà hàng theo chương trình"}</span>
+                                                            </div>
+                                                            {meal.alternativeMeals && meal.alternativeMeals.length > 0 && (
+                                                              <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                                                                +{meal.alternativeMeals.length} phương án ẩm thực
+                                                              </span>
+                                                            )}
+                                                          </div>
+                                                          {meal.description && (
+                                                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                                                              {meal.description}
+                                                            </p>
+                                                          )}
+                                                          {meal.createdByCompanyName && (
+                                                            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+                                                              <Building2 className="w-3 h-3 text-gray-400" />
+                                                              Tạo bởi: {meal.createdByCompanyName}
+                                                            </p>
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  }
+                                                });
+                                              })()}
                                             </div>
                                           </div>
-                                        )}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
