@@ -80,7 +80,7 @@ import * as XLSX from "xlsx";
 import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "@/app/components/ui/popover";
 import { mockUsers, mockServices } from "@/app/data/mockData";
-import { ProviderServiceDetailPage } from "@/app/components/provider/ProviderServiceDetailPage";
+import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
 import { ProviderProfileModal } from "./ProviderProfileModal";
 import {
   Dialog,
@@ -5958,31 +5958,20 @@ export function AgencyBookingDetailPage({
       </Dialog>
 
       {/* MODAL: XEM BÀI VIẾT CHI TIẾT & BẢN ĐỒ DỊCH VỤ PROVIDER */}
-      {viewingServiceId && (
-        <Dialog open={true} onOpenChange={() => setViewingServiceId(null)}>
-          <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto p-0 rounded-2xl bg-white border border-gray-100 shadow-2xl">
-            <div className="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between sticky top-0 z-20">
-              <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5 px-2">
-                <Eye className="w-4 h-4 text-[#075985]" />
-                Chi tiết bài viết &amp; Bản đồ dịch vụ đối tác (Xem trước góc nhìn Agency)
-              </span>
-              <button
-                type="button"
-                onClick={() => setViewingServiceId(null)}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <ProviderServiceDetailPage
-              serviceId={viewingServiceId}
-              service={mockServices.find((s) => s.id === viewingServiceId)}
-              isAgencyView={true}
-              onBack={() => setViewingServiceId(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
+      {viewingServiceId && (() => {
+        const targetService =
+          mockServices.find((s) => s.id === viewingServiceId || s.providerId === viewingServiceId) ||
+          mockServices.find((s) => (s.name.toLowerCase().includes(viewingServiceId.toLowerCase()) || viewingServiceId.toLowerCase().includes(s.name.toLowerCase()))) ||
+          mockServices[0];
+
+        return (
+          <ServiceBlogDetailModal
+            service={targetService}
+            isOpen={Boolean(viewingServiceId)}
+            onClose={() => setViewingServiceId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
