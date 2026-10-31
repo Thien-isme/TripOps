@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Booking, BookingPassenger, PaymentRequest, TourContract, CustomLocationChange, CustomHotelChange, CustomMealChange, SystemBankAccount } from "@/app/types";
-import { defaultSystemBankAccount } from "@/app/data/mockData";
+import { defaultSystemBankAccount, mockServices } from "@/app/data/mockData";
+import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
 import {
   ArrowLeft,
   Calendar,
@@ -39,6 +40,8 @@ import {
   Edit,
   Flag,
   History,
+  Eye,
+  Navigation,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -81,6 +84,17 @@ const paymentStatusMap: Record<string, { label: string; color: string }> = {
 function formatVND(n: number) {
   return n.toLocaleString("vi-VN") + "đ";
 }
+
+function parseTimeToMinutes(timeStr?: string): number {
+  if (!timeStr) return 9999;
+  const clean = timeStr.trim().toLowerCase();
+  const match = clean.match(/(\d{1,2})(?:[:h](\d{0,2}))?/i);
+  if (!match) return 9999;
+  const hours = parseInt(match[1], 10);
+  const mins = match[2] ? parseInt(match[2], 10) : 0;
+  return hours * 60 + mins;
+}
+
 
 function calculateAge(dobStr?: string, refDateStr?: string): number | null {
   if (!dobStr) return null;
@@ -192,6 +206,7 @@ export function UserBookingDetailPage({
   };
 
   const [showPassengerModal, setShowPassengerModal] = useState(false);
+  const [selectedServiceBlog, setSelectedServiceBlog] = useState<any | null>(null);
   const [editingPassenger, setEditingPassenger] = useState<BookingPassenger | null>(null);
   const [pFullName, setPFullName] = useState("");
   const [pDob, setPDob] = useState("1995-01-01");
@@ -1167,168 +1182,312 @@ export function UserBookingDetailPage({
                             </p>
                           )}
 
-                          {/* Locations timeline */}
-                          <div className="relative pl-1">
-                            <div className="absolute left-3.5 top-2 bottom-2 w-0.5 bg-gray-200" />
+                          {/* Unified Locations & Meals Timeline */}
+                          {(() => {
+                            type UnifiedItem =
+                              | {
+                                  kind: "location";
+                                  key: string;
+                                  time: string;
+                                  minutes: number;
+                                  loc: any;
+                                }
+                              | {
+                                  kind: "meal";
+                                  key: string;
+                                  time: string;
+                                  minutes: number;
+                                  meal: any;
+                                };
 
-                            <div className="space-y-2.5">
-                              {day.locations && day.locations.length > 0 ? (
-                                day.locations.map((loc, lIdx) => {
-                                  const locChange = booking.locationChanges?.find(
-                                    (lc) =>
-                                      (lc.dayId === day.id || lc.dayNumber === day.day) &&
-                                      (lc.locationId === loc.id ||
-                                        (lc.originalLocationName && lc.originalLocationName.toLowerCase() === loc.name.toLowerCase()) ||
-                                        (lc.originalLocations && lc.originalLocations.some((orig) => orig.toLowerCase() === loc.name.toLowerCase())))
-                                  );
-                                  const isLocChanged = Boolean(locChange);
+                            const timelineItems: UnifiedItem[] = [
+                              ...(day.locations || []).map((loc, lIdx) => {
+                                const time = loc.time || "08:30";
+                                return {
+                                  kind: "location" as const,
+                                  key: loc.id || `loc-${lIdx}`,
+                                  time,
+                                  minutes: parseTimeToMinutes(time),
+                                  loc,
+                                };
+                              }),
+                              ...(day.meals || []).map((meal, mIdx) => {
+                                const defTime = meal.type === "breakfast" ? "07:30" : meal.type === "lunch" ? "12:00" : "18:30";
+                                const time = meal.time || defTime;
+                                return {
+                                  kind: "meal" as const,
+                                  key: meal.id || `meal-${mIdx}`,
+                                  time,
+                                  minutes: parseTimeToMinutes(time),
+                                  meal,
+                                };
+                              }),
+                            ];
 
-                                  return (
-                                    <div key={loc.id || lIdx} className="relative flex items-center gap-3">
-                                      {/* Dot */}
-                                      <div
-                                        className={`relative z-10 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border-2 ${
-                                          isLocChanged
-                                            ? "bg-amber-400 border-amber-400 text-white"
-                                            : "bg-white border-blue-400 text-blue-500"
-                                        }`}
-                                      >
-                                        <MapPin className="w-3.5 h-3.5" />
-                                      </div>
+                            timelineItems.sort((a, b) => a.minutes - b.minutes);
 
-                                      {/* Content card */}
-                                      <div
-                                        className={`flex-1 rounded-xl border p-3 ${
-                                          isLocChanged ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between gap-2">
-                                          <div className="flex-1 min-w-0">
-                                            {isLocChanged ? (
-                                              <>
-                                                <p className="text-xs text-gray-400 line-through">{loc.name}</p>
-                                                <p className="text-sm font-medium text-amber-800 mt-0.5">
-                                                  → {locChange?.requestedLocations}
-                                                </p>
-                                                {locChange?.note && (
-                                                  <p className="text-xs text-amber-700 italic mt-0.5">
-                                                    Ghi chú: {locChange.note}
-                                                  </p>
-                                                )}
-                                              </>
-                                            ) : (
-                                              <p className="font-medium text-gray-900 text-sm">{loc.name}</p>
-                                            )}
-                                          </div>
-                                          <span
-                                            className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
-                                              isLocChanged
-                                                ? "bg-amber-100 text-amber-700 border border-amber-300"
-                                                : "bg-gray-100 text-gray-600"
-                                            }`}
-                                          >
-                                            {isLocChanged ? "Đã đổi" : "Theo tour"}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              ) : (
-                                <p className="text-xs text-gray-500 italic pl-8">
+                            if (timelineItems.length === 0) {
+                              return (
+                                <p className="text-xs text-gray-500 italic pl-4 py-2">
                                   Hoạt động tự do hoặc di chuyển theo lịch trình tour.
                                 </p>
-                              )}
-                            </div>
-                          </div>
+                              );
+                            }
 
-                          {/* Day Meals Section */}
-                          {day.meals && day.meals.length > 0 && (
-                            <div className="pt-3 border-t border-gray-100 space-y-2.5">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-                                  <Utensils className="w-3.5 h-3.5 text-emerald-600" />
-                                  Chế độ ẩm thực &amp; Bữa ăn Ngày {day.day}
-                                </span>
-                                <span className="text-[11px] text-gray-400">
-                                  (Có thể đổi nhà hàng hoặc yêu cầu riêng)
-                                </span>
-                              </div>
+                            return (
+                              <div className="relative pl-1">
+                                {/* Continuous vertical timeline axis */}
+                                <div className="absolute left-[95px] top-3 bottom-3 w-0.5 bg-gray-200" />
 
-                              <div className="space-y-2">
-                                {day.meals.map((defaultMeal, mIdx) => {
-                                  const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
-                                  const mealChange = dayMealChanges?.find((mc) => mc.mealType === mealType);
-                                  const isChanged = Boolean(mealChange);
-                                  const mealLabel =
-                                    mealType === "breakfast" ? "Bữa sáng" : mealType === "lunch" ? "Bữa trưa" : "Bữa tối";
+                                <div className="space-y-3">
+                                  {timelineItems.map((item) => {
+                                    if (item.kind === "location") {
+                                      const { loc, time } = item;
+                                      const locChange = booking.locationChanges?.find(
+                                        (lc) =>
+                                          (lc.dayId === day.id || lc.dayNumber === day.day) &&
+                                          (lc.locationId === loc.id ||
+                                            (lc.originalLocationName && lc.originalLocationName.toLowerCase() === loc.name.toLowerCase()) ||
+                                            (lc.originalLocations && lc.originalLocations.some((orig) => orig.toLowerCase() === loc.name.toLowerCase())))
+                                      );
+                                      const isLocChanged = Boolean(locChange);
+                                      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                        (isLocChanged && locChange?.requestedLocations ? locChange.requestedLocations : loc.name) +
+                                        (booking.tour.destination ? " " + booking.tour.destination : "")
+                                      )}`;
 
-                                  return (
-                                    <div
-                                      key={mIdx}
-                                      className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs"
-                                    >
-                                      <div
-                                        className={`w-full flex items-center justify-between px-3.5 py-2.5 transition-colors text-left ${
-                                          mealType === "breakfast"
-                                            ? "bg-amber-50/60"
-                                            : mealType === "lunch"
-                                            ? "bg-emerald-50/60"
-                                            : "bg-[#F0F9FF]/60"
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-2.5 min-w-0">
+                                      return (
+                                        <div key={item.key} className="relative flex items-start gap-2.5">
+                                          {/* Time pill */}
+                                          <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-2">
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                              <Clock className="w-3 h-3 text-blue-500" />
+                                              {time}
+                                            </span>
+                                          </div>
+
+                                          {/* Dot */}
                                           <div
-                                            className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                            className={`relative z-10 flex-shrink-0 mt-1.5 w-7 h-7 rounded-full flex items-center justify-center border-2 shadow-2xs ${
+                                              isLocChanged
+                                                ? "bg-amber-400 border-amber-400 text-white"
+                                                : "bg-white border-blue-400 text-blue-500"
+                                            }`}
+                                          >
+                                            <MapPin className="w-3.5 h-3.5" />
+                                          </div>
+
+                                          {/* Location Card */}
+                                          <div
+                                            className={`flex-1 rounded-xl border p-3 shadow-2xs transition-all ${
+                                              isLocChanged ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
+                                            }`}
+                                          >
+                                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 uppercase tracking-wide">
+                                                    Tham quan
+                                                  </span>
+                                                </div>
+                                                {isLocChanged ? (
+                                                  <>
+                                                    <p className="text-xs text-gray-400 line-through">{loc.name}</p>
+                                                    <p className="text-sm font-medium text-amber-800 mt-0.5">
+                                                      → {locChange?.requestedLocations}
+                                                    </p>
+                                                    {locChange?.note && (
+                                                      <p className="text-xs text-amber-700 italic mt-0.5">
+                                                        Ghi chú: {locChange.note}
+                                                      </p>
+                                                    )}
+                                                  </>
+                                                ) : (
+                                                  <p className="font-medium text-gray-900 text-sm">{loc.name}</p>
+                                                )}
+                                              </div>
+
+                                              <div className="flex items-center gap-2 flex-shrink-0">
+                                                <a
+                                                  href={mapsUrl}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 border border-blue-200"
+                                                >
+                                                  <MapPin className="w-3 h-3 text-blue-500" />
+                                                  <span>Bản đồ</span>
+                                                  <ExternalLink className="w-2.5 h-2.5 text-blue-400" />
+                                                </a>
+                                                <span
+                                                  className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                                                    isLocChanged
+                                                      ? "bg-amber-100 text-amber-700 border border-amber-300"
+                                                      : "bg-gray-100 text-gray-600"
+                                                  }`}
+                                                >
+                                                  {isLocChanged ? "Đã đổi" : "Theo tour"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    } else {
+                                      const defaultMeal = item.meal;
+                                      const { time } = item;
+                                      const mealType = defaultMeal.type as "breakfast" | "lunch" | "dinner";
+                                      const mealChange = dayMealChanges?.find((mc) => mc.mealType === mealType);
+                                      const isChanged = Boolean(mealChange);
+                                      const mealLabel =
+                                        mealType === "breakfast" ? "Bữa sáng" : mealType === "lunch" ? "Bữa trưa" : "Bữa tối";
+
+                                      const linkedService = mealChange?.serviceId
+                                        ? mockServices.find((s) => s.id === mealChange.serviceId)
+                                        : defaultMeal.serviceId
+                                        ? mockServices.find((s) => s.id === defaultMeal.serviceId)
+                                        : mockServices.find((s) => s.category === "food" && (
+                                            (mealChange?.newMealName && s.name.toLowerCase().includes(mealChange.newMealName.toLowerCase())) ||
+                                            (defaultMeal.serviceName && s.name.toLowerCase().includes(defaultMeal.serviceName.toLowerCase()))
+                                          ));
+
+                                      return (
+                                        <div key={item.key} className="relative flex items-start gap-2.5">
+                                          {/* Time pill */}
+                                          <div className="w-[72px] flex-shrink-0 text-right pr-1 pt-2">
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-bold font-mono border shadow-2xs ${
                                               mealType === "breakfast"
-                                                ? "bg-amber-100 text-amber-700"
+                                                ? "bg-amber-50 text-amber-800 border-amber-200"
                                                 : mealType === "lunch"
-                                                ? "bg-emerald-100 text-emerald-700"
-                                                : "bg-[#F97316]/15 text-[#EA580C]"
+                                                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                                : "bg-purple-50 text-[#EA580C] border-purple-200"
+                                            }`}>
+                                              <Clock className={`w-3 h-3 ${
+                                                mealType === "breakfast" ? "text-amber-600" : mealType === "lunch" ? "text-emerald-600" : "text-[#F97316]"
+                                              }`} />
+                                              {time}
+                                            </span>
+                                          </div>
+
+                                          {/* Dot */}
+                                          <div
+                                            className={`relative z-10 flex-shrink-0 mt-1.5 w-7 h-7 rounded-full flex items-center justify-center border-2 shadow-2xs ${
+                                              mealType === "breakfast"
+                                                ? "bg-amber-100 border-amber-400 text-amber-700"
+                                                : mealType === "lunch"
+                                                ? "bg-emerald-100 border-emerald-500 text-emerald-700"
+                                                : "bg-[#F97316]/15 border-purple-500 text-[#EA580C]"
                                             }`}
                                           >
                                             {mealType === "breakfast" ? (
-                                              <Sun className="w-4 h-4" />
+                                              <Sun className="w-3.5 h-3.5" />
                                             ) : mealType === "dinner" ? (
-                                              <UtensilsCrossed className="w-4 h-4" />
+                                              <UtensilsCrossed className="w-3.5 h-3.5" />
                                             ) : (
-                                              <Utensils className="w-4 h-4" />
+                                              <Utensils className="w-3.5 h-3.5" />
                                             )}
                                           </div>
-                                          <div className="min-w-0">
-                                            <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                                              {mealLabel}:{" "}
-                                              <span className="font-bold text-gray-900">
-                                                {isChanged
-                                                  ? mealChange?.newMealName
-                                                  : defaultMeal.serviceName || "Nhà hàng theo tour"}
-                                              </span>
-                                            </p>
-                                            <p className="text-[11px] text-gray-500">
-                                              Mặc định: {defaultMeal.serviceName || "Nhà hàng địa phương"}
-                                            </p>
-                                          </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                          <div className="border border-gray-200 bg-white px-3 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1.5 shadow-2xs">
-                                            {isChanged ? (
-                                              <span className="text-[10px] text-emerald-800 font-bold">
-                                                Đã đổi {mealChange?.priceDifference ? `(+${formatVND(mealChange.priceDifference)})` : ""}
-                                              </span>
-                                            ) : (
-                                              <span>Theo tour (0đ)</span>
-                                            )}
-                                            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                          {/* Meal card */}
+                                          <div
+                                            className={`flex-1 rounded-xl border p-3 shadow-2xs transition-all ${
+                                              isChanged
+                                                ? "border-emerald-300 bg-emerald-50/30"
+                                                : mealType === "breakfast"
+                                                ? "border-amber-200 bg-amber-50/30"
+                                                : mealType === "lunch"
+                                                ? "border-emerald-200 bg-emerald-50/30"
+                                                : "border-purple-200 bg-[#F0F9FF]/40"
+                                            }`}
+                                          >
+                                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                              <div className="flex items-center gap-2.5 min-w-0">
+                                                <div
+                                                  className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                                    mealType === "breakfast"
+                                                      ? "bg-amber-100 text-amber-700"
+                                                      : mealType === "lunch"
+                                                      ? "bg-emerald-100 text-emerald-700"
+                                                      : "bg-[#F97316]/15 text-[#EA580C]"
+                                                  }`}
+                                                >
+                                                  {mealType === "breakfast" ? (
+                                                    <Sun className="w-4 h-4" />
+                                                  ) : mealType === "dinner" ? (
+                                                    <UtensilsCrossed className="w-4 h-4" />
+                                                  ) : (
+                                                    <Utensils className="w-4 h-4" />
+                                                  )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                  <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide border ${
+                                                      mealType === "breakfast"
+                                                        ? "bg-amber-100 text-amber-800 border-amber-300"
+                                                        : mealType === "lunch"
+                                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                                        : "bg-[#F97316]/15 text-[#EA580C] border-purple-300"
+                                                    }`}>
+                                                      {mealLabel}
+                                                    </span>
+                                                    <span className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                                                      {isChanged
+                                                        ? mealChange?.newMealName
+                                                        : defaultMeal.serviceName || "Nhà hàng theo tour"}
+                                                    </span>
+                                                  </div>
+                                                  <p className="text-[11px] text-gray-500">
+                                                    Mặc định: {defaultMeal.serviceName || "Nhà hàng địa phương"}
+                                                  </p>
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center gap-2 flex-shrink-0">
+                                                {isChanged && (mealChange?.isCustom || mealChange?.mode === "custom") ? (
+                                                  <a
+                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                                      mealChange?.newMealName || "Nhà hàng"
+                                                    )}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-xs text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-300 px-2 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 shadow-2xs"
+                                                    title="Tìm quán ăn này trên Google Maps"
+                                                  >
+                                                    <Navigation className="w-3 h-3 text-purple-600" />
+                                                    <span>Google Maps</span>
+                                                    <ExternalLink className="w-2.5 h-2.5 text-purple-400" />
+                                                  </a>
+                                                ) : linkedService ? (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => setSelectedServiceBlog(linkedService)}
+                                                    className="text-xs text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                    title="Xem bài viết quán ăn này"
+                                                  >
+                                                    <Eye className="w-3 h-3 text-indigo-600" />
+                                                    <span>Xem bài viết</span>
+                                                  </button>
+                                                ) : null}
+
+                                                <div className="border border-gray-200 bg-white px-2.5 py-1 rounded-md text-xs text-gray-500 flex items-center gap-1 shadow-2xs">
+                                                  {isChanged ? (
+                                                    <span className="text-[10px] text-emerald-800 font-bold">
+                                                      Đã đổi {mealChange?.priceDifference ? `(+${formatVND(mealChange.priceDifference)})` : ""}
+                                                    </span>
+                                                  ) : (
+                                                    <span>Theo tour (0đ)</span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
+                                      );
+                                    }
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       </div>
                     );
@@ -2257,6 +2416,15 @@ export function UserBookingDetailPage({
           </div>
         </DialogContent>
       </Dialog>
+      {/* Service Blog Detail Modal (Price hidden for Customer) */}
+      {selectedServiceBlog && (
+        <ServiceBlogDetailModal
+          service={selectedServiceBlog}
+          isOpen={Boolean(selectedServiceBlog)}
+          onClose={() => setSelectedServiceBlog(null)}
+          hidePrice={true}
+        />
+      )}
     </div>
   );
 }
