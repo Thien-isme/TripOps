@@ -12,6 +12,7 @@ import { AdminLayout } from "./AdminLayout";
 import { AdminDashboardOverview } from "./AdminDashboardOverview";
 import { AdminFinancialManagement } from "./AdminFinancialManagement";
 import { ServicePostApproval } from "./ServicePostApproval";
+import { AdminServiceApproval } from "./AdminServiceApproval";
 import { ProviderManagement } from "./ProviderManagement";
 import { UserManagement } from "./UserManagement";
 import { PartnerApprovalManagement } from "./PartnerApprovalManagement";
@@ -167,6 +168,17 @@ export function AdminDashboard({
             onUpdateSystemBank={onUpdateSystemBank}
             bookings={bookings}
             onSettleBooking={onSettleBooking}
+          />
+        );
+
+      case "service-approvals":
+      case "approve-services":
+        return (
+          <AdminServiceApproval
+            services={services}
+            onApproveService={onApproveService || (() => {})}
+            onRejectService={onRejectService || (() => {})}
+            onToggleHideService={onToggleHideService}
           />
         );
 

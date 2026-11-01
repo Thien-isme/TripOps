@@ -59,10 +59,15 @@ export function AdminLayout({
       icon: Compass,
     },
     {
+      id: "service-approvals",
+      label: "Phê duyệt Bài đăng",
+      icon: FileCheck,
+      badge: pendingServicesCount > 0 ? pendingServicesCount : undefined,
+    },
+    {
       id: "approve-posts",
       label: "Quản lý Bài đăng",
       icon: FileText,
-      badge: pendingServicesCount > 0 ? pendingServicesCount : undefined,
     },
     {
       id: "refund-requests",

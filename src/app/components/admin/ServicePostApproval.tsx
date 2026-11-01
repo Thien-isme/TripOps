@@ -32,6 +32,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { Textarea } from "@/app/components/ui/textarea";
 import { ServiceBlogDetailModal } from "@/app/components/service/ServiceBlogDetailModal";
+import { AdminServiceDetailPage } from "./AdminServiceDetailPage";
 
 interface ServicePostApprovalProps {
   services: Service[];
@@ -52,6 +53,23 @@ export function ServicePostApproval({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<"all" | "pending" | "approved" | "hidden" | "rejected">("all");
   const [previewModalService, setPreviewModalService] = useState<Service | null>(null);
+  const [selectedServiceDetailId, setSelectedServiceDetailId] = useState<string | null>(null);
+
+  // If viewing dedicated full page
+  if (selectedServiceDetailId) {
+    const currentService = services.find((s) => s.id === selectedServiceDetailId);
+    if (currentService) {
+      return (
+        <AdminServiceDetailPage
+          service={currentService}
+          onBack={() => setSelectedServiceDetailId(null)}
+          onApprove={(id) => onApproveService?.(id)}
+          onReject={(id, reason) => onRejectService?.(id, reason)}
+          onToggleHide={(id, reason) => onToggleHideService?.(id, reason)}
+        />
+      );
+    }
+  }
 
   // Action Dialog States
   const [hidingService, setHidingService] = useState<Service | null>(null);
@@ -519,7 +537,7 @@ export function ServicePostApproval({
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div
-                          onClick={() => setPreviewModalService(service)}
+                          onClick={() => setSelectedServiceDetailId(service.id)}
                           className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0 cursor-pointer shadow-2xs group"
                         >
                           <img
@@ -536,7 +554,7 @@ export function ServicePostApproval({
 
                         <div className="min-w-0 flex-1">
                           <h4
-                            onClick={() => setPreviewModalService(service)}
+                            onClick={() => setSelectedServiceDetailId(service.id)}
                             className="font-bold text-gray-900 text-xs sm:text-sm hover:text-[#075985] cursor-pointer transition-colors truncate max-w-xs"
                             title={service.name}
                           >
@@ -640,7 +658,7 @@ export function ServicePostApproval({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setPreviewModalService(service)}
+                          onClick={() => setSelectedServiceDetailId(service.id)}
                           className="text-xs font-semibold text-[#075985] bg-blue-50/60 hover:bg-blue-100 border-blue-200 h-8 px-2.5 gap-1 shadow-2xs cursor-pointer"
                           title="Xem trước bài viết chi tiết & bản đồ"
                         >
