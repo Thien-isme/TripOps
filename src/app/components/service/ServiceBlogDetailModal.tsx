@@ -30,6 +30,10 @@ interface ServiceBlogDetailModalProps {
   isSelected?: boolean;
   selectButtonText?: string;
   hidePrice?: boolean;
+  isAdmin?: boolean;
+  onApprove?: (service: Service) => void;
+  onReject?: (service: Service) => void;
+  onToggleHide?: (service: Service) => void;
 }
 
 function formatVND(n?: number) {
@@ -45,6 +49,10 @@ export function ServiceBlogDetailModal({
   isSelected = false,
   selectButtonText = "Chọn dịch vụ này cho tour",
   hidePrice = false,
+  isAdmin = false,
+  onApprove,
+  onReject,
+  onToggleHide,
 }: ServiceBlogDetailModalProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"blog" | "map" | "policies">("blog");
@@ -99,6 +107,19 @@ export function ServiceBlogDetailModal({
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               Đã xác minh
             </span>
+            {isAdmin && (
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md border ${
+                service.status === "pending"
+                  ? "bg-amber-100 text-amber-900 border-amber-300"
+                  : service.status === "approved"
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                  : service.status === "hidden"
+                  ? "bg-gray-100 text-gray-700 border-gray-300"
+                  : "bg-rose-100 text-rose-800 border-rose-300"
+              }`}>
+                {service.status === "pending" ? "Chờ phê duyệt" : service.status === "approved" ? "Đã duyệt / Đang hiển thị" : service.status === "hidden" ? "Đã tạm ẩn" : "Đã từ chối"}
+              </span>
+            )}
           </div>
 
           <button
@@ -109,6 +130,77 @@ export function ServiceBlogDetailModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Admin Review Action Bar */}
+        {isAdmin && service.status === "pending" && (
+          <div className="bg-amber-50/90 border-b border-amber-200 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+              <span className="text-xs font-bold text-amber-900">
+                Bài đăng mới của đối tác "{service.providerName}" đang chờ Admin kiểm duyệt để hiển thị công khai trên sàn.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  onApprove?.(service);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Phê duyệt bài đăng
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  onReject?.(service);
+                }}
+                className="border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold text-xs gap-1.5"
+              >
+                <X className="w-3.5 h-3.5" />
+                Từ chối bài đăng
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {isAdmin && service.status === "rejected" && service.rejectionReason && (
+          <div className="bg-rose-50 border-b border-rose-200 px-5 py-2.5 flex items-center justify-between gap-2 text-xs">
+            <span className="text-rose-800">
+              <strong>Lý do từ chối:</strong> {service.rejectionReason}
+            </span>
+            {onApprove && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onApprove(service)}
+                className="text-xs font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 h-7"
+              >
+                Phê duyệt lại
+              </Button>
+            )}
+          </div>
+        )}
+
+        {isAdmin && service.status === "hidden" && (
+          <div className="bg-gray-100 border-b border-gray-200 px-5 py-2.5 flex items-center justify-between gap-2 text-xs">
+            <span className="text-gray-700">
+              <strong>Trạng thái:</strong> Bài đăng đang bị tạm ẩn ({service.hiddenReason || "Theo yêu cầu của quản trị viên"}).
+            </span>
+            {onToggleHide && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onToggleHide(service)}
+                className="text-xs font-semibold text-emerald-700 border-emerald-300 hover:bg-emerald-50 h-7"
+              >
+                Mở lại hiển thị
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-6 flex-1">
@@ -449,6 +541,46 @@ export function ServiceBlogDetailModal({
             >
               Đóng
             </Button>
+
+            {isAdmin && service.status === "pending" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => onReject?.(service)}
+                  className="border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold text-xs sm:text-sm"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Từ chối
+                </Button>
+                <Button
+                  onClick={() => onApprove?.(service)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md"
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  Phê duyệt bài đăng
+                </Button>
+              </>
+            )}
+
+            {isAdmin && service.status === "approved" && onToggleHide && (
+              <Button
+                variant="outline"
+                onClick={() => onToggleHide(service)}
+                className="border-amber-300 text-amber-800 hover:bg-amber-50 font-semibold text-xs sm:text-sm"
+              >
+                Tạm ẩn bài đăng
+              </Button>
+            )}
+
+            {isAdmin && service.status === "hidden" && onToggleHide && (
+              <Button
+                onClick={() => onToggleHide(service)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md"
+              >
+                <Check className="w-4 h-4 mr-1" />
+                Mở lại hiển thị
+              </Button>
+            )}
 
             {onSelect && (
               <Button

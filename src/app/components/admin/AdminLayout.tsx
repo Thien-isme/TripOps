@@ -27,6 +27,7 @@ interface AdminLayoutProps {
   onLogout?: () => void;
   pendingToursCount?: number;
   pendingRefundsCount?: number;
+  pendingServicesCount?: number;
 }
 
 export function AdminLayout({
@@ -36,6 +37,7 @@ export function AdminLayout({
   onLogout,
   pendingToursCount = 0,
   pendingRefundsCount = 0,
+  pendingServicesCount = 0,
 }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -60,6 +62,7 @@ export function AdminLayout({
       id: "approve-posts",
       label: "Quản lý Bài đăng",
       icon: FileText,
+      badge: pendingServicesCount > 0 ? pendingServicesCount : undefined,
     },
     {
       id: "refund-requests",

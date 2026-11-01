@@ -209,6 +209,7 @@ export function AdminDashboard({
       onLogout={onLogout}
       pendingToursCount={pendingToursCount}
       pendingRefundsCount={refundRequests.filter((r) => r.status === "PENDING").length}
+      pendingServicesCount={services.filter((s) => s.status === "pending").length}
     >
       {renderContent()}
     </AdminLayout>
