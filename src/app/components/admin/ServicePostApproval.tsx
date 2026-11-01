@@ -55,7 +55,17 @@ export function ServicePostApproval({
   const [previewModalService, setPreviewModalService] = useState<Service | null>(null);
   const [selectedServiceDetailId, setSelectedServiceDetailId] = useState<string | null>(null);
 
-  // If viewing dedicated full page
+  // Action Dialog States
+  const [hidingService, setHidingService] = useState<Service | null>(null);
+  const [rejectingService, setRejectingService] = useState<Service | null>(null);
+  const [deletingService, setDeletingService] = useState<Service | null>(null);
+  const [viewingReasonService, setViewingReasonService] = useState<Service | null>(null);
+
+  const [hideReason, setHideReason] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [notification, setNotification] = useState<{ type: "success" | "info" | "warning"; message: string } | null>(null);
+
+  // If viewing dedicated full page (MUST be after all hooks!)
   if (selectedServiceDetailId) {
     const currentService = services.find((s) => s.id === selectedServiceDetailId);
     if (currentService) {
@@ -70,16 +80,6 @@ export function ServicePostApproval({
       );
     }
   }
-
-  // Action Dialog States
-  const [hidingService, setHidingService] = useState<Service | null>(null);
-  const [rejectingService, setRejectingService] = useState<Service | null>(null);
-  const [deletingService, setDeletingService] = useState<Service | null>(null);
-  const [viewingReasonService, setViewingReasonService] = useState<Service | null>(null);
-
-  const [hideReason, setHideReason] = useState("");
-  const [rejectReason, setRejectReason] = useState("");
-  const [notification, setNotification] = useState<{ type: "success" | "info" | "warning"; message: string } | null>(null);
 
   // Quick suggestions for Rejecting
   const quickRejectSuggestions = [
