@@ -34,6 +34,7 @@ interface AdminServiceApprovalProps {
   onApproveService: (serviceId: string) => void;
   onRejectService: (serviceId: string, reason: string) => void;
   onToggleHideService?: (serviceId: string, reason?: string) => void;
+  onDeleteService?: (serviceId: string) => void;
 }
 
 export function AdminServiceApproval({
@@ -41,6 +42,7 @@ export function AdminServiceApproval({
   onApproveService,
   onRejectService,
   onToggleHideService,
+  onDeleteService,
 }: AdminServiceApprovalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -90,6 +92,11 @@ export function AdminServiceApproval({
             setTimeout(() => setNotification(null), 4000);
           }}
           onToggleHide={onToggleHideService}
+          onDelete={(id) => {
+            onDeleteService?.(id);
+            setReviewingServiceId(null);
+          }}
+          backTitle="Quay lại danh sách Phê duyệt bài đăng"
         />
       );
     }

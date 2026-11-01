@@ -179,6 +179,7 @@ export function AdminDashboard({
             onApproveService={onApproveService || (() => {})}
             onRejectService={onRejectService || (() => {})}
             onToggleHideService={onToggleHideService}
+            onDeleteService={onDeleteService}
           />
         );
 

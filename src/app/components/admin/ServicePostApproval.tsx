@@ -76,6 +76,11 @@ export function ServicePostApproval({
           onApprove={(id) => onApproveService?.(id)}
           onReject={(id, reason) => onRejectService?.(id, reason)}
           onToggleHide={(id, reason) => onToggleHideService?.(id, reason)}
+          onDelete={(id) => {
+            onDeleteService?.(id);
+            setSelectedServiceDetailId(null);
+          }}
+          backTitle="Quay lại danh sách Quản lý bài đăng"
         />
       );
     }
