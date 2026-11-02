@@ -278,10 +278,6 @@ export function PartnerApprovalManagement({
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#075985]/10 text-[#075985] text-xs font-bold mb-2">
-            <ShieldCheck className="w-4 h-4 text-[#F97316]" />
-            <span>Trung tâm Kiểm duyệt Đối tác Sàn (TripOps Moderation)</span>
-          </div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             Phê duyệt Hồ sơ Doanh nghiệp & Nhà cung cấp
           </h1>
@@ -297,7 +293,6 @@ export function PartnerApprovalManagement({
             </div>
             <div>
               <div className="text-xs font-bold text-amber-950">Có đơn chờ xét duyệt!</div>
-              <div className="text-[11px] text-amber-700">Cần xử lý trong vòng 24h</div>
             </div>
           </div>
         )}
@@ -337,11 +332,6 @@ export function PartnerApprovalManagement({
           </div>
           <div className="text-2xl font-black mt-2 flex items-center gap-2">
             <span>{counts.pending}</span>
-            {counts.pending > 0 && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/25 uppercase font-bold tracking-wider">
-                Mới
-              </span>
-            )}
           </div>
           <div className="text-[11px] mt-1 opacity-80">Hồ sơ đã nộp cần thẩm định</div>
         </div>
@@ -410,7 +400,7 @@ export function PartnerApprovalManagement({
               }`}
             >
               <Store className="w-3.5 h-3.5" />
-              <span>Provider (Dịch vụ)</span>
+              <span>Nhà cung cấp dịch vụ</span>
             </button>
           </div>
         </div>
@@ -461,7 +451,7 @@ export function PartnerApprovalManagement({
                               }`}
                             >
                               {item.type === "agency" ? <Compass className="w-3 h-3" /> : <Store className="w-3 h-3" />}
-                              <span>{item.type === "agency" ? "Agency / Lữ hành" : "Nhà cung cấp"}</span>
+                              <span>{item.type === "agency" ? "Công ty lữ hành" : "Nhà cung cấp dịch vụ"}</span>
                             </span>
                           </div>
                         </div>
