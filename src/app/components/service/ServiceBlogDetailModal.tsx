@@ -30,13 +30,10 @@ interface ServiceBlogDetailModalProps {
   isSelected?: boolean;
   selectButtonText?: string;
   hidePrice?: boolean;
-<<<<<<< HEAD
   isAdmin?: boolean;
   onApprove?: (service: Service) => void;
   onReject?: (service: Service) => void;
   onToggleHide?: (service: Service) => void;
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
 }
 
 function formatVND(n?: number) {
@@ -52,13 +49,10 @@ export function ServiceBlogDetailModal({
   isSelected = false,
   selectButtonText = "Chọn dịch vụ này cho tour",
   hidePrice = false,
-<<<<<<< HEAD
   isAdmin = false,
   onApprove,
   onReject,
   onToggleHide,
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
 }: ServiceBlogDetailModalProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"blog" | "map" | "policies">("blog");
@@ -113,7 +107,6 @@ export function ServiceBlogDetailModal({
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               Đã xác minh
             </span>
-<<<<<<< HEAD
             {isAdmin && (
               <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md border ${
                 service.status === "pending"
@@ -127,8 +120,6 @@ export function ServiceBlogDetailModal({
                 {service.status === "pending" ? "Chờ phê duyệt" : service.status === "approved" ? "Đã duyệt / Đang hiển thị" : service.status === "hidden" ? "Đã tạm ẩn" : "Đã từ chối"}
               </span>
             )}
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
           </div>
 
           <button
@@ -140,7 +131,6 @@ export function ServiceBlogDetailModal({
           </button>
         </div>
 
-<<<<<<< HEAD
         {/* Admin Review Action Bar */}
         {isAdmin && service.status === "pending" && (
           <div className="bg-amber-50/90 border-b border-amber-200 px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
@@ -212,8 +202,6 @@ export function ServiceBlogDetailModal({
           </div>
         )}
 
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
         {/* Scrollable Body */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-6 flex-1">
           {/* Hero Gallery */}
@@ -554,7 +542,6 @@ export function ServiceBlogDetailModal({
               Đóng
             </Button>
 
-<<<<<<< HEAD
             {isAdmin && service.status === "pending" && (
               <>
                 <Button
@@ -595,8 +582,6 @@ export function ServiceBlogDetailModal({
               </Button>
             )}
 
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
             {onSelect && (
               <Button
                 onClick={() => {

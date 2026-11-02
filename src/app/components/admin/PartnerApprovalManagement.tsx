@@ -9,11 +9,7 @@ import {
   Phone,
   Mail,
   MapPin,
-  FileText,
   Search,
-  Filter,
-  ArrowRight,
-  ShieldAlert,
   AlertTriangle,
   ShieldCheck,
   FileCheck,
@@ -23,11 +19,11 @@ import {
   Compass,
   Check,
   X,
-  ChevronRight,
-  HelpCircle,
   Sparkles,
+  RefreshCw,
+  Ban,
+  ShieldAlert,
 } from "lucide-react";
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -53,7 +49,7 @@ export interface UnifiedPartnerItem {
   licenseNumber?: string;
   licenseUrl?: string;
   description?: string;
-  status: "pending" | "approved" | "rejected" | "suspended";
+  status: "pending" | "approved" | "rejected";
   isSuspended?: boolean;
   rejectionReason?: string;
   approvalNote?: string;
@@ -438,7 +434,7 @@ export function PartnerApprovalManagement({
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px] tracking-wider">
                   <th className="py-3.5 px-4">Doanh nghiệp</th>
-                  <th className="py-3.5 px-4">Người đại diện</th>
+                  <th className="py-3.5 px-4">Người đại diệ</th>
                   <th className="py-3.5 px-4">Trụ sở</th>
                   <th className="py-3.5 px-4">Trạng thái</th>
                   <th className="py-3.5 px-4 text-right">Hành động</th>
@@ -465,7 +461,7 @@ export function PartnerApprovalManagement({
                               }`}
                             >
                               {item.type === "agency" ? <Compass className="w-3 h-3" /> : <Store className="w-3 h-3" />}
-                              <span>{item.type === "agency" ? "Công ty lữ hành" : "Nhà cung cấp dịch vụ"}</span>
+                              <span>{item.type === "agency" ? "Agency / Lữ hành" : "Nhà cung cấp"}</span>
                             </span>
                           </div>
                         </div>
@@ -475,6 +471,7 @@ export function PartnerApprovalManagement({
                       <td className="py-4 px-4">
                         <div className="space-y-0.5">
                           <div className="font-bold text-slate-900">{item.representativeName}</div>
+                          
                         </div>
                       </td>
 

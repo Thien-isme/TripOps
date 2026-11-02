@@ -40,11 +40,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { ImageUploadManager } from "../ImageUploadManager";
 import { mockServices } from "@/app/data/mockData";
 
-<<<<<<< HEAD
 export interface ProviderServiceDetailPageProps {
-=======
-interface ProviderServiceDetailPageProps {
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
   service?: Service;
   serviceId?: string;
   onBack: () => void;
@@ -54,12 +50,9 @@ interface ProviderServiceDetailPageProps {
   isAdmin?: boolean;
   isAgencyView?: boolean;
   onToggleHide?: (serviceId: string, reason?: string) => void;
-<<<<<<< HEAD
   onApprove?: (serviceId: string) => void;
   onReject?: (serviceId: string, reason: string) => void;
   backTitle?: string;
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
 }
 
 export function ProviderServiceDetailPage({
@@ -72,12 +65,9 @@ export function ProviderServiceDetailPage({
   isAdmin = false,
   isAgencyView = false,
   onToggleHide,
-<<<<<<< HEAD
   onApprove,
   onReject,
   backTitle,
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
 }: ProviderServiceDetailPageProps) {
   const service = propService || (serviceId ? mockServices.find((s) => s.id === serviceId) : undefined);
 
@@ -100,7 +90,6 @@ export function ProviderServiceDetailPage({
   const [showImageManager, setShowImageManager] = useState(false);
   const [showAdminHideModal, setShowAdminHideModal] = useState(false);
   const [adminHideReason, setAdminHideReason] = useState("");
-<<<<<<< HEAD
   const [showAdminRejectModal, setShowAdminRejectModal] = useState(false);
   const [adminRejectReason, setAdminRejectReason] = useState("");
 
@@ -111,8 +100,6 @@ export function ProviderServiceDetailPage({
     "Thông tin địa chỉ hoặc giấy phép hoạt động chưa đầy đủ / chính xác.",
     "Nội dung mô tả sơ sài, sao chép hoặc chứa thông tin nhảm nhí.",
   ];
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
 
   const quickReasonSuggestions = [
     "Thông tin dịch vụ sai lệch, nhảm nhí không đúng thực tế.",
@@ -131,16 +118,6 @@ export function ProviderServiceDetailPage({
             Đã tạm ẩn trên sàn (Xàm / Vi phạm)
           </span>
         );
-<<<<<<< HEAD
-=======
-      case "approved":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            {isAdmin ? "Đang hiển thị công khai trên sàn" : "Đã phê duyệt (Đang hoạt động)"}
-          </span>
-        );
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
       case "rejected":
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200">
@@ -149,7 +126,6 @@ export function ProviderServiceDetailPage({
           </span>
         );
       case "pending":
-<<<<<<< HEAD
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
             <Clock className="w-3.5 h-3.5 text-amber-600" />
@@ -157,17 +133,11 @@ export function ProviderServiceDetailPage({
           </span>
         );
       case "approved":
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-<<<<<<< HEAD
             {isAdmin ? "Đang hiển thị công khai trên sàn" : "Đã phê duyệt (Đang hoạt động)"}
-=======
-            Đang hiển thị công khai
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
           </span>
         );
     }
@@ -239,19 +209,11 @@ export function ProviderServiceDetailPage({
             className="rounded-xl border-gray-200 hover:bg-gray-100 text-gray-700 font-medium text-xs sm:text-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-1.5" />
-<<<<<<< HEAD
             {backTitle || (isAgencyView ? "Quay lại thiết kế tour" : isAdmin ? "Quay lại danh sách" : "Quay lại bảng dịch vụ")}
           </Button>
           <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
             <span>/</span>
             <span>{isAdmin ? "Kiểm duyệt & Giám sát bài đăng" : "Dịch vụ"}</span>
-=======
-            {isAgencyView ? "Quay lại thiết kế tour" : isAdmin ? "Quay lại danh sách Quản lý Bài đăng" : "Quay lại bảng dịch vụ"}
-          </Button>
-          <div className="hidden md:flex items-center gap-2 text-xs text-gray-400">
-            <span>/</span>
-            <span>{isAdmin ? "Giám sát bài đăng" : "Dịch vụ"}</span>
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
             <span>/</span>
             <span className="text-gray-700 font-medium truncate max-w-[200px]">
               {service.name}
@@ -270,7 +232,6 @@ export function ProviderServiceDetailPage({
             </div>
           ) : isAdmin ? (
             <>
-<<<<<<< HEAD
               {service.status === "pending" ? (
                 <>
                   <Button
@@ -310,9 +271,6 @@ export function ProviderServiceDetailPage({
                   Phê duyệt lại bài đăng
                 </Button>
               ) : service.status === "hidden" ? (
-=======
-              {service.status === "hidden" ? (
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
                 <Button
                   size="sm"
                   onClick={() => onToggleHide?.(service.id)}
@@ -415,7 +373,6 @@ export function ProviderServiceDetailPage({
 
       {/* Rejection / Moderation Status Banner */}
       {service.status === "rejected" && (
-<<<<<<< HEAD
         <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
@@ -454,33 +411,10 @@ export function ProviderServiceDetailPage({
               Sửa & Gửi lại
             </Button>
           )}
-=======
-        <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-start gap-3.5">
-          <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h4 className="font-bold text-rose-900 text-sm">
-              Bài đăng bị từ chối kiểm duyệt
-            </h4>
-            <p className="text-xs text-rose-700 mt-1">
-              <strong>Lý do từ Admin:</strong> {service.rejectionReason || "Thông tin dịch vụ chưa đầy đủ hoặc không đạt tiêu chuẩn."}
-            </p>
-            <p className="text-xs text-rose-600 mt-1">
-              Vui lòng bấm nút <strong>Chỉnh sửa</strong> ở trên để cập nhật lại thông tin theo yêu cầu và gửi duyệt lại.
-            </p>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => onEdit?.(service)}
-            className="bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-xl flex-shrink-0"
-          >
-            Sửa & Gửi lại
-          </Button>
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
         </div>
       )}
 
       {service.status === "pending" && (
-<<<<<<< HEAD
         <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center flex-shrink-0 text-amber-700">
@@ -525,13 +459,6 @@ export function ProviderServiceDetailPage({
               </Button>
             </div>
           )}
-=======
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3">
-          <Clock className="w-5 h-5 text-amber-600 flex-shrink-0" />
-          <div className="text-xs text-amber-800">
-            <strong>Bài đăng đang chờ Admin xét duyệt:</strong> Dịch vụ sẽ tự động kích hoạt và có thể được các công ty lữ hành tích hợp vào tour ngay sau khi được phê duyệt.
-          </div>
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
         </div>
       )}
 
@@ -942,7 +869,6 @@ export function ProviderServiceDetailPage({
               </div>
             ) : isAdmin ? (
               <div className="space-y-2">
-<<<<<<< HEAD
                 {service.status === "pending" ? (
                   <>
                     <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
@@ -1033,34 +959,6 @@ export function ProviderServiceDetailPage({
                       Tạm ẩn bài đăng (Xàm / Vi phạm)
                     </Button>
                   </>
-=======
-                <div className="p-2.5 bg-[#F0F9FF] border border-[#CBD5E1] rounded-xl text-xs text-blue-900">
-                  <p className="font-semibold flex items-center gap-1.5 text-blue-950 mb-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#075985]" /> Giám sát bài đăng (Admin)
-                  </p>
-                  <p className="text-[11px] text-[#075985] leading-relaxed">
-                    Bạn đang xem toàn bộ thông tin bài đăng dịch vụ do nhà cung cấp đăng tải.
-                  </p>
-                </div>
-
-                {service.status === "hidden" ? (
-                  <Button
-                    onClick={() => onToggleHide?.(service.id)}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs"
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                    Mở hiển thị lại bài đăng
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAdminHideModal(true)}
-                    className="w-full border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold"
-                  >
-                    <EyeOff className="w-4 h-4 mr-1.5 text-amber-600" />
-                    Tạm ẩn bài đăng (Xàm / Vi phạm)
-                  </Button>
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
                 )}
 
                 <Button
@@ -1202,7 +1100,6 @@ export function ProviderServiceDetailPage({
           </DialogContent>
         </Dialog>
       )}
-<<<<<<< HEAD
 
       {/* Admin Reject Service Modal */}
       {isAdmin && (
@@ -1280,8 +1177,6 @@ export function ProviderServiceDetailPage({
           </DialogContent>
         </Dialog>
       )}
-=======
->>>>>>> fa1a2f7b (feat: update logic cho man hinh verify partner)
     </div>
   );
 }
